@@ -182,7 +182,8 @@ public final class QuasarComputerApi {
     public static Map<String, Object> buffer(MTEQuasarEngine m) {
         final double s = m.getBufferSeconds();
         final Map<String, Object> out = new LinkedHashMap<>();
-        out.put("litres", m.buffer(MTEQuasarEngine.gasFluid(m.getGas())));
+        out.put("litres", m.bufferShown());
+        out.put("stored", m.buffer(MTEQuasarEngine.gasFluid(m.getGas())));
         out.put("cap", m.bufferCap());
         out.put("seconds", Double.isInfinite(s) ? -1 : s);
         out.put("feedShort", s < QuasarParams.FEED_SHORT_SECONDS);
@@ -199,8 +200,8 @@ public final class QuasarComputerApi {
         out.put("available", m.getLatticeInForce() >= QuasarParams.LATTICE_OVERDRIVE);
         out.put("upkeepEach", r.overdriveNeed);
         out.put("coverage", r.overdriveCoverage);
-        out.put("mhdcsm", r.mhdcsmLitres);
-        out.put("universium", r.universiumLitres);
+        out.put("espm", r.mhdcsmLitres);
+        out.put("hsm", r.universiumLitres);
         out.put("oEff", r.oEff);
         out.put("outputX", r.outputX);
         out.put("bursts", m.state().G);

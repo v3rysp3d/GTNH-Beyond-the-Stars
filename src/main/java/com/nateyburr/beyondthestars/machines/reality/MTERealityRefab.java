@@ -110,6 +110,7 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
     // ---- per tick (not persisted)
     private boolean stalled;
     private String wait = "";
+    private long lastRelink = Long.MIN_VALUE / 2;
     private int slowdowns;
 
     public MTERealityRefab(int aID, String aName, String aNameRegional) {
@@ -240,10 +241,20 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
         final int z = base.getZCoord();
         TileEntity best = null;
         long bestD = (long) LINK_RANGE * LINK_RANGE + 1;
-        for (Object o : new ArrayList<Object>(world.loadedTileEntityList)) {
-            if (!(o instanceof IGregTechTileEntity)) continue;
-            if (!(((IGregTechTileEntity) o).getMetaTileEntity() instanceof MTEBECAssembler)) continue;
-            final TileEntity te = (TileEntity) o;
+        // QA-B41: only the loaded chunks within range, not a copy of the world's whole tile-entity list
+        final List<TileEntity> near = new ArrayList<>();
+        for (int cx = (x - LINK_RANGE) >> 4; cx <= (x + LINK_RANGE) >> 4; cx++) {
+            for (int cz = (z - LINK_RANGE) >> 4; cz <= (z + LINK_RANGE) >> 4; cz++) {
+                if (!world.getChunkProvider()
+                    .chunkExists(cx, cz)) continue;
+                for (Object o : world.getChunkFromChunkCoords(cx, cz).chunkTileEntityMap.values()) {
+                    if (o instanceof TileEntity) near.add((TileEntity) o);
+                }
+            }
+        }
+        for (TileEntity te : near) {
+            if (!(te instanceof IGregTechTileEntity) || te.isInvalid()) continue;
+            if (!(((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEBECAssembler)) continue;
             final long dx = te.xCoord - x;
             final long dy = te.yCoord - y;
             final long dz = te.zCoord - z;
@@ -267,6 +278,12 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
     private MTEBECAssembler runningAssembler() {
         final MTEBECAssembler a = assembler();
         return a != null && a.mMachine && a.mMaxProgresstime > 0 ? a : null;
+    }
+
+    /** QA-B44: a stopped Refab (power, the soft mallet) no longer shows the old "Waiting:" reason. */
+    @Override
+    protected void onStopped() {
+        wait = "";
     }
 
     @Override
@@ -347,7 +364,12 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.nonetwork");
         }
         if (runningAssembler() == null) {
-            if (assembler() == null) relink();
+            // QA-B41: at most one search every 5 s (an idle machine checks its recipe every second)
+            final IGregTechTileEntity b = getBaseMetaTileEntity();
+            if (assembler() == null && b != null && b.getTimer() - lastRelink >= 100) {
+                lastRelink = b.getTimer();
+                relink();
+            }
             if (runningAssembler() == null) {
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.noassembler");
             }
@@ -642,6 +664,7 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
     public List<String> statusLines() {
         final List<String> out = new ArrayList<>();
         out.add("Reality Refab" + (mMachine ? "" : ", NOT FORMED"));
+        if (!structurePauseNote().isEmpty()) out.add(structurePauseNote());
         out.add(networkLine());
         out.add(linkLine());
         out.add(

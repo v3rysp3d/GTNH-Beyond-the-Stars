@@ -80,9 +80,9 @@ public final class QuasarRecipeMaps {
                         "Coils: 2 A UXV x b squared",
                         "Two jets, half the stream each",
                         "Crown: 1 Bu/t = 10^13 EU/t",
-                        "Maxed 4,096 SM: about 9,796",
+                        "At 4,096 SM: about 9,796",
                         "  Bu/t = 9.8e16 EU/t (98",
-                        "  quadrillion)",
+                        "  quadrillion; a lattice: up to x100)",
                         "Display only - not a recipe")
                     .addTo(QUASAR);
             });
@@ -105,7 +105,7 @@ public final class QuasarRecipeMaps {
                         "EU goes to your wireless",
                         "  network: no dynamo hatch",
                         PETALS[m] + (m == 4 ? " Radiator Petals, Event" : " Radiator Petals"),
-                        m == 4 ? "  Horizon Thermaliser core" : "  (Thermaliser Core inside)",
+                        m == 4 ? "  Horizon Thermaliser core" : "  (Burst Thermaliser Casing core)",
                         "A second crown stacked on",
                         "  top takes the overflow",
                         "Display only - not a recipe")

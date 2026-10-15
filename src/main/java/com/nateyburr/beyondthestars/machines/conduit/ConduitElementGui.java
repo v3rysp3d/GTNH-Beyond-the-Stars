@@ -149,7 +149,7 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
         rows.bar(
             BTSText.lang(K + "through"),
             through / cap,
-            BTSText.lit(bu(through) + " Bu/t"),
+            BTSText.lit(BTSFormat.buCompact(through) + " Bu/t = " + BTSFormat.euOfBu(through)),
             Grad.MAGENTA,
             null,
             BTSText.lang(K + "through.tip", BTSFormat.buEu(through), BTSFormat.buEuShort(cap)),
@@ -242,7 +242,11 @@ public class ConduitElementGui<T extends MTEConduitElement<?>> extends BTSContro
             rows.stat(
                 BTSText.lang(K + "mode"),
                 BTSText.lang(K + "mode.combine"),
-                BTSText.lang(K + "mode.combine.tip", bu(j.inBu(1)), bu(j.inBu(2)), bu(j.inBu(3))));
+                BTSText.lang(
+                    K + "mode.combine.tip",
+                    BTSFormat.buEuShort(j.inBu(1)),
+                    BTSFormat.buEuShort(j.inBu(2)),
+                    BTSFormat.buEuShort(j.inBu(3))));
             final double small = j.inBu(1) + j.inBu(2) + j.inBu(3);
             rows.stat(
                 BTSText.lang(K + "in.small"),

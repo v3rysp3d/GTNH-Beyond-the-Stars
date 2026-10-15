@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -23,6 +25,7 @@ import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.PrivateHatchFluids;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
@@ -37,12 +40,11 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
-import gregtech.api.metatileentity.implementations.MTEHatchMultiInput;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GTUtility;
+import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.render.IMTERenderer;
-import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
-import gregtech.common.tileentities.machines.MTEHatchInputME;
 import gregtech.common.tileentities.machines.RecipeCheckReason;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
@@ -371,46 +373,45 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
 
     // ===================================================================== private fluid hatches
 
-    /** Fluid of {@code fluid} held by the hatches in {@code list} (not GT's lists: never started by GT). */
+    /**
+     * Fluid of {@code fluid} the hatches in {@code list} can give (not GT's lists: GT never opens a recipe window on
+     * them). An ME stocking hatch reads its network's stock (QA-B07); see {@link PrivateHatchFluids}.
+     */
     protected static long available(List<MTEHatchInput> list, Fluid fluid) {
-        long n = 0;
-        for (MTEHatchInput hatch : list) {
-            if (!live(hatch)) continue;
-            for (FluidStack s : storedFluids(hatch)) {
-                if (s != null && s.getFluid() == fluid) n += s.amount;
-            }
-        }
-        return n;
+        return PrivateHatchFluids.available(list, fluid);
     }
 
-    /** Drains {@code amount} of {@code fluid} from the hatches in {@code list}; returns what was drained. */
+    /**
+     * Drains {@code amount} of {@code fluid} from the hatches in {@code list}; returns what really left them (an ME
+     * stocking hatch: what its network extracted, never a recipe-window shadow).
+     */
     protected long take(List<MTEHatchInput> list, Fluid fluid, long amount) {
-        long got = 0;
-        for (MTEHatchInput hatch : list) {
-            if (got >= amount) break;
-            if (!live(hatch)) continue;
-            final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
-            if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
-            try {
-                for (FluidStack s : storedFluids(hatch)) {
-                    if (got >= amount) break;
-                    if (s == null || s.getFluid() != fluid || s.amount <= 0) continue;
-                    final int want = (int) Math.min(s.amount, amount - got);
-                    final FluidStack d = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
-                    if (d != null) got += d.amount;
-                }
-            } finally {
-                if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(this);
-            }
-        }
-        return got;
+        return PrivateHatchFluids.take(list, fluid, amount);
     }
 
-    protected static FluidStack[] storedFluids(MTEHatchInput hatch) {
-        if (hatch instanceof MTEHatchInputME) return ((MTEHatchInputME) hatch).getStoredFluids();
-        if (hatch instanceof MTEHatchMultiInput) return ((MTEHatchMultiInput) hatch).getStoredFluid();
-        return new FluidStack[] { hatch.getFluid() };
+    /**
+     * QA-B08: a missing block (or a footprint chunk that is not loaded yet after a restart) pauses the machine instead
+     * of voiding its work. GT calls this every tick while the structure is incomplete; the running recipe, its
+     * progress, its outputs and everything drawn for it are kept, and the controller stays enabled, so the run
+     * resumes by itself the tick the structure is whole again. Every other reason stops as GT does.
+     */
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+            .equals(reason.getID())) return;
+        onStopped();
+        super.stopMachine(reason);
     }
+
+    /** "the run is kept and resumes when the structure is whole again" while a run waits on a broken structure. */
+    public String structurePauseNote() {
+        return !mMachine && mMaxProgresstime > 0
+            ? "PAUSED: the structure is incomplete; the run is kept and resumes when it is whole again"
+            : "";
+    }
+
+    /** A run was stopped for any reason other than a broken structure (power, the soft mallet, a failed extraction). */
+    protected void onStopped() {}
 
     // ============================================================================ common bits
 

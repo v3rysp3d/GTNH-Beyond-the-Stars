@@ -47,6 +47,7 @@ import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.OwnerGate;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.conduit.ReceptorHatchElement;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
@@ -75,6 +76,8 @@ import gregtech.api.util.GTRecipe;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.OverclockCalculator;
+import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.render.IMTERenderer;
 import io.netty.buffer.ByteBuf;
@@ -684,6 +687,8 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
             || !aPlayer.isSneaking()
             || aPlayer.getHeldItem() != null
             || escrow == null) return;
+        // QA-B15: only the owner (or the owner's team) takes the escrowed core and cancels an install
+        if (!OwnerGate.check(aBaseMetaTileEntity, aPlayer, "take the escrowed core")) return;
         final ItemStack core = escrow;
         final boolean cancelled = installing;
         escrow = null;
@@ -891,6 +896,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
     /** "Quasar link σ 1.02: speed x1.50" for the GUI / scanner; "" with no receptor port. Server state. */
     public String burstLine() {
         if (receptorCount() == 0) return "";
+        // QA-B44: at installed T1 the ports report a demand to the quasar but give no speed
+        if (burstDemand() <= 0)
+            return "Quasar link: it speeds the Homogeny up from installed T2 (" + burstHost.linkLine() + ")";
         if (burstHost.paused()) return burstHost.linkLine() + " (link paused: speed x1, Entanglement Medium paused)";
         return String.format(
             Locale.ROOT,
@@ -900,6 +908,26 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
             speedFactor(),
             quasarSigma() >= 1 ? ", Entanglement Medium open" : "",
             burstHost.linkLine());
+    }
+
+    /**
+     * QA-B08: a missing block (or a footprint chunk that is not loaded yet after a restart) pauses the machine instead
+     * of voiding its work. GT calls this every tick while the structure is incomplete; the running recipe, its
+     * progress, its outputs and everything drawn for it are kept, and the controller stays enabled, so the run
+     * resumes by itself the tick the structure is whole again. Every other reason stops as GT does.
+     */
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+            .equals(reason.getID())) return;
+        super.stopMachine(reason);
+    }
+
+    /** "the run is kept and resumes when the structure is whole again" while a run waits on a broken structure. */
+    public String structurePauseNote() {
+        return !mMachine && mMaxProgresstime > 0
+            ? "PAUSED: the structure is incomplete; the run is kept and resumes when it is whole again"
+            : "";
     }
 
     /** Pauses a running Entanglement Medium mix while σ is below 1 (never voided, quasar-p4.md §3.1). */
@@ -1013,6 +1041,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
         aNBT.setLong("btsHomPendEspm", pendingEspm);
         aNBT.setLong("btsHomPendDeg", pendingDegenerate);
         aNBT.setString("btsHomNote", lastNote);
+        burstHost.save(aNBT, "btsHomLink");
     }
 
     @Override
@@ -1032,6 +1061,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
         installing = aNBT.getBoolean("btsHomInstalling");
         installTicks = aNBT.getInteger("btsHomInstallTicks");
         pendingEspm = aNBT.getLong("btsHomPendEspm");
+        burstHost.load(aNBT, "btsHomLink");
         pendingDegenerate = aNBT.getLong("btsHomPendDeg");
         runNeedsLink = false;
         if (mOutputFluids != null) {
@@ -1059,7 +1089,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
 
     /** "T2 (installed T2, structure T3), 4 parallels". Server state. */
     public String headLine() {
-        if (!mMachine) return "Not formed (installed T" + installedTier + ")";
+        if (!mMachine) return "Not formed (installed T" + installedTier
+            + ")"
+            + (structurePauseNote().isEmpty() ? "" : ": " + structurePauseNote());
         return "Homogeny T" + tier()
             + " (installed T"
             + installedTier

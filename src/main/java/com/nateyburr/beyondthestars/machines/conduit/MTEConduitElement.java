@@ -39,6 +39,7 @@ import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.PrivateHatchFluids;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
@@ -54,7 +55,6 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
-import gregtech.api.metatileentity.implementations.MTEHatchMultiInput;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
@@ -62,8 +62,6 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.render.IMTERenderer;
-import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
-import gregtech.common.tileentities.machines.MTEHatchInputME;
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -86,7 +84,8 @@ import io.netty.buffer.ByteBuf;
  * <h2>The four traps</h2>
  * <ol>
  * <li>{@link #construct} reads only the trigger; the GUI reads synced values only.</li>
- * <li>Every setting is tile NBT ({@link #saveNBTData}); a wrench drops the throat like any controller slot.</li>
+ * <li>Every setting is tile NBT ({@link #saveNBTData}) and rides a wrenched item ({@link #setItemNBT}); a wrench
+ * drops the throat like any controller slot.</li>
  * <li>Fuel and Burst Control sockets are private ({@link ConduitHatchElement}); no plant-wide list.</li>
  * <li>Every socket chains its fallback casing.</li>
  * </ol>
@@ -97,9 +96,11 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     /** The upkeep fuel choice (GUI, OpenComputers). NBT keeps the name. */
     public enum FuelMode {
 
-        AUTO("Auto", "Ergomatter when the hatches hold enough, else Molten SpaceTime"),
-        SPACETIME("Molten SpaceTime", "always Molten SpaceTime (4 / 16 / 64 L/s)"),
-        ERGOMATTER("Ergomatter", "always Ergomatter (0.25 / 1 / 4 L/s, from Eye T7)");
+        AUTO("Auto",
+            "Ergomatter when the hatches hold enough, else Molten SpaceTime (a Mk IV throat takes Superdense Ergomatter first)"),
+        SPACETIME("Molten SpaceTime", "always Molten SpaceTime (Mk I-IV: 4 / 16 / 64 / 256 L/s)"),
+        ERGOMATTER("Ergomatter",
+            "the Ergomatter family (Mk I-IV: 0.25 / 1 / 4 / 16 L/s, from Eye T7; Mk IV: Superdense Ergomatter 2 L/s first)");
 
         public static final FuelMode[] VALUES = values();
         public final String label, help;
@@ -483,17 +484,29 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     @Override
     protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {}
 
+    /**
+     * QA-B13: GT resets the active flag from mMaxProgresstime every tick, and this machine runs no recipe: the flag
+     * worked out once a second is set again every tick after GT's, so the ACTIVE overlay shows and clients are not
+     * sent two texture changes a second.
+     */
+    private boolean activeNow;
+
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
+        tickServer(aBaseMetaTileEntity, aTick);
+        aBaseMetaTileEntity.setActive(activeNow);
+    }
+
+    private void tickServer(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (aTick > 0 && aTick % RECHECK == 0) checkStructure(true, aBaseMetaTileEntity);
         if (aTick % 20 != 0) return;
         final World world = aBaseMetaTileEntity.getWorld();
         final long now = world.getTotalWorldTime();
         if (!mMachine) {
             ConduitNet.unregister(world, this);
-            aBaseMetaTileEntity.setActive(false);
+            activeNow = (false);
             if (aTick % 100 == 0) sendRenderDataToClient(this);
             return;
         }
@@ -502,7 +515,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         register(world);
         extraSecond(aBaseMetaTileEntity, now);
         book.prune(now);
-        aBaseMetaTileEntity.setActive(open && book.sum("pass|", now, FlowBook.SHOW) > 1e-9);
+        activeNow = (open && book.sum("pass|", now, FlowBook.SHOW) > 1e-9);
         sendRenderDataToClient(this);
     }
 
@@ -671,13 +684,18 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             owedFuel = name;
         }
         final double need = owed + rate;
-        final boolean ok = fluid != null && available(fuelHatches, fluid) >= Math.ceil(need - 1e-9);
+        boolean ok = fluid != null && available(fuelHatches, fluid) >= Math.ceil(need - 1e-9);
         if (ok) {
             final long whole = (long) Math.floor(need + 1e-9);
             final long got = take(fuelHatches, fluid, whole);
-            owed = need - got;
             if (useErgo || useSuperdense) litresErgomatter += got;
             else litresSpaceTime += got;
+            // QA-B03: only what really left the hatches pays (an ME network short of AE power extracts less than
+            // it reported): a short extraction is a short second
+            if (got < whole) {
+                ok = false;
+                owed = 0;
+            } else owed = need - got;
         } else {
             owed = 0;
         }
@@ -706,43 +724,14 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             .equals(owedFuel) ? owed : 0;
     }
 
+    /** Fuel on hand in the fuel hatches (an ME stocking hatch: its network's stock; {@link PrivateHatchFluids}). */
     static long available(List<MTEHatchInput> list, Fluid fluid) {
-        if (fluid == null) return 0;
-        long n = 0;
-        for (MTEHatchInput hatch : list) {
-            if (!live(hatch)) continue;
-            for (FluidStack s : storedFluids(hatch)) if (s != null && s.getFluid() == fluid) n += s.amount;
-        }
-        return n;
+        return PrivateHatchFluids.available(list, fluid);
     }
 
+    /** Drains fuel; returns the litres that really left the hatches (QA-B03: only those are credited). */
     private long take(List<MTEHatchInput> list, Fluid fluid, long amount) {
-        if (fluid == null || amount <= 0) return 0;
-        long got = 0;
-        for (MTEHatchInput hatch : list) {
-            if (got >= amount) break;
-            if (!live(hatch)) continue;
-            final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
-            if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
-            try {
-                for (FluidStack s : storedFluids(hatch)) {
-                    if (got >= amount) break;
-                    if (s == null || s.getFluid() != fluid || s.amount <= 0) continue;
-                    final int want = (int) Math.min(s.amount, amount - got);
-                    final FluidStack d = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
-                    if (d != null) got += d.amount;
-                }
-            } finally {
-                if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(this);
-            }
-        }
-        return got;
-    }
-
-    static FluidStack[] storedFluids(MTEHatchInput hatch) {
-        if (hatch instanceof MTEHatchInputME) return ((MTEHatchInputME) hatch).getStoredFluids();
-        if (hatch instanceof MTEHatchMultiInput) return ((MTEHatchMultiInput) hatch).getStoredFluid();
-        return new FluidStack[] { hatch.getFluid() };
+        return PrivateHatchFluids.take(list, fluid, amount);
     }
 
     // ============================================================================ settings
@@ -866,7 +855,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     }
 
     static String roman(int mk) {
-        return mk == 1 ? "I" : mk == 2 ? "II" : mk == 3 ? "III" : String.valueOf(mk);
+        return mk == 1 ? "I" : mk == 2 ? "II" : mk == 3 ? "III" : mk == 4 ? "IV" : String.valueOf(mk);
     }
 
     @Override
@@ -910,6 +899,20 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         litresSpaceTime = t.getLong("litresST");
         litresErgomatter = t.getLong("litresErgo");
         readElement(t);
+    }
+
+    /**
+     * QA-B16: a wrenched element keeps its settings on the item: the fuel mode and the subclass's (a Junction's mode,
+     * c,
+     * k, p3 and out-1 limit; a Mouth's partner). It re-opens after its usual 10 s of paid upkeep.
+     */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        final NBTTagCompound t = new NBTTagCompound();
+        t.setString("fuel", fuelMode.name());
+        writeElement(t);
+        aNBT.setTag("btsConduit", t);
     }
 
     /** Subclass settings into the element's tag. */

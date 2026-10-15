@@ -100,13 +100,17 @@ vec4 qjShade(float z, float u) {
         knots += exp(-dz * dz - (u * u) / (0.6 * R * R)) * (2.5 + 3.0 * u_JEvent.z) * exp(-u_JEvent.y / 6.0);
     }
 
-    // a shed: the eruption's flare held, a giant knot every 1.4 s
+    // a shed: the eruption's flare held, a giant knot every 1.4 s; with the supermassive gain, a slow fade and a
+    // width never under about two pixels (its light spread, not added), so it reads from far outside (QA-B12)
     if (shed > 0.5) {
         float idS = floor((t - zz / 13.0) / 1.4);
         float zk = 13.0 * (t - 1.4 * idS - 0.5 * qjHash(idS + 40.0));
         float len = 2.4 + 0.05 * zk;
         float dz = (zz - zk) / len;
-        knots += exp(-dz * dz - (u * u) / (0.6 * R * R)) * (2.2 + qjHash(idS + 41.0)) * exp(-zk / 90.0);
+        float Rk0 = sqrt(0.6) * R;
+        float Rk = max(Rk0, 2.0 * u_JEvent.w);
+        float gainS = (1.0 + 0.6 * u_JSmbh.w) * sqrt(Rk0 / Rk);
+        knots += exp(-dz * dz - (u * u) / (Rk * Rk)) * (2.2 + qjHash(idS + 41.0)) * exp(-zk / 160.0) * gainS;
     }
     // Overdrive: MHDCSM field lines, three tight helices wound against the strands
     float mf = 0.0;

@@ -47,6 +47,9 @@ public final class QuasarInputs {
      * what to drain).
      */
     public double intakeAvailable;
-    /** Molten MHDCSM, Molten Universium and Primordial Matter on hand this second, litres (the trim sockets). */
+    /**
+     * The two Overdrive fluids (D-51: Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture; the field names
+     * are the engine's) and Primordial Matter on hand this second, litres.
+     */
     public double mhdcsmAvailable, universiumAvailable, anchorAvailable;
 }

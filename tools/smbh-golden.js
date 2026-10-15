@@ -76,6 +76,8 @@ function cases() {
   add('L1 x0.5 held at F 2.5 s3', { seed: 3, qc: { M0: 32768, lattice: 1, intake: 2.5, setpoint: 32768 } });
   add('L1 top under-fed F 3 leaks s1', { seed: 1, secs: 7200, qc: { M0: 65536, lattice: 1, intake: 3, setpoint: 65536 } });
   add('L1 top held F 4 s2', { seed: 2, qc: { M0: 65536, lattice: 1, intake: 4, setpoint: 65536 } });
+  // QA-B09: a one-second intake dip at the setpoint; the recovery second draws only what reaches the cap
+  add('L1 top, a one-second dip at 100 s s1', { seed: 1, secs: 300, qc: { M0: 65536, lattice: 1, intake: 5, setpoint: 65536 }, events: [{ t: 100, qc: { intake: 3.9 } }, { t: 101, qc: { intake: 5 } }] });
   add('L1 top, the feed cut at 600 s s3', { seed: 3, qc: { M0: 65536, lattice: 1, intake: 4, setpoint: 65536 }, events: [{ t: 600, qc: { intake: 0, stocked: false } }] });
   add('L1 blow-out over-Eddington, dark disc leaks s2', { seed: 2, rig: false, qc: { M0: 50000, lattice: 1, intake: 4, f: 1.3, setpoint: 65536 } });
   add('L1 setpoint lowered at 600 s: shed s1', { seed: 1, secs: 1200, qc: { M0: 60000, lattice: 1, intake: 4, setpoint: 60000 }, events: [{ t: 600, qc: { setpoint: 20000 } }] });

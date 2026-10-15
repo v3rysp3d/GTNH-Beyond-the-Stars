@@ -70,10 +70,8 @@ public final class SmbhBench {
             "Given: " + QuasarKit.qty(frames)
                 + " Lattice Frame Casings, "
                 + nodes
-                + " Containment Nodes (L"
-                + t
-                + ", "
-                + QuasarParams.LATTICE_NAME[t]
+                + " Containment Nodes ("
+                + QuasarParams.latticeLabel(t)
                 + "), a crown controller with the Mk IV parts, a Conduit Throat Mk IV.");
         tell(player, EnumChatFormatting.YELLOW + "Grab the casings through NEI. Bills read from manifest.json:");
         tell(player, " - quasar_lattice: " + QuasarKit.bill(MTEQuasarEngine.PIECE_LATTICE));
@@ -133,7 +131,8 @@ public final class SmbhBench {
 
     /**
      * {@code /btssmbh fill}: a plain MAX Input Hatch in every empty trim socket, then the trims hold (in socket order)
-     * Molten MHDCSM, Molten Universium and Primordial Matter, each to capacity; the gas hatches are refilled with the
+     * the two Overdrive fluids (Excited Stellar Plasma Mixture, Hyperdense Stellar Mixture) and Primordial Matter, each
+     * to capacity; the gas hatches are refilled with the
      * selected gas and the feed buffer topped up. No trim hatch keeps Spatially Enlarged Fluid: in a plain trim hatch
      * it is a Space trim every second (10 units, E -20 a second), which blew a lit disc out within seconds (e2e test).
      */
@@ -143,7 +142,7 @@ public final class SmbhBench {
         final ExtendedFacing alignment = q.getExtendedFacing();
         final int x = base.getXCoord(), y = base.getYCoord(), z = base.getZCoord();
         final int[] centre = QuasarGeometry.world(alignment, x, y, z, QuasarGeometry.centreRel());
-        final Fluid[] fluids = { MTEQuasarEngine.mhdcsmFluid(), MTEQuasarEngine.universiumFluid(),
+        final Fluid[] fluids = { MTEQuasarEngine.espmFluid(), MTEQuasarEngine.hsmFluid(),
             MTEQuasarEngine.primordialFluid() };
         final Fluid space = MTEQuasarEngine.spaceFluid();
         final int[][] trims = QuasarKit.socketRels('t');

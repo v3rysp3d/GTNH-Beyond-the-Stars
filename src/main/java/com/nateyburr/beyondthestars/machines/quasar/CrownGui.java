@@ -48,7 +48,9 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
     @Override
     protected String rightChip() {
         final int mk = multiblock.getMk();
-        return mk == 0 ? "" : BTSText.lang(K + "cap", String.format(Locale.ROOT, "%,.0f", BurstRouting.crownCap(mk)));
+        if (mk == 0) return "";
+        final double cap = BurstRouting.crownCap(mk);
+        return BTSText.lang(K + "cap", BTSFormat.buCompact(cap), BTSFormat.euSci(cap * BTSFormat.EU_PER_BU));
     }
 
     @Override
@@ -72,15 +74,15 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
         rows.bar(
             BTSText.lang(K + "stream"),
             c.getUsed() / cap,
-            BTSText.lit(bu(c.getUsed()) + " Bu/t"),
+            BTSText.lit(BTSFormat.buCompact(c.getUsed()) + " Bu/t = " + BTSFormat.euOfBu(c.getUsed())),
             Grad.MAGENTA,
             null,
             BTSText.lang(
                 K + "stream.tip",
                 BTSFormat.buEuShort(c.getStream()),
-                bu(c.getJets()),
-                bu(c.getRemote()),
-                bu(c.getOverIn())),
+                BTSFormat.buEuShort(c.getJets()),
+                BTSFormat.buEuShort(c.getRemote()),
+                BTSFormat.buEuShort(c.getOverIn())),
             BTSText.cat(
                 BTSText.lit("§7"),
                 BTSText.lang(K + "stream.tip2", BTSFormat.buEuShort(c.getUsed()), BTSFormat.buEuShort(cap))));

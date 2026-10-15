@@ -10,7 +10,8 @@ import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 /**
  * P4: THE HOST-SIDE BURST API (quasar-p4.md R.2, §3.1), for every machine that takes bursts through GRB Receptor
  * Ports: the Eye (T7/T8), the Kerr, the Homogeny T2/T3, Reality Diffraction, and the Burst Thermaliser Crown's remote
- * feed. A host owns one {@code BurstHost} (not saved: nothing about a link is) and calls {@link #second} once per host
+ * feed. A host owns one {@code BurstHost} (the Homogeny and the Diffraction save its window, {@link #save}) and calls
+ * {@link #second} once per host
  * second with its ports. It gets back last second's {@link BurstReading} and keeps:
  * <ul>
  * <li>{@link #sigma()} = last second's delivery ÷ the host's demand D_h ({@link BurstLink#sigma}; Kerr 0.1 / 0.25,
@@ -53,6 +54,38 @@ public final class BurstHost {
             if (q != null) q.reportHost(hostKey, hostLabel, e.getValue(), sigma, streak01);
         }
         return r;
+    }
+
+    /**
+     * QA-B42: the 60 s window into a host's tile NBT under {@code key}, so a reload resumes the mean instead of
+     * pausing a run (or an Entanglement Medium mix) for up to a minute while it refills.
+     */
+    public void save(net.minecraft.nbt.NBTTagCompound nbt, String key) {
+        final net.minecraft.nbt.NBTTagCompound t = new net.minecraft.nbt.NBTTagCompound();
+        final double[] w = window.window();
+        final net.minecraft.nbt.NBTTagList list = new net.minecraft.nbt.NBTTagList();
+        for (double v : w) list.appendTag(new net.minecraft.nbt.NBTTagDouble(v));
+        t.setTag("w", list);
+        t.setLong("n", window.n);
+        t.setDouble("demand", demand);
+        nbt.setTag(key, t);
+    }
+
+    /** Restores {@link #save}; a missing or malformed tag leaves an empty window. */
+    public void load(net.minecraft.nbt.NBTTagCompound nbt, String key) {
+        if (!nbt.hasKey(key)) return;
+        final net.minecraft.nbt.NBTTagCompound t = nbt.getCompoundTag(key);
+        final net.minecraft.nbt.NBTTagList list = t.getTagList("w", 6);
+        if (list.tagCount() != 2 * BurstLink.WINDOW) return;
+        final double[] w = new double[list.tagCount()];
+        for (int i = 0; i < w.length; i++) {
+            final double v = list.func_150309_d(i);
+            w[i] = Double.isFinite(v) ? Math.max(0, v) : 0;
+        }
+        window.restore(w, t.getLong("n"));
+        final double d = t.getDouble("demand");
+        demand = Double.isFinite(d) ? Math.max(0, d) : 0;
+        sigma = BurstLink.sigma(window.mean, demand);
     }
 
     /** Reads a set of ports into one reading (each port learns its host's name). Server thread. */

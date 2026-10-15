@@ -35,6 +35,7 @@ import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
+import com.nateyburr.beyondthestars.machines.OwnerGate;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
@@ -50,6 +51,7 @@ import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarResult;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarState;
 
 import gregtech.api.enums.ItemList;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.modularui2.GTGuiTextures;
 import gregtech.api.util.GTUtility;
 
@@ -87,6 +89,12 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
 
     private static final String K = "beyondthestars.gui.quasar.";
 
+    /** QA-B36: an Unbound L4 shedding with a high flux needs about 26 rows; the default pool of 24 cut the last. */
+    @Override
+    protected int statusPoolSize() {
+        return 28;
+    }
+
     private static final long COLLAPSE_ARM_MS = 4000L;
     private static final int DISC_PANEL_W = 160;
     private static final int DISC_PANEL_H = 244;
@@ -123,34 +131,63 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         syncManager.syncValue("qCounters", new StringSyncValue(() -> countersLine(m)));
         syncManager.syncValue("qMilestones", new StringSyncValue(() -> milestonesLine(m)));
         syncManager.syncValue("qSlot", new StringSyncValue(() -> slotLine(m)));
-        // settable from the client; every setter clamps on the server
-        syncManager.syncValue("qFeed", new DoubleSyncValue(m::getFeed, m::setFeed).allowC2S());
-        syncManager.syncValue("qGas", new IntSyncValue(m::getGasOrdinal, m::setGasOrdinal).allowC2S());
-        syncManager.syncValue("qB", new DoubleSyncValue(m::getBSetting, m::setBSetting).allowC2S());
+        // settable from the client; every setter clamps on the server, and only the owner or the owner's team may
+        // change the quasar (QA-B15)
+        final java.util.function.BooleanSupplier may = () -> syncManager.isClient()
+            || OwnerGate.mayControl(m.getBaseMetaTileEntity(), syncManager.getPlayer());
+        syncManager.syncValue(
+            "qFeed",
+            new DoubleSyncValue(m::getFeed, v -> { if (may.getAsBoolean()) m.setFeed(v); }).allowC2S());
+        syncManager.syncValue(
+            "qGas",
+            new IntSyncValue(m::getGasOrdinal, v -> { if (may.getAsBoolean()) m.setGasOrdinal(v); }).allowC2S());
+        syncManager.syncValue(
+            "qB",
+            new DoubleSyncValue(m::getBSetting, v -> { if (may.getAsBoolean()) m.setBSetting(v); }).allowC2S());
         syncManager.syncValue("qBHatch", new BooleanSyncValue(m::bFromHatch));
-        syncManager.syncValue("qPurgeAt", new DoubleSyncValue(m::getPurgeAt, m::setPurgeAt).allowC2S());
+        syncManager.syncValue(
+            "qPurgeAt",
+            new DoubleSyncValue(m::getPurgeAt, v -> { if (may.getAsBoolean()) m.setPurgeAt(v); }).allowC2S());
         syncManager.syncValue("qRender", new BooleanSyncValue(m::isRenderEnabled, m::setRenderEnabled).allowC2S());
         // server-only actions: the server re-checks everything
-        syncManager.registerServerSyncedAction("qOpen", packet -> m.openHole());
-        syncManager.registerServerSyncedAction("qCollapse", packet -> m.collapseHole());
-        syncManager.registerServerSyncedAction("qPurge", packet -> m.requestPurge());
+        final IGregTechTileEntity base = m.getBaseMetaTileEntity();
+        syncManager.registerServerSyncedAction(
+            "qOpen",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "open the hole")) m.openHole(); });
+        syncManager.registerServerSyncedAction(
+            "qCollapse",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "collapse the hole")) m.collapseHole(); });
+        syncManager.registerServerSyncedAction(
+            "qPurge",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "purge the disc")) m.requestPurge(); });
         // SMBH (smbh-v1.md §2.2, §3.2, §5.1): the Supermassive Lattice panel
         syncManager.syncValue("qLattice", new IntSyncValue(m::getLatticeInForce));
-        syncManager.syncValue("qSetpoint", new DoubleSyncValue(m::getMassCap, m::setMassSetpoint).allowC2S());
+        syncManager.syncValue(
+            "qSetpoint",
+            new DoubleSyncValue(m::getGuiMassCap, v -> { if (may.getAsBoolean()) m.setMassSetpoint(v); }).allowC2S());
         syncManager.syncValue("qSlideTop", new DoubleSyncValue(() -> sliderTop(m)));
-        syncManager.syncValue("qOverdrive", new DoubleSyncValue(m::getOverdrive, m::setOverdrive).allowC2S());
+        syncManager.syncValue(
+            "qOverdrive",
+            new DoubleSyncValue(m::getOverdrive, v -> { if (may.getAsBoolean()) m.setOverdrive(v); }).allowC2S());
         syncManager.syncValue("qUnbound", new BooleanSyncValue(m::isUnbound));
         syncManager.syncValue(
             "qCanUnbind",
             new BooleanSyncValue(() -> Config.smbhAllowUnbound && m.getLatticeInForce() == QuasarParams.LATTICE_MAX));
         syncManager.syncValue("qHoldHatch", new BooleanSyncValue(m::holdFromHatch));
+        syncManager.syncValue("qSetpointInForce", new DoubleSyncValue(m::getMassCap));
         syncManager.syncValue("qOdHatch", new BooleanSyncValue(m::overdriveFromHatch));
         syncManager.syncValue("qLatticeLine", new StringSyncValue(() -> latticeLine(m)));
         syncManager.syncValue("qOdLine", new StringSyncValue(() -> overdriveLine(m)));
         syncManager.syncValue("qPanelNote", new StringSyncValue(() -> panelNote(m)));
-        syncManager.registerServerSyncedAction("qShed", packet -> m.shedToSafe());
-        syncManager.registerServerSyncedAction("qUnbind", packet -> m.unbind(true));
-        syncManager.registerServerSyncedAction("qBind", packet -> m.unbind(false));
+        syncManager.registerServerSyncedAction(
+            "qShed",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "shed the hole")) m.shedToSafe(); });
+        syncManager.registerServerSyncedAction(
+            "qUnbind",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "unbind the hole")) m.unbind(true); });
+        syncManager.registerServerSyncedAction(
+            "qBind",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "bind the hole")) m.unbind(false); });
     }
 
     // ===================================================================== SMBH helpers (server)
@@ -163,7 +200,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         return QuasarParams.LATTICE_TOP[L];
     }
 
-    /** The panel's lattice line: "L3 Universium: safe 262,144, top 4,194,304 SM" (or what is missing). */
+    /** The panel's lattice line: "L3: safe 262,144, top 4,194,304 SM" (or what is missing). */
     static String latticeLine(MTEQuasarEngine m) {
         final int L = m.getLatticeInForce();
         if (L == 0) {
@@ -172,8 +209,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         }
         return tr(
             K + "lat.line",
-            L,
-            QuasarParams.LATTICE_NAME[L],
+            QuasarParams.latticeLabel(L),
             MTEQuasarEngine.fmt(QuasarParams.LATTICE_SAFE[L]),
             MTEQuasarEngine.fmt(QuasarParams.LATTICE_TOP[L]));
     }
@@ -198,16 +234,13 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         if (m.overdriveFromHatch()) return tr(K + "od.hatch");
         final QuasarResult r = m.lastResult();
         if (r.anchorShort) return tr(K + "anchor.short", String.format(Locale.ROOT, "%.2f", r.anchorPaysN));
-        if (m.state().shed) return tr(K + "shed.v", MTEQuasarEngine.fmt(r.shedTarget));
+        if (m.state().shed && r.shedding) return tr(K + "shed.v", MTEQuasarEngine.fmt(r.shedTarget));
         return "";
     }
 
-    /** "+2.2 % per hour" for a fraction of M per hour (two significant figures under 0.1 %). */
+    /** "+2.2 % per hour", or "-2.00 % a second" past 100 % an hour ({@link MTEQuasarEngine#rateText}). */
     static String perHour(double frac) {
-        final double pct = 100 * frac;
-        if (Math.abs(pct) < 1e-4) return "0 %";
-        return (Math.abs(pct) >= 0.1 ? String.format(Locale.ROOT, "%+.1f", pct)
-            : String.format(Locale.ROOT, "%+.2g", pct)) + " %";
+        return MTEQuasarEngine.rateText(frac);
     }
 
     // ===================================================================== server-side lines
@@ -220,7 +253,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         if (dock == null) return head + tr(bu > 0 ? K + "jet.venting" : K + "jet.nothing");
         if (m.jetRefused(port)) return head + tr(K + "jet.misaligned", dock);
         final double clipped = bu - m.jetTaken(port);
-        return head + dock + (clipped > 0.005 ? " " + tr(K + "jet.clipped", MTEQuasarEngine.bu(clipped)) : "");
+        return head + dock + (clipped > 0.005 ? " " + tr(K + "jet.clipped", MTEQuasarEngine.buEu(clipped)) : "");
     }
 
     static String linksText(MTEQuasarEngine m) {
@@ -327,8 +360,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             out.add(
                 BTSText.lang(
                     K + "right.tip3",
-                    L,
-                    QuasarParams.LATTICE_NAME[L],
+                    QuasarParams.latticeLabel(L),
                     MTEQuasarEngine.fmt(QuasarParams.LATTICE_SAFE[L]),
                     MTEQuasarEngine.fmt(QuasarParams.LATTICE_TOP[L])));
         }
@@ -454,10 +486,13 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         final QuasarResult r = m.lastResult();
         final int L = m.getLatticeInForce();
         final boolean saturationShown = !m.isSaturated() && m.getCoilTier() >= QuasarParams.LATTICE_COIL;
-        if (L == 0 && !saturationShown && m.getLatticeBuilt() == 0) return;
+        if (L == 0 && !saturationShown && m.getLatticeBuilt() == 0) {
+            shedRow(rows);
+            return;
+        }
         rows.section(
             BTSText.lang(K + "sec.lattice"),
-            L > 0 ? BTSText.lang(K + "sec.lattice.v", L, QuasarParams.LATTICE_NAME[L]) : "");
+            L > 0 ? BTSText.lang(K + "sec.lattice.v", QuasarParams.latticeLabel(L)) : "");
         if (!m.isSaturated()) {
             final int sec = m.getSaturationSeconds();
             final boolean built = m.getLatticeBuilt() > 0;
@@ -468,10 +503,12 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 sec / (double) MTEQuasarEngine.SATURATION_SECONDS,
                 BTSText.lang(K + "chk.saturation.tip"),
                 BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "chk.saturation.tip2")));
+            shedRow(rows);
             return;
         }
         if (L == 0) {
             if (m.getLatticeBuilt() > 0) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lang(K + "lat.coils"));
+            shedRow(rows);
             return;
         }
         // the band: x, the setpoint as a tick
@@ -526,8 +563,11 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 BTSFormat.pct(r.holdUpCoverage))
             : BTSText.lang(K + "intake.line", BTSFormat.litres(disc), BTSFormat.litres(hold));
         rows.note(BTSRows.ICON_NONE, BTSGuiKit.VALUE, split, BTSText.lang(K + "intake.line.tip"));
+        // B-164 #1: at the setpoint the Growth segment draws nothing (QA-B09), and the row says why
+        final boolean atSetpoint = grow <= 0 && m.getMass() >= m.getMassCap() * (1 - 1e-9);
         final String growth = shed ? BTSText.lang(K + "intake.line2.shed", BTSFormat.litres(grow))
-            : BTSText.lang(K + "intake.line2", BTSFormat.litres(grow), perHour(m.getMassRatePerHour()));
+            : atSetpoint ? BTSText.lang(K + "intake.line2.at")
+                : BTSText.lang(K + "intake.line2", BTSFormat.litres(grow), perHour(m.getMassRatePerHour()));
         rows.note(BTSRows.ICON_NONE, BTSGuiKit.VALUE, growth, BTSText.lang(K + "intake.line.tip"));
         if (r.leaking) {
             rows.note(
@@ -542,10 +582,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         rows.stat(
             BTSText.lang(K + "buffer"),
             BTSText.lit((bufShort ? "§c" : "") + (Double.isInfinite(bufS) ? "-" : BTSFormat.duration((long) bufS))),
-            BTSText.lang(
-                K + "buffer.tip",
-                BTSFormat.exact(m.buffer(MTEQuasarEngine.gasFluid(m.getGas()))),
-                BTSFormat.exact(m.bufferCap())),
+            BTSText.lang(K + "buffer.tip", BTSFormat.exact(m.bufferShown()), BTSFormat.exact(m.bufferCap())),
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "buffer.tip2")));
         // Overdrive (L3+)
         final double o = m.getOverdriveInUse();
@@ -608,16 +645,25 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                     BTSText.lang(K + "anchor.short.tip"));
             }
         }
-        if (m.state().shed) {
-            rows.note(
-                BTSRows.ICON_WARN,
-                BTSGuiKit.WARN,
-                BTSText.lang(
-                    K + "shedding",
-                    r.shedTarget >= 999_999.5 ? BTSFormat.litres(r.shedTarget) : MTEQuasarEngine.fmt(r.shedTarget),
-                    BTSFormat.duration(Math.round(QuasarParams.shedSeconds(m.getMass(), r.shedTarget)))),
-                BTSText.lang(K + "shedding.tip", MTEQuasarEngine.shedWhy(r.shedReason)));
-        }
+        shedRow(rows);
+    }
+
+    /**
+     * The shed note: shown with or without a lattice (a coil-downgrade shed has none, QA-B12), and only once a disc
+     * second has run since a load, so a saved shed never reads "Shedding to 0 SM" (QA-B36).
+     */
+    private void shedRow(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        final QuasarResult r = m.lastResult();
+        if (!m.state().shed || !r.shedding) return;
+        rows.note(
+            BTSRows.ICON_WARN,
+            BTSGuiKit.WARN,
+            BTSText.lang(
+                K + "shedding",
+                r.shedTarget >= 999_999.5 ? BTSFormat.litres(r.shedTarget) : MTEQuasarEngine.fmt(r.shedTarget),
+                BTSFormat.duration(Math.round(QuasarParams.shedSeconds(m.getMass(), r.shedTarget)))),
+            BTSText.lang(K + "shedding.tip", MTEQuasarEngine.shedWhy(r.shedReason)));
     }
 
     private void massRow(BTSRows.Builder rows) {
@@ -1241,6 +1287,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
     private ModularPanel buildHorizonPanel(PanelSyncManager main, ModularPanel parent) {
         final IntSyncValue lattice = main.findSyncHandler("qLattice", IntSyncValue.class);
         final DoubleSyncValue setpoint = main.findSyncHandler("qSetpoint", DoubleSyncValue.class);
+        final DoubleSyncValue setpointInForce = main.findSyncHandler("qSetpointInForce", DoubleSyncValue.class);
         final DoubleSyncValue slideTop = main.findSyncHandler("qSlideTop", DoubleSyncValue.class);
         final DoubleSyncValue od = main.findSyncHandler("qOverdrive", DoubleSyncValue.class);
         final BooleanSyncValue unboundV = main.findSyncHandler("qUnbound", BooleanSyncValue.class);
@@ -1256,6 +1303,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         final BooleanSupplier hasLattice = () -> lattice.getIntValue() > 0;
         final BooleanSupplier odOk = () -> lattice.getIntValue() >= QuasarParams.LATTICE_OVERDRIVE;
         final BooleanSupplier armed = () -> System.currentTimeMillis() - armedAt[0] < COLLAPSE_ARM_MS;
+        // QA-B10: Shed and Bind lose mass, so they take two clicks too
+        final long[] shedArmedAt = { 0L };
+        final BooleanSupplier shedArmed = () -> System.currentTimeMillis() - shedArmedAt[0] < COLLAPSE_ARM_MS;
 
         final Flow column = Flow.column()
             .full()
@@ -1268,7 +1318,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             .child(
                 keyValue(
                     () -> tr(K + "panel.setpoint"),
-                    () -> holdHatch.getBoolValue() ? tr(K + "panel.hatch")
+                    // QA-B04: the setpoint in force, and who sets it
+                    () -> holdHatch.getBoolValue()
+                        ? MTEQuasarEngine.fmt(setpointInForce.getDoubleValue()) + " SM (" + tr(K + "panel.hatch") + ")"
                         : MTEQuasarEngine.fmt(setpoint.getDoubleValue()) + " SM",
                     w))
             .child(
@@ -1344,10 +1396,18 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                         new ButtonWidget<>().size(half, 16)
                             .overlay(
                                 IKey.dynamic(
-                                    () -> (hasLattice.getAsBoolean() ? EnumChatFormatting.WHITE
-                                        : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.shed")))
+                                    () -> shedArmed.getAsBoolean() ? EnumChatFormatting.RED + tr(K + "panel.confirm")
+                                        : (hasLattice.getAsBoolean() ? EnumChatFormatting.WHITE
+                                            : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.shed")))
                             .onMousePressed(btn -> {
-                                if (hasLattice.getAsBoolean()) main.callSyncedAction("qShed", packet -> {});
+                                if (!hasLattice.getAsBoolean()) {
+                                    shedArmedAt[0] = 0L;
+                                } else if (!shedArmed.getAsBoolean()) {
+                                    shedArmedAt[0] = System.currentTimeMillis();
+                                } else {
+                                    shedArmedAt[0] = 0L;
+                                    main.callSyncedAction("qShed", packet -> {});
+                                }
                                 return true;
                             })
                             .tooltip(
@@ -1357,15 +1417,18 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                     .child(
                         new ButtonWidget<>().size(half, 16)
                             .overlay(IKey.dynamic(() -> {
-                                if (unboundV.getBoolValue()) return EnumChatFormatting.WHITE + tr(K + "panel.bind");
                                 if (armed.getAsBoolean()) return EnumChatFormatting.RED + tr(K + "panel.confirm");
+                                if (unboundV.getBoolValue()) return EnumChatFormatting.WHITE + tr(K + "panel.bind");
                                 return (canUnbind.getBoolValue() ? EnumChatFormatting.WHITE
                                     : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.unbind");
                             }))
                             .onMousePressed(btn -> {
                                 if (unboundV.getBoolValue()) {
-                                    armedAt[0] = 0L;
-                                    main.callSyncedAction("qBind", packet -> {});
+                                    if (!armed.getAsBoolean()) armedAt[0] = System.currentTimeMillis();
+                                    else {
+                                        armedAt[0] = 0L;
+                                        main.callSyncedAction("qBind", packet -> {});
+                                    }
                                 } else if (!canUnbind.getBoolValue()) {
                                     armedAt[0] = 0L;
                                 } else if (!armed.getAsBoolean()) {
@@ -1383,8 +1446,10 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                                     .addLine(EnumChatFormatting.GRAY + tr(K + "panel.unbind.tip4")))
                             .tooltipShowUpTimer(TOOLTIP_DELAY)))
             .child(panelPara(() -> {
-                if (armed.getAsBoolean() && !unboundV.getBoolValue()) {
-                    return EnumChatFormatting.DARK_RED + tr(K + "panel.hint.unbind");
+                if (shedArmed.getAsBoolean()) return EnumChatFormatting.DARK_RED + tr(K + "panel.hint.shed");
+                if (armed.getAsBoolean()) {
+                    return EnumChatFormatting.DARK_RED
+                        + tr(unboundV.getBoolValue() ? K + "panel.hint.bind" : K + "panel.hint.unbind");
                 }
                 final String n = note.getStringValue();
                 if (!n.isEmpty()) return n;

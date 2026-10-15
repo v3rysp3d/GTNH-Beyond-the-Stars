@@ -36,9 +36,9 @@ import gregtech.api.render.TextureFactory;
  * Transition bit 1 is on; ignored otherwise.</li>
  * </ul>
  * The host calls {@link #poll} once a second with the modes it understands; a hatch whose mode its host does not use
- * adopts the host's first mode (as the Directive Hatch adopts its host's first set). Settings live in the tile (a
- * wrench
- * keeps them through GT's own NBT); the level and edge are live.
+ * adopts the host's first mode (as the Directive Hatch adopts its host's first set). The mode is saved with the tile
+ * and rides a wrenched item ({@link #setItemNBT}); the last level is saved with the tile only (QA-B05), the edge is
+ * live.
  */
 public class MTEHatchBurstControl extends MTEHatch {
 
@@ -50,7 +50,8 @@ public class MTEHatchBurstControl extends MTEHatch {
         SPLIT("Junction split", "share 1 = c + k (s/15 - 0.5) (Conduit Junction)"),
         BEGIN("Begin", "a rising edge begins the galaxy transition when ready (Eye of Harmony)"),
         // ---- SMBH (smbh-v1.md §6): a Quasar Engine with a Supermassive Lattice. Appended: NBT keeps the name.
-        HOLD("Hold", "the mass setpoint, safe limit (0) .. band top (15), log scale (Quasar Engine, lattice)"),
+        HOLD("Hold",
+            "the mass setpoint, safe limit (1) .. band top (15), log scale; 0 leaves the GUI's (Quasar Engine, lattice)"),
         OVERDRIVE("Overdrive", "Overdrive o = s / 15 in 5 % steps (Quasar Engine, L3 lattice)"),
         SHED("Shed", "a rising edge lowers the mass setpoint to the safe limit (Quasar Engine, lattice)");
 
@@ -87,14 +88,21 @@ public class MTEHatchBurstControl extends MTEHatch {
     // ---- saved
     private Mode mode = Mode.PURGE;
 
-    // ---- live
+    // ---- saved with the tile (QA-B05): the last level, so a signal already on before a save or chunk unload is not
+    // a rising edge when it loads again
     private int level;
+    /** False until the first tick after placement or a load that found no saved level: that tick only primes. */
+    private boolean primed;
+
+    // ---- live
     private boolean edge;
     /** Rising edges seen since placement (GUI only). */
     private int edges;
     private String host = "";
     private String hostLine = "";
     private long lastPoll = Long.MIN_VALUE / 2;
+    /** The modes the host accepted at its last poll (live; empty: no host). */
+    private Mode[] accepted = new Mode[0];
 
     public MTEHatchBurstControl(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional, 11, 0, "Redstone in: purges, the coil field b, a Junction's split");
@@ -116,8 +124,8 @@ public class MTEHatchBurstControl extends MTEHatch {
             "§bQuasar Engine§7 (the 4 cap-rim sockets):",
             "  Purge: a rising edge dumps the disc's flux early (refused below 20). Wire Disc bit 3 here.",
             "  Field b: b = 0.5 + (coil tier - 0.5) x s/15, instead of the GUI's slider.",
-            "  Hold (lattice): the mass setpoint from the safe limit (0) to the band top (15), on a log scale;",
-            "    on an Unbound L4, from 4,194,304 SM (0) to 268,435,456 SM (15, two doublings).",
+            "  Hold (lattice): the mass setpoint from the safe limit (1) to the band top (15), on a log scale;",
+            "    on an Unbound L4, from 4,194,304 SM (1) to 268,435,456 SM (15, two doublings). 0 leaves the GUI's.",
             "  Overdrive (L3 lattice): o = s/15 in 5 % steps. Shed: a rising edge sets the mass setpoint to the safe limit.",
             "§bConduit Junction§7: Junction split: share 1 = c + k x (s/15 - 0.5), clamped 0..1 (c, k in its GUI).",
             "§bEye of Harmony§7: Begin: a rising edge begins the galaxy transition when Transition bit 1 is on.",
@@ -131,11 +139,18 @@ public class MTEHatchBurstControl extends MTEHatch {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
         final int s = Math.max(0, Math.min(15, aBaseMetaTileEntity.getStrongestRedstone()));
-        if (level == 0 && s > 0) {
+        // QA-B05: a rising edge is a real 0 -> 1+ change of the input. The first tick of a freshly placed hatch only
+        // reads the level; after a load the saved level is the "before", so a signal held through a restart or a
+        // chunk unload never fires a Shed, Purge or Begin again.
+        if (primed && level == 0 && s > 0) {
             edge = true;
             edges++;
         }
-        level = s;
+        primed = true;
+        if (s != level) {
+            level = s;
+            aBaseMetaTileEntity.markDirty(); // the chunk must save the new "before" level
+        }
         aBaseMetaTileEntity.setActive(s > 0);
     }
 
@@ -156,6 +171,7 @@ public class MTEHatchBurstControl extends MTEHatch {
             edges++;
         }
         level = v;
+        primed = true;
     }
 
     /** True once per rising edge since the last call (the host consumes it once a second). */
@@ -174,6 +190,7 @@ public class MTEHatchBurstControl extends MTEHatch {
         if (base != null) lastPoll = base.getTimer();
         host = hostName == null ? "" : hostName;
         hostLine = line == null ? "" : line;
+        this.accepted = accepted.clone();
         if (accepted.length > 0) {
             boolean ok = false;
             for (Mode m : accepted) ok |= m == mode;
@@ -205,9 +222,27 @@ public class MTEHatchBurstControl extends MTEHatch {
         return mode.ordinal();
     }
 
+    /**
+     * The GUI's mode button. QA-B21: with a host reading the hatch, the button steps over the modes that host does not
+     * use (in the direction clicked), so Hold, Overdrive and Shed are reachable on a quasar instead of snapping back
+     * to Purge from Split or Begin.
+     */
     public void setModeOrdinal(int o) {
-        mode = Mode.of(o);
+        Mode next = Mode.of(o);
+        if (fresh() && accepted.length > 0 && !accepts(next)) {
+            final int n = Mode.VALUES.length;
+            final int dir = Math.floorMod(next.ordinal() - mode.ordinal(), n) == n - 1 ? -1 : 1;
+            int i = next.ordinal();
+            for (int k = 0; k < n && !accepts(Mode.of(i)); k++) i = Math.floorMod(i + dir, n);
+            next = Mode.of(i);
+        }
+        mode = next;
         settingsChanged();
+    }
+
+    private boolean accepts(Mode m) {
+        for (Mode a : accepted) if (a == m) return true;
+        return false;
     }
 
     /**
@@ -275,6 +310,14 @@ public class MTEHatchBurstControl extends MTEHatch {
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         aNBT.setString("btsBurstMode", mode.name());
+        aNBT.setByte("btsBurstLevel", (byte) level);
+    }
+
+    /** QA-B16: a wrenched hatch keeps its mode (not its level: a placed hatch primes on its first tick). */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        aNBT.setString("btsBurstMode", mode.name());
     }
 
     @Override
@@ -282,6 +325,10 @@ public class MTEHatchBurstControl extends MTEHatch {
         super.loadNBTData(aNBT);
         final Mode m = Mode.parse(aNBT.getString("btsBurstMode"));
         if (m != null) mode = m;
+        if (aNBT.hasKey("btsBurstLevel")) {
+            level = Math.max(0, Math.min(15, aNBT.getByte("btsBurstLevel")));
+            primed = true;
+        }
     }
 
     @Override

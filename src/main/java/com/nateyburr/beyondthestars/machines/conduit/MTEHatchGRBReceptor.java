@@ -133,13 +133,14 @@ public class MTEHatchGRBReceptor extends MTEHatch {
     @Override
     public String[] getDescription() {
         return new String[] { "Takes a gamma-ray burst stream (Bu/t) into a machine. Any side: aim a conduit at it.",
-            "1 Bu/t is worth 10^13 EU/t in a crown (a maxed quasar's 9,796 Bu/t: 9.8e16 EU/t, 98 quadrillion).",
+            "1 Bu/t is worth 10^13 EU/t in a crown (a 4,096 SM quasar's 9,796 Bu/t: 9.8e16 EU/t, 98 quadrillion).",
             "Records each second how much arrived from which Quasar Engine: that is the machine's §bquasar link§7.",
             "Linked: bursts arrived last second from a formed quasar with its hole open and coils powered,",
             "  through an open path (every element fuelled, every ray clear). Nothing is saved or paired by hand.",
             "Used by: Eye of Harmony T7/T8 (rail and halo), Burst Thermaliser Crown (remote feed), Kerr (utility",
             "  socket), Homogeny T2/T3 (stirring ring), Reality Diffraction (portal). Bursts here are consumed.",
             "If its quasar is not loaded or frozen, the machine pauses (it does not read zero). Keep it chunk-loaded.",
+            "Keep every Conduit element and Wormhole Mouth on the path chunk-loaded too: an unloaded one stops the stream.",
             "Right-click: what arrives, from where." };
     }
 
@@ -211,7 +212,9 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             if (out.bySource.containsKey(e.getKey())) continue;
             if (warming || e.getKey()
                 .pauses()) {
-                if (!out.bySource.isEmpty() && now - e.getValue() > FORGET_PAUSED_TICKS) {
+                // QA-B20: never during the warm-up: restored sources carry tick 0, and the first to arrive would
+                // make the port forget the others at once
+                if (!warming && !out.bySource.isEmpty() && now - e.getValue() > FORGET_PAUSED_TICKS) {
                     it.remove();
                     continue;
                 }

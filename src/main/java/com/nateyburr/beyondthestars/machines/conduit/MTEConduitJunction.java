@@ -129,7 +129,14 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
             emit(0, s, now);
             return;
         }
-        final double[] out = BurstRouting.split(s.buPerTick, share(), out3Share, limit);
+        // QA-B06: the out-1 limit is the Junction's, for all the streams of a second together (the standard T7 rig
+        // brings both jets into J1): each stream is split against what the earlier ones left of it
+        final double[] out;
+        if (limit > 0) {
+            final double used = book.sum("lim|", now, FlowBook.SECOND);
+            out = BurstRouting.splitWithin(s.buPerTick, share(), out3Share, limit - used);
+            book.add("lim|" + s.key(), out[3], now);
+        } else out = BurstRouting.split(s.buPerTick, share(), out3Share);
         emit(
             1,
             s.withBu(out[0])

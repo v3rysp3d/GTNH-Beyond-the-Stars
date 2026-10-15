@@ -18,12 +18,13 @@ package com.nateyburr.beyondthestars.machines.quasar.engine;
  * Ṁ_Edd = 40·M/κ;  cap I_max = 5·Ṁ_Edd;  x = log(M/safe)/log(top/safe) (0..1)
  * Disc  = the disc's own draw (f·Ṁ_Edd, QuasarInputs.gasDrawn; the only part that moves E)
  * Hold  = min(on hand, 3·x·Ṁ_Edd);  c_h = Hold/(3·x·Ṁ_Edd) (1 when none needed; 0 when the disc is dark)
- * Growth = min(on hand − Hold, I_max − Disc − 3·x·Ṁ_Edd);  M ← min(setpoint, M + 6.4e-8·(1 − η(a))·Growth)
+ * Growth = min(on hand − Hold, I_max − Disc − 3·x·Ṁ_Edd, the litres that reach the cap);
+ *     M ← min(setpoint, M + 6.4e-8·(1 − η(a))·Growth)
  * Anchor (L4, Unbound, n &gt; 0): need 1,024·4^(n²) L/s; c_a = used/need. The Primordial Matter on hand caps Unbound
  *     mass at 67,108,864·2^n' (n' = what it pays for): growth (the disc's too) stops there, a bigger hole sheds to it
  * Shed: target = min(setpoint, structure top, anchor cap); M ← max(target, 0.98·M); the stream is 0 (no power,
  *     no Overdrive burnt, no hold-up or growth drawn)
- * else Overdrive (L3+, disc lit): need 100,000·o²·2^(−n) L/s each; c_o = min(MHDCSM, Universium on hand)/need;
+ * else Overdrive (L3+, disc lit): need 100,000·o²·2^(−n) L/s each; c_o = min(ESPM, HSM on hand)/need;
  *     o_eff(next second) = o·c_o
  * and the leak: ln(M/safe) ← ln(M/safe)·2^(−(1 − c_h)/3,600), never below safe
  * </pre>
@@ -176,14 +177,17 @@ public final class HorizonLattice {
         q.oEff = oEff;
         out.oEff = oEff;
 
+        // QA-B09: the Growth segment draws only the litres that still reach the growth cap after the disc's own
+        // growth (a second that starts a hair under the setpoint used to draw the whole segment for nothing)
+        final double perLitre = QuasarParams.GROWTH
+            * (1 - QuasarParams.iscoEta(QuasarDisc.clamp(q.a, 0, QuasarParams.A_MAX)));
+        if (grow > 0)
+            grow = q.M >= p.growthCap ? 0 : perLitre > 0 ? Math.min(grow, (p.growthCap - q.M) / perLitre) : grow;
         out.holdUpLitres = hold;
         out.growthLitres = grow;
         if (grow > 0 && q.M < p.growthCap) {
             final double m0 = q.M;
-            q.M = Math.min(
-                p.growthCap,
-                q.M + QuasarParams.GROWTH * (1 - QuasarParams.iscoEta(QuasarDisc.clamp(q.a, 0, QuasarParams.A_MAX)))
-                    * grow);
+            q.M = Math.min(p.growthCap, q.M + perLitre * grow);
             out.grownMass = q.M - m0;
         }
         if (p.lattice > 0 && ch < 1 && q.M > p.safe) {

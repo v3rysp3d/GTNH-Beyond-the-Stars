@@ -27,7 +27,7 @@ import com.nateyburr.beyondthestars.machines.quasar.SmbhBench;
  * upkeep hatch filled and a Mk IV crown on each jet port; without coordinates, in front of the player.</li>
  * <li>{@code mass <M> [x y z]}: the hole's mass, clamped to what the structure holds (§10.3); the mass setpoint
  * follows it.</li>
- * <li>{@code fill [x y z]}: the gas, MHDCSM, Universium and Primordial Matter hatches to capacity.</li>
+ * <li>{@code fill [x y z]}: the gas, the two Overdrive fluids and Primordial Matter hatches to capacity.</li>
  * <li>{@code drain anchor [x y z]}: the Primordial Matter hatches emptied (the anchor is cut).</li>
  * <li>{@code saturate on|off [x y z]}, {@code unbind on|off [x y z]}, {@code damage [x y z]} (one lattice frame
  * block removed, then a re-walk), {@code status [x y z]}.</li>
@@ -148,8 +148,9 @@ public class CommandBTSSmbh extends CommandBase {
                         : "Set up by script: mass " + MTEQuasarEngine.fmt(got)
                             + " SM"
                             + (got == want ? ""
-                                : " (clamped: this structure holds " + MTEQuasarEngine.fmt(q.getStructureTop())
-                                    + " SM)"));
+                                : got > want ? " (clamped: at least 1 SM)"
+                                    : " (clamped: this structure holds " + MTEQuasarEngine.fmt(q.getStructureTop())
+                                        + " SM)"));
                 break;
             }
             case "fill":
@@ -288,8 +289,8 @@ public class CommandBTSSmbh extends CommandBase {
     private static int[] coords(ICommandSender sender, String[] args, int from) {
         if (args.length < from + 3) return null;
         for (int i = from; i < from + 3; i++) if (!SLConsoleTest.isCoord(args[i])) return null;
-        return new int[] { (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[from]),
-            (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[from + 1]),
-            (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[from + 2]) };
+        return new int[] { (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[from])),
+            (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[from + 1])),
+            (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[from + 2])) };
     }
 }

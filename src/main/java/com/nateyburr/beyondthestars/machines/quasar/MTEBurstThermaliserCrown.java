@@ -112,6 +112,12 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     // ---- persisted
     /** The Mk last formed (picks which piece's errors the GUI shows). */
     private int lastMk = 1;
+    /**
+     * QA-B38 (QK-04): the Mk the hologram projector last asked for (server, not saved; 0: none). While it has not
+     * formed, the structure errors are that Mk's: an upgrade in progress lists the cells the bigger crown still needs,
+     * not the old crown's.
+     */
+    private int askedMk;
     private BigInteger lifetimeEU = BigInteger.ZERO;
 
     // ---- walk
@@ -274,6 +280,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         // the biggest crown that stands wins; a failed try reports only for the Mk last formed (its errors are the
         // ones the player is fixing)
         mk = 0;
+        List<StructureError> asked = null;
         for (int t = MK_MAX; t >= 1; t--) {
             clearHatches();
             resetWalk();
@@ -282,9 +289,17 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
             if (checkPiece(PIECES[t - 1], o[0], o[1], o[2], trial)) {
                 mk = t;
                 lastMk = t;
+                if (askedMk <= t) askedMk = 0;
                 return;
             }
+            if (t == askedMk) asked = trial;
             if (t == lastMk) errors.addAll(trial);
+        }
+        // QA-B38 (QK-04): nothing stands (an upgrade has replaced a cell of the old Mk): list the cells of the Mk the
+        // projector is building, not the old Mk's
+        if (asked != null && askedMk != lastMk) {
+            errors.clear();
+            errors.addAll(asked);
         }
         clearHatches();
         resetWalk();
@@ -334,6 +349,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         final int want = triggerMk(stackSize);
+        if (want > mk) askedMk = want;
         if (mMachine && mk >= want) return -1;
         final String piece = PIECES[want - 1];
         final int[] o = BTSShapes.offset(piece);
@@ -354,10 +370,22 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {}
 
+    /**
+     * QA-B13: GT resets the active flag from mMaxProgresstime every tick, and this machine runs no recipe: the flag
+     * worked out once a second is set again every tick after GT's, so the ACTIVE overlay shows and clients are not
+     * sent two texture changes a second.
+     */
+    private boolean activeNow;
+
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
+        tickServer(aBaseMetaTileEntity, aTick);
+        aBaseMetaTileEntity.setActive(activeNow);
+    }
+
+    private void tickServer(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (owner == null && aBaseMetaTileEntity.getOwnerUuid() != null) {
             owner = WirelessNetworkManager.processInitialSettings(aBaseMetaTileEntity);
         }
@@ -367,7 +395,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         final long now = world.getTotalWorldTime();
         if (!mMachine) {
             lastStream = lastUsed = lastOver = lastClipped = 0;
-            aBaseMetaTileEntity.setActive(false);
+            activeNow = (false);
             if (aTick % 100 == 0) sendRenderDataToClient(this);
             return;
         }
@@ -376,7 +404,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         second(now);
         aBaseMetaTileEntity.markDirty(); // the lifetime EU changes every second (P4-85)
         book.prune(now);
-        aBaseMetaTileEntity.setActive(lastUsed > 1e-9);
+        activeNow = (lastUsed > 1e-9);
         sendRenderDataToClient(this);
     }
 
@@ -432,7 +460,8 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     /** One crown second: jets + the receptor + a lower crown's overflow; EU to wireless; overflow up the stack. */
     private void second(long now) {
         final BurstReading r = remote.second(receptors, crownKey(), "Burst Thermaliser Crown Mk " + roman(mk), 0, 0);
-        lastRemote = r.paused ? 0 : r.total;
+        // QA-B45: a crown has nothing to freeze: what arrived is power, even while another source is paused
+        lastRemote = r.total;
         lastJets = book.sum("jet|", now, FlowBook.SHOW);
         lastOverIn = book.sum("over|", now, FlowBook.SHOW);
         final double s = lastJets + lastRemote + lastOverIn;
@@ -631,11 +660,11 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         out.add(
             String.format(
                 Locale.ROOT,
-                "Stream %s Bu/t (jets %s, receptor %s, from below %s) -> %s used",
-                MTEQuasarEngine.bu(lastStream),
-                MTEQuasarEngine.bu(lastJets),
-                MTEQuasarEngine.bu(lastRemote),
-                MTEQuasarEngine.bu(lastOverIn),
+                "Stream %s (jets %s, receptor %s, from below %s) -> %s used",
+                MTEQuasarEngine.buEu(lastStream),
+                MTEQuasarEngine.buEu(lastJets),
+                MTEQuasarEngine.buEu(lastRemote),
+                MTEQuasarEngine.buEu(lastOverIn),
                 MTEQuasarEngine.buEu(lastUsed)));
         out.add(
             String.format(
@@ -675,6 +704,14 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         aNBT.setString("btsCrownLifetime", lifetimeEU.toString());
     }
 
+    /** QA-B16: a wrenched crown keeps its lifetime EU and the Mk it last formed. */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        aNBT.setInteger("btsCrownLastMk", lastMk);
+        aNBT.setString("btsCrownLifetime", lifetimeEU.toString());
+    }
+
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
@@ -699,8 +736,14 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
 
     /** "Radiator Petal (Mk I; Mk II 1,428, Mk III 2,803, Mk IV 4,599)": the count shown is Mk I's. */
     private static String casingName(String name, char c) {
-        return String
-            .format(Locale.ROOT, "%s (Mk I; Mk II %,d, Mk III %,d, Mk IV %,d)", name, bom(2, c), bom(3, c), bom(4, c));
+        // QA-B70: a casing a Mk does not use is left out ("Mk IV 0" read as a missing part)
+        final StringBuilder sb = new StringBuilder(name).append(" (Mk I");
+        for (int mk = 2; mk <= MK_MAX; mk++) {
+            final int n = bom(mk, c);
+            if (n > 0) sb.append(String.format(Locale.ROOT, "; Mk %s %,d", roman(mk), n));
+        }
+        return sb.append(")")
+            .toString();
     }
 
     @Override
@@ -710,15 +753,19 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         tt.addMachineType("Gamma-Ray Burst Power Plant")
             .addInfo("Turns gamma-ray bursts into EU: 1 Bu/t = 10^13 EU/t, pushed to your wireless network.")
             .addInfo("  No dynamo hatch. Its Mk is the crown built around the controller:")
-            .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 (5.1e15), Mk III 8,192 (8.2e16 EU/t, 82 quadrillion).")
-            .addInfo("  Upgrade by building the bigger crown around it.")
+            .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 Bu/t (5.1e15 EU/t), Mk III 8,192 Bu/t (8.2e16 EU/t).")
+            .addInfo("  Upgrade by building the bigger crown around the same controller. The bigger Mk does not keep")
+            .addInfo(
+                "  the smaller one's petals and collimators: clear them first (the projector never breaks a block).")
+            .addInfo("  A crown stacked on top sits higher over a bigger lower crown: re-place it after the upgrade.")
             .addInfo(
                 "  Mk IV, the Event Horizon Crown: 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion), for a Supermassive")
             .addInfo(
                 "  Lattice quasar. Its core is Event Horizon Thermaliser Casing (4 Mk IV are the most any hole needs).")
             .addInfo("On a Quasar Engine jet port: the base centre on the port cell (the cell just past the cap,")
             .addInfo("  on the jet axis), standing on the top cap, upside down under the bottom cap (wrench the")
-            .addInfo("  front to rotate). It takes that jet. /btskit conduit prints the exact cell.")
+            .addInfo("  front to rotate). It takes that jet. A portable scanner on the Quasar Engine prints both port")
+            .addInfo("  cells, and where each crown's controller goes and which way it faces.")
             .addInfo("Remote: a GRB Receptor Port in the base takes a conduit stream.")
             .addInfo("A second crown stacked on this one (same facing) takes the overflow; the rest is clipped.")
             .addInfo("Automation: nothing to do. OpenComputers bts_crown (getPower, getStream, getMk).")

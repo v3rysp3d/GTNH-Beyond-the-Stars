@@ -56,7 +56,7 @@ public class CommandBTSQuasar extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsquasar [t1..t4] [l1..l4] [saturate] [seed] [force]  |  console: /btsquasar [t1..t4] [l1..l4] [saturate] <x> <y> <z> [facing] [force] [survival] [seed] | [check]"
-            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep|gui [info]> x y z  |  /btsquasar release"
+            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep|gui [info]> x y z  |  /btsquasar release  |  /btsquasar mestock x y z <fluids> <L> <AE>|status|sockets <piece> <c>"
             + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] [mk 1-4] [limit bu|off|std] | autorig off|status  |  /btsquasar ocloop x y z";
     }
 
@@ -139,8 +139,25 @@ public class CommandBTSQuasar extends CommandBase {
             SLConsoleTest.tell(sender, "Quasar bench: released " + KerrTestBench.release() + " chunk ticket(s)");
             return;
         }
+        if (args.length >= 5 && args[0].equalsIgnoreCase("mestock")) {
+            // dev bench (QA-B02/B03/B07): an ME stocking hatch on a normal AE network in a private socket
+            final World world = sender.getEntityWorld();
+            final int x = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]));
+            final int y = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]));
+            final int z = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]));
+            for (String line : com.nateyburr.beyondthestars.rendertest.MeStockBench
+                .run(world, x, y, z, java.util.Arrays.copyOfRange(args, 4, args.length)))
+                SLConsoleTest.tell(sender, line);
+            return;
+        }
         if (args.length >= 4 && BENCH.contains(args[0].toLowerCase(Locale.ROOT))) {
-            bench(sender, args);
+            try {
+                bench(sender, args);
+            } catch (NumberFormatException bad) {
+                // QA-B58: "/btsquasar seed x y z abc" threw "An unknown error occurred"
+                SLConsoleTest
+                    .tell(sender, EnumChatFormatting.RED + "Quasar bench: not a number (" + bad.getMessage() + ")");
+            }
             return;
         }
         final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);
@@ -275,9 +292,9 @@ public class CommandBTSQuasar extends CommandBase {
     private void bench(ICommandSender sender, String[] args) {
         final World world = sender.getEntityWorld();
         if (world == null || world.isRemote) return;
-        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
-        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
-        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        final int x = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]));
+        final int y = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]));
+        final int z = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]));
         final String verb = args[0].toLowerCase(Locale.ROOT);
         if (verb.equals("keep")) {
             // load the controller's chunk first, so its facing (and so the footprint) is known; the box includes the
@@ -404,9 +421,9 @@ public class CommandBTSQuasar extends CommandBase {
     private void automation(ICommandSender sender, String[] args) {
         final World world = sender.getEntityWorld();
         if (world == null || world.isRemote) return;
-        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
-        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
-        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        final int x = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]));
+        final int y = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]));
+        final int z = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]));
         world.getChunkFromBlockCoords(x, z);
         final MTEQuasarEngine q = QuasarKit.quasarAt(world, x, y, z);
         if (q == null) {
@@ -437,9 +454,9 @@ public class CommandBTSQuasar extends CommandBase {
             else if (a.equals("cut") && i + 1 < args.length) cut = Long.parseLong(args[++i]);
             else if (a.equals("mass") && i + 1 < args.length) mass = Double.parseDouble(args[++i]);
             else if (a.equals("eye") && i + 3 < args.length) {
-                final int ex = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[++i]);
-                final int ey = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[++i]);
-                final int ez = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[++i]);
+                final int ex = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[++i]));
+                final int ey = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[++i]));
+                final int ez = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[++i]));
                 world.getChunkFromBlockCoords(ex, ez);
                 final net.minecraft.tileentity.TileEntity te = world.getTileEntity(ex, ey, ez);
                 if (te instanceof IGregTechTileEntity && ((IGregTechTileEntity) te)
