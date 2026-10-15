@@ -23,6 +23,7 @@ import com.gtnewhorizon.structurelib.alignment.enumerable.Flip;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.PrivateHatchFluids;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
@@ -37,12 +38,9 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
-import gregtech.api.metatileentity.implementations.MTEHatchMultiInput;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GTUtility;
 import gregtech.common.render.IMTERenderer;
-import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
-import gregtech.common.tileentities.machines.MTEHatchInputME;
 import gregtech.common.tileentities.machines.RecipeCheckReason;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
@@ -371,45 +369,20 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
 
     // ===================================================================== private fluid hatches
 
-    /** Fluid of {@code fluid} held by the hatches in {@code list} (not GT's lists: never started by GT). */
+    /**
+     * Fluid of {@code fluid} the hatches in {@code list} can give (not GT's lists: GT never opens a recipe window on
+     * them). An ME stocking hatch reads its network's stock (QA-B07); see {@link PrivateHatchFluids}.
+     */
     protected static long available(List<MTEHatchInput> list, Fluid fluid) {
-        long n = 0;
-        for (MTEHatchInput hatch : list) {
-            if (!live(hatch)) continue;
-            for (FluidStack s : storedFluids(hatch)) {
-                if (s != null && s.getFluid() == fluid) n += s.amount;
-            }
-        }
-        return n;
+        return PrivateHatchFluids.available(list, fluid);
     }
 
-    /** Drains {@code amount} of {@code fluid} from the hatches in {@code list}; returns what was drained. */
+    /**
+     * Drains {@code amount} of {@code fluid} from the hatches in {@code list}; returns what really left them (an ME
+     * stocking hatch: what its network extracted, never a recipe-window shadow).
+     */
     protected long take(List<MTEHatchInput> list, Fluid fluid, long amount) {
-        long got = 0;
-        for (MTEHatchInput hatch : list) {
-            if (got >= amount) break;
-            if (!live(hatch)) continue;
-            final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
-            if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
-            try {
-                for (FluidStack s : storedFluids(hatch)) {
-                    if (got >= amount) break;
-                    if (s == null || s.getFluid() != fluid || s.amount <= 0) continue;
-                    final int want = (int) Math.min(s.amount, amount - got);
-                    final FluidStack d = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
-                    if (d != null) got += d.amount;
-                }
-            } finally {
-                if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(this);
-            }
-        }
-        return got;
-    }
-
-    protected static FluidStack[] storedFluids(MTEHatchInput hatch) {
-        if (hatch instanceof MTEHatchInputME) return ((MTEHatchInputME) hatch).getStoredFluids();
-        if (hatch instanceof MTEHatchMultiInput) return ((MTEHatchMultiInput) hatch).getStoredFluid();
-        return new FluidStack[] { hatch.getFluid() };
+        return PrivateHatchFluids.take(list, fluid, amount);
     }
 
     // ============================================================================ common bits

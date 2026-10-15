@@ -55,6 +55,7 @@ import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.PrivateHatchFluids;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl;
@@ -92,7 +93,6 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
-import gregtech.api.metatileentity.implementations.MTEHatchMultiInput;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
@@ -100,7 +100,6 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
-import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
 import gregtech.common.tileentities.machines.MTEHatchInputME;
 
 /**
@@ -680,7 +679,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             final long eut = (long) Math.ceil(QuasarParams.coilEUt(effectiveB()));
             if (eut > 0 && !drainEnergyInput(eut)) secondPowerOk = false;
             // the Accretion Buffer between seconds (§4.2): per-tick draws while the hatches give
-            if (refillMore && aTick % 20 != 0) refillMore = refillBuffer() > 0 && buffer(gasFluid(gas)) < bufferCap();
+            // (plain hatches only: an ME stocking hatch is pulled once a second, QA-B50)
+            if (refillMore && aTick % 20 != 0)
+                refillMore = refillBuffer(false) > 0 && buffer(gasFluid(gas)) < bufferCap();
         }
         if (aTick % 20 == 0) {
             if (!frozen) {
@@ -751,7 +752,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             in.overdrive = overdriveInUse();
             final double medd = QuasarParams.eddingtonFeed(q.M, gas);
             final double m0 = q.M;
-            refillBuffer();
+            refillBuffer(true);
             final double want = Math.max(0, feed) * medd;
             final long have = buffer(gasFluid(gas));
             final double drawn = Math.min(have, want);
@@ -762,9 +763,19 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             // the hold-up and growth segments come out of what is left in the feed buffer, the Overdrive fluids and
             // the anchor from the trim sockets, then the gas sockets (ME stocking hatches are fine there: these are
             // upkeeps, not trims). Without a lattice every one of them is 0 and nothing is drawn.
+            // QA-B03: an upkeep is paid BEFORE the step, from what really left the hatches (an ME network short of
+            // AE power extracts less than it reports); the engine sees only that, and what it does not burn stays in
+            // the controller as credit for the next second.
             final boolean lattice = QuasarParams.latticeInForce(in.coilTier, latticeTier) > 0;
-            if (lattice && unbound) in.anchorAvailable = upkeepAvailable(primordialFluid());
-            final HorizonLattice.Plan plan = HorizonLattice.plan(q, in);
+            if (lattice && unbound) in.anchorAvailable = buffer(primordialFluid()) + upkeepOnHand(primordialFluid());
+            HorizonLattice.Plan plan = HorizonLattice.plan(q, in);
+            if (plan.anchorNeed > 0) {
+                final double paid = prepay(primordialFluid(), plan.anchorNeed, true);
+                if (paid + 1e-9 < Math.min(plan.anchorNeed, in.anchorAvailable)) {
+                    in.anchorAvailable = paid; // the stock did not come out: the hole holds only what was paid
+                    plan = HorizonLattice.plan(q, in);
+                }
+            }
             // the Accretion Buffer (§4.2) keeps 60 s of Disc + Hold-up: the hold-up may use all of it, the Growth
             // segment only what is over that reserve (so growth is the first to drop out when the feed runs short)
             if (plan.holdUpNeed + plan.growthRoom > 0) {
@@ -774,8 +785,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     + Math.max(0, onHand - plan.holdUpNeed - reserve);
             }
             if (plan.overdriveNeed > 0) {
-                in.mhdcsmAvailable = upkeepAvailable(mhdcsmFluid());
-                in.universiumAvailable = upkeepAvailable(universiumFluid());
+                in.mhdcsmAvailable = prepay(mhdcsmFluid(), plan.overdriveNeed, true);
+                in.universiumAvailable = prepay(universiumFluid(), plan.overdriveNeed, true);
             }
             // trims: what the plain trim hatches hold, in whole units, at most 10 each
             final double gasUnitL = QuasarParams.gasTrimUnitLitres(q.M);
@@ -783,7 +794,10 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             // P4-77: an OpenComputers trim pulse adds units paid from the feed buffer (gas) or the gas sockets
             // (Spatially Enlarged Fluid, ME stocking included), within the same cap of 10
             final double ocG = Math.min(ocGasUnits, Math.floor(buffer(gasFluid(gas)) / gasUnitL));
-            final double ocS = Math.min(ocSpaceUnits, Math.floor(available(gasHatches, spaceFluid()) / spaceUnitL));
+            final double ocS = ocSpaceUnits > 0
+                ? Math
+                    .min(ocSpaceUnits, Math.floor(prepay(spaceFluid(), ocSpaceUnits * spaceUnitL, false) / spaceUnitL))
+                : 0;
             ocGasUnits = 0;
             ocSpaceUnits = 0;
             in.gasTrimUnits = Math
@@ -794,9 +808,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             HorizonLattice.step(q, in, plan, r);
             final double intake = r.holdUpLitres + r.growthLitres;
             if (intake > 0) takeBuffer(gasFluid(gas), (long) Math.ceil(intake));
-            if (r.mhdcsmLitres > 0) takeUpkeep(mhdcsmFluid(), r.mhdcsmLitres);
-            if (r.universiumLitres > 0) takeUpkeep(universiumFluid(), r.universiumLitres);
-            if (r.anchorLitres > 0) takeUpkeep(primordialFluid(), r.anchorLitres);
+            if (r.mhdcsmLitres > 0) spendCredit(mhdcsmFluid(), r.mhdcsmLitres);
+            if (r.universiumLitres > 0) spendCredit(universiumFluid(), r.universiumLitres);
+            if (r.anchorLitres > 0) spendCredit(primordialFluid(), r.anchorLitres);
             if (r.gasTrimLitres > 0) {
                 final long need = (long) Math.ceil(r.gasTrimLitres);
                 final long got = take(trimHatches, gasFluid(gas), need);
@@ -805,7 +819,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             if (r.spaceLitres > 0) {
                 final long need = (long) Math.ceil(r.spaceLitres);
                 final long got = take(trimHatches, spaceFluid(), need);
-                if (got < need) take(gasHatches, spaceFluid(), need - got);
+                if (got < need) spendCredit(spaceFluid(), need - got); // the OC pulse's prepaid litres
             }
             trimGasUnits = r.gasTrimUnits;
             trimSpaceUnits = r.spaceTrimUnits;
@@ -1097,16 +1111,40 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return s == null ? null : s.getFluid();
     }
 
-    /** An SMBH upkeep fluid on hand: the trim sockets and the gas sockets together, litres. */
-    private double upkeepAvailable(Fluid fluid) {
+    /**
+     * An SMBH upkeep fluid in the hatches: the trim sockets and the gas sockets together, litres (an ME stocking hatch
+     * counts its network's stock; {@link PrivateHatchFluids}).
+     */
+    private double upkeepOnHand(Fluid fluid) {
         return (double) available(trimHatches, fluid) + available(gasHatches, fluid);
     }
 
-    /** Drains an SMBH upkeep: the trim sockets first, then the gas sockets. */
-    private void takeUpkeep(Fluid fluid, double litres) {
-        final long need = (long) Math.ceil(litres);
-        final long got = take(trimHatches, fluid, need);
-        if (got < need) take(gasHatches, fluid, need - got);
+    /**
+     * QA-B03: pays {@code need} litres of an upkeep into the controller's credit (kept with the Accretion Buffer,
+     * under the fluid's name) from the trim sockets first ({@code trims}), then the gas sockets, and returns the
+     * credit: only litres that really left a hatch. Never asks for more than the hatches report.
+     */
+    private double prepay(Fluid fluid, double need, boolean trims) {
+        if (fluid == null) return 0;
+        if (!(need > 0)) return buffer(fluid);
+        final double asked = Math.ceil(Math.min(need, 4e18)) - buffer(fluid);
+        if (asked >= 1) {
+            long want = (long) asked;
+            long got = 0;
+            if (trims) {
+                got = take(trimHatches, fluid, want);
+                want -= got;
+            }
+            if (want > 0) got += take(gasHatches, fluid, Math.min(want, available(gasHatches, fluid)));
+            if (got > 0) buffer.put(fluid.getName(), buffer(fluid) + got);
+        }
+        return buffer(fluid);
+    }
+
+    /** Burns {@code litres} of a prepaid upkeep from the controller's credit. */
+    private void spendCredit(Fluid fluid, double litres) {
+        if (fluid == null || !(litres > 0)) return;
+        takeBuffer(fluid, Math.min(buffer(fluid), (long) Math.ceil(litres - 1e-9)));
     }
 
     static String shedWhy(String reason) {
@@ -1172,56 +1210,38 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     }
 
     /**
-     * Tops the selected gas's Accretion Buffer up from the Rim Gas Injector hatches (ME stocking hatches pull from
-     * AE); each drain is one FluidStack, at most 2³¹ − 1 L. Returns the litres taken.
+     * Tops the selected gas's Accretion Buffer up from the Rim Gas Injector hatches; returns the litres taken. Plain
+     * hatches every call (each drain one FluidStack, at most 2³¹ − 1 L). ME stocking hatches only with
+     * {@code stocking} (once a second), straight from their network and at most {@link #STOCKING_PULL_SECONDS} of
+     * draw a pull: the buffer is credited with what the network really extracted (QA-B03), never a recipe-window
+     * shadow.
      */
-    private long refillBuffer() {
+    private long refillBuffer(boolean stocking) {
         final Fluid fluid = gasFluid(gas);
         if (fluid == null) return 0;
         final long room = bufferCap() - buffer(fluid);
         if (room <= 0) return 0;
-        final long got = take(gasHatches, fluid, room);
+        long got = PrivateHatchFluids.takePlain(gasHatches, fluid, room);
+        if (stocking && got < room) {
+            final double[] a = accretion();
+            final double pull = Math.min(Long.MAX_VALUE / 4, Math.ceil(STOCKING_PULL_SECONDS * (a[0] + a[1] + a[2])));
+            got += PrivateHatchFluids.takeStocking(gasHatches, fluid, Math.min(room - got, (long) pull));
+        }
         if (got > 0) buffer.put(fluid.getName(), buffer(fluid) + got);
         return got;
     }
 
+    /** The most one second's pull from ME stocking hatches may take, in seconds of Disc + Hold-up + Growth. */
+    static final int STOCKING_PULL_SECONDS = 10;
+
+    /** Fluid the live hatches in {@code list} can give now; see {@link PrivateHatchFluids#available}. */
     static long available(List<MTEHatchInput> list, Fluid fluid) {
-        if (fluid == null) return 0;
-        long n = 0;
-        for (MTEHatchInput hatch : list) {
-            if (!live(hatch)) continue;
-            for (FluidStack s : storedFluids(hatch)) if (s != null && s.getFluid() == fluid) n += s.amount;
-        }
-        return n;
+        return PrivateHatchFluids.available(list, fluid);
     }
 
+    /** Drains {@code fluid}; returns the litres that really left the hatches ({@link PrivateHatchFluids#take}). */
     private long take(List<MTEHatchInput> list, Fluid fluid, long amount) {
-        if (fluid == null) return 0;
-        long got = 0;
-        for (MTEHatchInput hatch : list) {
-            if (got >= amount) break;
-            if (!live(hatch)) continue;
-            final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
-            if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
-            try {
-                for (FluidStack s : storedFluids(hatch)) {
-                    if (got >= amount) break;
-                    if (s == null || s.getFluid() != fluid || s.amount <= 0) continue;
-                    final int want = (int) Math.min(s.amount, amount - got);
-                    final FluidStack d = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
-                    if (d != null) got += d.amount;
-                }
-            } finally {
-                if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(this);
-            }
-        }
-        return got;
-    }
-
-    static FluidStack[] storedFluids(MTEHatchInput hatch) {
-        if (hatch instanceof MTEHatchInputME) return ((MTEHatchInputME) hatch).getStoredFluids();
-        if (hatch instanceof MTEHatchMultiInput) return ((MTEHatchMultiInput) hatch).getStoredFluid();
-        return new FluidStack[] { hatch.getFluid() };
+        return PrivateHatchFluids.take(list, fluid, amount);
     }
 
     // ============================================================================ the hole

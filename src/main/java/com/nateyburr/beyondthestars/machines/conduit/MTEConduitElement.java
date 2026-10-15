@@ -39,6 +39,7 @@ import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.PrivateHatchFluids;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
@@ -54,7 +55,6 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEExtendedPowerMultiBlockBase;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
-import gregtech.api.metatileentity.implementations.MTEHatchMultiInput;
 import gregtech.api.recipe.RecipeMap;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.structure.error.StructureError;
@@ -62,8 +62,6 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.render.IMTERenderer;
-import gregtech.common.tileentities.machines.IRecipeProcessingAwareHatch;
-import gregtech.common.tileentities.machines.MTEHatchInputME;
 import io.netty.buffer.ByteBuf;
 
 /**
@@ -671,13 +669,18 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             owedFuel = name;
         }
         final double need = owed + rate;
-        final boolean ok = fluid != null && available(fuelHatches, fluid) >= Math.ceil(need - 1e-9);
+        boolean ok = fluid != null && available(fuelHatches, fluid) >= Math.ceil(need - 1e-9);
         if (ok) {
             final long whole = (long) Math.floor(need + 1e-9);
             final long got = take(fuelHatches, fluid, whole);
-            owed = need - got;
             if (useErgo || useSuperdense) litresErgomatter += got;
             else litresSpaceTime += got;
+            // QA-B03: only what really left the hatches pays (an ME network short of AE power extracts less than
+            // it reported): a short extraction is a short second
+            if (got < whole) {
+                ok = false;
+                owed = 0;
+            } else owed = need - got;
         } else {
             owed = 0;
         }
@@ -706,43 +709,14 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             .equals(owedFuel) ? owed : 0;
     }
 
+    /** Fuel on hand in the fuel hatches (an ME stocking hatch: its network's stock; {@link PrivateHatchFluids}). */
     static long available(List<MTEHatchInput> list, Fluid fluid) {
-        if (fluid == null) return 0;
-        long n = 0;
-        for (MTEHatchInput hatch : list) {
-            if (!live(hatch)) continue;
-            for (FluidStack s : storedFluids(hatch)) if (s != null && s.getFluid() == fluid) n += s.amount;
-        }
-        return n;
+        return PrivateHatchFluids.available(list, fluid);
     }
 
+    /** Drains fuel; returns the litres that really left the hatches (QA-B03: only those are credited). */
     private long take(List<MTEHatchInput> list, Fluid fluid, long amount) {
-        if (fluid == null || amount <= 0) return 0;
-        long got = 0;
-        for (MTEHatchInput hatch : list) {
-            if (got >= amount) break;
-            if (!live(hatch)) continue;
-            final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
-            if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
-            try {
-                for (FluidStack s : storedFluids(hatch)) {
-                    if (got >= amount) break;
-                    if (s == null || s.getFluid() != fluid || s.amount <= 0) continue;
-                    final int want = (int) Math.min(s.amount, amount - got);
-                    final FluidStack d = hatch.drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
-                    if (d != null) got += d.amount;
-                }
-            } finally {
-                if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(this);
-            }
-        }
-        return got;
-    }
-
-    static FluidStack[] storedFluids(MTEHatchInput hatch) {
-        if (hatch instanceof MTEHatchInputME) return ((MTEHatchInputME) hatch).getStoredFluids();
-        if (hatch instanceof MTEHatchMultiInput) return ((MTEHatchMultiInput) hatch).getStoredFluid();
-        return new FluidStack[] { hatch.getFluid() };
+        return PrivateHatchFluids.take(list, fluid, amount);
     }
 
     // ============================================================================ settings
