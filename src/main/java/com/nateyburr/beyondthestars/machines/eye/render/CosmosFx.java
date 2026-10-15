@@ -33,6 +33,7 @@ import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.MachineFx;
 import com.nateyburr.beyondthestars.client.render.Meshes;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.RenderQuality;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 
 import cpw.mods.fml.relauncher.Side;
@@ -350,7 +351,9 @@ final class CosmosFx {
         final boolean lensing = Config.renderBackgroundLensing && !CosmosInput.debugNoLensing;
         // The Infall: out of the Zone of Avoidance, the filaments and the lens come up with V's ramp (600 s)
         final float emerge = in.trans == CosmosInput.TRANS_INFALL ? Math.max(0.05f, clamp01(in.vRamp)) : 1f;
-        set(L.time, time, Math.max(0.25, Math.min(1, in.phi / 4.0)), emerge, 1);
+        // the streaming galaxies follow phi; renderParticles off leaves them out (the flow's group stays)
+        final double streaming = RenderQuality.particles() ? Math.max(0.25, Math.min(1, in.phi / 4.0)) : 0;
+        set(L.time, time, streaming, emerge, 1);
         // the halo: as many dots as the galaxies held, on a log scale (Laniakea's 100,000 fill it)
         final int held = Math.max(0, in.galaxies);
         final double v = Float.isNaN(in.v) ? 0 : in.v;
