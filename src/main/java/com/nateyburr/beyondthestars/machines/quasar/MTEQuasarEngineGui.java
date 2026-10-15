@@ -35,6 +35,7 @@ import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.textfield.TextFieldWidget;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
+import com.nateyburr.beyondthestars.machines.OwnerGate;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSControllerGui;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
@@ -50,6 +51,7 @@ import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarResult;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarState;
 
 import gregtech.api.enums.ItemList;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.modularui2.GTGuiTextures;
 import gregtech.api.util.GTUtility;
 
@@ -87,6 +89,12 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
 
     private static final String K = "beyondthestars.gui.quasar.";
 
+    /** QA-B36: an Unbound L4 shedding with a high flux needs about 26 rows; the default pool of 24 cut the last. */
+    @Override
+    protected int statusPoolSize() {
+        return 28;
+    }
+
     private static final long COLLAPSE_ARM_MS = 4000L;
     private static final int DISC_PANEL_W = 160;
     private static final int DISC_PANEL_H = 244;
@@ -123,22 +131,44 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         syncManager.syncValue("qCounters", new StringSyncValue(() -> countersLine(m)));
         syncManager.syncValue("qMilestones", new StringSyncValue(() -> milestonesLine(m)));
         syncManager.syncValue("qSlot", new StringSyncValue(() -> slotLine(m)));
-        // settable from the client; every setter clamps on the server
-        syncManager.syncValue("qFeed", new DoubleSyncValue(m::getFeed, m::setFeed).allowC2S());
-        syncManager.syncValue("qGas", new IntSyncValue(m::getGasOrdinal, m::setGasOrdinal).allowC2S());
-        syncManager.syncValue("qB", new DoubleSyncValue(m::getBSetting, m::setBSetting).allowC2S());
+        // settable from the client; every setter clamps on the server, and only the owner or the owner's team may
+        // change the quasar (QA-B15)
+        final java.util.function.BooleanSupplier may = () -> syncManager.isClient()
+            || OwnerGate.mayControl(m.getBaseMetaTileEntity(), syncManager.getPlayer());
+        syncManager.syncValue(
+            "qFeed",
+            new DoubleSyncValue(m::getFeed, v -> { if (may.getAsBoolean()) m.setFeed(v); }).allowC2S());
+        syncManager.syncValue(
+            "qGas",
+            new IntSyncValue(m::getGasOrdinal, v -> { if (may.getAsBoolean()) m.setGasOrdinal(v); }).allowC2S());
+        syncManager.syncValue(
+            "qB",
+            new DoubleSyncValue(m::getBSetting, v -> { if (may.getAsBoolean()) m.setBSetting(v); }).allowC2S());
         syncManager.syncValue("qBHatch", new BooleanSyncValue(m::bFromHatch));
-        syncManager.syncValue("qPurgeAt", new DoubleSyncValue(m::getPurgeAt, m::setPurgeAt).allowC2S());
+        syncManager.syncValue(
+            "qPurgeAt",
+            new DoubleSyncValue(m::getPurgeAt, v -> { if (may.getAsBoolean()) m.setPurgeAt(v); }).allowC2S());
         syncManager.syncValue("qRender", new BooleanSyncValue(m::isRenderEnabled, m::setRenderEnabled).allowC2S());
         // server-only actions: the server re-checks everything
-        syncManager.registerServerSyncedAction("qOpen", packet -> m.openHole());
-        syncManager.registerServerSyncedAction("qCollapse", packet -> m.collapseHole());
-        syncManager.registerServerSyncedAction("qPurge", packet -> m.requestPurge());
+        final IGregTechTileEntity base = m.getBaseMetaTileEntity();
+        syncManager.registerServerSyncedAction(
+            "qOpen",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "open the hole")) m.openHole(); });
+        syncManager.registerServerSyncedAction(
+            "qCollapse",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "collapse the hole")) m.collapseHole(); });
+        syncManager.registerServerSyncedAction(
+            "qPurge",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "purge the disc")) m.requestPurge(); });
         // SMBH (smbh-v1.md §2.2, §3.2, §5.1): the Supermassive Lattice panel
         syncManager.syncValue("qLattice", new IntSyncValue(m::getLatticeInForce));
-        syncManager.syncValue("qSetpoint", new DoubleSyncValue(m::getGuiMassCap, m::setMassSetpoint).allowC2S());
+        syncManager.syncValue(
+            "qSetpoint",
+            new DoubleSyncValue(m::getGuiMassCap, v -> { if (may.getAsBoolean()) m.setMassSetpoint(v); }).allowC2S());
         syncManager.syncValue("qSlideTop", new DoubleSyncValue(() -> sliderTop(m)));
-        syncManager.syncValue("qOverdrive", new DoubleSyncValue(m::getOverdrive, m::setOverdrive).allowC2S());
+        syncManager.syncValue(
+            "qOverdrive",
+            new DoubleSyncValue(m::getOverdrive, v -> { if (may.getAsBoolean()) m.setOverdrive(v); }).allowC2S());
         syncManager.syncValue("qUnbound", new BooleanSyncValue(m::isUnbound));
         syncManager.syncValue(
             "qCanUnbind",
@@ -149,9 +179,15 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         syncManager.syncValue("qLatticeLine", new StringSyncValue(() -> latticeLine(m)));
         syncManager.syncValue("qOdLine", new StringSyncValue(() -> overdriveLine(m)));
         syncManager.syncValue("qPanelNote", new StringSyncValue(() -> panelNote(m)));
-        syncManager.registerServerSyncedAction("qShed", packet -> m.shedToSafe());
-        syncManager.registerServerSyncedAction("qUnbind", packet -> m.unbind(true));
-        syncManager.registerServerSyncedAction("qBind", packet -> m.unbind(false));
+        syncManager.registerServerSyncedAction(
+            "qShed",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "shed the hole")) m.shedToSafe(); });
+        syncManager.registerServerSyncedAction(
+            "qUnbind",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "unbind the hole")) m.unbind(true); });
+        syncManager.registerServerSyncedAction(
+            "qBind",
+            packet -> { if (OwnerGate.check(base, syncManager.getPlayer(), "bind the hole")) m.unbind(false); });
     }
 
     // ===================================================================== SMBH helpers (server)
@@ -1267,6 +1303,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         final BooleanSupplier hasLattice = () -> lattice.getIntValue() > 0;
         final BooleanSupplier odOk = () -> lattice.getIntValue() >= QuasarParams.LATTICE_OVERDRIVE;
         final BooleanSupplier armed = () -> System.currentTimeMillis() - armedAt[0] < COLLAPSE_ARM_MS;
+        // QA-B10: Shed and Bind lose mass, so they take two clicks too
+        final long[] shedArmedAt = { 0L };
+        final BooleanSupplier shedArmed = () -> System.currentTimeMillis() - shedArmedAt[0] < COLLAPSE_ARM_MS;
 
         final Flow column = Flow.column()
             .full()
@@ -1357,10 +1396,18 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                         new ButtonWidget<>().size(half, 16)
                             .overlay(
                                 IKey.dynamic(
-                                    () -> (hasLattice.getAsBoolean() ? EnumChatFormatting.WHITE
-                                        : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.shed")))
+                                    () -> shedArmed.getAsBoolean() ? EnumChatFormatting.RED + tr(K + "panel.confirm")
+                                        : (hasLattice.getAsBoolean() ? EnumChatFormatting.WHITE
+                                            : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.shed")))
                             .onMousePressed(btn -> {
-                                if (hasLattice.getAsBoolean()) main.callSyncedAction("qShed", packet -> {});
+                                if (!hasLattice.getAsBoolean()) {
+                                    shedArmedAt[0] = 0L;
+                                } else if (!shedArmed.getAsBoolean()) {
+                                    shedArmedAt[0] = System.currentTimeMillis();
+                                } else {
+                                    shedArmedAt[0] = 0L;
+                                    main.callSyncedAction("qShed", packet -> {});
+                                }
                                 return true;
                             })
                             .tooltip(
@@ -1370,15 +1417,18 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                     .child(
                         new ButtonWidget<>().size(half, 16)
                             .overlay(IKey.dynamic(() -> {
-                                if (unboundV.getBoolValue()) return EnumChatFormatting.WHITE + tr(K + "panel.bind");
                                 if (armed.getAsBoolean()) return EnumChatFormatting.RED + tr(K + "panel.confirm");
+                                if (unboundV.getBoolValue()) return EnumChatFormatting.WHITE + tr(K + "panel.bind");
                                 return (canUnbind.getBoolValue() ? EnumChatFormatting.WHITE
                                     : EnumChatFormatting.DARK_GRAY) + tr(K + "panel.unbind");
                             }))
                             .onMousePressed(btn -> {
                                 if (unboundV.getBoolValue()) {
-                                    armedAt[0] = 0L;
-                                    main.callSyncedAction("qBind", packet -> {});
+                                    if (!armed.getAsBoolean()) armedAt[0] = System.currentTimeMillis();
+                                    else {
+                                        armedAt[0] = 0L;
+                                        main.callSyncedAction("qBind", packet -> {});
+                                    }
                                 } else if (!canUnbind.getBoolValue()) {
                                     armedAt[0] = 0L;
                                 } else if (!armed.getAsBoolean()) {
@@ -1396,8 +1446,10 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                                     .addLine(EnumChatFormatting.GRAY + tr(K + "panel.unbind.tip4")))
                             .tooltipShowUpTimer(TOOLTIP_DELAY)))
             .child(panelPara(() -> {
-                if (armed.getAsBoolean() && !unboundV.getBoolValue()) {
-                    return EnumChatFormatting.DARK_RED + tr(K + "panel.hint.unbind");
+                if (shedArmed.getAsBoolean()) return EnumChatFormatting.DARK_RED + tr(K + "panel.hint.shed");
+                if (armed.getAsBoolean()) {
+                    return EnumChatFormatting.DARK_RED
+                        + tr(unboundV.getBoolValue() ? K + "panel.hint.bind" : K + "panel.hint.unbind");
                 }
                 final String n = note.getStringValue();
                 if (!n.isEmpty()) return n;
