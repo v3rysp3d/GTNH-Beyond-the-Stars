@@ -204,6 +204,101 @@ public final class BTSEnvironments {
             final MTEEyeOfHarmonyBTS e = eye();
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeSlots(e) };
         }
+
+        // ---- P5 (p5-t9-t10.md §9.3)
+
+        @Callback(
+            doc = "function():table -- the T9 pellet beam: rho, gev, rate (pellets/s), cap, grade, holdRating, stock,"
+                + " level, rhoMax, acceptLimit, firing")
+        public Object[] getBeam(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeBeam(e) };
+        }
+
+        @Callback(
+            doc = "function(c:number[, k:number]):table -- the injector's rate-law centre (negative: auto) and gain;"
+                + " returns getBeam()")
+        public Object[] setBeam(Context c, Arguments a) {
+            if (limited("setBeam")) return RATE_LIMITED;
+            final MTEEyeOfHarmonyBTS e = eye();
+            if (e == null) return GONE;
+            BTSComputerApi.eyeSetBeam(e, a.checkDouble(0), a.count() > 1 ? a.checkDouble(1) : Double.NaN);
+            return new Object[] { BTSComputerApi.eyeBeam(e) };
+        }
+
+        @Callback(doc = "function(grade:string):string -- the grade fired: magnetar, ergomatter, superdense or auto")
+        public Object[] setGrade(Context c, Arguments a) {
+            if (limited("setGrade")) return RATE_LIMITED;
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeSetGrade(e, a.checkString(0)) };
+        }
+
+        @Callback(
+            doc = "function():table -- the Galactic Flow: secondsLeft (to arrival, negative while it surges), side"
+                + " (1 high, -1 low), size, accepted, surging, held (s Stable), galaxies, flowsHeld, last")
+        public Object[] getFlow(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeFlow(e) };
+        }
+
+        @Callback(doc = "function(n:number):number -- the flow accept limit 0-12 (negative: the hold rating); returns it")
+        public Object[] setAcceptLimit(Context c, Arguments a) {
+            if (limited("setAcceptLimit")) return RATE_LIMITED;
+            final MTEEyeOfHarmonyBTS e = eye();
+            if (e == null) return GONE;
+            e.starRuntime()
+                .setAcceptLimit(a.checkInteger(0));
+            return new Object[] { e.starRuntime()
+                .attractor()
+                .acceptLimit() };
+        }
+
+        @Callback(
+            doc = "function():table -- the T10 universe: age, H, setpointPhase, nextEvent (recombination / dawn),"
+                + " secondsToEvent, dawnOk, chargeOwed, chargeShort, universes, dawns")
+        public Object[] getUniverse(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeUniverse(e) };
+        }
+    }
+
+    /** P5 {@code bts_injector}: the Pellet Injector Hatch (MTE 28128). */
+    public static final class Injector extends Base {
+
+        Injector(World world, int x, int y, int z) {
+            super(world, x, y, z, "bts_injector");
+        }
+
+        private com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector inj() {
+            final IMetaTileEntity m = mte();
+            return m instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector
+                ? (com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector) m
+                : null;
+        }
+
+        @Callback(doc = "function():table -- pellets by grade (magnetar, ergomatter, superdense) and the barrel Mk")
+        public Object[] getStock(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector i = inj();
+            if (i == null) return GONE;
+            final java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("magnetar", i.pellets(1));
+            m.put("ergomatter", i.pellets(2));
+            m.put("superdense", i.pellets(3));
+            m.put("barrel", i.barrelMk());
+            return new Object[] { m };
+        }
+
+        @Callback(doc = "function():table -- the rate law's settings: cap, centre (or auto), gain, locked grade")
+        public Object[] getRate(Context c, Arguments a) {
+            final com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector i = inj();
+            if (i == null) return GONE;
+            final java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("cap", com.nateyburr.beyondthestars.machines.eye.field.AttractorField.cap(i.barrelMk()));
+            m.put("centre", i.centreAuto() ? "auto" : (Object) i.centre());
+            m.put("gain", i.gain());
+            m.put("grade", com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.gradeName(i.lockedGrade()));
+            return new Object[] { m };
+        }
     }
 
     /** {@code bts_kerr}: the Kerr Ergosphere Engine controller. */

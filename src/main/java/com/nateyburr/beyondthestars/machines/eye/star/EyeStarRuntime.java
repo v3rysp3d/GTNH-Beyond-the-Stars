@@ -2073,13 +2073,24 @@ public final class EyeStarRuntime {
     /** The readout with P4's channels (β, the link streak and mean, slot progress, the countdown). */
     private FieldReadout galaxyReadout(FieldReadout r) {
         final BurstLink l = activeLink();
-        return r.withGalaxy(
-            galaxy.beta,
-            l == null ? 0 : l.progress(),
-            l == null ? galaxy.bursts.mean60 : l.mean,
-            slotProgress(),
-            countdownSeconds(),
-            fs != null && fs.tier.planets());
+        final FieldState.Flow f = fs == null ? null : fs.flow;
+        final boolean flowOn = f != null && fs.tier.attractor && (f.warned || f.left > 0);
+        return r
+            .withGalaxy(
+                galaxy.beta,
+                l == null ? 0 : l.progress(),
+                l == null ? galaxy.bursts.mean60 : l.mean,
+                slotProgress(),
+                countdownSeconds(),
+                fs != null && fs.tier.planets())
+            .withP5(
+                fs == null || fs.beam == null ? 0 : fs.beam.rho,
+                AttractorField.gev(attractor.grade) / 1e9,
+                attractor.holdRating,
+                flowOn ? f.size : 0,
+                milestones.galaxies,
+                fs != null && fs.uni != null && fs.tier.universe ? fs.uni.t / (double) UniverseField.BATCH : 0,
+                attractor.deep.link.progress());
     }
 
     /** P4 Galaxy Transition bits: the linked quasar's Φ and b (the collapse assist), or {0, 0}. */
@@ -3410,7 +3421,19 @@ public final class EyeStarRuntime {
      * × the time dial (the demand scales with both).
      */
     public double standardJ1Limit() {
-        return BurstRouting.STANDARD_J1_LIMIT * Math.max(1, lastP) * Math.max(1, lastM);
+        return j1LimitPerParallel() * Math.max(1, lastP) * Math.max(1, lastM);
+    }
+
+    /**
+     * P5 (B-170): the standard J1 limit per parallel. T7 / T8 keep P4-88's 5 x D7 = 7.5 Bu/t; from the Deep Link's test
+     * fire (T8, it needs 24 Bu/t on the Eye), through The Infall and at T9 / T10 it is 5 x D_T of the tier being run
+     * toward (120 Bu/t at T9, 480 at T10), the same 5 : 1 ratio P4-88 gave T7.
+     */
+    double j1LimitPerParallel() {
+        final int n = fs == null ? 0 : fs.tier.n;
+        final boolean deepLink = n == 8 && trans == null && testFireWanted();
+        final int t = n >= 9 ? n : trans instanceof Infall || deepLink ? 9 : 0;
+        return t >= 9 ? 5 * GalaxyField.demandT(t) : BurstRouting.STANDARD_J1_LIMIT;
     }
 
     /** P4-79 / P4-88: the T7 test fire at J1 15 suits a mean stream from 6 to 32 Bu/t. */
@@ -3775,7 +3798,8 @@ public final class EyeStarRuntime {
         escrow.stackSize = 1;
         taken[0] = true;
         host.markDirty();
-        return needName + " held in escrow. It is consumed only when the "
+        return needName + " held in escrow. It is consumed only when "
+            + (eventFor(unlockedTier).startsWith("The ") ? "" : "the ")
             + eventFor(unlockedTier)
             + " succeeds; until then sneak-punch the controller with an empty hand to take it back. "
             + milestones.progressLine(unlockedTier);
@@ -3893,6 +3917,8 @@ public final class EyeStarRuntime {
                 return rspmFluid();
             case AGENT:
                 return SLFluids.antipolarizationAgent;
+            case DARK_MATTER:
+                return EyeAttractor.darkMatter();
             default:
                 return null;
         }

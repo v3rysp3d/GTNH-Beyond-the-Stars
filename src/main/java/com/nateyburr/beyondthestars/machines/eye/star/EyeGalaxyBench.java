@@ -84,10 +84,20 @@ public final class EyeGalaxyBench {
 
     /** A scripted reading: these Bu/t on each group, the Eye's own port counts, linked when {@code linked}. */
     static EyeBursts feed(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, boolean linked) {
+        return feed(eye, hi, lo, halo, 0, 0, linked);
+    }
+
+    /** P5: a scripted reading with the collar (T9) and crown (T10) groups too. */
+    static EyeBursts feed(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, double collar, double crown,
+        boolean linked) {
         final EyeBursts b = new EyeBursts();
         b.hi = Math.max(0, hi);
         b.lo = Math.max(0, lo);
         b.halo = Math.max(0, halo);
+        b.collar = Math.max(0, collar);
+        b.crown = Math.max(0, crown);
+        b.collarPorts = eye.receptorCount(MTEEyeOfHarmonyBTS.GROUP_COLLAR);
+        b.crownPorts = eye.receptorCount(MTEEyeOfHarmonyBTS.GROUP_CROWN);
         b.linkedRail = linked && b.rail() > 1e-9;
         b.linkedAll = linked && b.total() > 1e-9;
         b.hiPorts = eye.receptorCount(MTEEyeOfHarmonyBTS.GROUP_HIGH);
@@ -112,8 +122,15 @@ public final class EyeGalaxyBench {
      */
     public static void scripted(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, boolean linked,
         String source, boolean paused, double phi, double b, double stream, double limit) {
+        scripted(eye, hi, lo, halo, 0, 0, linked, source, paused, phi, b, stream, limit);
+    }
+
+    /** P5: as above, with the collar and crown groups. */
+    public static void scripted(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, double collar,
+        double crown, boolean linked, String source, boolean paused, double phi, double b, double stream,
+        double limit) {
         final EyeStarRuntime rt = eye.starRuntime();
-        final EyeBursts e = feed(eye, hi, lo, halo, linked);
+        final EyeBursts e = feed(eye, hi, lo, halo, collar, crown, linked);
         e.limit = limit > 0 ? limit : Double.POSITIVE_INFINITY; // P4-88: J1's out-1 limit, as a receptor reads it
         e.source = linked ? source : "";
         e.paused = paused;
@@ -195,6 +212,7 @@ public final class EyeGalaxyBench {
     public static void liveSecond(MTEEyeOfHarmonyBTS eye) {
         final java.util.function.Consumer<MTEEyeOfHarmonyBTS> hook = liveHook;
         if (hook != null) hook.accept(eye);
+        EyeP5Bench.refill(eye);
         if (!live || rig == null || rigFor != key(eye)) return;
         second(eye, eye.starRuntime(), rig);
     }
@@ -241,6 +259,7 @@ public final class EyeGalaxyBench {
         for (long i = 0; i < secs; i++) {
             final String before = rt.lastFailure();
             second(eye, rt, rig);
+            EyeP5Bench.refill(eye);
             eye.fieldSecond();
             if (!rt.lastFailure()
                 .equals(before)) fails++;
@@ -358,13 +377,23 @@ public final class EyeGalaxyBench {
         final boolean test8 = n == 7 && !planets && rt.transition() == null && testFire;
         final double[] e = rt.fs == null ? new double[StellarField.GAUGES] : rt.fs.prevE;
         final boolean lit = rt.galaxyLit();
-        // J1 (Eye : crown): Transition [4] OR (T6 and Slots [8]) -> 15; else two Directive bits (or the P sensor)
+        // J1 (Eye : crown): Transition [4] OR (T6 / T8 and Slots [8]) -> 15; else two Directive bits (or the P sensor)
         int s1 = analog ? BurstRouting.level(lit ? -e[StellarField.P] : 0, 30)
             : BurstRouting.twoLevel(bit(field, 2), bit(field, 1));
-        if (bit(trans, 3) || (testFire && n == 6)) s1 = 15;
+        // P5: the Deep Link's test fire (T8, Slots [8]) forces J1 too, and J4 sends 75 % of the Eye leg to the collars
+        final boolean test9 = n == 8 && !planets && rt.transition() == null && testFire;
+        if (bit(trans, 3) || (testFire && n == 6) || test9) s1 = 15;
         final double sh1 = test8 ? 1 : BurstRouting.share(0.5, 2, s1);
         // P4-88: J1's out 1 is a share of at most its limit (BurstRouting.split); the rest goes to the crown
-        final double eyeS = BurstRouting.split(sIn, sh1, 0, limit)[0];
+        final double eyeAll = BurstRouting.split(sIn, sh1, 0, limit)[0];
+        final double collar = test9 ? eyeAll * com.nateyburr.beyondthestars.machines.quasar.engine.DeepLink.TEST_FIRE_SHARE
+            : 0;
+        // P5 T10 (and Inflation once inflated): every burst lands on the crown's 12 ports
+        if (rt.fs != null && rt.fs.tier.universe) {
+            scripted(eye, 0, 0, 0, 0, eyeAll, linked, source, paused, phi, b, stream, limit);
+            return;
+        }
+        final double eyeS = eyeAll - collar;
         double halo = 0, rail = eyeS;
         if (t8) {
             final int s3 = analog ? BurstRouting.level(lit ? e[StellarField.L] : 0, 30)
@@ -378,7 +407,7 @@ public final class EyeGalaxyBench {
         final int s2 = analog ? BurstRouting.level(lit ? e[StellarField.W] : 0, 30)
             : BurstRouting.twoLevel(bit(field, 3), bit(field, 4));
         final double hi = rail * BurstRouting.share(0.5, 2, s2);
-        scripted(eye, hi, rail - hi, halo, linked, source, paused, phi, b, stream, limit);
+        scripted(eye, hi, rail - hi, halo, collar, 0, linked, source, paused, phi, b, stream, limit);
     }
 
     /** The Eye's position as the rig's key (a chunk reload makes a new controller object, not a new Eye). */

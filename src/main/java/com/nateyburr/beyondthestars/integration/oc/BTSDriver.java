@@ -40,13 +40,17 @@ public final class BTSDriver implements SidedBlock {
             || mte instanceof com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown
             || mte instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor
             || mte instanceof com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny
-            || mte instanceof com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction;
+            || mte instanceof com.nateyburr.beyondthestars.machines.reality.MTERealityDiffraction
+            || mte instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector;
     }
 
     @Override
     public ManagedEnvironment createEnvironment(World world, int x, int y, int z, ForgeDirection side) {
         final IMetaTileEntity mte = mteAt(world, x, y, z);
         if (mte instanceof MTEEyeOfHarmonyBTS) return new BTSEnvironments.Eye(world, x, y, z);
+        if (mte instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector) {
+            return new BTSEnvironments.Injector(world, x, y, z);
+        }
         if (mte instanceof MTEKerrEngine) return new BTSEnvironments.Kerr(world, x, y, z);
         if (mte instanceof MTEKerrModuleBase) return new BTSEnvironments.KerrModule(world, x, y, z);
         if (mte instanceof MTEHatchStellarFieldSensor) return new BTSEnvironments.Sensor(world, x, y, z);

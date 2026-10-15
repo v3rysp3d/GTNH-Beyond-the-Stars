@@ -390,6 +390,24 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
                 return "Planet slots progress %";
             case COUNTDOWN:
                 return "Countdown, s (-1 none)";
+            case V:
+                return "V (infall, T9)";
+            case H:
+                return "H (expansion, T10)";
+            case BEAM_RHO:
+                return "Beam rho (T9)";
+            case BEAM_GEV:
+                return "Beam EeV per pellet (T9)";
+            case HOLD_RATING:
+                return "Hold rating 0-12 (T9)";
+            case FLOW_SIZE:
+                return "Galactic Flow size (T9)";
+            case GALAXIES:
+                return "Galaxies held";
+            case UNIVERSE_AGE:
+                return "Universe age % (T10)";
+            case DEEP_LINK_STREAK:
+                return "Deep Link streak % (T8)";
             default:
                 return "T5 setpoint error";
         }

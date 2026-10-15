@@ -127,7 +127,7 @@ public class CommandBTSEye extends CommandBase {
             int tiers = 6;
             for (String arg : args) {
                 if (arg.toLowerCase(java.util.Locale.ROOT)
-                    .matches("t[1-8]")) tiers = arg.charAt(1) - '0';
+                    .matches("t([1-9]|10)")) tiers = Integer.parseInt(arg.substring(1));
             }
             final int[] box = SLConsoleTest.bounds(
                 ExtendedFacing.of(at.facing),
@@ -155,7 +155,7 @@ public class CommandBTSEye extends CommandBase {
         boolean force = false;
         for (int i = 0; i < args.length; i++) {
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
-            if (arg.matches("t[1-8]")) tiers = arg.charAt(1) - '0';
+            if (arg.matches("t([1-9]|10)")) tiers = Integer.parseInt(arg.substring(1));
             if (arg.equals("gen") && i + 1 < args.length) genMeta = parseIntBounded(sender, args[++i], 1, 9) - 1;
             if (arg.equals("fill")) fill = true;
             if (arg.equals("force") || arg.equals("-f")) force = true;
@@ -255,7 +255,7 @@ public class CommandBTSEye extends CommandBase {
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
-            if (arg.matches("t[1-8]")) tiers = arg.charAt(1) - '0';
+            if (arg.matches("t([1-9]|10)")) tiers = Integer.parseInt(arg.substring(1));
             if (arg.equals("gen") && i + 1 < args.length && !at.used[i + 1]) {
                 genMeta = parseIntBounded(sender, args[++i], 1, 9) - 1;
             }

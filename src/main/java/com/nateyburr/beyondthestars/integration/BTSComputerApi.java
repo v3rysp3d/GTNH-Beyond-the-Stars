@@ -285,6 +285,99 @@ public final class BTSComputerApi {
         return m;
     }
 
+    // ================================================================== P5: the beam, the flow, the universe
+
+    /** P5 {@code bts_eye.getBeam()}. */
+    public static Map<String, Object> eyeBeam(MTEEyeOfHarmonyBTS eye) {
+        final com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime rt = eye.starRuntime();
+        final com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor at = rt.attractor();
+        final com.nateyburr.beyondthestars.machines.eye.field.FieldState fs = rt.fieldState();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("rho", fs == null || fs.beam == null ? 0 : fs.beam.rho);
+        m.put("gev", com.nateyburr.beyondthestars.machines.eye.field.AttractorField.gev(at.grade()));
+        m.put("rate", at.rate());
+        m.put("cap", com.nateyburr.beyondthestars.machines.eye.field.AttractorField.cap(at.barrelMk()));
+        m.put("grade", com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.gradeName(at.grade()));
+        m.put("holdRating", at.holdRating());
+        m.put("stock", at.stock());
+        m.put("level", at.level());
+        m.put("rhoMax", at.rhoMax());
+        m.put("acceptLimit", at.acceptLimit());
+        m.put("firing", at.firing());
+        return m;
+    }
+
+    /** P5 {@code bts_eye.setBeam(c, k)}: on every Pellet Injector Hatch of the Eye. */
+    public static void eyeSetBeam(MTEEyeOfHarmonyBTS eye, double c, double k) {
+        for (com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector i : eye.injectorHatches()) {
+            if (i != null) i.setBeam(c < 0 ? Double.NaN : c, k);
+        }
+    }
+
+    /** P5 {@code bts_eye.setGrade(name)}: "magnetar", "ergomatter", "superdense" or "auto"; returns it. */
+    public static String eyeSetGrade(MTEEyeOfHarmonyBTS eye, String name) {
+        final String n = name == null ? "" : name.trim()
+            .toLowerCase(java.util.Locale.ROOT);
+        final int g = n.startsWith("mag") ? 1 : n.startsWith("erg") ? 2 : n.startsWith("sup") ? 3 : 0;
+        for (com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector i : eye.injectorHatches()) {
+            if (i != null) i.setLockedGrade(g);
+        }
+        return com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.gradeName(g)
+            .replace("none", "auto");
+    }
+
+    /** P5 {@code bts_eye.getFlow()}. */
+    public static Map<String, Object> eyeFlow(MTEEyeOfHarmonyBTS eye) {
+        final com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime rt = eye.starRuntime();
+        final com.nateyburr.beyondthestars.machines.eye.field.FieldState fs = rt.fieldState();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final com.nateyburr.beyondthestars.machines.eye.field.FieldState.Flow f = fs == null || !fs.tier.attractor
+            ? null
+            : fs.flow;
+        m.put("secondsLeft", f == null ? -1 : f.left > 0 ? -f.tau : f.warned ? Math.ceil(f.next - fs.t) : -1);
+        m.put("side", f == null || !(f.warned || f.left > 0) ? 0 : f.sign);
+        m.put("size", f == null || !(f.warned || f.left > 0) ? 0 : f.size);
+        m.put("accepted", f != null && (f.warned || f.left > 0) && f.accepted);
+        m.put("surging", f != null && f.left > 0);
+        m.put("held", f == null ? 0 : f.ok);
+        m.put("galaxies", rt.milestones().galaxies);
+        m.put("flowsHeld", rt.milestones().flowsHeld);
+        m.put(
+            "last",
+            rt.attractor()
+                .lastFlow());
+        return m;
+    }
+
+    /** P5 {@code bts_eye.getUniverse()}. */
+    public static Map<String, Object> eyeUniverse(MTEEyeOfHarmonyBTS eye) {
+        final com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime rt = eye.starRuntime();
+        final com.nateyburr.beyondthestars.machines.eye.field.FieldState fs = rt.fieldState();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        final com.nateyburr.beyondthestars.machines.eye.field.FieldState.Universe u = fs == null || !fs.tier.universe
+            ? null
+            : fs.uni;
+        m.put("age", u == null ? 0 : u.t);
+        m.put("H", fs == null ? 0 : fs.x[com.nateyburr.beyondthestars.machines.eye.field.StellarField.H]);
+        m.put("setpointPhase", u == null ? 0 : com.nateyburr.beyondthestars.machines.eye.field.UniverseField.phase(u));
+        final boolean recNext = u != null && u.t < com.nateyburr.beyondthestars.machines.eye.field.UniverseField.REC_AT;
+        final boolean dawnNext = u != null && !recNext && u.t < u.dawn;
+        m.put("nextEvent", recNext ? "recombination" : dawnNext ? "dawn" : "none");
+        m.put(
+            "secondsToEvent",
+            recNext ? com.nateyburr.beyondthestars.machines.eye.field.UniverseField.REC_AT - u.t
+                : dawnNext ? u.dawn - u.t : -1);
+        m.put("dawnOk", u != null && u.dawnOk);
+        m.put(
+            "chargeOwed",
+            rt.attractor()
+                .chargeOwed());
+        m.put("chargeShort", rt.universeChargeShort());
+        m.put("universes", rt.milestones().universes);
+        m.put("dawns", rt.milestones().dawns);
+        return m;
+    }
+
     /** P4 {@code bts_eye.beginTransition()}: begins a ready galaxy transition; returns what happened. */
     public static String eyeBegin(MTEEyeOfHarmonyBTS eye) {
         return eye.starRuntime()

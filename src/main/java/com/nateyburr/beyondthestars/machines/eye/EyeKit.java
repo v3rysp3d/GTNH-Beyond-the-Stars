@@ -357,12 +357,49 @@ public final class EyeKit {
             }
         }
         if (tiers >= 7 && !legacy) {
-            for (String piece : tiers >= 8
-                ? new String[] { MTEEyeOfHarmonyBTS.PIECE_RAIL, MTEEyeOfHarmonyBTS.PIECE_HALO }
-                : new String[] { MTEEyeOfHarmonyBTS.PIECE_RAIL }) {
+            for (String piece : tiers >= 9
+                ? new String[] { MTEEyeOfHarmonyBTS.PIECE_RAIL, MTEEyeOfHarmonyBTS.PIECE_HALO,
+                    MTEEyeOfHarmonyBTS.PIECE_JET9 }
+                : tiers >= 8 ? new String[] { MTEEyeOfHarmonyBTS.PIECE_RAIL, MTEEyeOfHarmonyBTS.PIECE_HALO }
+                    : new String[] { MTEEyeOfHarmonyBTS.PIECE_RAIL }) {
                 for (int[] rel : BTSShapes.socketRels(piece, 'r')) {
                     if (fitStack(world, alignment, x, y, z, rel, BTSMachines.grbReceptorPort)) fitted++;
                 }
+            }
+        }
+        // P5: the T9 top collar's Pellet Injector (a Mk I barrel and a stack of Superdense pellets) and its Burst
+        // Control Hatch in Pellet beam mode; the T10 crown's 12 GRB Receptor Ports
+        if (tiers >= 9 && !legacy) {
+            final int[][] i = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_JET9, 'i');
+            if (i.length > 0 && fitStack(world, alignment, x, y, z, i[0], BTSMachines.pelletInjectorHatch)) {
+                fitted++;
+                final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, i[0]);
+                final TileEntity t = world.getTileEntity(p[0], p[1], p[2]);
+                if (t instanceof IGregTechTileEntity
+                    && ((IGregTechTileEntity) t).getMetaTileEntity() instanceof MTEHatchPelletInjector) {
+                    final IGregTechTileEntity ib = (IGregTechTileEntity) t;
+                    if (com.nateyburr.beyondthestars.items.SLP5Items.injectorBarrelMk1 != null) ib.setInventorySlotContents(
+                        0,
+                        new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.injectorBarrelMk1, 1, 0));
+                    if (com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense != null) ib.setInventorySlotContents(
+                        1,
+                        new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense, 64, 0));
+                }
+            }
+            if (i.length > 1 && fitStack(world, alignment, x, y, z, i[1], BTSMachines.burstControlHatch)) {
+                fitted++;
+                final int[] p = SLConsoleTest.worldPos(alignment, x, y, z, i[1]);
+                final TileEntity t = world.getTileEntity(p[0], p[1], p[2]);
+                if (t instanceof IGregTechTileEntity
+                    && ((IGregTechTileEntity) t).getMetaTileEntity() instanceof MTEHatchBurstControl) {
+                    ((MTEHatchBurstControl) ((IGregTechTileEntity) t).getMetaTileEntity())
+                        .setMode(MTEHatchBurstControl.Mode.BEAM);
+                }
+            }
+        }
+        if (tiers >= 10 && !legacy) {
+            for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CROWN, 'k')) {
+                if (fitStack(world, alignment, x, y, z, rel, BTSMachines.grbReceptorPort)) fitted++;
             }
         }
 
@@ -371,7 +408,9 @@ public final class EyeKit {
         eye.debugUnlock(tiers);
         final Item[] charts = { SLItems.starChartSol, SLItems.starChartSiriusA, SLItems.starChartArcturus,
             SLItems.starChartNeutronStar, SLItems.starChartSiriusB, SLItems.starChartMagnetar,
-            SLQuasarItems.starChartTriangulum, SLQuasarItems.starChartMilkyWay };
+            SLQuasarItems.starChartTriangulum, SLQuasarItems.starChartMilkyWay,
+            com.nateyburr.beyondthestars.items.SLP5Items.starChartGreatAttractor,
+            com.nateyburr.beyondthestars.items.SLMaxItems.starChartUniverse };
         final Item chart = charts[Math.max(0, Math.min(charts.length, tiers) - 1)];
         if (chart != null) base.setInventorySlotContents(eye.getControllerSlotIndex(), new ItemStack(chart, 1, 0));
         if (fill) {
@@ -574,7 +613,18 @@ public final class EyeKit {
                     if (block == null) continue;
                     final int[] p = SLConsoleTest
                         .worldPos(alignment, x, y, z, new int[] { a - off[0], b - off[1], c - off[2] });
-                    world.setBlock(p[0], p[1], p[2], block, row.charAt(a) == 'W' ? compressionMeta : meta, 2);
+                    if (row.charAt(a) == 'W' && compressionMeta >= 9) {
+                        // P5: the tenth compression tier is the Universal Compression Field Generator
+                        world.setBlock(
+                            p[0],
+                            p[1],
+                            p[2],
+                            com.nateyburr.beyondthestars.blocks.SLBlocks.slCasing4,
+                            MTEEyeOfHarmonyBTS.UNIVERSAL_COMPRESSION_META,
+                            2);
+                    } else {
+                        world.setBlock(p[0], p[1], p[2], block, row.charAt(a) == 'W' ? compressionMeta : meta, 2);
+                    }
                     n++;
                 }
             }
@@ -606,7 +656,14 @@ public final class EyeKit {
                         base.getYCoord(),
                         base.getZCoord(),
                         new int[] { a - off[0], b - off[1], c - off[2] });
-                    world.setBlock(p[0], p[1], p[2], TTCasingsContainer.SpacetimeCompressionFieldGenerators, meta, 2);
+                    if (meta >= 9) world.setBlock(
+                        p[0],
+                        p[1],
+                        p[2],
+                        com.nateyburr.beyondthestars.blocks.SLBlocks.slCasing4,
+                        MTEEyeOfHarmonyBTS.UNIVERSAL_COMPRESSION_META,
+                        2);
+                    else world.setBlock(p[0], p[1], p[2], TTCasingsContainer.SpacetimeCompressionFieldGenerators, meta, 2);
                     n++;
                     if (!all) {
                         eye.checkStructure(true, base);
