@@ -3230,7 +3230,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + receptorCount(GROUP_LOW)
                 + " low / "
                 + receptorCount(GROUP_HALO)
-                + " halo"
+                + " halo / "
+                + receptorCount(GROUP_COLLAR)
+                + " collar / "
+                + receptorCount(GROUP_CROWN)
+                + " crown, Pellet Injector "
+                + liveCount(injectors)
+                + " (+"
+                + liveCount(beamControls)
+                + " Burst Control, "
+                + liveCount(pelletBuses)
+                + " pellet bus)"
                 + ", ME out "
                 + outputBusCount()
                 + " bus / "
@@ -3426,6 +3436,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("an Eye of tier N needs every one at tier N or higher.")
             .addInfo(parallel("x2") + " parallels for each installed tier above the recipe's.")
             .addInfo("T7 and T8 run on a Quasar Engine's bursts (GRB Receptor Ports).")
+            .addInfo("T9 holds the Great Attractor: fire pellets down the collimator to hold the flow.")
+            .addInfo("T10 runs a universe for 2 hours: keep it flat.")
+            .addInfo(
+                hint(
+                    "D9 " + num("24") + " Bu/t (" + num("2.4e14") + " EU/t), D10 " + num("96")
+                        + " Bu/t ("
+                        + num("9.6e14")
+                        + " EU/t)."))
+            .addInfo(
+                hint(
+                    "Dark Matter " + num("144") + " L a cycle; Universium " + num("9,216")
+                        + " L a universe."))
             .addInfo("Outputs go to ME only.")
             .addInfo(hint("Optional: Stellar Field Sensor and Directive Hatches for redstone."))
             .addInfo(warn("Chunk-load the whole footprint; an unloaded Eye is frozen."))
@@ -3456,6 +3478,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addOtherStructurePart(
                 "T8 shard halo",
                 (bom(PIECE_HALO, 'B') + bom(PIECE_HALO, 'r')) + " Bastion Plate and glass")
+            .addOtherStructurePart(
+                "T9 collimator stack",
+                (bom(PIECE_JET9, 'B') + bom(PIECE_JET9, 'r') + bom(PIECE_JET9, 'i')) + " Bastion Plate, lining and glass")
+            .addOtherStructurePart(
+                "T10 universal crown",
+                (bom(PIECE_CROWN, 'E') + bom(PIECE_CROWN, 'k')) + " Eternity Shell Casing, "
+                    + bom(PIECE_CROWN, 'P')
+                    + " Casimir Plate, lining and glass")
             .addInputHatch("1+", "Plinth gas sockets (Hydrogen, Helium)", 1)
             .addInputBus("0+", "Plinth gas sockets (Stellar Ignition Charges)", 1)
             .addOutputBus("1", "ME Output Bus, plinth", 2)
@@ -3466,7 +3496,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addMiscHatch("0+", "Stellar Field Sensor Hatch, Directive Hatch", "core band sockets", 6)
             .addMiscHatch("0+", "Directive Hatch, Burst Control Hatch", "plinth, above the controller", 7)
             .addInputBus("0-1", "Plinth slot bus (planets, companion charts)", 8)
-            .addMiscHatch("1+", "GRB Receptor Port", "T7 rail: 1+ per bank; T8 halo: all 8", 9)
+            .addMiscHatch("1+", "GRB Receptor Port", "T7 rail: 1+ per bank; T8 halo: all 8; T9 collars; T10 crown: all 12", 9)
+            .addMiscHatch("1", "Pellet Injector Hatch, its Burst Control Hatch", "T9 top collar", 10)
             .addStructureInfo("Projector stack N builds tiers 1 to N (stack 1: the T1 core).")
             .addStructureInfo("Compression generators go in at the stack's tier.")
             .addStructureInfo("GT's EOH projector channels raise any generator tier.")

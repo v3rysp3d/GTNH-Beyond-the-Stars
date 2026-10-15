@@ -3104,3 +3104,45 @@ quests name the multiblock engraver (question 25); the circuit config comments (
   each), L4 Unbound n 1 (upkeep halved to 50,000, anchor 4,096 L/s), both Mk IV crowns at their cap with the wireless
   total equal to their lifetime counters, the state through three restarts, the anchor cut.
 - **Fixed:** B-160 (`/btssmbh fill` and Space fluid), B-161 (GUI rows cut at supermassive sizes).
+
+## P5: the Eye machine, T9 the Great Attractor and T10 the Universe (branch p5-eye)
+
+**Design of record:** `designs/docs/p5-t9-t10.md` (approved 2026-10-16, Q-P5-1..13 on their recommendations). This
+branch is the Eye's machine side; the content (fluids, pellets, recipes, questbook) and the client renders are their
+own branches. Judgement calls: B-169..B-177 in `singularity-ladder-questions.md`.
+
+**Engine** (pure, the B-37 discipline; `node tools/p5-golden.js --check --java`, 46 cases bit for bit):
+
+| Class | What it is |
+|---|---|
+| `eye/field/AttractorField` | T9: the pellet beam (rate law, 20 s spool, ρ = B / 10¹⁰ GeV/s, hold rating), Galactic Flow (warning, accept or pass, the 240 s surge, capture), the drift and burst terms of P, W, Λ, V |
+| `eye/field/UniverseField` | T10: the universe batch, dark energy's drift, Recombination, Cosmic Dawn, the last light and the collapse salvage |
+| `eye/field/InfallOverlay`, `InflationOverlay` | The two transitions, with the soft fail (Q-P5-5) inside the field (`StepResult.recovered`) |
+| `quasar/engine/DeepLink` | The T8 → T9 machine milestone (the Eye's total, its collar part, the beam's ρ) |
+| `directive/P5Directive` | The Flow and Universe codes |
+| `TierParams.T9`, `PLANETS9`, `T10`; gauges V = 6, H = 7 (`GAUGES` 8) | `GalaxyField.Companion` gains Triangulum and the Milky Way (T9 only, weight 2 in the demand) |
+
+**Runtime.** `EyeTransition.Type` INFALL (8) and INFLATION (9) with `Infall` / `Inflation`; `coreFor(8)` Attractor
+Seed Core, `coreFor(9)` Universal Upgrade Core; `MAX_UNLOCK` 10 (config `enableEyeT9T10` caps at 8);
+`EyeMilestones` t8 (Deep Link, 108,000 L Superdense Ergomatter all-Stable, 2 h Resonant, 4 crossings) and t9
+(Supermassive Link, 60,000 L Dark Matter, 2 h Resonant, 8 flows held), plus the display counters (galaxies, universes,
+dawns); `EyeAttractor` (the beam's inputs, the pellet carry, the Deep Link window, the universe charge owed, the accept
+limit). Star definitions `star:attractor`, `star:planets9`, `star:universe`.
+
+**Structure.** Pieces `eye_jet9` (5 collar ports `r`, 2 injector sockets `i`) and `eye_crown` (12 crown ports `k`,
+Eternity Shell `E`); `PIECES` and `MAX_TIER` 10; compression tier 9 = TecTech Gallifreyan, tier 10 = slCasing4:6
+(walked as meta 9). Receptor groups collar (3) and crown (4) from the manifest.
+
+**Hatches.** Pellet Injector Hatch (MTE 28128, `MTEHatchPelletInjector`); the Burst Control Hatch's Pellet beam mode.
+
+**Automation.** Directive sets EYE_FLOW, EYE_UNIVERSE; sensor channels V, H, BEAM_RHO, BEAM_GEV, HOLD_RATING, FLOW_SIZE,
+GALAXIES, UNIVERSE_AGE, DEEP_LINK_STREAK; `bts_eye` getBeam, setBeam, setGrade, getFlow, setAcceptLimit, getUniverse
+(and `trim("dm" | "spacetime", n)`); `bts_injector` getStock, getRate.
+
+**Render contract.** `EyeStarLook.ATTRACTOR` (12) / `UNIVERSE` (13) and `EyeP5Look` (synced in the render tile's look
+compound), as agreed with the render unit.
+
+**Bench.** `/btseye t9|t10 <x> <y> <z> …` builds with the collar / crown ports, the injector (a Mk I barrel, 64
+Superdense pellets) and its Burst Control Hatch; `/btseye star <x> <y> <z> p5 status | pellets | refill | accept |
+beam | deeplink [reset] | flow | uni`; `core attractor|universal`, charts `attractor`, `universe`. The galaxy rig routes
+the Deep Link's test fire to the collars and T10's bursts to the crown. The dev-server run is B-177.

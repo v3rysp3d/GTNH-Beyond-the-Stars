@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-168, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-177, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -268,7 +268,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-168
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-177
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -7355,6 +7355,127 @@ least), so the disc runs on for about a minute after the supply stops". Regenera
 **Suggestion.** Keep the 60 s buffer for every quasar: one rule for every quasar, and a ME supply that hiccups does not
 blow the disc out. Alternative: 10 s x 1.5 without a lattice, 60 s with one.
 
+
+### B-169 P5 golden: its own tool, and two documented prototype patches [p5-eye, engine + golden]
+
+**Context.** The P5 field (designs/docs/p5-t9-t10.md §2, §6) runs on the P4 world (the quasar, the conduit, the links),
+so its cases cannot live in `fieldsim-golden.js` (T1-T6, no world). §9.6 asks for "quasar-golden.js gains T9 and T10
+cases"; adding them there would also load the P5 wrappers under the 38 P4 cases.
+
+**Done.** `tools/p5-golden.js` (fixture `tools/fixtures/p5-engine.js`, the P5 block of `designs/p5-prototype.html`
+verbatim, cut against the same ENGINE and P4 blocks; the engine's one changed line, §9.7, applied in memory). 46 cases
+on seeds 1-3 (T9 standard and its variants, galaxy companions, planets mode 9, a dry injector, the Deep Link, The
+Infall and its soft fails, T10 and its collapses, Inflation and its soft fail, a whole universe after Inflation).
+`QuasarSim golden-p5` matches every number and five per-second hashes bit for bit. The three older goldens are
+unchanged (78, 38, 31 checks).
+
+Two prototype bugs are patched in memory, both in `universeTier`, both logged in the tool's header:
+
+1. Its `d` read `S.q`, which only `attractorTier`'s `d` sets. On a T10 field that never ran a T9 second (every T10
+   case of `suite3.js`), Recombination's P drop and Cosmic Dawn's P kick were NaN, which `(d[k]||0)` turns into 0 for
+   the whole P drift of those seconds. Reached through Inflation (the only way in play) `S.q` was set. Patched to set
+   `S.q` as the attractor does. Effect on the spec's T10 table: 24,672 / 24,764 / 24,721 L Universium per 4 h become
+   24,638 / 24,727 / 24,720 L, still 0 failures and 2 of 2 dawns, Space 21 -> 23 L/s.
+2. Its `S.warn = 1` (a countdown running) was overwritten by `step`'s own `S.warn = warn` the same second, so the
+   Universe set's bit 3 and the event channel never showed Recombination or Cosmic Dawn ahead. Patched: `perSec` puts
+   the countdown on `S.warn`.
+
+**Suggestion.** Port both into `designs/p5-prototype.html` (this run did not edit the design repo), then
+`p5-golden.js --refresh-fixture` drops the patches. Separately: the current `p5engine.js` gives 6 failures (seed 1) for
+"Ergomatter Mk I accepting every flow", where the spec's appendix says 12 / 11 / 17; the appendix looks older than
+the engine. Re-run `suite.js` before the numbers go into the questbook.
+
+### B-170 The standard J1 limit for T9 and T10 [p5-eye, judgement call]
+
+**Context.** P4-88 caps the standard rig's J1 out 1 at 5 x D7 = 7.5 Bu/t per parallel. T9 needs 24 Bu/t on the Eye (36
+for the 1.5x rule), the Deep Link 24 on the T8 Eye, T10 96. The prototype has no such limit.
+
+**Done.** `EyeStarRuntime.j1LimitPerParallel()`: T7 / T8 keep 7.5; from the Deep Link's test fire (T8, Slots bit 4 on),
+through The Infall and at T9 / T10 it is 5 x D_T of the tier run toward (120 at T9, 480 at T10), the same 5 : 1 that
+P4-88 gave T7. It is what `getUnlock().j1Limit`, the GUI and the bench rig read; a player's Junction is set by hand.
+
+**Suggestion.** Keep 5 x D_T. Alternative: no limit from T9 (the prototype), at the risk P4-88 fixed (J1's binary loop
+swinging the whole stream).
+
+### B-171 The Pellet Injector's sockets, its Burst Control Hatch and ME stocking [p5-eye, judgement call]
+
+**Context.** §2.1 gives the top collar two `i` sockets ("the injector, plus one spare"); §3.3 runs the rate on "the
+injector's own Burst Control Hatch" and says ME stocking buses are fine for pellets.
+
+**Done.** An `i` socket takes a Pellet Injector Hatch (MTE 28128: an input bus, 16 slots, pellets and a barrel in any
+slot, the grade lock, the centre and gain), a Burst Control Hatch (new mode Pellet beam, appended to the enum) or an
+input bus holding more pellets, ME stocking buses included. Pellets are taken through `takeFromBus` (one processing
+window per pellet, credited only when the network gave it up, as the ignition charges are); the read-only count uses
+the grid's item list (no window). The screwdriver cycles the grade lock; OpenComputers and the Eye's GUI set the
+centre and gain. With no Burst Control Hatch the level is 8 (the centre). Both sockets are optional
+(`BTSStructures.optionalHatch`), so no build path pulls them.
+
+**Suggestion.** Keep. Alternative: the injector reads redstone itself (one socket, no Burst Control Hatch).
+
+### B-172 The crown's receptor sockets get their own char [p5-eye, structures]
+
+**Context.** One shape char has one element; the collar's ports fall back to Bastion Plate, the crown's to Eternity
+Shell Casing.
+
+**Done.** The exporter writes the 12 crown sockets as `k` (legend `grb_receptor_crown`, fallback E, group crown in the
+manifest); `r` stays the rail, halo and collar ports. `receptorSockets()` reads `r` of eye_rail, eye_halo, eye_jet9
+and `k` of eye_crown.
+
+### B-173 The universe's Dark Matter charge [p5-eye, judgement call]
+
+**Context.** §6.5: "Charge Dark Matter 9,216 L at the start of each universe"; §6.3: "the charge buffered: Dark Matter
+18,432 L" for Inflation, which drains 30.72 L/s for its last 600 s (300 s inflating: 9,216 L). The prototype also
+charges a universe when its first T10 second (Inflation's phase 2) creates one.
+
+**Done.** Inflation's buffer is 18,432 L x p: the phase-2 drain (9,216 L) and the first universe's charge (9,216 L),
+taken at its success. Every later universe (last light or a collapse) takes 9,216 L x p when it starts; the field's
+own phase-2 universe takes nothing (its drain is the 30.72 L/s). A universe that cannot be paid waits: no field second
+and nothing drained, the GUI and the wait line name the litres owed, and Universe bit 4 is on whenever the buffer
+holds less than one charge.
+
+### B-174 The Deep Link's test fire [p5-eye, judgement call]
+
+**Done.** At T8 the injector fires only while Slots bit 4 asks for the test fire (the Deep Link not held, the Attractor
+Seed Core and The Infall's charge in place), so pellets are not burned before the core is ready (P4-76's pattern). The
+collar ports' Bu/t leave β at T8 (no field effect, §2.8) and count from The Infall on. The Deep Link rolls the Eye's
+total with its collar part and the beam's ρ every T8 galaxy second; `/btseye star … p5 deeplink reset` clears it.
+
+### B-175 T9 at parallel 2 [p5-eye, note]
+
+An Eye unlocked to T10 running the Great Attractor has parallel 2: demand, trims and products x 2, as every tier. The
+beam is per parallel (ρ = B / Π₉, the rate law's cap per parallel) and draws pellets x p. A 300 SM quasar does not hold
+a T9 at x2 (it needs about 600 SM).
+
+### B-176 Compile shims for the content unit [p5-eye, merge note]
+
+`items/SLP5Items.java` (the field names and helpers p5-content announced) and `P5MergeShim.java` (registers those items
+and `btsdarkmatter` if absent), called once from `CommonProxy.preInit`. At the merge take p5-content's `SLP5Items`,
+delete `P5MergeShim.java` and its call. The Eye reads the Dark Matter fluid by registry name
+(`EyeAttractor.darkMatter()`), so it needs no change. The tenth compression tier's meta is
+`MTEEyeOfHarmonyBTS.UNIVERSAL_COMPRESSION_META = 6` (content's `BlockSLCasing4.UNIVERSAL_COMPRESSION`).
+
+### B-177 P5 dev-server test (port 25771, world p5test, seven boots) [p5-eye, test]
+
+No client. Built `/btseye t10 0 10 0 north gen 9 fill force`: FORMED, structure T10, compression T10 (the Universal
+generator in every compression cell), re-projection and damage-repair checks clean; 372 recipes registered, 0 skipped.
+
+- **T8 -> T9.** Milky Way lit, Attractor Seed Core in escrow, the Attractor chart in the slot, the bench rig (300 SM,
+  Mk II throats, binary junctions): the Deep Link held at 30 min (48 Bu/t on the Eye, 75 % on the collars, ρ 1.25),
+  the rig's Begin edge began The Infall, the forced flow of 6 was held in full, **The Infall complete in 1,619 s**
+  (the prototype's 1,619), T9 unlocked, the core consumed.
+- **T9 for 2 game hours** (7,200 s, standard rig): 0 failures, 6 flows held in full (groups up to 12), 266 galaxies,
+  about 2,004 pellets an hour (prototype 2,006), Dark Matter about 13,400 L/h. A flow declined at accept limit 3
+  streamed past with nothing lost.
+- **T9 -> T10.** Milestones (bench `milestones 9 done`: the Supermassive Link needs a lattice hole the bench quasar
+  cannot be), the Universal Upgrade Core, the Universe chart, a 600 SM quasar: **Inflation complete in 719 s** (the
+  prototype's 719), T10 unlocked, the core consumed.
+- **One universe**: ran to its last light, **12,290 L Universium** (mean Y 1.21, Cosmic Dawn caught), the next
+  universe charged.
+- **Restart mid-batch** (universe age 536 s): after the boot the age, the dawn time and the mean Y carried on.
+  **Restart mid-flow** (a group of 7 at τ 120, 120 s Stable): see below.
+- Two findings on the way, both behaving as specified: 10^18 EU ran out after about 100 minutes at T9 (9.9 x 10^15 EU
+  a cycle; r 0, P sagged, the Attractor lost: S-04's rule), and an injector left dry lost the Attractor to V +101 in
+  about 50 s (§2.2's beam outage). The bench refill (`p5 refill`) is not saved; re-arm it after a restart.
 
 ## Where the old question numbers went
 
