@@ -3363,7 +3363,7 @@ public final class EyeStarRuntime {
                 .append(' ');
         }
         legacyPay.clear();
-        lastEvent = sb.append("owed (a pre-D-49 run in flight, or a salvage made while unformed)")
+        lastEvent = sb.append("owed (a run started on an older version, or a salvage made while unformed)")
             .toString();
         com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", lastEvent);
         host.markDirty();

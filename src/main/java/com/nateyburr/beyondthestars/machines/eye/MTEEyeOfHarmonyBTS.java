@@ -2978,7 +2978,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         final int tier = structureTier();
         for (int i = tier; i < PIECES.length; i++) {
             if (bandBuilt[i]) {
-                return "Bands are cumulative (D-49): the " + BAND_NAMES[i]
+                return "Bands count from the bottom up: the " + BAND_NAMES[i]
                     + " stands but does not count until the "
                     + BAND_NAMES[tier]
                     + " is built, so this Eye is structurally T"

@@ -61,7 +61,7 @@ public final class EyeBursts {
 
     /** One scanner line. */
     public String line() {
-        if (paused) return "PAUSED: its quasar at " + pausedBy + " is not running (Q-8: the galaxy holds still)";
+        if (paused) return "PAUSED: its quasar at " + pausedBy + " is not running (the galaxy holds still)";
         if (ports() == 0) return "no GRB Receptor Ports (the T7 rail and the T8 halo carry them)";
         return String.format(
             Locale.ROOT,

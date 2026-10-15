@@ -655,7 +655,8 @@ public final class EyeRecipeRegistry {
             default:
                 desc.add(" " + EyeMilestones.GOOD_BATCHES_NEED + " batches, mean Y >= 0.9");
                 desc.add("No star lit. Imprint: hold");
-                desc.add(" Π in +60..+90 for 120 s");
+                desc.add(" Π in +60..+70 for 120 s");
+                desc.add(" (above +70 is Critical)");
                 desc.add(" (<=600 s); release: Π");
                 desc.add(" inside ±40 within 60 s");
                 desc.add("Every re-spawn: the charge");
@@ -935,7 +936,7 @@ public final class EyeRecipeRegistry {
         desc.add(
             recipe.isPlanet()
                 ? "Success " + Math.round(recipe.baseSuccess * 100)
-                    + "%, -3%/field > T"
+                    + "%; time -3 %/field tier > T"
                     + (recipe.compressionRequired + 1)
                 : "Star: always succeeds");
         if (recipe.itemOutputs.size() > items.size()) {

@@ -23,7 +23,8 @@ import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
  * only Agent trims do, so a dose above the band's middle trims Π back into it instead of the shield pinning Π at 0
  * (B-71).
  * <ol>
- * <li><b>Imprint:</b> hold Π inside +60..+90 for 120 consecutive seconds, within 600 s.</li>
+ * <li><b>Imprint:</b> hold Π inside +60..+90 for 120 consecutive seconds, within 600 s (above +70 the field is
+ * Critical and drains Integrity, so the text names +60..+70, S-06).</li>
  * <li><b>Release:</b> then bring Π back inside ±40 within 60 s. The magnetar is LIT under full T6 rules (its flares
  * scheduled), T6 unlocks and the core is consumed.</li>
  * </ol>
@@ -89,7 +90,7 @@ public final class MagnetarMerger extends EyeTransition {
                 phase = 2;
                 t2 = 0;
             } else if (t >= IMPRINT_TIMEOUT) {
-                out.fail = "the imprint timed out (Π not held inside +60..+90 for 120 s within 600 s)";
+                out.fail = "the imprint timed out (Π not held inside +60..+70 for 120 s within 600 s; above +70 is Critical)";
             }
             return;
         }
@@ -133,7 +134,7 @@ public final class MagnetarMerger extends EyeTransition {
     @Override
     public String phaseLine() {
         if (phase == 1) {
-            return "Magnetar Merger, imprint: hold Π inside +60..+90 for " + HOLD
+            return "Magnetar Merger, imprint: hold Π inside +60..+70 (above +70 is Critical) for " + HOLD
                 + " s: "
                 + hold
                 + " / "
