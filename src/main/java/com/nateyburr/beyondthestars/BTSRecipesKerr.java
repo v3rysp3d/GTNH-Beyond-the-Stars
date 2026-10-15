@@ -95,7 +95,7 @@ public final class BTSRecipesKerr {
                 .metadata(RESEARCH_ITEM, nn(ItemList.Black_Hole_Opener.get(1L), "ItemList.Black_Hole_Opener"))
                 .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
-                    items(
+                    BTSRecipeGuard.alInputs(
                         nn(ItemList.Machine_Multi_HIPCompressor.get(1L), "ItemList.Machine_Multi_HIPCompressor"),
                         nn(
                             ItemList.Machine_Multi_NeutroniumCompressor.get(1L),
@@ -104,7 +104,7 @@ public final class BTSRecipesKerr {
                         nn(ItemList.CompressorUIV.get(8L), "ItemList.CompressorUIV"),
                         nn(ItemList.ElectricImplosionCompressor.get(4L), "ItemList.ElectricImplosionCompressor"),
                         nn(ItemList.Field_Generator_UEV.get(4L), "ItemList.Field_Generator_UEV"),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UIV, 4L),
+                        BTSRecipeGuard.anyCircuit(Materials.UIV, 4),
                         nn(ItemList.Black_Hole_Opener.get(1L), "ItemList.Black_Hole_Opener"),
                         BTSRecipeGuard.stack(SLItems.superradiantMirrorSegment, 1),
                         SLBlocks.casing(BlockSLCasing.FIELD_COIL, 4),
@@ -132,10 +132,10 @@ public final class BTSRecipesKerr {
                 .metadata(RESEARCH_ITEM, kerr())
                 .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
-                    items(
+                    BTSRecipeGuard.alInputs(
                         nn(ItemList.Electric_Piston_UIV.get(32L), "ItemList.Electric_Piston_UIV"),
                         nn(ItemList.Field_Generator_UIV.get(8L), "ItemList.Field_Generator_UIV"),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UIV, 16L),
+                        BTSRecipeGuard.anyCircuit(Materials.UIV, 16),
                         BTSRecipesSingularity.dense(Materials.Neutronium, 32),
                         nn(ItemList.Black_Hole_Opener.get(4L), "ItemList.Black_Hole_Opener"),
                         BTSRecipeGuard.req(OrePrefixes.gearGt, Materials.SpaceTime, 16L)))
@@ -154,12 +154,12 @@ public final class BTSRecipesKerr {
                 .metadata(RESEARCH_ITEM, SLBlocks.casing(BlockSLCasing.EXTRACTION, 1))
                 .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
-                    items(
+                    BTSRecipeGuard.alInputs(
                         // Pistons, not pumps: the module runs GT's ITEM extractor recipes (Q-9/Q-22, B-17;
                         // cost audit #14).
                         nn(ItemList.Electric_Piston_UIV.get(32L), "ItemList.Electric_Piston_UIV"),
                         nn(ItemList.Field_Generator_UIV.get(8L), "ItemList.Field_Generator_UIV"),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UIV, 16L),
+                        BTSRecipeGuard.anyCircuit(Materials.UIV, 16),
                         BTSRecipesSingularity.dense(Materials.Neutronium, 32),
                         SLBlocks.casing(BlockSLCasing.QUADRUPOLE, 4),
                         neutroniumPipes(16)))
@@ -226,26 +226,6 @@ public final class BTSRecipesKerr {
             left -= n;
         }
         return plates.toArray(new ItemStack[0]);
-    }
-
-    /** Flattens ItemStacks and ItemStack[]s into one input array. */
-    private static ItemStack[] items(Object... parts) {
-        final List<ItemStack> out = new ArrayList<>();
-        for (Object part : parts) {
-            if (part instanceof ItemStack) {
-                out.add((ItemStack) part);
-            } else if (part instanceof ItemStack[]) {
-                for (ItemStack stack : (ItemStack[]) part) {
-                    out.add(stack);
-                }
-            } else {
-                throw new IllegalArgumentException("not an item input: " + part);
-            }
-        }
-        if (out.size() > 16) {
-            throw new IllegalStateException("assembly line takes at most 16 item inputs, got " + out.size());
-        }
-        return out.toArray(new ItemStack[0]);
     }
 
     private static <T> T nn(T value, String what) {

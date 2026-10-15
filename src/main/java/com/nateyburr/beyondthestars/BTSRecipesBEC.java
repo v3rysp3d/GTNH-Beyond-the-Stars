@@ -1066,12 +1066,12 @@ public final class BTSRecipesBEC {
             .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartSol, 1))
             .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_UMV))
             .itemInputs(
-                items(
+                BTSRecipeGuard.alInputs(
                     tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 32),
                     tectech(CustomItemList.EOH_Infinite_Energy_Casing, 16),
                     item(ItemList.Field_Generator_UMV, 8),
                     BTSRecipeGuard.req(OrePrefixes.frameGt, Materials.Neutronium, 16L),
-                    circuit(Materials.UMV, 8),
+                    BTSRecipeGuard.anyCircuit(Materials.UMV, 8),
                     BTSRecipesSingularity.dense(Materials.Neutronium, 16),
                     tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 16)))
             .fluidInputs(molten(Materials.SpaceTime, 36_864), superCoolant(500_000))
@@ -1164,10 +1164,10 @@ public final class BTSRecipesBEC {
                     .copy())
             .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UMV))
             .itemInputs(
-                items(
+                BTSRecipeGuard.alInputs(
                     SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64),
                     item(ItemList.Field_Generator_UMV, 32),
-                    circuit(Materials.UMV, 64),
+                    BTSRecipeGuard.anyCircuit(Materials.UMV, 64),
                     SLBlocks.casing(BlockSLCasing.CASIMIR, 32),
                     BTSRecipesEye.denseSpaceTime(32),
                     item(ItemList.Emitter_UMV, 16)))
@@ -1187,10 +1187,10 @@ public final class BTSRecipesBEC {
             .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.stellarIgnitionCharge, 1))
             .metadata(SCANNING, new Scanning(4 * MINUTES, TierEU.RECIPE_UMV))
             .itemInputs(
-                items(
+                BTSRecipeGuard.alInputs(
                     SLBlocks.casing(BlockSLCasing.BEAM_BAND, 32),
                     item(ItemList.Field_Generator_UMV, 16),
-                    circuit(Materials.UMV, 32),
+                    BTSRecipeGuard.anyCircuit(Materials.UMV, 32),
                     BTSRecipesEye.denseSpaceTime(16),
                     item(ItemList.Emitter_UMV, 8),
                     BTSRecipeGuard.stack(SLItems.stellarIgnitionCharge, 16)))
@@ -1210,10 +1210,10 @@ public final class BTSRecipesBEC {
             .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartArcturus, 1))
             .metadata(SCANNING, new Scanning(6 * MINUTES, TierEU.RECIPE_UMV))
             .itemInputs(
-                items(
+                BTSRecipeGuard.alInputs(
                     SLBlocks.casing(BlockSLCasing.JET_CRESCENT, 32),
                     item(ItemList.Field_Generator_UMV, 24),
-                    circuit(Materials.UMV, 48),
+                    BTSRecipeGuard.anyCircuit(Materials.UMV, 48),
                     SLBlocks.casing(BlockSLCasing.FIELD_COIL, 16),
                     BTSRecipesEye.denseSpaceTime(24),
                     item(ItemList.Emitter_UMV, 12)))
@@ -1233,10 +1233,10 @@ public final class BTSRecipesBEC {
             .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartSiriusB, 1))
             .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UXV))
             .itemInputs(
-                items(
+                BTSRecipeGuard.alInputs(
                     SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64),
                     item(ItemList.Field_Generator_UMV, 32),
-                    circuit(Materials.UXV, 16),
+                    BTSRecipeGuard.anyCircuit(Materials.UXV, 16),
                     SLBlocks.casing(BlockSLCasing.CASIMIR, 32),
                     BTSRecipesEye.denseSpaceTime(48),
                     item(ItemList.Sensor_UMV, 16)))
@@ -1258,10 +1258,10 @@ public final class BTSRecipesBEC {
             .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.starChartMagnetar, 1))
             .metadata(SCANNING, new Scanning(10 * MINUTES, TierEU.RECIPE_UXV))
             .itemInputs(
-                items(
+                BTSRecipeGuard.alInputs(
                     SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64),
                     item(ItemList.Field_Generator_UMV, 64),
-                    circuit(Materials.UXV, 32),
+                    BTSRecipeGuard.anyCircuit(Materials.UXV, 32),
                     SLBlocks.casing(BlockSLCasing.BASTION, 32),
                     BTSRecipesEye.denseSpaceTime(64),
                     item(ItemList.Emitter_UMV, 32)))
@@ -1298,12 +1298,12 @@ public final class BTSRecipesBEC {
             .metadata(RESEARCH_ITEM, SLBlocks.casing(BlockSLCasing.BASTION, 1))
             .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UMV))
             .itemInputs(
-                items(
+                BTSRecipeGuard.alInputs(
                     SLBlocks.casing(BlockSLCasing.BASTION, 64),
                     SLBlocks.casing(BlockSLCasing.BASTION, 64),
                     BTSRecipesSingularity.dense(Materials.Infinity, 64),
                     item(ItemList.Field_Generator_UMV, 32),
-                    circuit(Materials.UMV, 32),
+                    BTSRecipeGuard.anyCircuit(Materials.UMV, 32),
                     SLBlocks.casing(BlockSLCasing.FIELD_COIL, 32),
                     item(ItemList.Black_Hole_Opener, (int) BTSRecipesKerr.DENSITY_UPGRADE_SEEDS),
                     SLBlocks.casing(BlockSLCasing.INJECTOR_MK3, 16)))
