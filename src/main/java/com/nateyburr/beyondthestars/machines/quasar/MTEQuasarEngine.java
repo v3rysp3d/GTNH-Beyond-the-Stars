@@ -58,6 +58,7 @@ import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.PrivateHatchFluids;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.conduit.ConduitKit;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
@@ -2111,6 +2112,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             out.add(String.format(Locale.ROOT, "Link: %s, %s, sigma %.2f", h.label, buEu(h.bu), h.sigma));
         }
         if (!conduitOpen()) out.add("Conduit: " + conduitClosedAt + " (Directive Disc bit 4 on)");
+        // QA-B14: where a crown or a Wormhole Mouth docks, for every player (the bench command is op only)
+        if (mMachine) out.addAll(ConduitKit.dockCells(this));
         out.add(
             "Sockets: gas " + gasHatchCount()
                 + ", trim "

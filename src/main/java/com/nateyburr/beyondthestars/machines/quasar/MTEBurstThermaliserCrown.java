@@ -112,6 +112,12 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     // ---- persisted
     /** The Mk last formed (picks which piece's errors the GUI shows). */
     private int lastMk = 1;
+    /**
+     * QA-B38 (QK-04): the Mk the hologram projector last asked for (server, not saved; 0: none). While it has not
+     * formed, the structure errors are that Mk's: an upgrade in progress lists the cells the bigger crown still needs,
+     * not the old crown's.
+     */
+    private int askedMk;
     private BigInteger lifetimeEU = BigInteger.ZERO;
 
     // ---- walk
@@ -282,9 +288,10 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
             if (checkPiece(PIECES[t - 1], o[0], o[1], o[2], trial)) {
                 mk = t;
                 lastMk = t;
+                if (askedMk <= t) askedMk = 0;
                 return;
             }
-            if (t == lastMk) errors.addAll(trial);
+            if (t == (askedMk > 0 ? askedMk : lastMk)) errors.addAll(trial);
         }
         clearHatches();
         resetWalk();
@@ -334,6 +341,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         final int want = triggerMk(stackSize);
+        if (want > mk) askedMk = want;
         if (mMachine && mk >= want) return -1;
         final String piece = PIECES[want - 1];
         final int[] o = BTSShapes.offset(piece);
@@ -711,14 +719,18 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
             .addInfo("Turns gamma-ray bursts into EU: 1 Bu/t = 10^13 EU/t, pushed to your wireless network.")
             .addInfo("  No dynamo hatch. Its Mk is the crown built around the controller:")
             .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 Bu/t (5.1e15 EU/t), Mk III 8,192 Bu/t (8.2e16 EU/t).")
-            .addInfo("  Upgrade by building the bigger crown around it.")
+            .addInfo("  Upgrade by building the bigger crown around the same controller. The bigger Mk does not keep")
+            .addInfo(
+                "  the smaller one's petals and collimators: clear them first (the projector never breaks a block).")
+            .addInfo("  A crown stacked on top sits higher over a bigger lower crown: re-place it after the upgrade.")
             .addInfo(
                 "  Mk IV, the Event Horizon Crown: 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion), for a Supermassive")
             .addInfo(
                 "  Lattice quasar. Its core is Event Horizon Thermaliser Casing (4 Mk IV are the most any hole needs).")
             .addInfo("On a Quasar Engine jet port: the base centre on the port cell (the cell just past the cap,")
             .addInfo("  on the jet axis), standing on the top cap, upside down under the bottom cap (wrench the")
-            .addInfo("  front to rotate). It takes that jet. /btskit conduit prints the exact cell.")
+            .addInfo("  front to rotate). It takes that jet. A portable scanner on the Quasar Engine prints both port")
+            .addInfo("  cells, and where each crown's controller goes and which way it faces.")
             .addInfo("Remote: a GRB Receptor Port in the base takes a conduit stream.")
             .addInfo("A second crown stacked on this one (same facing) takes the overflow; the rest is clipped.")
             .addInfo("Automation: nothing to do. OpenComputers bts_crown (getPower, getStream, getMk).")
