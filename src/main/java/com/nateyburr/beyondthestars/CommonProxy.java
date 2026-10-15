@@ -32,6 +32,9 @@ public class CommonProxy {
         // B-83: the field-generator upgrade path's Retrofit Frame and Kits.
         SLUpgradeItems.register();
         SLQuasarItems.register();
+        // P5 (p5-t9-t10.md §9.6): pellets, barrels, the T8 -> T9 core and chart, Attractor Dark Matter plates, the
+        // UXV / MAX superconductor wires and the MAX Battery.
+        com.nateyburr.beyondthestars.items.SLP5Items.register();
         // Circuits v2 (circuits-v2.md §1): the 28 items, then their GT circuit ore names (preInit, before GT and
         // TecTech register the recipes that snapshot ore members).
         SLCircuitItems.register();
@@ -40,6 +43,8 @@ public class CommonProxy {
         BTSFluids.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
         BTSMachines.register();
+        // P5 (p5-t9-t10.md §7.2): the wired MAX energy / dynamo hatches and the MAX 4,096 A laser hatches.
+        com.nateyburr.beyondthestars.machines.BTSMaxHatches.register();
 
         BeyondTheStars.LOG.info("GTNH: Beyond the Stars " + Tags.VERSION + " loading.");
     }
@@ -47,6 +52,8 @@ public class CommonProxy {
     public void init(FMLInitializationEvent event) {
         // The projector channel that switches the optional hatch sockets on (BTSStructures.optionalHatch).
         com.nateyburr.beyondthestars.machines.BTSStructures.registerChannels();
+        // P5: GT glass tiers for the UXV and MAX glasses (slGlass), so multis that check their glass accept them.
+        com.nateyburr.beyondthestars.blocks.SLBlocks.slGlass.registerGlassTiers();
 
         // AUTOMATION PASS: OpenComputers components, only with OpenComputers present (soft dependency).
         if (Loader.isModLoaded("OpenComputers")) {

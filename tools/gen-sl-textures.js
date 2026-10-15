@@ -89,6 +89,10 @@
  * each (disc orange, jet cyan, crown heat).
  *   blocks/sl_disccoil_t1..t4 sl_eddington sl_rimgas sl_collimator sl_thermaliser sl_petal (.png) = slCasing2:3..11
  *   SMBH v1: blocks/sl_latframe sl_node_l1..l4 sl_ehthermaliser (.png) = slCasing4:0..5; items/conduitThroatMk4.png
+ *   P5: blocks/sl_universalcompression sl_dmcoil sl_dmframe (.png) = slCasing4:6, 7, 9; sl_glass_magnetar
+ *     sl_glass_darkmatter = slGlass:0-1; items/gatedPellet{Magnetar,Ergomatter,Superdense} injectorBarrelMk1..3
+ *     attractorSeedCore starChartGreatAttractor attractorDarkMatter{Plate,DensePlate} superconductorWire{UXV,MAX}
+ *     maxBattery (.png)
  *     (Disc Field Coil T1-T4, Eddington Wall Casing, Rim Gas Injector, Jet Collimator Ring, Burst Thermaliser Casing,
  *     Radiator Petal)
  *   items/quasarSeed conduitThroatMk1..3 intergalacticUpgradeCore supermassiveSeedCore starChartTriangulum
@@ -1619,12 +1623,12 @@ function conduitThroat(tier) {
   };
 }
 // ---- SMBH v1 (smbh-v1.md §8.1): slCasing4 metas 0-5, Conduit Throat Mk IV. The quasar's BHC family again, each with
-// its lattice tier's colour: Superdense Ergomatter teal, White Hole Matter white, Universium starry violet-black,
+// its lattice tier's colour: Superdense Ergomatter teal, Attractor Dark Matter violet-black, Universium starry violet-black,
 // Constrained Eternity magenta.
 const SMBH = {
   tier: [
     [hex(0x0c3a34), hex(0x1f8f80), hex(0x6ae8d0), hex(0xd8fff6)], // L1 Superdense Ergomatter
-    [hex(0x5a6070), hex(0xb8c4d4), hex(0xeef4ff), hex(0xffffff)], // L2 White Hole Matter
+    [hex(0x0b0816), hex(0x3a2c5c), hex(0x7a6aa8), hex(0xc8d0f0)], // L2 Attractor Dark Matter (P5)
     [hex(0x080620), hex(0x2a1a6a), hex(0x8a6ad8), hex(0xe0d4ff)], // L3 Universium
     [hex(0x2a0820), hex(0x8a1a6a), hex(0xe04ab8), hex(0xffd8f4)], // L4 Constrained Eternity
   ],
@@ -2299,6 +2303,197 @@ for (const fam of ['sidereal', 'empyrean', 'omega']) {
 for (const fam of ['sidereal', 'empyrean', 'omega']) {
   tile('processed/bts_processed' + fam + 'board.png', processedPainter(boardPainter(fam)), GT_PROCESSED);
 }
+
+// ---- P5 (p5-t9-t10.md §3, §7, §9.6): slCasing4 metas 6, 7, 9; slGlass 0-1; the P5 items.
+// Attractor Dark Matter: a cold violet near-black with a faint blue-grey halo rim (the T9 render's dark core and its
+// Einstein ring). Pellet grades by beam colour: Magnetar violet, Ergomatter cyan, Superdense white.
+const DM = { k: hex(0x0b0816), lo: hex(0x1d1630), mid: hex(0x3a2c5c), hi: hex(0x7a6aa8), ring: hex(0xc8d0f0) };
+const PELLET = [null, [hex(0x5a1a8a), hex(0xb070ff), hex(0xe8c8ff)], [hex(0x0a5a58), hex(0x3fd8c0), hex(0xc8fff4)],
+  [hex(0x6a7080), hex(0xe8eef8), hex(0xffffff)]];
+// a dark-matter plate face: noisy violet-black with a lensed ring
+function dmFace(cv, rnd) {
+  cv.each((x, y) => cv.set(x, y, mix(DM.k, DM.lo, rnd())));
+  const d = disc(7.5, 7.5);
+  cv.each((x, y) => {
+    const r = d(x, y);
+    if (r > 4.6 && r < 5.5) cv.set(x, y, mix(DM.hi, DM.mid, Math.abs(r - 5.05) * 2));
+  });
+}
+// Universal Compression Field Generator: an EOH bracket round a crown of twelve spikes on a CMB-coloured field.
+function sl_universalcompression(cv, rnd) {
+  eohBase(cv, rnd);
+  const d = disc(7.5, 7.5);
+  cv.each((x, y) => {
+    const r = d(x, y);
+    if (r < 5.2) cv.set(x, y, mix(hex(0x2a3a8a), hex(0xd08040), Math.max(0, Math.min(1, rnd() * 0.6 + (x - y + 8) / 32))));
+  });
+  for (let k = 0; k < 12; k++) {
+    const a = (k * Math.PI) / 6;
+    for (let t = 3.4; t < 6.4; t += 0.5) cv.set(7.5 + t * Math.cos(a), 7.5 + t * Math.sin(a), k % 2 ? EOH.l3 : EOH.l4);
+  }
+  cv.each((x, y) => {
+    if (d(x, y) < 1.4) cv.set(x, y, hex(0xffffff));
+  });
+}
+// Dark Matter Heating Coil: GT's coil look (wound bands) in violet-black with pale hot seams.
+function sl_dmcoil(cv, rnd) {
+  cv.each((x, y) => {
+    const band = (y + (x >> 2)) % 4;
+    const c = band === 0 ? DM.hi : band === 1 ? DM.mid : band === 2 ? DM.lo : DM.k;
+    cv.set(x, y, add(c, (rnd() - 0.5) * 10));
+  });
+  for (let i = 0; i < 16; i++) {
+    cv.set(i, 0, DM.ring);
+    cv.set(0, i, DM.ring);
+    cv.set(i, 15, DM.k);
+    cv.set(15, i, DM.k);
+  }
+  for (const [x, y] of [[4, 4], [11, 4], [4, 11], [11, 11]]) cv.set(x, y, hex(0xf0e8ff));
+}
+// Attractor Dark Matter Frame Box: a hollow lattice frame in the material's colours.
+function sl_dmframe(cv, rnd) {
+  cv.each((x, y) => {
+    const edge = x <= 1 || y <= 1 || x >= 14 || y >= 14;
+    const diag = Math.abs(x - y) <= 0 || Math.abs(15 - x - y) <= 0;
+    if (edge) cv.set(x, y, x + y < 15 ? DM.hi : DM.lo);
+    else if (diag) cv.set(x, y, DM.mid);
+    else cv.set(x, y, mix(DM.k, DM.lo, rnd() * 0.5));
+  });
+  for (const [x, y] of [[1, 1], [14, 1], [1, 14], [14, 14]]) cv.set(x, y, DM.ring);
+}
+// The two glasses: a tinted pane (alpha 110) with a rim and a glint.
+function slGlass(tint, rim) {
+  return (cv) => {
+    cv.each((x, y) => cv.set(x, y, tint, 110));
+    for (let i = 0; i < 16; i++) {
+      cv.set(i, 0, rim);
+      cv.set(0, i, rim);
+      cv.set(i, 15, scale(rim, 0.6));
+      cv.set(15, i, scale(rim, 0.6));
+    }
+    for (let i = 3; i <= 6; i++) cv.set(i, 9 - i, hex(0xffffff), 170);
+    cv.set(11, 11, hex(0xffffff), 170);
+  };
+}
+// Gated Pellet: a small glowing sphere of the grade's colour, banded with its core grade.
+function gatedPellet(grade) {
+  const [lo, mid, hi] = PELLET[grade];
+  return (cv) => {
+    const d = disc(7.5, 7.5);
+    cv.each((x, y) => {
+      const r = d(x, y);
+      if (r >= 5.4) return;
+      const lit = Math.max(0, 1 - Math.hypot(x - 6, y - 6) / 6);
+      cv.set(x, y, mix(lo, mid, lit));
+    });
+    if (grade > 1) {
+      // the core of the grade below shows as an inner ring
+      const inner = PELLET[grade - 1][1];
+      cv.each((x, y) => {
+        const r = d(x, y);
+        if (r > 2.2 && r < 3.0) cv.set(x, y, inner);
+      });
+    }
+    cv.set(5, 5, hi);
+    cv.set(6, 5, hi);
+    cv.outline(hex(0x08060e));
+  };
+}
+// Injector Barrel Mk I-III: a vertical rifled barrel, studs by Mk (the throat's colours).
+function injectorBarrel(mk) {
+  const ring = [hex(0xd8b04a), hex(0xc8d0dc), hex(0xb070ff)][mk - 1];
+  return (cv) => {
+    for (let y = 1; y <= 14; y++) {
+      for (let x = 5; x <= 10; x++) {
+        const c = x === 5 ? add(ring, 30) : x === 10 ? scale(ring, 0.5) : x >= 7 && x <= 8 ? hex(0x12101a) : ring;
+        cv.set(x, y, c);
+      }
+      if (y % 3 === 0) cv.set(7, y, PELLET[3][2]);
+    }
+    for (let k = 0; k < mk; k++) {
+      cv.set(4, 3 + k * 4, hex(0xffffff));
+      cv.set(11, 3 + k * 4, hex(0xffffff));
+    }
+    cv.outline(hex(0x0a0b10));
+  };
+}
+// Star Chart: Great Attractor: a dark core with an Einstein ring and galaxies streaming in on two filaments.
+const GREAT_ATTRACTOR = (cv, d) => {
+  for (let t = 0; t < 10; t++) {
+    cv.set(1.5 + t * 0.55, 2 + t * 0.55, t % 3 ? hex(0x8a96c8) : hex(0xffe0a0));
+    cv.set(13.5 - t * 0.55, 13 - t * 0.5, t % 3 ? hex(0x8a96c8) : hex(0xa8c8ff));
+  }
+  cv.each((x, y) => {
+    const r = d(x, y);
+    if (r < 1.6) cv.set(x, y, hex(0x05030a));
+    else if (r < 2.5) cv.set(x, y, DM.ring);
+  });
+};
+// Attractor Seed Core: the EOH bracket ring round a dark core with an Einstein ring and an infalling spiral.
+function attractorSeedCore(cv) {
+  p4Core(hex(0x3a2c5c), 'merger')(cv);
+  const d = disc(7.5, 7.5);
+  cv.each((x, y) => {
+    const r = d(x, y);
+    if (r < 1.7) cv.set(x, y, hex(0x05030a));
+    else if (r < 2.5) cv.set(x, y, DM.ring);
+  });
+}
+// Attractor Dark Matter Plate / Dense Plate: GT's plate shape in the material.
+function dmPlate(dense) {
+  return (cv, rnd) => {
+    const x0 = dense ? 1 : 2, y0 = dense ? 1 : 3, x1 = 14, y1 = dense ? 14 : 12;
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const c = x === x0 || y === y0 ? DM.hi : x === x1 || y === y1 ? DM.k : mix(DM.lo, DM.mid, rnd() * 0.6);
+        cv.set(x, y, c);
+      }
+    }
+    if (dense) for (const yy of [5, 10]) for (let x = x0 + 1; x < x1; x++) cv.set(x, yy, DM.k);
+    cv.set(x0 + 2, y0 + 2, DM.ring);
+    cv.outline(hex(0x05030a));
+  };
+}
+// Superconductor wires: a coiled bundle, UXV magenta-violet (Magnetar), MAX violet-black with a pale core.
+function scWire(max) {
+  const a = max ? DM.mid : hex(0xd628a0), b = max ? DM.ring : hex(0x78e6ff);
+  return (cv) => {
+    for (let t = 0; t < 60; t++) {
+      const x = 2 + t * 0.2, y = 7.5 + 3.6 * Math.sin(t * 0.5);
+      cv.set(x, y, t % 4 < 2 ? a : b);
+      cv.set(x, y + 1, scale(a, 0.6));
+    }
+    cv.outline(hex(0x08060e));
+  };
+}
+// MAX Battery: a tall battery in the MAX colours (white-violet), a dark-matter cell window and a white terminal.
+function maxBattery(cv) {
+  for (let y = 2; y <= 15; y++) {
+    for (let x = 4; x <= 11; x++) {
+      const c = x === 4 ? hex(0xf0f0ff) : x === 11 ? hex(0x6a6a88) : hex(0xc8c8e0);
+      cv.set(x, y, c);
+    }
+  }
+  for (let y = 5; y <= 12; y++) for (let x = 6; x <= 9; x++) cv.set(x, y, mix(DM.mid, DM.hi, (12 - y) / 7));
+  cv.rect(6, 0, 9, 1, hex(0xffffff));
+  cv.outline(hex(0x08060e));
+}
+tile('blocks/sl_universalcompression.png', sl_universalcompression);
+tile('blocks/sl_dmcoil.png', sl_dmcoil);
+tile('blocks/sl_dmframe.png', sl_dmframe);
+tile('blocks/sl_glass_magnetar.png', slGlass(hex(0xa0287a), hex(0xd628a0)));
+tile('blocks/sl_glass_darkmatter.png', slGlass(hex(0x2a2040), hex(0x7a6aa8)));
+tile('items/gatedPelletMagnetar.png', gatedPellet(1));
+tile('items/gatedPelletErgomatter.png', gatedPellet(2));
+tile('items/gatedPelletSuperdense.png', gatedPellet(3));
+for (let mk = 1; mk <= 3; mk++) tile('items/injectorBarrelMk' + mk + '.png', injectorBarrel(mk));
+tile('items/attractorSeedCore.png', attractorSeedCore);
+tile('items/starChartGreatAttractor.png', starChart(GREAT_ATTRACTOR));
+tile('items/attractorDarkMatterPlate.png', dmPlate(false));
+tile('items/attractorDarkMatterDensePlate.png', dmPlate(true));
+tile('items/superconductorWireUXV.png', scWire(false));
+tile('items/superconductorWireMAX.png', scWire(true));
+tile('items/maxBattery.png', maxBattery);
 
 // ------------------------------------------------------------------ write / check / preview
 function mcmetaText(m) {
