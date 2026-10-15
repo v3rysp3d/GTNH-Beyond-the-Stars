@@ -209,7 +209,8 @@
       "",
       "{5}{l}CIRCUITS{r} Every generator takes UXV circuits, more at each tier. Any UXV circuit fits; from Eye T4 the {9}Empyrean Mainframe{r} is the far cheaper one (see {c}Empyrean Circuits{r})."
     ],
-    "hold_core": "{2}{l}DONE WHEN{r} you hold the core and the chart (HOLD {to} CLAIM {to} INSTALL: claim before the core goes into escrow)."
+    "hold_core": "{2}{l}DONE WHEN{r} you hold the core and the chart (HOLD {to} CLAIM {to} INSTALL: claim before the core goes into escrow).",
+    "eye_ticks": "[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]"
   },
   "quests": [
     {
@@ -1146,7 +1147,7 @@
       "low": 48161, "key": "stability_link", "chapter": "uxv", "x": 660, "y": 252, "size": 24,
       "name": "{4}{l}{n}Stability Link", "icon": "mte:28125", "needs": ["eyeT7T8"],
       "prereqs": [48160],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_stablink", "label": "Stability Link held", "target": 1 } ],
       "desc": [
         "The T6 {to} T7 machine milestone: a linked quasar delivers a 60 s mean of at least {9}1.5 Bu/t{r} (1.5e13 EU/t) to the rail, the high bank taking 25-75 %, for {9}30 min unbroken{r}. The streak resets the second it fails.",
         "",
@@ -1158,7 +1159,9 @@
         "",
         "Run the quasar at {9}f 1.0{r} with its trim valves: a 64 SM quasar at the default f 0.85 is too thin, and a fresh hole spins up for about an hour first. The GUI, the scanner, the sensor's link streak and link mean channels, and OpenComputers getUnlock() show the streak.",
         "",
-        "{2}{l}DONE WHEN{r} the Eye's GUI says the Stability Link is held (tick the box)."
+        "{2}{l}DONE WHEN{r} the Eye's GUI says the Stability Link is held.",
+        "",
+        "@eye_ticks"
       ]
     },
     {
@@ -1208,7 +1211,7 @@
       "low": 48164, "key": "heavy_link", "chapter": "uxv", "x": 852, "y": 252, "size": 24,
       "name": "{4}{l}{n}Heavy Link", "icon": "mte:28125", "needs": ["eyeT7T8"],
       "prereqs": [48163],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_heavylink", "label": "Heavy Link held", "target": 1 } ],
       "desc": [
         "The T7 {to} T8 machine milestone: a 60 s mean of at least {9}6 Bu/t{r} (6e13 EU/t) on the Eye's ports, at least half of it on the halo, for {9}30 min unbroken{r}.",
         "",
@@ -1221,7 +1224,9 @@
         "",
         "With the standard rig's {9}J1 out 1 limit{r} (7.5 Bu/t, 7.5e13 EU/t, per parallel) the test fire puts 7.5 Bu/t on the Eye at any quasar size: 5.6 on the halo, 1.9 on the rail (5.6e13 and 1.9e13 EU/t). Without a limit, Slots [8] stops again above {9}32 Bu/t{r} (3.2e14 EU/t, about 260 SM), as the rail's quarter would flood the field; the Galaxy panel then says to set the limit, or gives J1's Eye share to test-fire with (testFireShare in OpenComputers getUnlock()).",
         "",
-        "{2}{l}DONE WHEN{r} the Eye's GUI says the Heavy Link is held (tick the box)."
+        "{2}{l}DONE WHEN{r} the Eye's GUI says the Heavy Link is held.",
+        "",
+        "@eye_ticks"
       ]
     },
     {
@@ -1434,7 +1439,7 @@
       "low": 48182, "key": "eye_t9", "chapter": "max", "x": 168, "y": 156, "size": 48, "main": true,
       "name": "{4}{l}{n}Eye T9: The Great Attractor", "icon": "beyondthestars:starChartGreatAttractor", "needs": ["eyeT9T10"],
       "prereqs": [48180, "E37", 48203],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_eye_t9", "label": "Eye T9 running", "target": 1 } ],
       "desc": [
         "The {9}Great Attractor{r}: the hidden mass at the heart of Laniakea, 100,000 galaxies. The Milky Way falls toward it at 600 km/s. It hides behind our own galaxy's plane, so it was found from how galaxies move, not seen. Most of it is dark matter.",
         "",
@@ -1448,7 +1453,9 @@
         "",
         "{5}{l}STANDARD RIG{r} The T8 rig unchanged (J1 on P, J2 on the aim, J3 on the halo, the Space valve) plus the Flow Directive set's bits 1 and 2 to the injector's Burst Control Hatch (15 / 8 / 0). A breach drops the Attractor; galaxies held, tiers and cores are never lost. The dark Eye relights {9}Triangulum{r} (T7) from a new charge, then the Galactic Merger and The Infall re-run on Begin, with no core.",
         "",
-        "{2}{l}DONE WHEN{r} your Eye runs T9 (tick the box)."
+        "{2}{l}DONE WHEN{r} your Eye runs T9: the Great Attractor lit in galaxy mode.",
+        "",
+        "@eye_ticks"
       ]
     },
     {
@@ -1791,7 +1798,7 @@
       "low": 48198, "key": "supermassive_link", "chapter": "max", "x": 624, "y": 264, "size": 24,
       "name": "{4}{l}{n}Supermassive Link", "icon": "mte:28115", "needs": ["smbh", "eyeT9T10"],
       "prereqs": [48197],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_smlink", "label": "Supermassive Link held", "target": 1 } ],
       "desc": [
         "The Eye's {9}T9 {to} T10 machine milestone{r}: link a hole of at least {9}65,536 SM{r} with a Supermassive Lattice (any tier) to the Eye through the conduit for {9}30 min unbroken{r}, with a 60 s mean of at least {9}96 Bu/t{r} (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.",
         "",
@@ -1799,7 +1806,9 @@
         "",
         "Every stream already carries its source's lattice tier and mass. The Eye's GUI shows a {9}Supermassive Link{r} row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.",
         "",
-        "{2}{l}DONE WHEN{r} the Eye's panel shows the Supermassive Link held (tick the box)."
+        "{2}{l}DONE WHEN{r} the Eye's panel shows the Supermassive Link held.",
+        "",
+        "@eye_ticks"
       ]
     },
     {
@@ -1838,7 +1847,7 @@
       "low": 48201, "key": "deep_link", "chapter": "max", "x": 108, "y": 312, "size": 24,
       "name": "{4}{l}{n}The Deep Link", "icon": "mte:28125", "needs": ["eyeT9T10"],
       "prereqs": [48200, 48148],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_deeplink", "label": "Deep Link held", "target": 1 } ],
       "desc": [
         "The T8 {to} T9 {9}machine milestone{r}, on a lit Milky Way:",
         "- linked, with a 60 s mean of at least {9}24 Bu/t{r} (2.4e14 EU/t) landing on the Eye's ports, at least half of it into the five {9}collar{r} ports (no field effect at T8);",
@@ -1850,7 +1859,9 @@
         "",
         "{5}{l}AUTOMATE{r} The Slots set's bit 4 (Deep Link test fire wanted) to both Burst Control Hatches.",
         "",
-        "{2}{l}DONE WHEN{r} the Eye's panel shows the Deep Link held (tick the box)."
+        "{2}{l}DONE WHEN{r} the Eye's panel shows the Deep Link held.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
@@ -1870,7 +1881,7 @@
       "low": 48203, "key": "zone_of_avoidance", "chapter": "max", "x": 120, "y": 216, "size": 24,
       "name": "{4}{l}{n}Out of the Zone of Avoidance", "icon": "beyondthestars:starChartGreatAttractor", "needs": ["eyeT9T10"],
       "prereqs": [48202],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_infall", "label": "The Infall succeeded", "target": 1 } ],
       "desc": [
         "{9}The Infall{r}, the T8 {to} T9 transition (1,800 s).",
         "",
@@ -1885,66 +1896,76 @@
         "",
         "{5}{l}AUTOMATE{r} Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.",
         "",
-        "{2}{l}DONE WHEN{r} The Infall succeeds (tick the box)."
+        "{2}{l}DONE WHEN{r} The Infall succeeds.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48204, "key": "holding_the_flow", "chapter": "max", "x": 240, "y": 96, "size": 24,
       "name": "{4}{l}{n}Holding the Flow", "icon": "beyondthestars:gatedPelletSuperdense", "needs": ["eyeT9T10"],
       "prereqs": [48182],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_flows", "label": "Galactic Flows held in full", "target": 1 } ],
       "desc": [
         "Hold one {9}Galactic Flow{r} in full: Stable or better for all 240 s of an accepted group, so every galaxy in it is captured (+144 L Attractor Dark Matter each).",
         "",
         "Raise the beam ahead of the peak (the V loop does it by itself), keep the halo fed (J3), aim toward the flow's side (J2), keep the Space valve ready. The Flow set's bit 3 says a flow is coming and accepted.",
         "",
-        "{2}{l}DONE WHEN{r} a flow is held in full (tick the box)."
+        "{2}{l}DONE WHEN{r} a flow is held in full.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48205, "key": "twenty_eev", "chapter": "max", "x": 288, "y": 144, "size": 24,
       "name": "{4}{l}{n}Twenty EeV", "icon": "beyondthestars:injectorBarrelMk1", "needs": ["eyeT9T10"],
       "prereqs": [48182],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_sd_min", "label": "Minutes on Superdense pellets", "target": 60 } ],
       "desc": [
         "Run T9 on {9}Superdense pellets for 1 hour{r}. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.",
         "",
         "Watch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.",
         "",
-        "{2}{l}DONE WHEN{r} T9 has run an hour on Superdense pellets (tick the box)."
+        "{2}{l}DONE WHEN{r} T9 has run an hour on Superdense pellets (the Eye counts the minutes).",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48206, "key": "laniakea", "chapter": "max", "x": 288, "y": 96, "size": 24,
       "name": "{4}{l}{n}Laniakea", "icon": "beyondthestars:starChartGreatAttractor", "needs": ["eyeT9T10"],
       "prereqs": [48204],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_galaxies", "label": "Galaxies held", "target": 1000 } ],
       "desc": [
         "Hold {9}1,000 galaxies{r}, about 14 hours of a T9: +1 a cycle at mean Y {ge} 1, +n for each group captured. The counter is never lost on a failure.",
         "",
         "Laniakea, \"immeasurable heaven\", holds about 100,000.",
         "",
-        "{2}{l}DONE WHEN{r} the Eye's panel shows 1,000 galaxies held (tick the box)."
+        "{2}{l}DONE WHEN{r} the Eye's panel shows 1,000 galaxies held.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48207, "key": "a_wider_pull", "chapter": "max", "x": 240, "y": 204, "size": 24,
       "name": "{4}{l}{n}A Wider Pull", "icon": "beyondthestars:starChartMilkyWay", "needs": ["eyeT9T10"],
       "prereqs": [48182],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_wide3", "label": "T9 cycles, three companions", "target": 1 } ],
       "desc": [
         "Run T9 with {9}three companions{r}. At T9 a companion may be a galaxy: Triangulum ({times}2) or the Milky Way ({times}1, fed Ergomatter). Each galaxy adds half of T9's demand.",
         "",
         "SGR 1806-20 + Triangulum + the Milky Way on a {9}500 SM quasar{r} supply their own pellets: Magnetar, Ergomatter and Superdense Ergomatter beside 12,500 L/h of Attractor Dark Matter. The demand is 54 Bu/t: below about 400 SM the burst falls short.",
         "",
-        "{2}{l}DONE WHEN{r} T9 runs with three companions (tick the box)."
+        "{2}{l}DONE WHEN{r} T9 runs a full cycle with three companions.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48208, "key": "inflation", "chapter": "max", "x": 528, "y": 108, "size": 24,
       "name": "{4}{l}{n}Inflation", "icon": "beyondthestars:universalUpgradeCore", "needs": ["eyeT9T10"],
       "prereqs": [48186, 48187],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_inflation", "label": "Inflation succeeded", "target": 1 } ],
       "desc": [
         "{9}Inflation{r}, the T9 {to} T10 transition (900 s).",
         "",
@@ -1957,42 +1978,50 @@
         "",
         "Success: the core is consumed, T10 is unlocked and the first universe is charged. Failure: the Attractor is relit at T9 with Integrity 50; the charge is spent, the core stays in escrow.",
         "",
-        "{2}{l}DONE WHEN{r} Inflation succeeds (tick the box)."
+        "{2}{l}DONE WHEN{r} Inflation succeeds.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48209, "key": "keep_it_flat", "chapter": "max", "x": 672, "y": 264, "size": 24,
       "name": "{4}{l}{n}Keep It Flat", "icon": "beyondthestars:starChartUniverse", "needs": ["eyeT9T10"],
       "prereqs": [48188],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_flat", "label": "Universes at mean Y 1.0+", "target": 1 } ],
       "desc": [
         "Run one universe at a {9}mean Y of 1.0 or more{r}. The real universe is flat to about 0.4 %, and nobody knows why. Here you are the reason.",
         "",
         "Two 2-unit valves on Universe bits 1 and 2 (Dark Matter, SpaceTime) keep H on the curve; 10-unit valves chatter and waste SpaceTime. Bit 3 is a countdown, bit 4 a short charge for the next universe.",
         "",
-        "{2}{l}DONE WHEN{r} a universe ends at mean Y 1.0 or more (tick the box)."
+        "{2}{l}DONE WHEN{r} a universe ends at mean Y 1.0 or more.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48210, "key": "cosmic_dawn", "chapter": "max", "x": 672, "y": 96, "size": 24,
       "name": "{4}{l}{n}Cosmic Dawn", "icon": "beyondthestars:slCasing4:6", "needs": ["eyeT9T10"],
       "prereqs": [48188],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_dawns", "label": "Cosmic Dawns caught", "target": 1 } ],
       "desc": [
         "Catch one {9}Cosmic Dawn{r}: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes {9}+12.5 % Universium{r} (1,152 L).",
         "",
-        "{2}{l}DONE WHEN{r} a Cosmic Dawn is caught (tick the box)."
+        "{2}{l}DONE WHEN{r} a Cosmic Dawn is caught.",
+        "",
+        "@eye_ticks"
       ]
     },
 {
       "low": 48211, "key": "last_light", "chapter": "max", "x": 672, "y": 336, "size": 24,
       "name": "{4}{l}{n}Last Light", "icon": "beyondthestars:starChartUniverse", "needs": ["eyeT9T10"],
       "prereqs": [48209],
-      "tasks": [ { "type": "checkbox" } ],
+      "tasks": [ { "type": "scoreboard", "score": "bts_universes", "label": "Universes to last light", "target": 10 } ],
       "desc": [
         "Run {9}10 universes{r} to their last light: 20 hours of T10, about 124,000 L of Universium. A Big Rip or Crunch ends a universe early and does not count.",
         "",
-        "{2}{l}DONE WHEN{r} ten universes have run their full 7,200 s (tick the box)."
+        "{2}{l}DONE WHEN{r} ten universes have run their full 7,200 s.",
+        "",
+        "@eye_ticks"
       ]
     },
     {

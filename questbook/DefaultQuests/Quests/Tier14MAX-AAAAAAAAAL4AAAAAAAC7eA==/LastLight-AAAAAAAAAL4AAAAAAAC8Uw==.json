@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Run§9 10 universes§r to their last light: 20 hours of T10, about 124,000 L of Universium. A Big Rip or Crunch ends a universe early and does not count.\n\n§2§lDONE §lWHEN§r ten universes have run their full 7,200 s (tick the box).",
+      "desc:8": "Run§9 10 universes§r to their last light: 20 hours of T10, about 124,000 L of Universium. A Big Rip or Crunch ends a universe early and does not count.\n\n§2§lDONE §lWHEN§r ten universes have run their full 7,200 s.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -60,7 +60,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "Universes to last light",
+      "scoreName:8": "bts_universes",
+      "target:3": 10,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

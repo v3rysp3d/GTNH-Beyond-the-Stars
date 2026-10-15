@@ -1560,6 +1560,11 @@ public final class EyeStarRuntime {
             logEvent(lastEvent);
         }
         if (out.galaxyCycle) milestones.galaxies++;
+        // B-218: the quest bridge's T9 counts (Twenty EeV, A Wider Pull), on the unlocked tier outside a transition
+        if (fs.tier.attractor && unlockedTier >= 9 && trans == null) {
+            if (a.firing && a.grade == 3) milestones.superdenseSeconds++;
+            if (out.cycleEnded && galaxy.companions.length >= 3) milestones.widePulls++;
+        }
         if (out.inflated) {
             lastEvent = "INFLATION: the regions unfold into a universe inside the crown; W, Λ and V retire, H appears at +"
                 + Math.round(fs.x[StellarField.H])
@@ -1578,6 +1583,7 @@ public final class EyeStarRuntime {
             if (ledger != null) ledger.product += litres;
             milestones.universes++;
             if (out.universeDawnOk) milestones.dawns++;
+            if (out.universeMeanY >= 1.0) milestones.flatUniverses++; // B-218: Keep It Flat
             a.endT = fs.t;
             a.endKind = 1;
             lastEvent = String.format(

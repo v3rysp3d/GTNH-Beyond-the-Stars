@@ -10,7 +10,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
 /**
- * {@code /btsquests [status|install [force]|uninstall [all|edits]|verify|dumpids]} - the
+ * {@code /btsquests [status|install [force]|uninstall [all|edits]|verify|dumpids|eye [player|uuid]]} - the
  * Singularity Ladder questbook in this world (docs/questbook-integration.md §4.5).
  * <p>
  * BetterQuesting copies {@code config/betterquesting/DefaultQuests/} into a world exactly once,
@@ -35,7 +35,7 @@ public class CommandBTSQuests extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsquests [status|install [force]|uninstall [all|edits]|verify|dumpids]";
+        return "/btsquests [status|install [force]|uninstall [all|edits]|verify|dumpids|eye [player|uuid]]";
     }
 
     @Override
@@ -47,7 +47,11 @@ public class CommandBTSQuests extends CommandBase {
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1)
-            return getListOfStringsMatchingLastWord(args, "status", "install", "uninstall", "verify", "dumpids");
+            return getListOfStringsMatchingLastWord(args, "status", "install", "uninstall", "verify", "dumpids", "eye");
+        if (args.length == 2 && "eye".equalsIgnoreCase(args[0])) return getListOfStringsMatchingLastWord(
+            args,
+            net.minecraft.server.MinecraftServer.getServer()
+                .getAllUsernames());
         if (args.length == 2 && "install".equalsIgnoreCase(args[0]))
             return getListOfStringsMatchingLastWord(args, "force");
         if (args.length == 2 && "uninstall".equalsIgnoreCase(args[0]))
@@ -84,6 +88,9 @@ public class CommandBTSQuests extends CommandBase {
                 return;
             case "dumpids":
                 dumpIds(sender);
+                return;
+            case "eye":
+                eye(sender, args.length > 1 ? args[1] : "");
                 return;
             case "status":
                 status(sender);
@@ -289,6 +296,40 @@ public class CommandBTSQuests extends CommandBase {
         for (final Map.Entry<String, List<String>> e : r.misses.entrySet())
             for (final String m : e.getValue()) tell(sender, WARN + e.getKey() + ": " + m);
         for (final String n : r.notes) tell(sender, DIM + n);
+    }
+
+    // ---------------------------------------------------------------------- eye (B-218)
+
+    /** The quests the Eye completes, for one player: complete or open, and the Eye's count against the target. */
+    private static void eye(ICommandSender sender, String who) {
+        java.util.UUID id = null;
+        String label = who;
+        if (who.isEmpty() && sender instanceof net.minecraft.entity.player.EntityPlayerMP) {
+            id = ((net.minecraft.entity.player.EntityPlayerMP) sender).getGameProfile()
+                .getId();
+            label = sender.getCommandSenderName();
+        } else if (!who.isEmpty()) {
+            try {
+                id = java.util.UUID.fromString(who);
+            } catch (final IllegalArgumentException notUuid) {
+                final net.minecraft.entity.player.EntityPlayerMP p = net.minecraft.server.MinecraftServer.getServer()
+                    .getConfigurationManager()
+                    .func_152612_a(who);
+                if (p != null) id = p.getGameProfile()
+                    .getId();
+            }
+        }
+        if (id == null) {
+            tell(sender, BAD + "Usage: /btsquests eye [online player|uuid] (from the console: a name or a UUID)");
+            return;
+        }
+        tell(sender, HEAD + "== Quests the Eye completes, for " + label + " (" + id + ") ==");
+        final java.util.List<String> lines = new java.util.ArrayList<>();
+        QuestCredit.describe(id, lines);
+        for (final String line : lines) tell(sender, (line.startsWith("[complete]") ? OK : DIM) + line);
+        tell(
+            sender,
+            DIM + "The Eye credits its owner and the owner's party every time a count changes, and once a minute.");
     }
 
     // ---------------------------------------------------------------- verify, dumpids

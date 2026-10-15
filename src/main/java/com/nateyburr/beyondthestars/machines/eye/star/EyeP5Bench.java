@@ -28,7 +28,9 @@ import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
  * gain;</li>
  * <li>{@code deeplink [reset]}: the Deep Link's window and streak; {@code flow <n> [low|high]}: warn a group of n now
  * (180 s ahead), as the next Galactic Flow;</li>
- * <li>{@code uni}: the universe's age, events and charge.</li>
+ * <li>{@code uni}: the universe's age, events and charge;</li>
+ * <li>{@code count <galaxies|flows|universes|dawns|sdsec|wide|flat> <n>}: sets a P5 counter (B-218, the quest bridge's
+ * test: the next field second credits the owner's quests).</li>
  * </ul>
  */
 public final class EyeP5Bench {
@@ -104,13 +106,47 @@ public final class EyeP5Bench {
                 out.add("the next Galactic Flow is warned on the next field second (arrives in 180 s)");
                 break;
             }
+            case "count": {
+                final long n = args.length > at + 2 ? Long.parseLong(args[at + 2]) : 0;
+                final EyeMilestones ms = rt.milestones;
+                switch (a1) {
+                    case "galaxies":
+                        ms.galaxies = n;
+                        break;
+                    case "flows":
+                        ms.flowsHeld = (int) n;
+                        break;
+                    case "universes":
+                        ms.universes = n;
+                        break;
+                    case "dawns":
+                        ms.dawns = n;
+                        break;
+                    case "sdsec":
+                        ms.superdenseSeconds = n;
+                        break;
+                    case "wide":
+                        ms.widePulls = (int) n;
+                        break;
+                    case "flat":
+                        ms.flatUniverses = n;
+                        break;
+                    default:
+                        out.add("p5 count <galaxies|flows|universes|dawns|sdsec|wide|flat> <n>");
+                        return out;
+                }
+                if (eye.getBaseMetaTileEntity() != null) eye.getBaseMetaTileEntity()
+                    .markDirty();
+                out.add("counter " + a1 + " = " + n);
+                break;
+            }
             case "uni":
             case "status":
                 break;
             default:
                 out.add(
                     "p5 status | pellets <mag|erg|sup> [n] [mk <1-3>] | refill <grade|off> | accept <n|auto> |"
-                        + " beam <c|auto> [k] | deeplink [reset] | flow | uni");
+                        + " beam <c|auto> [k] | deeplink [reset] | flow | uni | count <counter> <n>");
                 return out;
         }
         out.addAll(lines(rt, eye));
@@ -189,7 +225,8 @@ public final class EyeP5Bench {
         out.add(
             String.format(
                 Locale.ROOT,
-                "P5: tier %s, unlocked T%d, state %s%s; galaxies held %,d, flows held %d, universes %d, dawns %d",
+                "P5: tier %s, unlocked T%d, state %s%s; galaxies held %,d, flows held %d, universes %d, dawns %d;"
+                    + " quest counts: Superdense %d s, three-companion cycles %d, flat universes %d",
                 fs == null ? "-" : "T" + fs.tier.n + (fs.tier.planets() ? " planets" : ""),
                 rt.unlockedTier(),
                 rt.state(),
@@ -197,7 +234,10 @@ public final class EyeP5Bench {
                 ms.galaxies,
                 ms.flowsHeld,
                 ms.universes,
-                ms.dawns));
+                ms.dawns,
+                ms.superdenseSeconds,
+                ms.widePulls,
+                ms.flatUniverses));
         out.add(
             String.format(
                 Locale.ROOT,

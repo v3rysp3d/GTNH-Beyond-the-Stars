@@ -51,6 +51,13 @@ public final class EyeMilestones {
     public int flowsHeld;
     /** P5 display counters (never lost): galaxies held, universes run to their last light, Cosmic Dawns caught. */
     public long galaxies, universes, dawns;
+    /**
+     * B-218 (the quest bridge, display only, never lost): T9 field seconds firing Superdense pellets (Twenty EeV), T9
+     * cycles run with three or more companions (A Wider Pull), universes run to their last light at mean Y 1.0 or more
+     * (Keep It Flat).
+     */
+    public long superdenseSeconds, flatUniverses;
+    public int widePulls;
     /** T3: helium flashes ridden. */
     public int flashes;
     /** T4: Deep Dark runs completed on this Eye. */
@@ -374,6 +381,9 @@ public final class EyeMilestones {
         p5.setLong("universes", universes);
         p5.setLong("dawns", dawns);
         p5.setLong("res10", res[10]);
+        p5.setLong("sdSec", superdenseSeconds);
+        p5.setInteger("wide3", widePulls);
+        p5.setLong("flat", flatUniverses);
         out.setTag("p5", p5);
         return out;
     }
@@ -383,6 +393,8 @@ public final class EyeMilestones {
         Arrays.fill(res, 0);
         flashes = deepDark = goodBatches = flares = mergers = crossings = flowsHeld = 0;
         galaxies = universes = dawns = 0;
+        superdenseSeconds = flatUniverses = 0;
+        widePulls = 0;
         Arrays.fill(linkDone, false);
         Arrays.fill(linkBest, 0);
         Arrays.fill(linkStreak, 0);
@@ -411,6 +423,9 @@ public final class EyeMilestones {
             universes = t.getLong("universes");
             dawns = t.getLong("dawns");
             res[10] = t.getLong("res10");
+            superdenseSeconds = t.getLong("sdSec");
+            widePulls = t.getInteger("wide3");
+            flatUniverses = t.getLong("flat");
         }
         for (int n = 1; n <= 5; n++) {
             if (!in.hasKey("t" + n)) continue;

@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "b2cd1ce7b3805d5c21b7eb7c859e6da46fb72902",
+  "bundleVersion": "406747231e0c1fcf30a17f2f08f90758a831a754",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "cfdf24b relight-pulsar",
+    "srcHead": "becf5c1 relight-pulsar",
     "manifestSha": "7796eeb6b7823f938be225118e9e1e7fa0c89d83"
   },
   "features": {
@@ -8502,7 +8502,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The T6 → T7 machine milestone: a linked quasar delivers a 60 s mean of at least§9 1.5 Bu/t§r (1.5e13 EU/t) to the rail, the high bank taking 25-75 %, for§9 30 min unbroken§r. The streak resets the second it fails.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 2,700 L Magnetar Matter from all-Stable cycles, 2 h Resonant, 50 giant flares ridden.\n2. §9Transition [4]§r asks for the §9Intergalactic Upgrade Core§r: put it in escrow.\n3. §9Slots [8]§r asks for the test fire: J1 all to the Eye. At T6 the bursts are a test fire with no field effect.\n4. The link, then the Triangulum chart, then Begin (see §cMagnetar Collapse§r).\n\nRun the quasar at §9f 1.0§r with its trim valves: a 64 SM quasar at the default f 0.85 is too thin, and a fresh hole spins up for about an hour first. The GUI, the scanner, the sensor's link streak and link mean channels, and OpenComputers getUnlock() show the streak.\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Stability Link is held (tick the box).",
+            "desc:8": "The T6 → T7 machine milestone: a linked quasar delivers a 60 s mean of at least§9 1.5 Bu/t§r (1.5e13 EU/t) to the rail, the high bank taking 25-75 %, for§9 30 min unbroken§r. The streak resets the second it fails.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 2,700 L Magnetar Matter from all-Stable cycles, 2 h Resonant, 50 giant flares ridden.\n2. §9Transition [4]§r asks for the §9Intergalactic Upgrade Core§r: put it in escrow.\n3. §9Slots [8]§r asks for the test fire: J1 all to the Eye. At T6 the bursts are a test fire with no field effect.\n4. The link, then the Triangulum chart, then Begin (see §cMagnetar Collapse§r).\n\nRun the quasar at §9f 1.0§r with its trim valves: a 64 SM quasar at the default f 0.85 is too thin, and a fresh hole spins up for about an hour first. The GUI, the scanner, the sensor's link streak and link mean channels, and OpenComputers getUnlock() show the streak.\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Stability Link is held.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -8545,7 +8545,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Stability Link held",
+            "scoreName:8": "bts_stablink",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -8773,7 +8780,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The T7 → T8 machine milestone: a 60 s mean of at least§9 6 Bu/t§r (6e13 EU/t) on the Eye's ports, at least half of it on the halo, for§9 30 min unbroken§r.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 216,000 L Ergomatter from all-Stable cycles, 2 h Resonant, 4 minor mergers ridden.\n2. §9Transition [4]:§r the §9Supermassive Seed Core§r into escrow.\n3. §9Slots [8]:§r the test fire. J1 all to the Eye, and J3 to its 75 % halo preset.\n\nSlots [8] waits until the quasar's mean stream reaches§9 6 Bu/t§r (6e13 EU/t) (about 110 SM at coils 3): below that the rail's quarter would starve Triangulum. Keep the quasar growing (f 1.0); the Galaxy panel says how far you are.\n\nWith the standard rig's §9J1 out 1 limit§r (7.5 Bu/t, 7.5e13 EU/t, per parallel) the test fire puts 7.5 Bu/t on the Eye at any quasar size: 5.6 on the halo, 1.9 on the rail (5.6e13 and 1.9e13 EU/t). Without a limit, Slots [8] stops again above§9 32 Bu/t§r (3.2e14 EU/t, about 260 SM), as the rail's quarter would flood the field; the Galaxy panel then says to set the limit, or gives J1's Eye share to test-fire with (testFireShare in OpenComputers getUnlock()).\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Heavy Link is held (tick the box).",
+            "desc:8": "The T7 → T8 machine milestone: a 60 s mean of at least§9 6 Bu/t§r (6e13 EU/t) on the Eye's ports, at least half of it on the halo, for§9 30 min unbroken§r.\n\n§5§lTHE §lORDER§r\n1. The item milestones: 216,000 L Ergomatter from all-Stable cycles, 2 h Resonant, 4 minor mergers ridden.\n2. §9Transition [4]:§r the §9Supermassive Seed Core§r into escrow.\n3. §9Slots [8]:§r the test fire. J1 all to the Eye, and J3 to its 75 % halo preset.\n\nSlots [8] waits until the quasar's mean stream reaches§9 6 Bu/t§r (6e13 EU/t) (about 110 SM at coils 3): below that the rail's quarter would starve Triangulum. Keep the quasar growing (f 1.0); the Galaxy panel says how far you are.\n\nWith the standard rig's §9J1 out 1 limit§r (7.5 Bu/t, 7.5e13 EU/t, per parallel) the test fire puts 7.5 Bu/t on the Eye at any quasar size: 5.6 on the halo, 1.9 on the rail (5.6e13 and 1.9e13 EU/t). Without a limit, Slots [8] stops again above§9 32 Bu/t§r (3.2e14 EU/t, about 260 SM), as the rail's quarter would flood the field; the Galaxy panel then says to set the limit, or gives J1's Eye share to test-fire with (testFireShare in OpenComputers getUnlock()).\n\n§2§lDONE §lWHEN§r the Eye's GUI says the Heavy Link is held.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -8816,7 +8823,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Heavy Link held",
+            "scoreName:8": "bts_heavylink",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -10230,7 +10244,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The §9Great Attractor§r: the hidden mass at the heart of Laniakea, 100,000 galaxies. The Milky Way falls toward it at 600 km/s. It hides behind our own galaxy's plane, so it was found from how galaxies move, not seen. Most of it is dark matter.\n\n§5§lTHE §lFIELD§r T9 keeps the T8 field (P, W, Λ) and adds §9V, the infall§r: drift 2 × the flow, a runaway gain, and one actuator, the §9pellet beam§r (−2 × ρ, where ρ is the beam power over 1e10 GeV/s). Positive V: galaxies fall faster than you can catch them. Negative: the beam pushes the flow back up the filaments. The beam spools over 20 s, so steer it, do not slam it. Demand§9 24 Bu/t§r (2.4e14 EU/t).\n\n§5§lTHE §lBEAM§r The §9Pellet Injector Hatch§r fires n = cap × clamp(c + k (s/15 - 0.5), 0, 1) pellets a second; cap is the barrel's (4 / 8 / 16). Hold rating = floor(4 × (cap × GeV / 1e10 - 2)), 0 to 12: the largest flow the beam can hold. Superdense on a Mk I: rating 12.\n\n§5§lGALACTIC §lFLOW§r Every 20 to 40 min a group of 3 to 12 galaxies comes down a filament, warned an exact 180 s ahead with its side and size. A group no bigger than the accept limit (default: the hold rating) is accepted: for 240 s it pushes V, Λ, W and P at once. Held Stable throughout: every galaxy is captured, §9+144 L Attractor Dark Matter each§r. A bigger group streams past; nothing is lost.\n\n§5§lOUTPUT§r Attractor Dark Matter§9 144 L a cycle§r × Y × r, plus the flows: about 12,300 L an hour on the standard rig, which needs a§9 300 SM quasar§r. Planets mode runs 9 planets; T9 runs 3 companions, and a companion may be a galaxy (Triangulum, the Milky Way).\n\n§5§lSTANDARD §lRIG§r The T8 rig unchanged (J1 on P, J2 on the aim, J3 on the halo, the Space valve) plus the Flow Directive set's bits 1 and 2 to the injector's Burst Control Hatch (15 / 8 / 0). A breach drops the Attractor; galaxies held, tiers and cores are never lost. The dark Eye relights §9Triangulum§r (T7) from a new charge, then the Galactic Merger and The Infall re-run on Begin, with no core.\n\n§2§lDONE §lWHEN§r your Eye runs T9 (tick the box).",
+            "desc:8": "The §9Great Attractor§r: the hidden mass at the heart of Laniakea, 100,000 galaxies. The Milky Way falls toward it at 600 km/s. It hides behind our own galaxy's plane, so it was found from how galaxies move, not seen. Most of it is dark matter.\n\n§5§lTHE §lFIELD§r T9 keeps the T8 field (P, W, Λ) and adds §9V, the infall§r: drift 2 × the flow, a runaway gain, and one actuator, the §9pellet beam§r (−2 × ρ, where ρ is the beam power over 1e10 GeV/s). Positive V: galaxies fall faster than you can catch them. Negative: the beam pushes the flow back up the filaments. The beam spools over 20 s, so steer it, do not slam it. Demand§9 24 Bu/t§r (2.4e14 EU/t).\n\n§5§lTHE §lBEAM§r The §9Pellet Injector Hatch§r fires n = cap × clamp(c + k (s/15 - 0.5), 0, 1) pellets a second; cap is the barrel's (4 / 8 / 16). Hold rating = floor(4 × (cap × GeV / 1e10 - 2)), 0 to 12: the largest flow the beam can hold. Superdense on a Mk I: rating 12.\n\n§5§lGALACTIC §lFLOW§r Every 20 to 40 min a group of 3 to 12 galaxies comes down a filament, warned an exact 180 s ahead with its side and size. A group no bigger than the accept limit (default: the hold rating) is accepted: for 240 s it pushes V, Λ, W and P at once. Held Stable throughout: every galaxy is captured, §9+144 L Attractor Dark Matter each§r. A bigger group streams past; nothing is lost.\n\n§5§lOUTPUT§r Attractor Dark Matter§9 144 L a cycle§r × Y × r, plus the flows: about 12,300 L an hour on the standard rig, which needs a§9 300 SM quasar§r. Planets mode runs 9 planets; T9 runs 3 companions, and a companion may be a galaxy (Triangulum, the Milky Way).\n\n§5§lSTANDARD §lRIG§r The T8 rig unchanged (J1 on P, J2 on the aim, J3 on the halo, the Space valve) plus the Flow Directive set's bits 1 and 2 to the injector's Burst Control Hatch (15 / 8 / 0). A breach drops the Attractor; galaxies held, tiers and cores are never lost. The dark Eye relights §9Triangulum§r (T7) from a new charge, then the Galactic Merger and The Infall re-run on Begin, with no core.\n\n§2§lDONE §lWHEN§r your Eye runs T9: the Great Attractor lit in galaxy mode.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -10273,7 +10287,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Eye T9 running",
+            "scoreName:8": "bts_eye_t9",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -11584,7 +11605,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The Eye's §9T9 → T10 machine milestone§r: link a hole of at least§9 65,536 SM§r with a Supermassive Lattice (any tier) to the Eye through the conduit for§9 30 min unbroken§r, with a 60 s mean of at least§9 96 Bu/t§r (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.\n\nIt is met with an §9L1 lattice§r (Eye T8 products) and pack gases: nothing from Eye T9 or later. It gates Eye T10 (see §cInflation§r).\n\nEvery stream already carries its source's lattice tier and mass. The Eye's GUI shows a §9Supermassive Link§r row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Supermassive Link held (tick the box).",
+            "desc:8": "The Eye's §9T9 → T10 machine milestone§r: link a hole of at least§9 65,536 SM§r with a Supermassive Lattice (any tier) to the Eye through the conduit for§9 30 min unbroken§r, with a 60 s mean of at least§9 96 Bu/t§r (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.\n\nIt is met with an §9L1 lattice§r (Eye T8 products) and pack gases: nothing from Eye T9 or later. It gates Eye T10 (see §cInflation§r).\n\nEvery stream already carries its source's lattice tier and mass. The Eye's GUI shows a §9Supermassive Link§r row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Supermassive Link held.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -11627,7 +11648,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Supermassive Link held",
+            "scoreName:8": "bts_smlink",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -11829,7 +11857,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The T8 → T9 §9machine milestone§r, on a lit Milky Way:\n- linked, with a 60 s mean of at least§9 24 Bu/t§r (2.4e14 EU/t) landing on the Eye's ports, at least half of it into the five §9collar§r ports (no field effect at T8);\n- the beam §9test-firing§r at a 60 s mean ρ ≥ 1;\n- for§9 30 min unbroken§r.\nThe test fire setting forces J1 to the Eye. It needs a§9 250 SM quasar§r: below that the forced burst heats P faster than Space can trim. It burns about 1,200 Superdense pellets.\n\nAlso on the T8 star: 108,000 L of Superdense Ergomatter made at Stable or better, 2 h Resonant, 4 satellite crossings caught.\n\n§5§lAUTOMATE§r The Slots set's bit 4 (Deep Link test fire wanted) to both Burst Control Hatches.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Deep Link held (tick the box).",
+            "desc:8": "The T8 → T9 §9machine milestone§r, on a lit Milky Way:\n- linked, with a 60 s mean of at least§9 24 Bu/t§r (2.4e14 EU/t) landing on the Eye's ports, at least half of it into the five §9collar§r ports (no field effect at T8);\n- the beam §9test-firing§r at a 60 s mean ρ ≥ 1;\n- for§9 30 min unbroken§r.\nThe test fire setting forces J1 to the Eye. It needs a§9 250 SM quasar§r: below that the forced burst heats P faster than Space can trim. It burns about 1,200 Superdense pellets.\n\nAlso on the T8 star: 108,000 L of Superdense Ergomatter made at Stable or better, 2 h Resonant, 4 satellite crossings caught.\n\n§5§lAUTOMATE§r The Slots set's bit 4 (Deep Link test fire wanted) to both Burst Control Hatches.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Deep Link held.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -11872,7 +11900,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Deep Link held",
+            "scoreName:8": "bts_deeplink",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -11985,7 +12020,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "§9The Infall§r, the T8 → T9 transition (1,800 s).\n\n§5§lBEFORE§r The collimator stack built with its injector stocked; compression tier 9 everywhere (Gallifreyan); the Milky Way lit and Stable in galaxy mode, no companions; the beam's hold rating ≥ 6; the charge buffered: 18,000 L Superdense Ergomatter; Star Chart: Great Attractor in the slot.\n\n§5§lTHE §lEVENT§r\n1. t 0: the object becomes the Attractor. V appears at 0 and its drift ramps in over 600 s. The charge drains at 10 L/s; demand climbs from 6 to 24 Bu/t.\n2. t 1,020 to 1,440: a forced Galactic Flow of 6, warned at 1,020, arriving at 1,200. Hold it.\n3. Hold Stable or better for 120 s in a row after the flow, by t 2,100.\n\nSuccess: the core is consumed and T9 is unlocked for good. Failure: the Milky Way is thrown back §9still lit at T8§r with Integrity 50; the charge is spent, the core stays in escrow.\n\n§5§lAUTOMATE§r Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.\n\n§2§lDONE §lWHEN§r The Infall succeeds (tick the box).",
+            "desc:8": "§9The Infall§r, the T8 → T9 transition (1,800 s).\n\n§5§lBEFORE§r The collimator stack built with its injector stocked; compression tier 9 everywhere (Gallifreyan); the Milky Way lit and Stable in galaxy mode, no companions; the beam's hold rating ≥ 6; the charge buffered: 18,000 L Superdense Ergomatter; Star Chart: Great Attractor in the slot.\n\n§5§lTHE §lEVENT§r\n1. t 0: the object becomes the Attractor. V appears at 0 and its drift ramps in over 600 s. The charge drains at 10 L/s; demand climbs from 6 to 24 Bu/t.\n2. t 1,020 to 1,440: a forced Galactic Flow of 6, warned at 1,020, arriving at 1,200. Hold it.\n3. Hold Stable or better for 120 s in a row after the flow, by t 2,100.\n\nSuccess: the core is consumed and T9 is unlocked for good. Failure: the Milky Way is thrown back §9still lit at T8§r with Integrity 50; the charge is spent, the core stays in escrow.\n\n§5§lAUTOMATE§r Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.\n\n§2§lDONE §lWHEN§r The Infall succeeds.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12028,7 +12063,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "The Infall succeeded",
+            "scoreName:8": "bts_infall",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12056,7 +12098,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Hold one §9Galactic Flow§r in full: Stable or better for all 240 s of an accepted group, so every galaxy in it is captured (+144 L Attractor Dark Matter each).\n\nRaise the beam ahead of the peak (the V loop does it by itself), keep the halo fed (J3), aim toward the flow's side (J2), keep the Space valve ready. The Flow set's bit 3 says a flow is coming and accepted.\n\n§2§lDONE §lWHEN§r a flow is held in full (tick the box).",
+            "desc:8": "Hold one §9Galactic Flow§r in full: Stable or better for all 240 s of an accepted group, so every galaxy in it is captured (+144 L Attractor Dark Matter each).\n\nRaise the beam ahead of the peak (the V loop does it by itself), keep the halo fed (J3), aim toward the flow's side (J2), keep the Space valve ready. The Flow set's bit 3 says a flow is coming and accepted.\n\n§2§lDONE §lWHEN§r a flow is held in full.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12099,7 +12141,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Galactic Flows held in full",
+            "scoreName:8": "bts_flows",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12127,7 +12176,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Run T9 on §9Superdense pellets for 1 hour§r. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.\n\nWatch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.\n\n§2§lDONE §lWHEN§r T9 has run an hour on Superdense pellets (tick the box).",
+            "desc:8": "Run T9 on §9Superdense pellets for 1 hour§r. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.\n\nWatch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.\n\n§2§lDONE §lWHEN§r T9 has run an hour on Superdense pellets (the Eye counts the minutes).\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12170,7 +12219,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Minutes on Superdense pellets",
+            "scoreName:8": "bts_sd_min",
+            "target:3": 60,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12198,7 +12254,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Hold§9 1,000 galaxies§r, about 14 hours of a T9: +1 a cycle at mean Y ≥ 1, +n for each group captured. The counter is never lost on a failure.\n\nLaniakea, \"immeasurable heaven\", holds about 100,000.\n\n§2§lDONE §lWHEN§r the Eye's panel shows 1,000 galaxies held (tick the box).",
+            "desc:8": "Hold§9 1,000 galaxies§r, about 14 hours of a T9: +1 a cycle at mean Y ≥ 1, +n for each group captured. The counter is never lost on a failure.\n\nLaniakea, \"immeasurable heaven\", holds about 100,000.\n\n§2§lDONE §lWHEN§r the Eye's panel shows 1,000 galaxies held.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12241,7 +12297,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Galaxies held",
+            "scoreName:8": "bts_galaxies",
+            "target:3": 1000,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12269,7 +12332,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Run T9 with §9three companions§r. At T9 a companion may be a galaxy: Triangulum (×2) or the Milky Way (×1, fed Ergomatter). Each galaxy adds half of T9's demand.\n\nSGR 1806-20 + Triangulum + the Milky Way on a§9 500 SM quasar§r supply their own pellets: Magnetar, Ergomatter and Superdense Ergomatter beside 12,500 L/h of Attractor Dark Matter. The demand is 54 Bu/t: below about 400 SM the burst falls short.\n\n§2§lDONE §lWHEN§r T9 runs with three companions (tick the box).",
+            "desc:8": "Run T9 with §9three companions§r. At T9 a companion may be a galaxy: Triangulum (×2) or the Milky Way (×1, fed Ergomatter). Each galaxy adds half of T9's demand.\n\nSGR 1806-20 + Triangulum + the Milky Way on a§9 500 SM quasar§r supply their own pellets: Magnetar, Ergomatter and Superdense Ergomatter beside 12,500 L/h of Attractor Dark Matter. The demand is 54 Bu/t: below about 400 SM the burst falls short.\n\n§2§lDONE §lWHEN§r T9 runs a full cycle with three companions.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12312,7 +12375,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "T9 cycles, three companions",
+            "scoreName:8": "bts_wide3",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12344,7 +12414,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "§9Inflation§r, the T9 → T10 transition (900 s).\n\n§5§lBEFORE§r the §cSupermassive Link§r held; 60,000 L of Attractor Dark Matter made at Stable or better; 2 h Resonant; 8 Galactic Flows held in full; the §9Universal Upgrade Core§r in escrow; Star Chart: The Observable Universe; the universal crown built with its 12 receptors; a §9Universal Compression Field Generator§r in every compression slot; the Attractor lit and Stable in galaxy mode, no companions; the charge buffered: 18,432 L Attractor Dark Matter.\n\n§5§lTHE §lEVENT§r\n1. t 0 to 300: the six regions unfold inside the crown under T9 rules; demand climbs from 24 to 96 Bu/t.\n2. t 300: W, Λ and V retire and §9H appears at +85§r (Integrity −20). Dark Matter trims pull it down onto the curve.\n3. t 600: recombination. Hold Stable or better for 120 s in a row inside 600 to 900 s.\n\nSuccess: the core is consumed, T10 is unlocked and the first universe is charged. Failure: the Attractor is relit at T9 with Integrity 50; the charge is spent, the core stays in escrow.\n\n§2§lDONE §lWHEN§r Inflation succeeds (tick the box).",
+            "desc:8": "§9Inflation§r, the T9 → T10 transition (900 s).\n\n§5§lBEFORE§r the §cSupermassive Link§r held; 60,000 L of Attractor Dark Matter made at Stable or better; 2 h Resonant; 8 Galactic Flows held in full; the §9Universal Upgrade Core§r in escrow; Star Chart: The Observable Universe; the universal crown built with its 12 receptors; a §9Universal Compression Field Generator§r in every compression slot; the Attractor lit and Stable in galaxy mode, no companions; the charge buffered: 18,432 L Attractor Dark Matter.\n\n§5§lTHE §lEVENT§r\n1. t 0 to 300: the six regions unfold inside the crown under T9 rules; demand climbs from 24 to 96 Bu/t.\n2. t 300: W, Λ and V retire and §9H appears at +85§r (Integrity −20). Dark Matter trims pull it down onto the curve.\n3. t 600: recombination. Hold Stable or better for 120 s in a row inside 600 to 900 s.\n\nSuccess: the core is consumed, T10 is unlocked and the first universe is charged. Failure: the Attractor is relit at T9 with Integrity 50; the charge is spent, the core stays in escrow.\n\n§2§lDONE §lWHEN§r Inflation succeeds.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12387,7 +12457,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Inflation succeeded",
+            "scoreName:8": "bts_inflation",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12415,7 +12492,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Run one universe at a §9mean Y of 1.0 or more§r. The real universe is flat to about 0.4 %, and nobody knows why. Here you are the reason.\n\nTwo 2-unit valves on Universe bits 1 and 2 (Dark Matter, SpaceTime) keep H on the curve; 10-unit valves chatter and waste SpaceTime. Bit 3 is a countdown, bit 4 a short charge for the next universe.\n\n§2§lDONE §lWHEN§r a universe ends at mean Y 1.0 or more (tick the box).",
+            "desc:8": "Run one universe at a §9mean Y of 1.0 or more§r. The real universe is flat to about 0.4 %, and nobody knows why. Here you are the reason.\n\nTwo 2-unit valves on Universe bits 1 and 2 (Dark Matter, SpaceTime) keep H on the curve; 10-unit valves chatter and waste SpaceTime. Bit 3 is a countdown, bit 4 a short charge for the next universe.\n\n§2§lDONE §lWHEN§r a universe ends at mean Y 1.0 or more.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12458,7 +12535,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Universes at mean Y 1.0+",
+            "scoreName:8": "bts_flat",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12486,7 +12570,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Catch one §9Cosmic Dawn§r: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes §9+12.5 % Universium§r (1,152 L).\n\n§2§lDONE §lWHEN§r a Cosmic Dawn is caught (tick the box).",
+            "desc:8": "Catch one §9Cosmic Dawn§r: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes §9+12.5 % Universium§r (1,152 L).\n\n§2§lDONE §lWHEN§r a Cosmic Dawn is caught.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12529,7 +12613,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Cosmic Dawns caught",
+            "scoreName:8": "bts_dawns",
+            "target:3": 1,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }
@@ -12557,7 +12648,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Run§9 10 universes§r to their last light: 20 hours of T10, about 124,000 L of Universium. A Big Rip or Crunch ends a universe early and does not count.\n\n§2§lDONE §lWHEN§r ten universes have run their full 7,200 s (tick the box).",
+            "desc:8": "Run§9 10 universes§r to their last light: 20 hours of T10, about 124,000 L of Universium. A Big Rip or Crunch ends a universe early and does not count.\n\n§2§lDONE §lWHEN§r ten universes have run their full 7,200 s.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -12600,7 +12691,14 @@
         "tasks:9": {
           "0:10": {
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "operation:8": "MORE_OR_EQUAL",
+            "scoreDisp:8": "Universes to last light",
+            "scoreName:8": "bts_universes",
+            "target:3": 10,
+            "taskID:8": "bq_standard:scoreboard",
+            "type:8": "dummy",
+            "unitConversion:5": 1,
+            "unitSuffix:8": ""
           }
         }
       }

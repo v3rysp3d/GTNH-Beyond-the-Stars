@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "§9The Infall§r, the T8 → T9 transition (1,800 s).\n\n§5§lBEFORE§r The collimator stack built with its injector stocked; compression tier 9 everywhere (Gallifreyan); the Milky Way lit and Stable in galaxy mode, no companions; the beam's hold rating ≥ 6; the charge buffered: 18,000 L Superdense Ergomatter; Star Chart: Great Attractor in the slot.\n\n§5§lTHE §lEVENT§r\n1. t 0: the object becomes the Attractor. V appears at 0 and its drift ramps in over 600 s. The charge drains at 10 L/s; demand climbs from 6 to 24 Bu/t.\n2. t 1,020 to 1,440: a forced Galactic Flow of 6, warned at 1,020, arriving at 1,200. Hold it.\n3. Hold Stable or better for 120 s in a row after the flow, by t 2,100.\n\nSuccess: the core is consumed and T9 is unlocked for good. Failure: the Milky Way is thrown back §9still lit at T8§r with Integrity 50; the charge is spent, the core stays in escrow.\n\n§5§lAUTOMATE§r Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.\n\n§2§lDONE §lWHEN§r The Infall succeeds (tick the box).",
+      "desc:8": "§9The Infall§r, the T8 → T9 transition (1,800 s).\n\n§5§lBEFORE§r The collimator stack built with its injector stocked; compression tier 9 everywhere (Gallifreyan); the Milky Way lit and Stable in galaxy mode, no companions; the beam's hold rating ≥ 6; the charge buffered: 18,000 L Superdense Ergomatter; Star Chart: Great Attractor in the slot.\n\n§5§lTHE §lEVENT§r\n1. t 0: the object becomes the Attractor. V appears at 0 and its drift ramps in over 600 s. The charge drains at 10 L/s; demand climbs from 6 to 24 Bu/t.\n2. t 1,020 to 1,440: a forced Galactic Flow of 6, warned at 1,020, arriving at 1,200. Hold it.\n3. Hold Stable or better for 120 s in a row after the flow, by t 2,100.\n\nSuccess: the core is consumed and T9 is unlocked for good. Failure: the Milky Way is thrown back §9still lit at T8§r with Integrity 50; the charge is spent, the core stays in escrow.\n\n§5§lAUTOMATE§r Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.\n\n§2§lDONE §lWHEN§r The Infall succeeds.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -60,7 +60,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "The Infall succeeded",
+      "scoreName:8": "bts_infall",
+      "target:3": 1,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

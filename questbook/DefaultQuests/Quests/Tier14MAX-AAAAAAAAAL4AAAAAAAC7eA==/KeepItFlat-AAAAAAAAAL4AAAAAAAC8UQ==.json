@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Run one universe at a §9mean Y of 1.0 or more§r. The real universe is flat to about 0.4 %, and nobody knows why. Here you are the reason.\n\nTwo 2-unit valves on Universe bits 1 and 2 (Dark Matter, SpaceTime) keep H on the curve; 10-unit valves chatter and waste SpaceTime. Bit 3 is a countdown, bit 4 a short charge for the next universe.\n\n§2§lDONE §lWHEN§r a universe ends at mean Y 1.0 or more (tick the box).",
+      "desc:8": "Run one universe at a §9mean Y of 1.0 or more§r. The real universe is flat to about 0.4 %, and nobody knows why. Here you are the reason.\n\nTwo 2-unit valves on Universe bits 1 and 2 (Dark Matter, SpaceTime) keep H on the curve; 10-unit valves chatter and waste SpaceTime. Bit 3 is a countdown, bit 4 a short charge for the next universe.\n\n§2§lDONE §lWHEN§r a universe ends at mean Y 1.0 or more.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -60,7 +60,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "Universes at mean Y 1.0+",
+      "scoreName:8": "bts_flat",
+      "target:3": 1,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

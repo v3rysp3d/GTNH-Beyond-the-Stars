@@ -309,6 +309,123 @@ final class BQBridge {
             .invoke(db, progress, merge);
     }
 
+    // ------------------------------------------------------ crediting a player (B-218)
+    // Used by QuestCredit: the Eye of Harmony completes its own milestone quests. Every member below
+    // was checked with javap on 3.8.89-GTNH; the interface methods are looked up on the interfaces,
+    // so a non-public implementing class cannot block the call.
+
+    /** {@code IQuest.isComplete(UUID)}. */
+    static boolean isComplete(Object quest, UUID player) throws Exception {
+        return (Boolean) Class.forName("betterquesting.api.questing.IQuest")
+            .getMethod("isComplete", UUID.class)
+            .invoke(quest, player);
+    }
+
+    /**
+     * BetterQuesting's own admin complete, the code behind {@code /bq_admin complete}:
+     * {@code NetQuestEdit.completeQuests(ids, true, player)} sets the quest and its tasks complete for that UUID
+     * (online or not), marks the database for saving and, when the player is online, sends them the quest sync.
+     * Call it only for a quest that is not complete yet: on a complete one it resets the claim.
+     */
+    static void completeFor(UUID quest, UUID player) throws Exception {
+        Class.forName("betterquesting.network.handlers.NetQuestEdit")
+            .getMethod("completeQuests", java.util.Collection.class, boolean.class, UUID.class)
+            .invoke(null, Collections.singletonList(quest), true, player);
+    }
+
+    /** The quest's name ({@code IQuest.getProperty(NativeProps.NAME)}), formatting codes kept; "" if unreadable. */
+    static String questName(Object quest) {
+        try {
+            final Object key = Class.forName("betterquesting.api.properties.NativeProps")
+                .getField("NAME")
+                .get(null);
+            final Object name = Class.forName("betterquesting.api.properties.IPropertyContainer")
+                .getMethod("getProperty", Class.forName("betterquesting.api.properties.IPropertyType"))
+                .invoke(quest, key);
+            return name == null ? "" : name.toString();
+        } catch (final Throwable t) {
+            return "";
+        }
+    }
+
+    /**
+     * The player and the other members of their BetterQuesting party ({@code IPartyDatabase.getParty(uuid)}, then
+     * {@code IParty.getMembers()}); just the player when they are in none or the party database cannot be read.
+     */
+    static List<UUID> partyOf(UUID player) {
+        final List<UUID> out = new ArrayList<>();
+        out.add(player);
+        try {
+            final Object db = database("PARTY_DB", "betterquesting.questing.party.PartyManager");
+            final Object entry = Class.forName("betterquesting.api.questing.party.IPartyDatabase")
+                .getMethod("getParty", UUID.class)
+                .invoke(db, player);
+            if (entry == null) return out;
+            final Object party = entry.getClass()
+                .getMethod("getValue")
+                .invoke(entry);
+            if (party == null) return out;
+            final Object members = Class.forName("betterquesting.api.questing.party.IParty")
+                .getMethod("getMembers")
+                .invoke(party);
+            if (members instanceof List) {
+                for (final Object m : (List<?>) members) {
+                    if (m instanceof UUID && !out.contains(m)) out.add((UUID) m);
+                }
+            }
+        } catch (final Throwable ignored) {
+            // No party system reachable: the owner alone is credited.
+        }
+        return out;
+    }
+
+    /** The name BetterQuesting remembers for a UUID ({@code INameCache.getName}), or null. */
+    static String cachedName(UUID player) {
+        try {
+            final Object cache = database("NAME_CACHE", "betterquesting.storage.NameCache");
+            final Object name = Class.forName("betterquesting.api.storage.INameCache")
+                .getMethod("getName", UUID.class)
+                .invoke(cache, player);
+            // an unknown player comes back as the UUID's own text: no name
+            return name instanceof String && !((String) name).isEmpty() && !name.equals(player.toString())
+                ? (String) name
+                : null;
+        } catch (final Throwable t) {
+            return null;
+        }
+    }
+
+    /**
+     * bq_standard's per-UUID copy of the scoreboard ({@code ScoreboardBQ.INSTANCE}): the scoreboard task's panel reads
+     * it on the client, and the task's own check refreshes it from the world scoreboard only while the task is open.
+     */
+    private static Object scoreboardBq() throws Exception {
+        return Class.forName("bq_standard.ScoreboardBQ")
+            .getField("INSTANCE")
+            .get(null);
+    }
+
+    static int bqScore(UUID player, String objective) throws Exception {
+        final Object sb = scoreboardBq();
+        return (Integer) sb.getClass()
+            .getMethod("getScore", UUID.class, String.class)
+            .invoke(sb, player, objective);
+    }
+
+    static void setBqScore(UUID player, String objective, int value) throws Exception {
+        final Object sb = scoreboardBq();
+        sb.getClass()
+            .getMethod("setScore", UUID.class, String.class, int.class)
+            .invoke(sb, player, objective, value);
+    }
+
+    /** Sends an online player bq_standard's score copy ({@code NetScoreSync.sendScore}), as the task does. */
+    static void sendScores(EntityPlayerMP player) throws Exception {
+        Class.forName("bq_standard.network.handlers.NetScoreSync")
+            .getMethod("sendScore", EntityPlayerMP.class)
+            .invoke(null, player);
+    }
+
     // ------------------------------------------------------------- persist and resync
 
     /**
