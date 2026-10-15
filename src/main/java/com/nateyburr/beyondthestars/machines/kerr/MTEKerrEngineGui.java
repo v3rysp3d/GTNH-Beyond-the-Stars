@@ -286,7 +286,7 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
             -1,
             BTSText.lang(K + "chk.seed.tip"));
         final long supply = multiblock.getMaxInputEu();
-        final boolean power = supply >= MTEKerrEngine.CONTAINMENT_EUT;
+        final boolean power = multiblock.containmentReady();
         c.add(
             power,
             BTSText.lang(K + "chk.power"),
@@ -296,14 +296,14 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
             -1,
             BTSText.lang(K + "containment.tip"),
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "containment.supply", BTSFormat.euT(supply))));
-        if (multiblock.getBoltStockSm() <= 0) {
-            c.add(
-                BTSChecklist.State.WARN,
-                BTSText.lang(K + "chk.bolts"),
-                BTSText.lit("0 SM"),
-                -1,
-                BTSText.lang(K + "chk.bolts.tip"));
-        }
+        // QA-A04: Open and Auto refuse without bolts (the Seed would evaporate in seconds)
+        final double bolts = multiblock.getBoltStockSm();
+        c.add(
+            bolts >= MTEKerrEngine.OPEN_MIN_BOLTS_SM,
+            BTSText.lang(K + "chk.bolts"),
+            BTSText.lit(MTEKerrEngine.fmt(bolts) + " / " + MTEKerrEngine.fmt(MTEKerrEngine.OPEN_MIN_BOLTS_SM) + " SM"),
+            -1,
+            BTSText.lang(K + "chk.bolts.tip"));
         rows.checks(c);
         rows.stat(
             BTSText.lang(K + "auto"),

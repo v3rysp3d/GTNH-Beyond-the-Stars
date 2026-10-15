@@ -903,14 +903,46 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return 0;
     }
 
-    /** "Auto": a Seed in a bolt bus opens a closed hole; a Collapser closes an open one. */
+    /**
+     * "Auto": a Seed in a bolt bus opens a closed hole once it can be held (containment power and bolts, QA-A04); a
+     * Collapser closes an open one only while the setpoint asks for it, at {@link #SETPOINT_MIN} (QA-A03: with the
+     * questbook's Seed and Collapser in the same bolt bus the hole opened and was collapsed the next second, both
+     * spent). Redstone asks with a KERR_SETPOINT Directive Hatch at strength 1, OpenComputers with setSetpoint(2).
+     */
     private void useSeedOrCollapser() {
         if (holeOpen) {
-            if (takeFromBoltBuses(ItemList.Black_Hole_Closer.get(1L))) closeHole();
-        } else if (takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) {
+            if (setpoint <= SETPOINT_MIN && takeFromBoltBuses(ItemList.Black_Hole_Closer.get(1L))) closeHole();
+        } else if (openRefusal().isEmpty() && takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) {
             holeOpen = true;
             mass = OPEN_MASS;
         }
+    }
+
+    /** QA-A04: the bolt stock Open and Auto need before they burn a Seed (an 8 SM hole bleeds about 1 SM a second). */
+    public static final double OPEN_MIN_BOLTS_SM = 1.0;
+
+    /**
+     * QA-A04: why a Seed would not be held now ("" when it would): containment power (1 A UEV, in the hatches and
+     * stored) and at least {@link #OPEN_MIN_BOLTS_SM} of bolts. Without either the 8 SM hole evaporated in about 3 s
+     * and the Seed was lost.
+     */
+    public String openRefusal() {
+        if (!containmentReady()) return "no containment power (1 A UEV in the governor's energy hatches)";
+        if (boltStockSm < OPEN_MIN_BOLTS_SM) return "no bolts in the bolt buses (at least 1 SM, 64 Neutronium bolts)";
+        return "";
+    }
+
+    /** QA-A04: the energy hatches can give the containment draw now (their input and their stored EU). */
+    public boolean containmentReady() {
+        if (getMaxInputEu() < CONTAINMENT_EUT) return false;
+        long stored = 0;
+        for (gregtech.api.metatileentity.implementations.MTEHatch h : getExoticAndNormalEnergyHatchList()) {
+            if (h == null || !h.isValid()) continue;
+            stored += h.getBaseMetaTileEntity()
+                .getStoredEU();
+            if (stored >= CONTAINMENT_EUT) return true;
+        }
+        return false;
     }
 
     /** Takes one {@code wanted} out of the bolt buses; true if one was there. */
@@ -929,9 +961,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return false;
     }
 
-    /** GUI "Open hole": needs a formed KEE, a closed hole and a Seed in a bolt bus (consumes it). */
+    /**
+     * GUI "Open hole": needs a formed KEE, a closed hole, containment power, bolts (QA-A04) and a Seed in a bolt bus
+     * (consumes it).
+     */
     public boolean openHoleFromGui() {
-        if (!mMachine || holeOpen) return false;
+        if (!mMachine || holeOpen || !openRefusal().isEmpty()) return false;
         if (!takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) return false;
         holeOpen = true;
         mass = OPEN_MASS;

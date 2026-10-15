@@ -465,11 +465,14 @@ public final class BTSComputerApi {
         return kee.getSetpoint();
     }
 
-    /** {@code bts_kerr.open()}: the GUI's Open button (a formed KEE, a closed hole, a Seed in a bolt bus). */
+    /** {@code bts_kerr.open()}: the GUI's Open button (a formed KEE, a closed hole, power, bolts, a Seed in a bolt bus). */
     public static Object[] kerrOpen(MTEKerrEngine kee) {
         if (kee.openHoleFromGui()) return new Object[] { true, "opened at " + MTEKerrEngine.OPEN_MASS + " SM" };
         return new Object[] { false,
-            !kee.isFormed() ? "not formed" : kee.isHoleOpen() ? "already open" : "no Black Hole Seed in a bolt bus" };
+            !kee.isFormed() ? "not formed"
+                : kee.isHoleOpen() ? "already open"
+                    : !kee.openRefusal()
+                        .isEmpty() ? kee.openRefusal() : "no Black Hole Seed in a bolt bus" };
     }
 
     /** {@code bts_kerr.collapse()}: the GUI's Collapse button (an open hole, a Collapser in a bolt bus). */
