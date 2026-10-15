@@ -266,6 +266,56 @@ public final class EyeRecipeRegistry {
             none,
             list(in(wdm, 18_432L), in(bdm, 4_608L), in(SLFluids.antipolarizationAgent, 100_000L)));
         registerGalaxies(wdm, bdm);
+        registerP5();
+    }
+
+    /**
+     * P5 (p5-t9-t10.md §2, §6): Eye T9 the Great Attractor (no fluid upkeep: the pellet beam is its touch, drawn per
+     * second; product Attractor Dark Matter 144 L × Y × r a cycle plus 144 L per galaxy captured; born by The Infall,
+     * whose Superdense Ergomatter charge is shown as its charge), its planets mode (9 slots), and Eye T10 the Universe
+     * (one universe per 7,200 s batch, charged with Attractor Dark Matter 9,216 L; product Molten Universium; born by
+     * Inflation, whose Dark Matter charge is shown as its charge).
+     */
+    private static void registerP5() {
+        final Fluid dm = com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.darkMatter();
+        final Fluid universium = com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.universium();
+        final Fluid superdense = SLQuasarFluids.superdenseErgomatter;
+        if (dm == null || universium == null || superdense == null) {
+            BeyondTheStars.LOG.error(
+                "[BTS] Eye T9/T10 skipped: Attractor Dark Matter, Molten Universium or Superdense Ergomatter is not"
+                    + " registered.");
+            return;
+        }
+        galaxyDef(
+            "star:attractor",
+            "The Great Attractor",
+            TierParams.T9,
+            com.nateyburr.beyondthestars.items.SLP5Items.starChartGreatAttractor,
+            Collections.emptyMap(),
+            dm,
+            null,
+            list(in(superdense, EyeStarRuntime.INFALL_SDE)),
+            false);
+        galaxyDef(
+            "star:planets9",
+            "Great Attractor: 9 planets",
+            TierParams.PLANETS9,
+            com.nateyburr.beyondthestars.items.SLP5Items.starChartGreatAttractor,
+            Collections.emptyMap(),
+            null,
+            null,
+            Collections.emptyList(),
+            true);
+        galaxyDef(
+            "star:universe",
+            "The Universe",
+            TierParams.T10,
+            com.nateyburr.beyondthestars.items.SLMaxItems.starChartUniverse,
+            Collections.emptyMap(),
+            universium,
+            null,
+            list(in(dm, EyeStarRuntime.INFLATION_DM)),
+            false);
     }
 
     /**

@@ -62,6 +62,7 @@ public final class EyeNbt {
         nbt.setDouble("btsEyeDial", rt.dialSet);
         nbt.setDouble("btsEyeFeed", rt.feedSet);
         rt.galaxy.writePersistent(nbt); // P4: the mode and the T8 feed setpoint (new keys; absent = defaults)
+        rt.attractor.writePersistent(nbt); // P5: the flow accept limit (absent = the hold rating)
         if (rt.legacyPending) nbt.setBoolean("btsEyeLegacyPending", true);
         if (!rt.legacyPay.isEmpty()) {
             final NBTTagCompound pay = new NBTTagCompound();
@@ -106,6 +107,44 @@ public final class EyeNbt {
         }
         s.setDouble("mcShock", rt.collapseShock);
         s.setTag("galaxy", rt.galaxy.writeLive());
+        // ---- P5 (new keys: a pre-P5 save reads V = H = 0, no beam, flow or universe)
+        s.setDouble("V", fs.x[StellarField.V]);
+        s.setDouble("H", fs.x[StellarField.H]);
+        s.setInteger("zone", fs.zone);
+        s.setByte("flowWarn", (byte) fs.flowWarn);
+        if (fs.beam != null) {
+            final NBTTagCompound b = new NBTTagCompound();
+            b.setDouble("B", fs.beam.B);
+            b.setDouble("set", fs.beam.set);
+            b.setDouble("rho", fs.beam.rho);
+            b.setDouble("n", fs.beam.n);
+            b.setDouble("s", fs.beam.s);
+            s.setTag("beam", b);
+        }
+        if (fs.flow != null) {
+            final NBTTagCompound f = new NBTTagCompound();
+            f.setDouble("next", fs.flow.next);
+            f.setBoolean("warned", fs.flow.warned);
+            f.setInteger("left", fs.flow.left);
+            f.setInteger("tau", fs.flow.tau);
+            f.setInteger("ok", fs.flow.ok);
+            f.setByte("sign", (byte) fs.flow.sign);
+            f.setInteger("size", fs.flow.size);
+            f.setBoolean("accepted", fs.flow.accepted);
+            f.setBoolean("forced", fs.flow.forced);
+            s.setTag("flow", f);
+        }
+        if (fs.uni != null) {
+            final NBTTagCompound u = new NBTTagCompound();
+            u.setInteger("t", fs.uni.t);
+            u.setInteger("dawn", fs.uni.dawn);
+            u.setDouble("ySum", fs.uni.ySum);
+            u.setInteger("n", fs.uni.n);
+            u.setDouble("rMin", fs.uni.rMin);
+            u.setBoolean("dawnOk", fs.uni.dawnOk);
+            s.setTag("uni", u);
+        }
+        s.setTag("p5", rt.attractor.writeLive());
         s.setDouble("A", fs.A);
         s.setDouble("I", fs.I);
         s.setInteger("lock", fs.lock);
@@ -234,6 +273,7 @@ public final class EyeNbt {
         if (nbt.hasKey("btsEyeDial")) rt.setDialQuiet(nbt.getDouble("btsEyeDial"));
         if (nbt.hasKey("btsEyeFeed")) rt.setFeedQuiet(nbt.getDouble("btsEyeFeed"));
         rt.galaxy.readPersistent(nbt);
+        rt.attractor.readPersistent(nbt);
         rt.legacyPending = nbt.getBoolean("btsEyeLegacyPending");
         rt.legacyPay.clear();
         if (nbt.hasKey("btsEyeLegacyPay")) {
@@ -285,6 +325,44 @@ public final class EyeNbt {
         fs.x[StellarField.W] = s.getDouble("W");
         fs.x[StellarField.L] = s.getDouble("L");
         fs.prec = s.getByte("prec") < 0 ? -1 : 1;
+        // ---- P5
+        fs.x[StellarField.V] = s.getDouble("V");
+        fs.x[StellarField.H] = s.getDouble("H");
+        fs.zone = s.getInteger("zone");
+        fs.flowWarn = s.getByte("flowWarn");
+        if (s.hasKey("beam")) {
+            final NBTTagCompound b = s.getCompoundTag("beam");
+            fs.beam = new FieldState.Beam();
+            fs.beam.B = b.getDouble("B");
+            fs.beam.set = b.getDouble("set");
+            fs.beam.rho = b.getDouble("rho");
+            fs.beam.n = b.getDouble("n");
+            fs.beam.s = b.getDouble("s");
+        }
+        if (s.hasKey("flow")) {
+            final NBTTagCompound f = s.getCompoundTag("flow");
+            fs.flow = new FieldState.Flow();
+            fs.flow.next = f.getDouble("next");
+            fs.flow.warned = f.getBoolean("warned");
+            fs.flow.left = f.getInteger("left");
+            fs.flow.tau = f.getInteger("tau");
+            fs.flow.ok = f.getInteger("ok");
+            fs.flow.sign = f.getByte("sign") < 0 ? -1 : 1;
+            fs.flow.size = f.getInteger("size");
+            fs.flow.accepted = f.getBoolean("accepted");
+            fs.flow.forced = f.getBoolean("forced");
+        }
+        if (s.hasKey("uni")) {
+            final NBTTagCompound u = s.getCompoundTag("uni");
+            fs.uni = new FieldState.Universe();
+            fs.uni.t = u.getInteger("t");
+            fs.uni.dawn = u.getInteger("dawn");
+            fs.uni.ySum = u.getDouble("ySum");
+            fs.uni.n = u.getInteger("n");
+            fs.uni.rMin = u.hasKey("rMin") ? u.getDouble("rMin") : 1;
+            fs.uni.dawnOk = u.getBoolean("dawnOk");
+        }
+        rt.attractor.readLive(s.hasKey("p5") ? s.getCompoundTag("p5") : null);
         if (s.hasKey("tde")) {
             final NBTTagCompound td = s.getCompoundTag("tde");
             fs.tde = new FieldState.Crossing(td.getDouble("next"));

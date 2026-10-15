@@ -38,6 +38,8 @@ public class CommonProxy {
         SLCircuitItems.registerOreDict();
         BTSBlocks.register();
         BTSFluids.register();
+        // MERGE SHIM (p5-eye only, drop at merge): p5-content registers the P5 items and fluids
+        P5MergeShim.register();
         // GT5U registers its own machines in its preInit; required-after:gregtech guarantees ours runs later.
         BTSMachines.register();
 

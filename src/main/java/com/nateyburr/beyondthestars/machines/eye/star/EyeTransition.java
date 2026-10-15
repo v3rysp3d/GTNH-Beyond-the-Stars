@@ -25,7 +25,7 @@ import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
  */
 public abstract class EyeTransition implements Overlay {
 
-    /** The seven transitions (D-49's five and P4's two); {@link #from} is the tier they leave. */
+    /** The nine transitions (D-49's five, P4's two, P5's two); {@link #from} is the tier they leave. */
     public enum Type {
 
         MASS_INFUSION(1, "Mass Infusion", "star:siriusa"),
@@ -36,7 +36,11 @@ public abstract class EyeTransition implements Overlay {
         /** P4 (quasar-p4.md §5.2): the magnetar overfed past its mass limit collapses; the halo is captured. */
         MAGNETAR_COLLAPSE(6, "Magnetar Collapse", "star:triangulum"),
         /** P4 (quasar-p4.md §5.3): three pericentre passes merge Triangulum into the Milky Way. */
-        GALACTIC_MERGER(7, "Galactic Merger", "star:milkyway");
+        GALACTIC_MERGER(7, "Galactic Merger", "star:milkyway"),
+        /** P5 (p5-t9-t10.md §2.8): the Milky Way falls down a filament into the Great Attractor. */
+        INFALL(8, "The Infall", "star:attractor"),
+        /** P5 (§6.3): the six regions unfold into a universe inside the crown. */
+        INFLATION(9, "Inflation", "star:universe");
 
         /** The tier the transition leaves (it unlocks from + 1). */
         public final int from;
@@ -90,6 +94,10 @@ public abstract class EyeTransition implements Overlay {
                 return new MagnetarCollapse(MagnetarCollapseOverlay.DEFAULT_SHOCK);
             case GALACTIC_MERGER:
                 return new GalacticMerger();
+            case INFALL:
+                return new Infall();
+            case INFLATION:
+                return new Inflation(com.nateyburr.beyondthestars.machines.eye.field.InflationOverlay.DEFAULT_SHOCK);
             default:
                 return new MagnetarMerger();
         }

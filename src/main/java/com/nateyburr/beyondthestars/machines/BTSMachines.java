@@ -48,6 +48,8 @@ public final class BTSMachines {
     public static ItemStack grbReceptorPort;
     /** base+26, Burst Control Hatch (28126). */
     public static ItemStack burstControlHatch;
+    /** P5: base+28, Pellet Injector Hatch (28128), the Eye's T9 pellet beam. */
+    public static ItemStack pelletInjectorHatch;
     // H/R unit 2 (homogeny-reality.md): the Homogeny base+30, Reality Diffraction base+31, Reality Refab base+32.
     public static ItemStack homogeny;
     public static ItemStack realityDiffraction;
@@ -177,6 +179,11 @@ public final class BTSMachines {
             base + 26,
             "hatch.beyondthestars.burstcontrol",
             "Burst Control Hatch").getStackForm(1);
+        // P5 (p5-t9-t10.md §3.3): base+28 (28128), the Pellet Injector Hatch on the Eye's T9 top collar.
+        pelletInjectorHatch = new com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector(
+            base + 28,
+            "hatch.beyondthestars.pelletinjector",
+            "Pellet Injector Hatch").getStackForm(1);
         // P4 conduit + crowns unit (quasar-p4.md §2, §3): base+21..25. Each assignment lets its recipe (SL-Q10,
         // Q11, Q12, Q16, Q19) register.
         wormholeMouth = new com.nateyburr.beyondthestars.machines.conduit.MTEWormholeMouth(

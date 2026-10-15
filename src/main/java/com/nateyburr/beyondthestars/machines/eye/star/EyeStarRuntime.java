@@ -18,11 +18,15 @@ import net.minecraftforge.fluids.FluidStack;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
+import com.nateyburr.beyondthestars.items.SLMaxItems;
+import com.nateyburr.beyondthestars.items.SLP5Items;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.directive.GalaxyDirective;
+import com.nateyburr.beyondthestars.machines.directive.P5Directive;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipe;
 import com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry;
+import com.nateyburr.beyondthestars.machines.eye.field.AttractorField;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.EventDef;
 import com.nateyburr.beyondthestars.machines.eye.field.EyeTrimRule;
@@ -39,6 +43,7 @@ import com.nateyburr.beyondthestars.machines.eye.field.StepInputs;
 import com.nateyburr.beyondthestars.machines.eye.field.StepResult;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
+import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
 import com.nateyburr.beyondthestars.machines.eye.render.EyeStarLook;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
@@ -182,6 +187,20 @@ public final class EyeStarRuntime {
         default long planetRunSecondsLeft() {
             return 0;
         }
+
+        /** P5: the Pellet Injector(s) and their stock this field second ({@link PelletFeed#NONE} when none). */
+        default PelletFeed pellets() {
+            return PelletFeed.NONE;
+        }
+
+        /**
+         * P5: takes up to {@code count} pellets of {@code grade} (1..3) from the injectors and the pellet stock buses
+         * (ME stocking buses through one processing window, credited only for what the network gave up). Returns how
+         * many were taken.
+         */
+        default long takePellets(int grade, long count) {
+            return 0;
+        }
     }
 
     /** The T4 HSM feed setpoint range and the default (today's rate, plan §6.1). */
@@ -263,6 +282,8 @@ public final class EyeStarRuntime {
     double collapseShock = MagnetarCollapseOverlay.DEFAULT_SHOCK;
     /** P4: the galaxy tiers' state (mode, T8 feed, links, carries, companions, planet slots). */
     final EyeGalaxy galaxy = new EyeGalaxy();
+    /** P5: the T9 / T10 state beside the field (the beam's inputs, the Deep Link, the universe charge). */
+    final EyeAttractor attractor = new EyeAttractor();
     /** P4 bench: a scripted burst feed replacing the receptor reading (null in play; never saved). */
     EyeBursts benchBursts;
     /** P4 bench: the bench quasar's {Φ, b} for the collapse assist (its source is not a machine); null in play. */
@@ -480,7 +501,7 @@ public final class EyeStarRuntime {
 
     /** P4: a galaxy transition (the Magnetar Collapse or the Galactic Merger) runs. */
     public boolean galaxyTransition() {
-        return trans instanceof MagnetarCollapse || trans instanceof GalacticMerger;
+        return trans != null && trans.type.from >= 6;
     }
 
     /** P4: a galaxy-tier field burns (T7 / T8, galaxy or planets mode; the collapse's capture included). */
@@ -733,15 +754,31 @@ public final class EyeStarRuntime {
         host.markDirty();
     }
 
-    /** Debug: sets the unlocked tier (1..8), lowering it too. */
+    /** Debug: sets the unlocked tier (1..10), lowering it too. */
     public void setUnlocked(int n) {
-        unlockedTier = Math.max(1, Math.min(MAX_UNLOCK, n));
+        unlockedTier = Math.max(1, Math.min(maxUnlock(), n));
         legacyPending = false;
         host.markDirty();
     }
 
-    /** The highest tier an Eye unlocks (P4: T8 Milky Way). */
-    public static final int MAX_UNLOCK = 8;
+    /** The highest tier an Eye unlocks (P5: T10 the Universe). */
+    public static final int MAX_UNLOCK = 10;
+
+    /** The highest tier this server lets an Eye unlock: 10, or 8 with {@code enableEyeT9T10} off. */
+    public static int maxUnlock() {
+        return com.nateyburr.beyondthestars.Config.enableEyeT9T10 ? MAX_UNLOCK : 8;
+    }
+
+    /** P5: the T9 / T10 state (the beam's inputs, the Deep Link, the universe charge). Server state. */
+    public EyeAttractor attractor() {
+        return attractor;
+    }
+
+    /** P5: sets the flow accept limit (0-12), or −1 for the hold rating (GUI, OpenComputers). */
+    public void setAcceptLimit(int n) {
+        attractor.acceptSet = n < 0 ? -1 : Math.min(AttractorField.FLOW_MAX, n);
+        host.markDirty();
+    }
 
     /** Bench {@code set mcshock}: the shock of the next Magnetar Collapse (one running keeps its own). */
     public void setCollapseShock(double v) {
@@ -778,9 +815,10 @@ public final class EyeStarRuntime {
      */
     public String requestBegin() {
         if (galaxyTransition()) return "A " + trans.type.title + " is already running.";
-        if (state != StarState.PENDING || star == null || (star.n() != 6 && star.n() != 7)) {
-            return "Nothing to begin: put the next galaxy chart in the controller slot while the "
-                + (star != null && star.n() == 7 ? "galaxy" : "magnetar")
+        if (state != StarState.PENDING || star == null || star.n() < 6 || star.n() > 9) {
+            return "Nothing to begin: put the next chart in the controller slot while the "
+                + (star == null || star.n() <= 6 ? "magnetar"
+                    : star.n() <= 8 ? "galaxy" : "Great Attractor")
                 + " burns.";
         }
         final List<String> miss = missing(star.n());
@@ -952,6 +990,14 @@ public final class EyeStarRuntime {
         } else {
             galaxy.bursts = EyeBursts.NONE;
         }
+        // ---- P5 T10: a universe still owed its Dark Matter charge waits for it (no drain, no field second)
+        if (T.universe && trans == null && !payUniverseCharge()) {
+            waitReason = "the next universe waits for its charge: " + fmt(attractor.uniOwed)
+                + " L of Attractor Dark Matter";
+            host.publish(last);
+            host.markDirty();
+            return;
+        }
         // ---- the time dial (plan §6.4): pay Time from the Field sockets; a short payment slows the dial.
         // Transitions hold the dial at m = 1.
         final double mCap = trans != null ? 1 : Math.min(dialSet, StellarField.mMax(T, tt));
@@ -982,6 +1028,11 @@ public final class EyeStarRuntime {
                 // P4: the prototype's binary Space valve (Field bit 1: P > +5 opens it at 10 units/s)
                 raw = new LinkedHashMap<>();
                 if (rig != FieldRig.Mode.OFF && fs.prevE[StellarField.P] > 5) raw.put("Space", SPACE_VALVE);
+                // P5 T10: the Universe rig, one 2-unit valve each way on H (F-P5-2)
+                if (rig != FieldRig.Mode.OFF && table.universe) {
+                    if (fs.prevE[StellarField.H] > 5) raw.put("DM", UniverseField.RIG_VALVE);
+                    if (fs.prevE[StellarField.H] < -5) raw.put("ST", UniverseField.RIG_VALVE);
+                }
             } else {
                 raw = FieldRig.ctrl(table, fs.prevE, fs.prevWarn, rig);
             }
@@ -1028,6 +1079,8 @@ public final class EyeStarRuntime {
         }
         // ---- P4: the bursts as the field sees them (β, the γs, the shock's raw Bu/t), the T8 feed, the companions
         galaxyInputs(T, m, p);
+        // ---- P5: the pellet beam's inputs (T9, and the T8 Deep Link test fire) and the flow's accept limit
+        p5Inputs(T);
         lastM = m;
         lastP = p;
         lastFeed = in.feed;
@@ -1042,6 +1095,8 @@ public final class EyeStarRuntime {
         creditAgent(lastTrims.containsKey(TrimDef.Kind.AGENT) ? lastTrims.get(TrimDef.Kind.AGENT) : 0);
         // ---- P4: a galaxy transition's charge (taken whatever follows, as the prototype's transTick)
         takeCharges(out, p);
+        // ---- P5: the pellets fired, the Infall's and Inflation's charges
+        p5Charges(out, p);
         // ---- the bounce's materials (taken whatever follows: a supernova spends them too)
         if (out.bounced) {
             final Fluid st = spaceTimeFluid();
@@ -1058,11 +1113,17 @@ public final class EyeStarRuntime {
             if (ledger != null) ledger.record(this, out.zone);
             return;
         }
-        if (out.fail != null) {
-            if (T.batch) fracture(out.fail);
-            else if (trans != null) failTransition(out.fail);
-            else if (T.planets()) planetsBreach(out.fail);
-            else fail(out.fail);
+        if (out.fail != null && out.recovered) {
+            // ---- P5: a soft-failed Infall / Inflation (the star below is lit), or a universe that collapsed
+            p5Recovered(out, p);
+        }
+        if (out.fail != null && (!out.recovered || out.failEarly)) {
+            if (!out.recovered) {
+                if (T.batch) fracture(out.fail);
+                else if (trans != null) failTransition(out.fail);
+                else if (T.planets()) planetsBreach(out.fail);
+                else fail(out.fail);
+            }
             if (ledger != null) ledger.record(this, out.zone);
             if (!burning()) return;
         } else {
@@ -1084,6 +1145,7 @@ public final class EyeStarRuntime {
             }
             // ---- P4: the T8 Ergomatter feed, the satellite crossing, the countdowns, the planet runs, the links
             galaxyAfterStep(T, out, m, p);
+            p5AfterStep(out, p);
             watchFlash(fs.tier.n, out);
             // ---- the cycle: product, milestones, then charge the next one (it sets the next r)
             if (out.cycleEnded) {
@@ -1092,8 +1154,7 @@ public final class EyeStarRuntime {
                     emit(out.cycleProduct);
                     if (cn <= unlockedTier) {
                         if (cn <= 3) milestones.prod[cn] += out.cycleProduct;
-                        else if ((cn == 4 || cn == 6 || cn == 7) && cycWorst <= 1)
-                            milestones.prod[cn] += out.cycleProduct;
+                        else if ((cn == 4 || cn >= 6) && cycWorst <= 1) milestones.prod[cn] += out.cycleProduct;
                     }
                     if (ledger != null) ledger.product += out.cycleProduct;
                     // P4: the companions' products (the galaxy's mean Y and r, each companion's own upkeep r)
@@ -1160,6 +1221,13 @@ public final class EyeStarRuntime {
     double galaxyDemand(TierParams T) {
         if (trans instanceof MagnetarCollapse) return ((MagnetarCollapse) trans).demand();
         if (trans instanceof GalacticMerger) return ((GalacticMerger) trans).demand();
+        if (trans instanceof Infall) return ((Infall) trans).demand();
+        if (trans instanceof Inflation) return ((Inflation) trans).demand();
+        // P5: a galaxy companion (T9 only) weighs 2 in the demand (Q-P5-7)
+        if (T.n >= 9) {
+            return GalaxyField
+                .demand(T.n, T.planets(), T.galaxy ? GalaxyField.companionWeight(galaxy.companions) : 0);
+        }
         if (T.n >= 7) return GalaxyField.demand(T.n, T.planets(), T.galaxy ? galaxy.companions.length : 0);
         return GalaxyField.D7;
     }
@@ -1192,11 +1260,15 @@ public final class EyeStarRuntime {
         }
         final boolean haloCounts = trans instanceof GalacticMerger || T.planets() || (T.n >= 8 && T.galaxy);
         final double dump = haloCounts ? 0 : b.halo;
+        // P5: the collar ports are part of the Eye from T9 (the Infall included); at T8 they take the Deep Link's
+        // test fire and move nothing (the prototype's collar share leaves β)
+        final double collarDump = T.n <= 8 && !(trans instanceof Infall) ? b.collar : 0;
         final double dn = Math.max(1e-9, normDemand(T) * m * p);
-        in.beta = (b.total() - dump) / dn;
+        in.beta = (b.total() - dump - collarDump) / dn;
         in.gHi = b.hi / dn;
         in.gLo = b.lo / dn;
         in.gHalo = (b.halo - dump) / dn;
+        if (T.universe) in.gHi = in.gLo = in.gHalo = 0; // W, Λ and V retire at T10
         in.gEye = b.total() / p;
         in.f8 = 0;
         if (T.ergoFeed && trans == null) {
@@ -1269,6 +1341,7 @@ public final class EyeStarRuntime {
             + " pushed for 300 s; stay Stable to catch it; lower the feed at high f8)";
         if (out.crossingHit) lastEvent = "satellite crossing: the dwarf galaxy is in the disc (300 s)";
         if (out.crossingCaught) {
+            if (T.n == 8 && unlockedTier >= 8) milestones.crossings++;
             emit(out.crossingBonus);
             if (ledger != null) ledger.product += out.crossingBonus;
             lastEvent = String.format(
@@ -1313,7 +1386,240 @@ public final class EyeStarRuntime {
             }
             milestones.linkStreak[7] = l.streak;
             milestones.linkBest[7] = Math.max(milestones.linkBest[7], l.best);
+        } else if (T.n == 8 && T.galaxy && trans == null) {
+            deepLinkSecond(b, p);
         }
+    }
+
+    // ===================================================================== P5: T9 the Great Attractor, T10 the Universe
+
+    /**
+     * P5: the pellet beam's inputs this second (p5-t9-t10.md §3.3): the injector's barrel and stock, the grade (locked,
+     * or the highest in stock), the rate law's centre (auto: ρ = 1 at V = 0) and gain, the level of its Burst Control
+     * Hatch (the centre 8 without one; the debug rig wires the V sensor straight to it, window ±30), and the flow's
+     * accept limit (the setting, or the hold rating).
+     */
+    private void p5Inputs(TierParams T) {
+        final EyeAttractor a = attractor;
+        final PelletFeed f = host.pellets();
+        a.injectors = f.injectors;
+        a.barrelMk = f.barrelMk;
+        a.level = f.level;
+        System.arraycopy(f.stock, 0, a.stockByGrade, 0, 4);
+        final int g = f.grade();
+        a.grade = g;
+        a.stock = g > 0 ? f.stock[g] : 0;
+        a.rhoMax = AttractorField.rhoMax(f.barrelMk, g);
+        a.holdRating = AttractorField.holdRating(a.rhoMax);
+        in.beamGeV = AttractorField.gev(g);
+        in.beamCap = AttractorField.cap(f.barrelMk);
+        in.beamCentre = f.centreAuto ? AttractorField.autoCentre(f.barrelMk, g) : f.centre;
+        in.beamGain = f.gain;
+        if (rig != null && rig != FieldRig.Mode.OFF) {
+            in.beamLevel = AttractorField.analogLevel(fs.prevE[StellarField.V], AttractorField.V_WINDOW);
+        } else {
+            in.beamLevel = f.level >= 0 ? f.level : 8;
+        }
+        in.pelletsOk = g > 0 && f.barrelMk > 0 && a.stock > 0;
+        in.acceptMax = a.acceptLimit();
+        a.rate = in.pelletsOk ? AttractorField.rate(in.beamCap, in.beamCentre, in.beamGain, in.beamLevel) : 0;
+        a.firing = false;
+    }
+
+    /** P5: the pellets fired (whole pellets drawn, the rest carried) and the Infall's / Inflation's charges, × p. */
+    private void p5Charges(StepResult out, int p) {
+        if (out.beamFired) firePellets(out.pellets * p);
+        if (out.infallCharge > 0) {
+            take(SLQuasarFluids.superdenseErgomatter, galaxy.owe("charge:sde", out.infallCharge * p));
+        }
+        if (out.inflationCharge > 0) {
+            take(EyeAttractor.darkMatter(), galaxy.owe("charge:dm", out.inflationCharge * p));
+        }
+    }
+
+    /** Draws the pellets the beam fired this second (fractional pellets carried; a short stock is simply not fired). */
+    private void firePellets(double pellets) {
+        final EyeAttractor a = attractor;
+        a.firing = pellets > 0;
+        a.pelletCarry += pellets;
+        final long whole = (long) Math.floor(a.pelletCarry);
+        if (whole <= 0 || a.grade <= 0) return;
+        final long got = host.takePellets(a.grade, whole);
+        a.pelletCarry -= whole; // what could not be taken is not fired twice
+        if (ledger != null) ledger.pellets += got;
+    }
+
+    /**
+     * P5: the failures the field handled itself. A soft-failed Infall / Inflation (Q-P5-5): the object below is lit
+     * again with Integrity 50, the charge is spent, the core stays in escrow. A collapsed universe: 25 % × the fraction
+     * run is salvaged as Universium, the next universe is charged, the Eye stays at T10.
+     */
+    private void p5Recovered(StepResult out, int p) {
+        if (out.softFail) {
+            final EyeTransition tr = trans;
+            final boolean infall = tr instanceof Infall;
+            lastEvent = (tr == null ? "transition" : tr.type.title) + " FAILED: "
+                + out.fail
+                + (infall ? "; the Milky Way is thrown back out of the filament, still lit at T8 (Integrity 50)"
+                    : "; the new universe never formed: the Great Attractor is relit at T9 (Integrity 50)")
+                + "; the charge is spent"
+                + (escrow != null ? ", the " + escrow.getDisplayName() + " stays in escrow" : "")
+                + ". It may begin again once its preconditions hold.";
+            if (ledger != null) ledger.fails++;
+            recordFailure(lastEvent);
+            trans = null;
+            galaxy.beginRequested = false;
+            state = StarState.LIT;
+            if (out.failEarly && out.relit) {
+                prodCarry = 0;
+                chargeCycle();
+            }
+            host.markDirty();
+            return;
+        }
+        if (out.universeCollapsed) {
+            final double salvage = out.universeSalvage * p;
+            final Fluid uni = EyeAttractor.universium();
+            final long whole = galaxy.earn(uni == null ? "universium" : uni.getName(), salvage);
+            if (whole > 0 && uni != null) host.output(uni, whole);
+            if (ledger != null) {
+                ledger.fails++;
+                ledger.product += salvage;
+            }
+            attractor.endT = fs.t;
+            attractor.endKind = out.universeRip ? 2 : 3;
+            lastEvent = String.format(
+                Locale.ROOT,
+                "the universe %s: %s; %,.0f L of Universium salvaged (25 %% x %.0f %% run). The Eye stays at T10;"
+                    + " the next universe is charged",
+                out.universeRip ? "TORE ITSELF APART (Big Rip)" : "RECOLLAPSED (Big Crunch)",
+                out.fail,
+                salvage,
+                100 * out.universeFraction);
+            recordFailure(lastEvent);
+            chargeUniverse(p);
+            host.markDirty();
+        }
+    }
+
+    /** P5: a lit second's T9 / T10 events: flows, captured galaxies, universes, the dawn, the first universe's charge. */
+    private void p5AfterStep(StepResult out, int p) {
+        final EyeAttractor a = attractor;
+        if (out.flowWarned) {
+            final FieldState.Flow f = fs.flow;
+            lastEvent = String.format(
+                Locale.ROOT,
+                "Galactic Flow in %d s: a group of %d galaxies down the %s-side filament; %s",
+                AttractorField.FLOW_WARN,
+                f.size,
+                f.sign > 0 ? "high" : "low",
+                f.accepted ? "accepted (raise the beam ahead of the peak)"
+                    : "declined (larger than the accept limit " + a.acceptLimit() + "): it streams past");
+            logEvent(lastEvent);
+        }
+        if (out.flowArrived) lastEvent = "Galactic Flow: " + fs.flow.size
+            + " galaxies stream into the core (240 s; hold Stable to capture them)";
+        if (out.flowPassed) lastEvent = "the declined group streams past along the filament: nothing captured, nothing lost";
+        if (out.flowEnded) {
+            final double dm = out.flowDarkMatter * p;
+            emitFluid(EyeAttractor.darkMatter(), dm);
+            if (ledger != null) ledger.product += dm;
+            milestones.galaxies += (long) out.flowCaptured;
+            if (unlockedTier >= 9 && trans == null) {
+                if (out.flowHeld) milestones.flowsHeld++;
+                milestones.prod[9] += dm;
+            }
+            a.captureT = fs.t;
+            a.captureN = (int) out.flowCaptured;
+            a.lastFlow = out.flowHeld
+                ? String.format(Locale.ROOT, "held in full: %d galaxies captured, +%,.0f L Dark Matter", out.flowSize, dm)
+                : String.format(
+                    Locale.ROOT,
+                    "partly held (%.0f %% Stable): %.0f of %d captured, +%,.0f L Dark Matter",
+                    100 * out.flowFraction,
+                    out.flowCaptured,
+                    out.flowSize,
+                    dm);
+            lastEvent = "Galactic Flow " + a.lastFlow;
+            logEvent(lastEvent);
+        }
+        if (out.galaxyCycle) milestones.galaxies++;
+        if (out.inflated) {
+            lastEvent = "INFLATION: the regions unfold into a universe inside the crown; W, Λ and V retire, H appears at +"
+                + Math.round(fs.x[StellarField.H])
+                + " (pull it down with Dark Matter)";
+            logEvent(lastEvent);
+        }
+        if (out.recombinationWarned) lastEvent = "Recombination in 60 s: H drifts +0.15/s for 300 s, P drops for 5 s";
+        if (out.recombination) lastEvent = "Recombination: the universe turns transparent (the CMB appears on the crown)";
+        if (out.dawnWarned) lastEvent = "Cosmic Dawn in 120 s: the first stars ignite across the crown's twelve spikes";
+        if (out.dawnHit) lastEvent = "COSMIC DAWN: the starburst floods the crown (P kicked, H +0.3/s for 300 s);"
+            + " stay Stable for the +12.5 % Universium";
+        if (out.universeDone) {
+            final double litres = (out.universeBase + out.universeBonus) * p;
+            emitFluid(EyeAttractor.universium(), litres);
+            if (ledger != null) ledger.product += litres;
+            milestones.universes++;
+            if (out.universeDawnOk) milestones.dawns++;
+            a.endT = fs.t;
+            a.endKind = 1;
+            lastEvent = String.format(
+                Locale.ROOT,
+                "universe %d ran to its last light: +%,.0f L Universium (mean Y %.2f)%s; the next universe is charged",
+                milestones.universes,
+                litres,
+                out.universeMeanY,
+                out.universeDawnOk ? ", Cosmic Dawn caught (+12.5 %)" : "");
+            logEvent(lastEvent);
+            chargeUniverse(p);
+        }
+        if (out.uniChargedInTick) chargeUniverse(p);
+    }
+
+    /** P5: a new universe owes its Dark Matter charge (9,216 L × p); taken now if the buffer holds it. */
+    private void chargeUniverse(int p) {
+        attractor.uniOwed += EyeAttractor.universeCharge() * p;
+        payUniverseCharge();
+    }
+
+    /** P5: pays what the universe owes from the Dark Matter buffer; true when nothing is owed. */
+    private boolean payUniverseCharge() {
+        if (attractor.uniOwed <= 0) return true;
+        final long got = take(EyeAttractor.darkMatter(), attractor.uniOwed);
+        attractor.uniOwed -= got;
+        if (attractor.uniOwed <= 0) {
+            attractor.uniOwed = 0;
+            return true;
+        }
+        return false;
+    }
+
+    /** Emits litres of a fluid with a carry (whole litres out of the ME output hatch). */
+    private void emitFluid(Fluid fluid, double litres) {
+        if (fluid == null || litres <= 0) return;
+        final long whole = galaxy.earn(fluid.getName(), litres);
+        if (whole > 0) host.output(fluid, whole);
+    }
+
+    /**
+     * P5: one T8 second of the Deep Link (p5-t9-t10.md §2.8; the prototype's {@code deepLinkTick}): while the test fire
+     * is wanted (Slots bit 4: the link not held, the Attractor Seed Core and the charge in place) the injector fires
+     * the beam (no field effect at T8); the window rolls the Eye's total with its collar part and the beam's ρ; 1,800 s
+     * unbroken at 24 Bu/t, half on the collars and ρ ≥ 1 holds it.
+     */
+    private void deepLinkSecond(EyeBursts b, int p) {
+        if (testFireWanted() && attractor.injectors > 0) {
+            final double n = AttractorField.beamTick(fs, in);
+            firePellets(n * p);
+        }
+        final com.nateyburr.beyondthestars.machines.quasar.engine.DeepLink d = attractor.deep;
+        d.roll(b.total() / p, b.collar / p, fs.beam == null ? 0 : fs.beam.rho);
+        if (!milestones.linkDone[8] && unlockedTier >= 8) {
+            if (d.update(d.ok(b.linkedAll && b.collarPorts > 0)) || d.link.streak >= BurstLink.STREAK_SECONDS)
+                linkHeld(8);
+        }
+        milestones.linkStreak[8] = d.link.streak;
+        milestones.linkBest[8] = Math.max(milestones.linkBest[8], d.link.best);
     }
 
     /**
@@ -1421,7 +1727,9 @@ public final class EyeStarRuntime {
         for (ItemStack stack : host.slotBusItems()) {
             if (out.size() >= max) break;
             final StarDef d = StarDef.byChart(stack);
-            if (d == null || d.n() > 6 || d.n() > unlockedTier || out.contains(d.n())) continue;
+            if (d == null || d.n() > GalaxyField.maxCompanionTier(T.n)
+                || d.n() > unlockedTier
+                || out.contains(d.n())) continue;
             out.add(d.n());
         }
         final int[] a = new int[out.size()];
@@ -1516,6 +1824,10 @@ public final class EyeStarRuntime {
                 return bdmFluid();
             case "Antipolarization Agent":
                 return SLFluids.antipolarizationAgent;
+            case "Magnetar Matter":
+                return SLFluids.magnetarMatter;
+            case "Ergomatter":
+                return SLQuasarFluids.ergomatter;
             default:
                 return null;
         }
@@ -1576,7 +1888,7 @@ public final class EyeStarRuntime {
     }
 
     private static String bandTitle(int n) {
-        return n == 7 ? "Magnetar Collapse" : "Galactic Merger";
+        return n == 7 ? "Magnetar Collapse" : n == 8 ? "Galactic Merger" : "Infall";
     }
 
     /**
@@ -2338,6 +2650,7 @@ public final class EyeStarRuntime {
         lastOut = null;
         galaxy.starOut();
         galaxy.beginRequested = false;
+        attractor.resetLive();
         publish(FieldReadout.DARK);
         host.markDirty();
     }
@@ -2353,6 +2666,7 @@ public final class EyeStarRuntime {
         final EyeTransition.Type type = EyeTransition.Type.leaving(from);
         if (type == null) return out;
         final boolean firstTime = unlockedTier <= from;
+        if (from + 1 > maxUnlock()) out.add("Eye T9 and T10 are switched off on this server (enableEyeT9T10)");
         if (unlockedTier < from) out.add("unlock T" + from + " first");
         if (firstTime) {
             if (!milestones.met(from)) out.add(milestones.progressLine(from));
@@ -2376,9 +2690,14 @@ public final class EyeStarRuntime {
         if (from >= 6) {
             // P4 (quasar-p4.md §5.2, §5.3): the object lit and Stable, the receptor ports built, no companions
             if (star == null || star.n() != from || !burning() || star.tier.planets()) {
-                out.add(from == 6 ? "the magnetar lit" : "Triangulum lit in galaxy mode");
+                out.add(
+                    from == 6 ? "the magnetar lit"
+                        : from == 7 ? "Triangulum lit in galaxy mode"
+                            : from == 8 ? "the Milky Way lit in galaxy mode" : "the Great Attractor lit in galaxy mode");
             } else if (lastOut == null || lastOut.zone > 1) {
-                out.add("the " + (from == 6 ? "magnetar" : "galaxy") + " Stable or better");
+                out.add(
+                    "the " + (from == 6 ? "magnetar" : from <= 8 ? "galaxy" : "Great Attractor")
+                        + " Stable or better");
             }
             if (from == 6 && (host.receptorPorts(0) < 1 || host.receptorPorts(1) < 1)) {
                 out.add("a GRB Receptor Port on each bank of the stability rail (rail-high and rail-low)");
@@ -2387,8 +2706,36 @@ public final class EyeStarRuntime {
                 out.add(
                     "all " + HALO_PORTS + " GRB Receptor Ports on the shard halo (" + host.receptorPorts(2) + " now)");
             }
-            if (from == 7 && galaxy.companions.length > 0) {
+            if (from >= 7 && galaxy.companions.length > 0) {
                 out.add("no companions (take the star charts out of the slot bus)");
+            }
+            if (from == 8) {
+                // P5 (p5-t9-t10.md §2.8): the collimator stack with its Pellet Injector stocked, a beam that holds a
+                // group of 6 (the forced flow), the collar ports for the beam's test fire
+                final PelletFeed f = host.pellets();
+                final int g = f.grade();
+                final int rating = AttractorField.holdRating(f.barrelMk, g);
+                if (f.injectors < 1) out.add("a Pellet Injector Hatch on the top collar of the collimator stack");
+                else if (f.barrelMk < 1) out.add("an Injector Barrel in the Pellet Injector Hatch");
+                else if (g < 1 || f.stock[g] < 1) out.add("Gated Pellets in the Pellet Injector Hatch");
+                else if (rating < INFALL_HOLD_RATING) {
+                    out.add(
+                        "a beam with a hold rating of " + INFALL_HOLD_RATING
+                            + " or more (now "
+                            + rating
+                            + ": "
+                            + EyeAttractor.gradeName(g)
+                            + " pellets on a Mk "
+                            + f.barrelMk
+                            + " barrel; Superdense on Mk I, or Ergomatter on Mk II, will do)");
+                }
+            }
+            if (from == 9 && host.receptorPorts(4) < CROWN_PORTS) {
+                out.add(
+                    "all " + CROWN_PORTS
+                        + " GRB Receptor Ports on the universal crown ("
+                        + host.receptorPorts(4)
+                        + " now)");
             }
         }
         for (Map.Entry<Fluid, Long> need : transitionNeeds(type).entrySet()) {
@@ -2432,6 +2779,13 @@ public final class EyeStarRuntime {
         .round(GalacticMergerOverlay.CHARGE_PER_SECOND * GalacticMergerOverlay.DURATION);
     /** P4: the shard halo's Receptor Ports the Galactic Merger needs (all of them, §5.3). */
     public static final int HALO_PORTS = 8;
+    /** P5: the universal crown's Receptor Ports Inflation needs (all 12, §6.3). */
+    public static final int CROWN_PORTS = 12;
+    /** P5: the beam's hold rating The Infall needs (the forced flow is a group of 6, §2.8). */
+    public static final int INFALL_HOLD_RATING = 6;
+    /** P5: The Infall's charge per parallel (Superdense Ergomatter) and Inflation's (Attractor Dark Matter). */
+    public static final long INFALL_SDE = Math.round(com.nateyburr.beyondthestars.machines.eye.field.InfallOverlay.CHARGE_BUFFER),
+        INFLATION_DM = Math.round(com.nateyburr.beyondthestars.machines.eye.field.InflationOverlay.CHARGE_BUFFER);
 
     /**
      * As above with P4's two: the charge of a galaxy transition is taken per second at the parallel of the object it
@@ -2447,6 +2801,13 @@ public final class EyeStarRuntime {
                 break;
             case GALACTIC_MERGER:
                 need.merge(SLQuasarFluids.ergomatter, GM_ERGO * ps, Long::sum);
+                break;
+            case INFALL:
+                need.merge(SLQuasarFluids.superdenseErgomatter, INFALL_SDE * ps, Long::sum);
+                break;
+            case INFLATION:
+                // 300 s of 30.72 L/s once inflated (9,216 L) and the first universe's charge (9,216 L)
+                need.merge(EyeAttractor.darkMatter(), INFLATION_DM * ps, Long::sum);
                 break;
             case MASS_INFUSION:
                 need.merge(rspmFluid(), MassInfusion.RSPM, Long::sum);
@@ -2518,6 +2879,10 @@ public final class EyeStarRuntime {
                 return "stability rail";
             case 8:
                 return "shard halo";
+            case 9:
+                return "collimator stack";
+            case 10:
+                return "universal crown";
             default:
                 return "galactic rim";
         }
@@ -2941,6 +3306,23 @@ public final class EyeStarRuntime {
             }
             case EYE_SLOTS:
                 return GalaxyDirective.slots(slotIdle(), companionShort(), galaxy.lastRunLost, testFireWanted());
+            // ---- P5 (p5-t9-t10.md §9.3; the bit rules are P5Directive's)
+            case EYE_FLOW:
+                return fs == null ? 0
+                    : P5Directive.flow(
+                        burning() && fs.tier.attractor,
+                        fs.prevE[StellarField.V],
+                        AttractorField.warnedAccepted(fs),
+                        attractor.pelletsLow(),
+                        w);
+            case EYE_UNIVERSE:
+                return fs == null ? 0
+                    : P5Directive.universe(
+                        burning() && fs.tier.universe && trans == null,
+                        fs.prevE[StellarField.H],
+                        UniverseField.countdown(fs.uni),
+                        universeChargeShort(),
+                        w);
             default:
                 return 0;
         }
@@ -2953,10 +3335,18 @@ public final class EyeStarRuntime {
      * it.
      */
     public boolean galaxyReady() {
-        if (trans != null || state != StarState.PENDING || star == null || (star.n() != 6 && star.n() != 7)) {
+        if (trans != null || state != StarState.PENDING || star == null || star.n() < 6 || star.n() > 9) {
             return false;
         }
         return missing(star.n()).isEmpty();
+    }
+
+    /** P5 Universe bit 4: the next universe's charge is short (owed now, or the buffer under one charge × p). */
+    public boolean universeChargeShort() {
+        if (fs == null || !fs.tier.universe) return false;
+        if (attractor.uniOwed > 0) return true;
+        final Fluid dm = EyeAttractor.darkMatter();
+        return dm == null || host.buffer(dm) < EyeAttractor.universeCharge() * Math.max(1, lastP);
     }
 
     /**
@@ -2967,7 +3357,7 @@ public final class EyeStarRuntime {
     public boolean testFireWanted() {
         if (fs == null || star == null || trans != null) return false;
         final int n = fs.tier.n;
-        if (n != 6 && n != 7) return false;
+        if (n != 6 && n != 7 && n != 8) return false;
         final Item core = coreFor(n);
         final boolean coreIn = escrow != null && escrow.getItem() == core;
         final EyeTransition.Type type = EyeTransition.Type.leaving(n);
@@ -2977,6 +3367,7 @@ public final class EyeStarRuntime {
                 if (need.getKey() == null || host.buffer(need.getKey()) < need.getValue()) buffered = false;
             }
         }
+        if (n == 8) return !fs.tier.planets() && burning() && !milestones.linkDone[8] && coreIn && buffered;
         return GalaxyDirective
             .testFireWanted(n, fs.tier.planets(), burning(), false, milestones.linkDone[n], coreIn, buffered)
             && (n != 7 || heavyTestFireFits(testFireStream()));
@@ -3321,6 +3712,10 @@ public final class EyeStarRuntime {
                 return SLQuasarItems.intergalacticUpgradeCore;
             case 7:
                 return SLQuasarItems.supermassiveSeedCore;
+            case 8:
+                return SLP5Items.attractorSeedCore;
+            case 9:
+                return SLMaxItems.universalUpgradeCore;
             default:
                 return null;
         }
@@ -3335,7 +3730,7 @@ public final class EyeStarRuntime {
     /** True if {@code item} is one of the seven transition cores. */
     public static boolean isCore(Item item) {
         if (item == null) return false;
-        for (int n = 1; n <= 7; n++) if (coreFor(n) == item) return true;
+        for (int n = 1; n <= 9; n++) if (coreFor(n) == item) return true;
         return false;
     }
 
@@ -4062,6 +4457,8 @@ public final class EyeStarRuntime {
         public double ySum;
         public long yN, fails, cycles, steps, batches;
         public double product, hsm;
+        /** P5: Gated Pellets drawn. */
+        public double pellets;
         public int hash = FNV_OFFSET;
         /** Core Collapse: begin second (−1 none), the bounce, the SpaceTime buffer at the begin and at the bounce. */
         public long collapseBeginT = -1;

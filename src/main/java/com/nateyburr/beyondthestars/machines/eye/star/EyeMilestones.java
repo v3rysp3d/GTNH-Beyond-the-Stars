@@ -29,13 +29,28 @@ import net.minecraft.nbt.NBTTagCompound;
  * </ul>
  * The two links' {@code done} flags and best streaks are here (item NBT); their live window and streak belong to the
  * star ({@link EyeGalaxy}, tile NBT).
+ * <ul>
+ * <li>P5 T8 → T9 (p5-t9-t10.md §2.8): the <b>Deep Link</b> (24 Bu/t on the Eye's ports, at least half test-fired into
+ * the collar ports, the beam at a 60 s mean ρ ≥ 1, 1,800 s unbroken), Superdense Ergomatter ≥ 108,000 L from all-Stable
+ * cycles, Resonant ≥ 7,200 s and 4 satellite crossings caught;</li>
+ * <li>P5 T9 → T10 (§6.3): the <b>Supermassive Link</b> (built in SMBH v1), Dark Matter ≥ 60,000 L made at Stable or
+ * better, Resonant ≥ 7,200 s and 8 Galactic Flows held in full.</li>
+ * </ul>
+ * P5 also keeps the display counters (item NBT, never lost): galaxies held, flows held in full, universes run to their
+ * last light, Cosmic Dawns caught.
  */
 public final class EyeMilestones {
 
-    /** Index = star tier 1..8: product litres (T4, T6, T7: from all-Stable cycles). */
-    public final double[] prod = new double[9];
+    /** Index = star tier 1..10: product litres (T4, T6, T7, T8, T9: from all-Stable cycles). */
+    public final double[] prod = new double[11];
     /** Index = star tier: Resonant real seconds. */
-    public final long[] res = new long[9];
+    public final long[] res = new long[11];
+    /** P5 T8: satellite crossings caught. */
+    public int crossings;
+    /** P5 T9: Galactic Flows held in full (the T9 → T10 part counts once T9 is unlocked). */
+    public int flowsHeld;
+    /** P5 display counters (never lost): galaxies held, universes run to their last light, Cosmic Dawns caught. */
+    public long galaxies, universes, dawns;
     /** T3: helium flashes ridden. */
     public int flashes;
     /** T4: Deep Dark runs completed on this Eye. */
@@ -47,11 +62,11 @@ public final class EyeMilestones {
     /** P4 T7: minor mergers ridden in Stable. */
     public int mergers;
     /** P4: the machine milestones, index = the tier being left (6 the Stability Link, 7 the Heavy Link). */
-    public final boolean[] linkDone = new boolean[9];
+    public final boolean[] linkDone = new boolean[11];
     /** P4: the best link streak so far, seconds (display). */
-    public final int[] linkBest = new int[9];
+    public final int[] linkBest = new int[11];
     /** P4: the live link streak, seconds (set by the star every second; display only, not saved here). */
-    public final int[] linkStreak = new int[9];
+    public final int[] linkStreak = new int[11];
     /**
      * SMBH (smbh-v1.md §1.3): the Supermassive Link, the T9 → T10 machine milestone. Read-only data until P5 builds
      * Eye T9: held once, the best streak (seconds), the live streak (not saved). Nothing gates on it yet.
@@ -62,8 +77,11 @@ public final class EyeMilestones {
     public static final String SM_LINK_NAME = "Supermassive Link";
 
     /** Thresholds, index = the tier being left (plan §8). */
-    public static final double[] PROD_NEED = { 0, 20_000_000, 1_000_000, 400_000, 147_456, 0, 2_700, 216_000, 0 };
-    public static final long[] RES_NEED = { 0, 7_200, 10_800, 14_400, 14_400, 0, 7_200, 7_200, 0 };
+    public static final double[] PROD_NEED = { 0, 20_000_000, 1_000_000, 400_000, 147_456, 0, 2_700, 216_000, 108_000,
+        60_000, 0 };
+    public static final long[] RES_NEED = { 0, 7_200, 10_800, 14_400, 14_400, 0, 7_200, 7_200, 7_200, 7_200, 0 };
+    /** P5: satellite crossings caught (T8) and Galactic Flows held in full (T9). */
+    public static final int CROSSINGS_NEED = 4, FLOWS_NEED = 8;
     public static final int FLASHES_NEED = 3;
     public static final int DEEP_DARK_NEED = 1;
     public static final int GOOD_BATCHES_NEED = 6;
@@ -73,9 +91,11 @@ public final class EyeMilestones {
     public static final int LINK_NEED = 1800;
     private static final String[] PROD_NAME = { "", "Raw Star Matter", "Excited Stellar Plasma",
         "Raw Hyperdense Stellar Plasma", "White Dwarf Matter (all-Stable cycles)", "",
-        "Magnetar Matter (all-Stable cycles)", "Ergomatter (all-Stable cycles)", "" };
-    /** P4: the link milestone's name, index = the tier being left. */
-    public static final String[] LINK_NAME = { "", "", "", "", "", "", "Stability Link", "Heavy Link", "" };
+        "Magnetar Matter (all-Stable cycles)", "Ergomatter (all-Stable cycles)",
+        "Superdense Ergomatter (all-Stable cycles)", "Attractor Dark Matter (Stable or better)", "" };
+    /** P4: the link milestone's name, index = the tier being left (P5: 8 the Deep Link, 9 the Supermassive Link). */
+    public static final String[] LINK_NAME = { "", "", "", "", "", "", "Stability Link", "Heavy Link", "Deep Link",
+        SM_LINK_NAME, "" };
 
     /** True when the milestones for leaving tier {@code n} (n → n+1) are all met. */
     public boolean met(int n) {
@@ -93,8 +113,31 @@ public final class EyeMilestones {
                 return linkDone[6] && prod[6] >= PROD_NEED[6] && res[6] >= RES_NEED[6] && flares >= FLARES_NEED;
             case 7:
                 return linkDone[7] && prod[7] >= PROD_NEED[7] && res[7] >= RES_NEED[7] && mergers >= MERGERS_NEED;
+            case 8:
+                return linkDone[8] && prod[8] >= PROD_NEED[8] && res[8] >= RES_NEED[8] && crossings >= CROSSINGS_NEED;
+            case 9:
+                return smLinkDone && prod[9] >= PROD_NEED[9] && res[9] >= RES_NEED[9] && flowsHeld >= FLOWS_NEED;
             default:
                 return false;
+        }
+    }
+
+    /** P5: the link milestone of tier n is held (6 / 7 / 8 their own flags; 9 the Supermassive Link). */
+    public boolean linkHeld(int n) {
+        return n == 9 ? smLinkDone : n >= 0 && n < linkDone.length && linkDone[n];
+    }
+
+    /** P5: the tier's event count toward its milestone, and what it needs (T6 flares .. T9 flows). */
+    private double eventProgress(int n) {
+        switch (n) {
+            case 6:
+                return ratio(flares, FLARES_NEED);
+            case 7:
+                return ratio(mergers, MERGERS_NEED);
+            case 8:
+                return ratio(crossings, CROSSINGS_NEED);
+            default:
+                return ratio(flowsHeld, FLOWS_NEED);
         }
     }
 
@@ -110,6 +153,10 @@ public final class EyeMilestones {
                 return prod[6] >= PROD_NEED[6] && res[6] >= RES_NEED[6] && flares >= FLARES_NEED;
             case 7:
                 return prod[7] >= PROD_NEED[7] && res[7] >= RES_NEED[7] && mergers >= MERGERS_NEED;
+            case 8:
+                return prod[8] >= PROD_NEED[8] && res[8] >= RES_NEED[8] && crossings >= CROSSINGS_NEED;
+            case 9:
+                return prod[9] >= PROD_NEED[9] && res[9] >= RES_NEED[9] && flowsHeld >= FLOWS_NEED;
             default:
                 return met(n);
         }
@@ -135,10 +182,12 @@ public final class EyeMilestones {
                 return new double[] { ratio(goodBatches, GOOD_BATCHES_NEED) };
             case 6:
             case 7:
-                // P4: product, Resonant time, the tier's events (giant flares / minor mergers), the link held
-                return new double[] { ratio(prod[n], PROD_NEED[n]), ratio(res[n], RES_NEED[n]),
-                    n == 6 ? ratio(flares, FLARES_NEED) : ratio(mergers, MERGERS_NEED),
-                    linkDone[n] ? 1 : ratio(linkStreak[n], LINK_NEED) };
+            case 8:
+            case 9:
+                // P4: product, Resonant time, the tier's events (giant flares / minor mergers; P5 crossings / flows),
+                // the link held
+                return new double[] { ratio(prod[n], PROD_NEED[n]), ratio(res[n], RES_NEED[n]), eventProgress(n),
+                    linkHeld(n) ? 1 : ratio(n == 9 ? smLinkStreak : linkStreak[n], LINK_NEED) };
             default:
                 return new double[0];
         }
@@ -171,7 +220,7 @@ public final class EyeMilestones {
 
     /** Debug ({@code /btseye star … milestones n done}): marks tier n's milestones met. */
     public void complete(int n) {
-        if (n < 1 || n > 7) return;
+        if (n < 1 || n > 9) return;
         prod[n] = Math.max(prod[n], PROD_NEED[n]);
         res[n] = Math.max(res[n], RES_NEED[n]);
         if (n == 3) flashes = Math.max(flashes, FLASHES_NEED);
@@ -179,6 +228,12 @@ public final class EyeMilestones {
         if (n == 5) goodBatches = Math.max(goodBatches, GOOD_BATCHES_NEED);
         if (n == 6) flares = Math.max(flares, FLARES_NEED);
         if (n == 7) mergers = Math.max(mergers, MERGERS_NEED);
+        if (n == 8) crossings = Math.max(crossings, CROSSINGS_NEED);
+        if (n == 9) {
+            flowsHeld = Math.max(flowsHeld, FLOWS_NEED);
+            smLinkDone = true;
+            smLinkBest = Math.max(smLinkBest, LINK_NEED);
+        }
         if (n >= 6) {
             linkDone[n] = true;
             linkBest[n] = Math.max(linkBest[n], LINK_NEED);
@@ -187,7 +242,7 @@ public final class EyeMilestones {
 
     /** Bench ({@code /btseye star … milestones n reset}): tier n's milestones back to nothing (a clean proof run). */
     public void reset(int n) {
-        if (n < 1 || n > 7) return;
+        if (n < 1 || n > 9) return;
         prod[n] = 0;
         res[n] = 0;
         if (n == 3) flashes = 0;
@@ -195,6 +250,12 @@ public final class EyeMilestones {
         if (n == 5) goodBatches = 0;
         if (n == 6) flares = 0;
         if (n == 7) mergers = 0;
+        if (n == 8) crossings = 0;
+        if (n == 9) {
+            flowsHeld = 0;
+            smLinkDone = false;
+            smLinkBest = 0;
+        }
         linkDone[n] = false;
         linkBest[n] = 0;
         linkStreak[n] = 0;
@@ -202,15 +263,16 @@ public final class EyeMilestones {
 
     /** One progress line for leaving tier {@code n}, e.g. "T1 → T2: Raw Star Matter 1.2M / 20.0M L, ...". */
     public String progressLine(int n) {
-        if (n < 1 || n > 7) return "";
+        if (n < 1 || n > 9) return "";
         final StringBuilder sb = new StringBuilder("Milestones T").append(n)
             .append(" -> T")
             .append(n + 1)
             .append(met(n) ? " MET: " : ": ");
         if (n >= 6) {
+            final int streak = n == 9 ? smLinkStreak : linkStreak[n], best = n == 9 ? smLinkBest : linkBest[n];
             sb.append(LINK_NAME[n])
-                .append(linkDone[n] ? " HELD" : " " + clock(linkStreak[n]) + " / " + clock(LINK_NEED))
-                .append(linkDone[n] || linkBest[n] <= 0 ? "" : " (best " + clock(linkBest[n]) + ")")
+                .append(linkHeld(n) ? " HELD" : " " + clock(streak) + " / " + clock(LINK_NEED))
+                .append(linkHeld(n) || best <= 0 ? "" : " (best " + clock(best) + ")")
                 .append(", ")
                 .append(PROD_NAME[n])
                 .append(' ')
@@ -224,7 +286,9 @@ public final class EyeMilestones {
                 .append(" s, ")
                 .append(
                     n == 6 ? "giant flares ridden " + flares + "/" + FLARES_NEED
-                        : "minor mergers ridden " + mergers + "/" + MERGERS_NEED);
+                        : n == 7 ? "minor mergers ridden " + mergers + "/" + MERGERS_NEED
+                            : n == 8 ? "satellite crossings caught " + crossings + "/" + CROSSINGS_NEED
+                                : "Galactic Flows held in full " + flowsHeld + "/" + FLOWS_NEED);
             return sb.toString();
         }
         if (n == 5) {
@@ -290,20 +354,35 @@ public final class EyeMilestones {
             t.setInteger("linkBest", linkBest[n]);
             out.setTag("t" + n, t);
         }
-        // SMBH: T9 -> T10's Supermassive Link (P5's milestone; the data only)
-        if (smLinkDone || smLinkBest > 0) {
-            final NBTTagCompound t = new NBTTagCompound();
-            t.setBoolean("link", smLinkDone);
-            t.setInteger("linkBest", smLinkBest);
-            out.setTag("t9", t);
-        }
+        // P5: T8 -> T9 (the Deep Link) and T9 -> T10 (the SMBH v1 Supermassive Link keys, plus P5's new ones)
+        final NBTTagCompound t8 = new NBTTagCompound();
+        t8.setDouble("prod", prod[8]);
+        t8.setLong("res", res[8]);
+        t8.setInteger("crossings", crossings);
+        t8.setBoolean("link", linkDone[8]);
+        t8.setInteger("linkBest", linkBest[8]);
+        out.setTag("t8", t8);
+        final NBTTagCompound t9 = new NBTTagCompound();
+        t9.setBoolean("link", smLinkDone);
+        t9.setInteger("linkBest", smLinkBest);
+        t9.setDouble("prod", prod[9]);
+        t9.setLong("res", res[9]);
+        t9.setInteger("flows", flowsHeld);
+        out.setTag("t9", t9);
+        final NBTTagCompound p5 = new NBTTagCompound();
+        p5.setLong("galaxies", galaxies);
+        p5.setLong("universes", universes);
+        p5.setLong("dawns", dawns);
+        p5.setLong("res10", res[10]);
+        out.setTag("p5", p5);
         return out;
     }
 
     void read(NBTTagCompound in) {
         Arrays.fill(prod, 0);
         Arrays.fill(res, 0);
-        flashes = deepDark = goodBatches = flares = mergers = 0;
+        flashes = deepDark = goodBatches = flares = mergers = crossings = flowsHeld = 0;
+        galaxies = universes = dawns = 0;
         Arrays.fill(linkDone, false);
         Arrays.fill(linkBest, 0);
         Arrays.fill(linkStreak, 0);
@@ -314,6 +393,24 @@ public final class EyeMilestones {
             final NBTTagCompound t = in.getCompoundTag("t9");
             smLinkDone = t.getBoolean("link");
             smLinkBest = t.getInteger("linkBest");
+            prod[9] = t.getDouble("prod");
+            res[9] = t.getLong("res");
+            flowsHeld = t.getInteger("flows");
+        }
+        if (in.hasKey("t8")) {
+            final NBTTagCompound t = in.getCompoundTag("t8");
+            prod[8] = t.getDouble("prod");
+            res[8] = t.getLong("res");
+            crossings = t.getInteger("crossings");
+            linkDone[8] = t.getBoolean("link");
+            linkBest[8] = t.getInteger("linkBest");
+        }
+        if (in.hasKey("p5")) {
+            final NBTTagCompound t = in.getCompoundTag("p5");
+            galaxies = t.getLong("galaxies");
+            universes = t.getLong("universes");
+            dawns = t.getLong("dawns");
+            res[10] = t.getLong("res10");
         }
         for (int n = 1; n <= 5; n++) {
             if (!in.hasKey("t" + n)) continue;

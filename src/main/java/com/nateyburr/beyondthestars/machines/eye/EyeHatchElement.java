@@ -104,6 +104,18 @@ public enum EyeHatchElement implements IHatchElement<MTEEyeOfHarmonyBTS> {
             return t.burstControlCount();
         }
     },
+    /**
+     * P5 ('i', the T9 top collar): a Pellet Injector Hatch (MTE 28128), the injector's Burst Control Hatch (mode Pellet
+     * beam), or an input bus holding more pellets for it (ME stocking buses included).
+     */
+    Pellet(MTEEyeOfHarmonyBTS::addPelletSocket, MTEHatchPelletInjector.class, MTEHatchBurstControl.class,
+        MTEHatchInputBus.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.pelletSocketCount();
+        }
+    },
     /** P4 ('p'): the slot bus, an input bus (ME included): planet items and companion star charts, never consumed. */
     SlotBus(MTEEyeOfHarmonyBTS::addSlotBus, MTEHatchInputBus.class) {
 
