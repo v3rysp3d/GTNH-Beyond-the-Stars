@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Run §9full Overdrive at n 1 or more for 10 minutes§r. Every doubling halves the Overdrive upkeep: 100,000 × o² × 2^(-n) L/s each.\n\n§5§lFULL §lOVERDRIVE§r upkeep each / anchor / all fluids, L/s:\n- n 0: 100,000 / 0 / 200,000\n- n 0.5: 70,711 / 1,448 / 142,870\n- n 1:§9 50,000§r / 4,096 / 104,096\n- n 1.5: 35,355 / 23,170 /§9 93,880§r (the cheapest)\n- n 2: 25,000 / 262,144 / 312,144 (dearer than not Unbound)\nUniversium is the scarce fluid; Primordial Matter is made from commoner ones. The ×100 ceiling still holds: Unbound makes ×99 cheaper, never stronger.\n\n§2§lDONE §lWHEN§r the GUI shows Overdrive 100 % at n 1 or more, upkeep 50,000 L/s each or less, for 10 minutes (tick the box).",
+      "desc:8": "Run §9full Overdrive at n 1 or more for 10 minutes§r. Every doubling halves the Overdrive upkeep: 100,000 × o² × 2^(-n) L/s each.\n\n§5§lFULL §lOVERDRIVE§r upkeep each / anchor / all fluids, L/s:\n- n 0: 100,000 / 0 / 200,000\n- n 0.5: 70,711 / 1,448 / 142,870\n- n 1:§9 50,000§r / 4,096 / 104,096\n- n 1.5: 35,355 / 23,170 /§9 93,880§r (the cheapest)\n- n 2: 25,000 / 262,144 / 312,144 (dearer than not Unbound)\nAt n 1 to 1.5 the anchor costs far less than the Overdrive upkeep it saves. The ×100 ceiling still holds: Unbound makes the same ×99 cheaper to reach, never stronger.\n\n§2§lDONE §lWHEN§r the GUI shows Overdrive 100 % at n 1 or more, upkeep 50,000 L/s each or less, for 10 minutes (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

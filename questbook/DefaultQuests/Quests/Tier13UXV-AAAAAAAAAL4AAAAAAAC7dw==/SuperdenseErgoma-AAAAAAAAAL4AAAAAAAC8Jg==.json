@@ -21,7 +21,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Before T8, the Kerr Compressor Module refines Ergomatter§9 8 : 1§r: 4,000 L + 1,440 L Molten SpaceTime → 500 L Superdense Ergomatter, 10 min, UXV.\n\nIt needs the KEE at T2, holding at least§9 256 SM§r, with a quasar link at σ ≥ 1 (a GRB Receptor Port in a utility socket). A run that loses the link pauses; nothing is voided.\n\nEye T8 makes the same fluid 1 : 1 from its feed: this route is for before T8.\n\n§2§lDONE §lWHEN§r you have 500 L of Superdense Ergomatter.",
+      "desc:8": "Before T8, the Kerr Compressor Module refines Ergomatter§9 8 : 1§r: 4,000 L + 1,440 L Molten SpaceTime → 500 L Superdense Ergomatter, 10 min, UXV.\n\nIt needs the Kerr Ergosphere Engine (KEE) at T2, holding at least§9 256 SM§r, with a quasar link at σ ≥ 1 (a GRB Receptor Port in a utility socket). A run that loses the link pauses; nothing is voided.\n\nEye T8 makes the same fluid 1 : 1 from its feed: this route is for before T8.\n\n§2§lDONE §lWHEN§r you have 500 L of Superdense Ergomatter.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

@@ -25,7 +25,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "Sgr A*, the supermassive black hole at a galaxy's heart, with tidal disruption events to catch. Output: §9White Hole Matter§r. A planets mode will run 9 planets at once.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "Sgr A*, the supermassive black hole at a galaxy's heart, with tidal disruption events to catch. Output: §9White Hole Matter§r. A planets mode will run 9 planets at once.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -36,7 +36,7 @@
       "isMain:1": 1,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nEye T9: White Hole§r §8(planned)",
+      "name:8": "§8Coming later: §7§l§nEye T9: White Hole§r",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,

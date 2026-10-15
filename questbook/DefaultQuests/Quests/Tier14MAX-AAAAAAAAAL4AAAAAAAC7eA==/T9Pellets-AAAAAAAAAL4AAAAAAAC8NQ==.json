@@ -25,7 +25,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "Pellets made from T6, T7 and T8 matter (Magnetar Matter, Ergomatter and Superdense Ergomatter, with the Homogeny's Degenerate Stellar Mixture), fired as a higher-GeV beam that powers and stabilises Eye T9.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "Pellets made from T6, T7 and T8 matter (Magnetar Matter, Ergomatter and Superdense Ergomatter, with the Homogeny's Degenerate Stellar Mixture), fired as a higher-GeV beam that powers and stabilises Eye T9.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -36,7 +36,7 @@
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nT9 Pellets§r §8(planned)",
+      "name:8": "§8Coming later: §7§l§nT9 Pellets§r",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,

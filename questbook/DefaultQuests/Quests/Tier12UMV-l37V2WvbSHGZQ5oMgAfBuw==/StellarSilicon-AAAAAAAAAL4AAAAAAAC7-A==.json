@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Your Sol's Raw Stellar Plasma grows the first wafer that is not GregTech's: the §9Stellar Boule§r. Every wafer of Beyond the Stars' three circuit families starts here, and so does every Stellar SMD.\n\n§5§lMAKE §lIT§r\n- Electric Blast Furnace at§9 12,600 K§r (Hypogen coils), 60 s at UIV: an Optically Enriched Crystalline Boule, 4 Shirabon dust, 1 SpaceTime dust and§9 1,000 L Raw Stellar Plasma§r (Raw Star Matter) → 1 Stellar Boule.\n- Cut it in a Cutting Machine in a cleanroom, 50 s at UEV:§9 16 Stellar Wafers§r with Grade-7 purified water,§9 24§r with Grade-8.\n\nPlain GregTech machines, so a normal AE2 pattern runs each step.\n\n§2§lDONE §lWHEN§r you hold a Stellar Boule and 16 Stellar Wafers.",
+      "desc:8": "Your Sol's Raw Stellar Plasma grows the first wafer that is not GregTech's: the §9Stellar Boule§r. Every wafer of Beyond the Stars' three circuit families starts here, and so does every Stellar SMD.\n\n§5§lMAKE §lIT§r\n- Electric Blast Furnace at§9 12,600 K§r (Infinity coils on UIV power reach it), 60 s at UIV: an Optically Enriched Crystalline Boule, 4 Shirabon dust, 1 SpaceTime dust and§9 1,000 L Raw Stellar Plasma§r → 1 Stellar Boule.\n- Cut it in a Cutting Machine in a cleanroom, 50 s at UEV:§9 16 Stellar Wafers§r with Grade-7 purified water,§9 24§r with Grade-8.\n\nPlain GregTech machines, so a normal AE2 pattern runs each step.\n\n§2§lDONE §lWHEN§r you hold a Stellar Boule and 16 Stellar Wafers.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

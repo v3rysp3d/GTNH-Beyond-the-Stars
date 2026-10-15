@@ -70,7 +70,7 @@
         "0:10": {
           "Count:3": 64,
           "Damage:2": 26129,
-          "OreDict:8": "boltNeutronium",
+          "OreDict:8": "",
           "id:8": "gregtech:gt.metaitem.01"
         }
       },

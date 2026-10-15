@@ -2,11 +2,7 @@
   "preRequisites:9": {
     "0:10": {
       "questIDHigh:4": 190,
-      "questIDLow:4": 48183
-    },
-    "1:10": {
-      "questIDHigh:4": 190,
-      "questIDLow:4": 48177
+      "questIDLow:4": 48197
     }
   },
   "properties:10": {
@@ -20,8 +16,8 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 4,032 L of Entangled White Hole Matter (Eye T9) in the Condensate Assembler. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nL2 is optional: the Eye gate is met on L1. Its recipe stays hidden in NEI until White Hole Matter exists.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 16,000 L Entangled Superdense Ergomatter, 4,608 L Entangled Magnetar Matter and 4 any-MAX circuits, in the Condensate Assembler at MAX. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nTake the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -32,7 +28,7 @@
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nWhite Hole Lattice§r §8(planned)",
+      "name:8": "§4§l§nThe L2 Lattice",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -63,8 +59,22 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 48,
+          "Damage:2": 2,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slCasing4"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
     }
   }
 }

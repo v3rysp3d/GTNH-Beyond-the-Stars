@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Ergomatter, compacted. Two routes, one fluid:\n- §9Eye T8§r: 1 : 1 from its feed, about nine times better;\n- §9the Kerr§r, before T8: the Compressor Module refines 4,000 L Ergomatter + 1,440 L Molten SpaceTime → 500 L in 10 min at UXV (see §cSuperdense Ergomatter, the Slow Way§r).\n\nIt feeds the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor (Tier 14 - MAX).\n\n§2§lDONE §lWHEN§r you have 16,000 L of Superdense Ergomatter.",
+      "desc:8": "Ergomatter, compacted. Two routes, one fluid:\n- §9Eye T8§r: 1 : 1 from its feed, about nine times better;\n- §9the Kerr§r, before T8: the Compressor Module refines 4,000 L Ergomatter + 1,440 L Molten SpaceTime → 500 L in 10 min at UXV (see §cSuperdense Ergomatter, the Slow Way§r).\n\nIt builds the Supermassive Lattice's Containment Nodes (L1 to L4), the Mk IV throat and the Mk IV crown's casing. Coming later, it also feeds the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor (Tier 14 - MAX).\n\n§2§lDONE §lWHEN§r you have 16,000 L of Superdense Ergomatter.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

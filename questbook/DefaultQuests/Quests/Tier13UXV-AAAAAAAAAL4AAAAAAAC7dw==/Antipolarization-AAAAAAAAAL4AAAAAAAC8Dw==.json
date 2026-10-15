@@ -84,7 +84,7 @@
         "0:10": {
           "Count:3": 16,
           "Damage:2": 2112,
-          "OreDict:8": "dustTengamAttuned",
+          "OreDict:8": "",
           "id:8": "gregtech:gt.metaitem.01"
         }
       },

@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Tier I-IV: Infinity, Transcendent Metal, SpaceTime, MagMatter. Every coil in a quasar is the same tier; the Condensate Assembler makes 32 a craft.\n- The field b is at most the tier. A Burst Control Hatch in b mode sets it from redstone: b = 0.5 + (tier - 0.5) × s/15.\n- The hole grows to the tier's cap,§9 256 / 1,024 / 2,048 / 4,096 SM§r, then the GUI says coil cap.\n- Coil power is 2 A UXV × b². Without it b is 0: the jets stop and the flux freezes.\n\nRebuild with a higher tier at any time; the hole is kept. Tier IV's MagMatter needs the Godforge's EE upgrade, which needs Universium (Eye T10), so Tier IV waits for MAX.\n\n§2§lDONE §lWHEN§r you hold 32 Tier I coils (HOLD → CLAIM → INSTALL).",
+      "desc:8": "Tier I-IV: Infinity, Transcendent Metal, SpaceTime, Magmatter. Every coil in a quasar is the same tier; the Condensate Assembler makes 32 a craft.\n- The field b is at most the tier. A Burst Control Hatch in b mode sets it from redstone: b = 0.5 + (tier - 0.5) × s/15.\n- The hole grows to the tier's cap,§9 256 / 1,024 / 2,048 / 4,096 SM§r, then the GUI says coil cap.\n- Coil power is 2 A UXV × b². Without it b is 0: the jets stop and the flux freezes.\n\nRebuild with a higher tier at any time; the hole is kept. Tier IV's Magmatter comes from the Godforge's magmatter mode: with Beyond the Stars' Eye its EE upgrade costs Black Dwarf Matter frame boxes instead of Universium, so Tier IV arrives at Eye T7. Saturation and the Supermassive Lattice need Tier IV.\n\n§2§lDONE §lWHEN§r you hold 32 Tier I coils (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
