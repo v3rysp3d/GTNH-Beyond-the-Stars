@@ -736,8 +736,14 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
 
     /** "Radiator Petal (Mk I; Mk II 1,428, Mk III 2,803, Mk IV 4,599)": the count shown is Mk I's. */
     private static String casingName(String name, char c) {
-        return String
-            .format(Locale.ROOT, "%s (Mk I; Mk II %,d, Mk III %,d, Mk IV %,d)", name, bom(2, c), bom(3, c), bom(4, c));
+        // QA-B70: a casing a Mk does not use is left out ("Mk IV 0" read as a missing part)
+        final StringBuilder sb = new StringBuilder(name).append(" (Mk I");
+        for (int mk = 2; mk <= MK_MAX; mk++) {
+            final int n = bom(mk, c);
+            if (n > 0) sb.append(String.format(Locale.ROOT, "; Mk %s %,d", roman(mk), n));
+        }
+        return sb.append(")")
+            .toString();
     }
 
     @Override
