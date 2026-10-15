@@ -35,6 +35,7 @@ import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.items.BTSItems;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -315,7 +316,7 @@ public class MTEModuleTurbineHall extends MTEPlantModuleBase implements ISurviva
         tt.addMachineType("Plant Module - Turbine Hall")
             .addDeprecatedLine("this controller does nothing; kept so old worlds load.")
             .addInfo("Replaced by the plant's Spine, Spiral chamber and Rotor Assembly.")
-            .addInfo("Build the Nuclear Plant Foundation instead.")
+            .addInfo("Build the " + BTSTip.term("Nuclear Plant Foundation") + " instead.")
             .beginStructureBlock(5, 4, 9, true)
             .addController("Plinth, front face, centre")
             .addCasing("76", "Clean Stainless Steel Machine Casing (walls, roof)", false)

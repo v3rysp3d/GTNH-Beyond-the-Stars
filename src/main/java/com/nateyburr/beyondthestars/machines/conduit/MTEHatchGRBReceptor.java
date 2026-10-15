@@ -19,6 +19,7 @@ import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
@@ -132,16 +133,22 @@ public class MTEHatchGRBReceptor extends MTEHatch {
 
     @Override
     public String[] getDescription() {
-        return new String[] { "Takes a gamma-ray burst stream (Bu/t) into a machine. Any side: aim a conduit at it.",
-            "1 Bu/t is worth 10^13 EU/t in a crown (a 4,096 SM quasar's 9,796 Bu/t: 9.8e16 EU/t, 98 quadrillion).",
-            "Records each second how much arrived from which Quasar Engine: that is the machine's §bquasar link§7.",
-            "Linked: bursts arrived last second from a formed quasar with its hole open and coils powered,",
-            "  through an open path (every element fuelled, every ray clear). Nothing is saved or paired by hand.",
-            "Used by: Eye of Harmony T7/T8 (rail and halo), Burst Thermaliser Crown (remote feed), Kerr (utility",
-            "  socket), Homogeny T2/T3 (stirring ring), Reality Diffraction (portal). Bursts here are consumed.",
-            "If its quasar is not loaded or frozen, the machine pauses (it does not read zero). Keep it chunk-loaded.",
-            "Keep every Conduit element and Wormhole Mouth on the path chunk-loaded too: an unloaded one stops the stream.",
-            "Right-click: what arrives, from where." };
+        return BTSTip.withDetails(
+            new String[] { "Takes a gamma-ray burst stream into a machine.",
+                "Aim a Conduit element or Wormhole Mouth at any side.", "A crown burns " + BTSTip.bu(1) + " as EU.",
+                "Each second it records which quasar sent bursts:",
+                "that is the machine's " + BTSTip.term("quasar link") + ".",
+                "Optional, except on the Eye's T7 rail and T8 halo.",
+                BTSTip.hint("Right-click: what arrives, and from where.") },
+            BTSTip.heading("Used by"),
+            BTSTip.bullet(BTSTip.term("Eye of Harmony") + " T7 rail and T8 halo: needed there."),
+            BTSTip.bullet(BTSTip.term("Kerr Ergosphere Engine") + ": optional, after the"),
+            "Quasar Engine; a quasar link eases the hole's bleed.",
+            BTSTip.bullet(BTSTip.term("Burst Thermaliser Crown") + ": optional remote feed."),
+            BTSTip.bullet(BTSTip.term("Homogeny") + " T2/T3 and " + BTSTip.term("Reality Diffraction") + ": optional."),
+            "Bursts that arrive here are consumed.",
+            BTSTip.warn("Keep the quasar and every element on the path"),
+            BTSTip.warn("chunk-loaded: an unloaded one stops the stream."));
     }
 
     // ------------------------------------------------------------------ the conduit side

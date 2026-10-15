@@ -23,13 +23,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -43,7 +43,6 @@ import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.recipe.RecipeMapBuilder;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.MultiblockTooltipBuilder;
-import gregtech.api.util.tooltip.TooltipHelper;
 
 /**
  * D-26 THE SITE BATCHING PLANT - MTE 28112, EV (docs/production-lines.md S5.4).
@@ -227,24 +226,24 @@ public class MTESiteBatchingPlant extends MTEProductionHallBase<MTESiteBatchingP
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String aqua = EnumChatFormatting.AQUA.toString();
-        final String gray = EnumChatFormatting.GRAY.toString();
         tt.addMachineType("Bulk Casing Assembler")
-            .addInfo("Bulk-makes the casings and concrete the Nuclear Plant is built from.")
-            .addInfo("A tier-5 plant is about 8,000 blocks; 3,773 of them are Light Concrete.")
-            .addInfo("Makes nothing GT cannot: each recipe is an 8-32x bulk batch")
-            .addInfo("of a stock GT recipe.")
-            .addInfo(aqua + "Build it first:" + gray + " before the silo, to build the silo.")
-            .addInfo("Parallel: " + TooltipHelper.parallelText(4) + " per shell tier (4 / 8 / 12)")
-            .addInfo(aqua + "Shell tier:" + gray + " Solid Steel 1, Clean Stainless Steel 2,")
-            .addInfo("Tungstensteel Reinforced 3. The weakest block in the wall sets it.")
-            .addInfo("Parallels are also limited by the power your Energy Hatches supply.")
+            .addInfo("Bulk-makes the casings and concrete the Nuclear Plant needs.")
+            .addInfo(BTSTip.term("Build it first") + ": it makes the blocks for the silo.")
+            .addSeparator()
+            .addInfo(
+                "A tier-5 plant is about " + BTSTip.num("8,000")
+                    + " blocks, "
+                    + BTSTip.num("3,773")
+                    + " of them concrete.")
+            .addInfo("Each recipe is a " + BTSTip.num("8-32x") + " batch of a stock GT recipe.")
+            .addSeparator()
+            .addInfo(BTSTip.parallel("4") + " parallels per shell tier (" + BTSTip.parallel("4 / 8 / 12") + ").")
+            .addInfo("Shell tier: Solid Steel " + BTSTip.num(1) + ", Clean Stainless Steel " + BTSTip.num(2) + ",")
+            .addInfo("Tungstensteel Reinforced " + BTSTip.num(3) + ". The weakest wall block sets it.")
+            .addInfo("Your Energy Hatches' power also caps the parallels.")
             .beginStructureBlock(5, 5, 9, true)
             .addController("Front face, centre")
-            .addCasing(
-                "155-156",
-                "Solid Steel Machine Casing / Clean Stainless Steel Machine Casing / Tungstensteel Reinforced Block",
-                true)
+            .addCasing("155-156", "Shell: Solid Steel, Clean Stainless Steel or Tungstensteel", true)
             .addCasing("16", "Steel Frame Box (lattice)", false)
             .addCasing("3", "Steel Pipe Casing (riser)", false)
             .addAir("The rest of the interior: keep pipes and cables outside")

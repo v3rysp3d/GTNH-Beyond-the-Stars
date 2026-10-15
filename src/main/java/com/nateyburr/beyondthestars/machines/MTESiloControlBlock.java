@@ -7,6 +7,8 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
+
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
@@ -31,8 +33,8 @@ public class MTESiloControlBlock extends MTEHatch {
             aNameRegional,
             4,
             0,
-            new String[] { "Reactor panel: silo face, directly above the controller",
-                "Right-click: reactor readout (tier, rods, heat, supplies)" });
+            new String[] { "Reactor panel of the Nuclear Plant.", "Goes in the silo face, right above the controller.",
+                BTSTip.hint("Right-click: tier, rods, heat and supplies.") });
     }
 
     public MTESiloControlBlock(String aName, int aTier, String[] aDescription,

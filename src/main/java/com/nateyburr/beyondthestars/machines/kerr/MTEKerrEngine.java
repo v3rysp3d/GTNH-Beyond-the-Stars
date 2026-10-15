@@ -7,6 +7,16 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElement
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.tieredBlock;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.GRAY;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.amps;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.danger;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.euT;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.hint;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.num;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.parallel;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.speed;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.term;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.warn;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.Maintenance;
@@ -40,6 +50,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
@@ -53,6 +64,7 @@ import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.directive.KerrDirective;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
@@ -1716,32 +1728,34 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         final int[] t2 = BTSShapes.size(PIECE_T2);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Black Hole Containment, Kerr Ergosphere Engine")
-            .addInfo("Holds a black hole. Runs no recipes: the Kerr modules are separate machines in its arcs")
-            .addInfo("  (Compressor: south arc; Extractor: east arc) that run while this KEE's hole is open.")
-            .addInfo("Everything is in the GUI: hole state, setpoint, Open / Collapse, bolts, modules.")
-            .addInfo("Right-click with a Kerr Density Upgrade for Kerr T2: heavier reinforcement, holes up")
-            .addInfo("  to 512 SM, and Kerr Densification on the compressor module. Irreversible.")
+            .addInfo("Holds a black hole for the " + term("Kerr modules") + " built into its arcs.")
+            .addInfo("Runs no recipes itself. Everything else is in the GUI.")
             .addSeparator()
-            .addInfo("A Black Hole Seed opens the hole at 8 SM; a Collapser closes it (GUI, or in a bolt")
-            .addInfo("  bus with Auto on). Hawking bleed 3.2/M² SM a tick; the governor fires bolts to hold")
-            .addInfo("  the setpoint: Neutronium 1/64, Cosmic Neutronium 1/32, Infinity 1/16, Transcendent 1/8,")
-            .addInfo("  SpaceTime 1/4 SM, at most 4/8/16 a tick by the LOWEST injector rail (Mk I/II/III).")
-            .addInfo("Containment: 8,388,608 EU/t (1 A UEV) while open. Without it the governor stops and")
-            .addInfo("  the hole bleeds; below 2 SM it evaporates. The power switch does not stop the hole.")
-            .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4); the tier is")
-            .addInfo("  that of the module's total input, V x A (a 2 A UIV hatch counts as UMV).")
-            .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
-            .addInfo("Quasar link (optional): a GRB Receptor Port in a utility socket. σ = bursts ÷ 0.1 Bu/t")
             .addInfo(
-                "  (T1, 1.0e12 EU/t) or 0.25 (T2, 2.5e12 EU/t), on a 60 s mean. Bleed x(1 - 0.75 min(σ, 1)); on T2 at σ ≥ 1 the setpoint")
-            .addInfo("  cap rises 512 -> 768 SM (modules count M up to the cap in force), and the Superdense")
-            .addInfo("  refinery (compressor module) needs σ ≥ 1. A frozen or unloaded quasar pauses all of it.")
-            .addInfo("Automation: bolts, Seeds and Collapsers into the bolt buses (AE2, Factory Manager).")
-            .addInfo("  Directive Hatches (utility sockets): Hole [1] closed [2] below [4] bolts short [8] above;")
-            .addInfo("  Status [1] power [2] no Seed [4] unstable [8] not formed; or redstone 1-15 sets the")
-            .addInfo("  setpoint. OpenComputers: an Adapter on the controller gives bts_kerr.")
+                "Open: a " + term("Black Hole Seed")
+                    + " in a bolt bus; the hole starts at "
+                    + num(fmtSm(OPEN_MASS))
+                    + ".")
+            .addInfo(
+                "Close: a " + term("Black Hole Collapser") + "; below " + num(fmtSm(MASS_FLOOR)) + " it evaporates.")
+            .addInfo("Hawking radiation bleeds mass; the governor fires bolts")
+            .addInfo("from the bolt buses to hold your setpoint.")
+            .addInfo(
+                "Setpoint: " + num(SETPOINT_MIN + "-" + SETPOINT_MAX_T1 + " SM")
+                    + " at Kerr T1, up to "
+                    + num(SETPOINT_MAX_T2 + " SM")
+                    + " at Kerr T2.")
+            .addInfo("Containment: " + euT(CONTAINMENT_EUT) + " (" + amps(1, BTSTip.UEV) + GRAY + ") while open.")
+            .addInfo(warn("Without power the governor stops and the hole shrinks."))
             .addSeparator()
-            .addInfo("Chunk-load the full footprint: the structure check fails across unloaded chunks.")
+            .addInfo("Module bonus: " + parallel(PARALLEL_PER_TIER + " x tier x floor(sqrt(M))") + " parallels")
+            .addInfo("and " + speed("x1 to x" + (int) MAX_SPEED) + " speed; a smaller hole runs faster.")
+            .addInfo("Kerr T2: right-click with a " + term("Kerr Density Upgrade") + ". " + danger("Irreversible."))
+            .addSeparator()
+            .addInfo("Automation: bolts, Seeds and Collapsers go into the bolt buses.")
+            .addInfo(hint("Optional, later: Directive Hatches for redstone, a GRB Receptor"))
+            .addInfo(hint("Port for a quasar link. A Kerr needs neither to run."))
+            .addInfo(warn("Chunk-load the whole footprint."))
             .beginVariableStructureBlock(t1[0], t2[0], t1[1], t2[1], t1[2], t2[2], false)
             .addController("Governor arc, front centre")
             .addCasingInfoExactly(
@@ -1759,27 +1773,26 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addCasingInfoExactly("Hawking Radiation Realignment Focus", bom(PIECE_T1, 'K'), false)
             .addCasingInfoExactly("Particle Beam Guidance Pipe Casing", bom(PIECE_T1, 'G'), false)
             .addCasingInfoExactly("Quantum Glass (window band)", windowCount(PIECE_T1), false)
-            .addOtherStructurePart(
-                "Kerr T2 adds",
-                bom(PIECE_T2, 'O') + " Bastion Plate, " + bom(PIECE_T2, 'P') + " Casimir Plate, more lining and glass")
-            .addEnergyHatch("Governor arc (2 sockets; 1 laser or up to 2 energy): containment power", 1)
-            .addOtherStructurePart("Bolt bus (input bus, private)", "8 sockets on the cage, at least 1", 3)
-            .addOtherStructurePart(
-                "Black Hole Compressor Utility Hatch, Directive Hatch or GRB Receptor Port",
-                "optional, beside the bolt buses",
-                6)
-            .addOtherStructurePart("Kerr Compressor Module controller", "a separate machine (marker)", 7)
-            .addOtherStructurePart("Kerr Extractor Module controller", "a separate machine (marker)", 8)
-            .addStructureInfo("Hologram: trigger stack 1 = Kerr T1, 2+ = Kerr T2. Markers 7 and 8 show where")
-            .addStructureInfo("  each module controller goes; build a module with its own controller's hologram.")
-            .addStructureInfo("Rails go in as Mk I; builds never overwrite hatches or downgrade rails.")
-            .addStructureInfo("No maintenance hatch (an old one in the governor arc may stay).")
-            .addStructureInfo(
-                "Window band at the hole's height: one Quantum Glass pane (the drum's outer skin, and the")
-            .addStructureInfo(
-                "  governor arc in front) with the cells behind it left open. Old Kerrs keep their blocks.")
-            .toolTipFinisher();
+            .addCasingInfoExactly("Bastion Plate (Kerr T2 only)", bom(PIECE_T2, 'O'), false)
+            .addCasingInfoExactly("Casimir Plate (Kerr T2 only)", bom(PIECE_T2, 'P'), false)
+            .addEnergyHatch("1-2", "Governor arc (1 laser or up to 2 energy hatches)", 1)
+            .addInputBus("1-" + bom(PIECE_T1, 'b'), "Bolt buses on the cage (plain input buses)", 3)
+            .addMiscHatch("0+", "Directive Hatch / GRB Receptor Port", "utility sockets", 6)
+            .addOtherStructurePart("Kerr Compressor Module", "its own machine in the south arc", 7)
+            .addOtherStructurePart("Kerr Extractor Module", "its own machine in the east arc", 8)
+            .addStructureInfo("Projector stack 1 builds Kerr T1, stack 2 or more Kerr T2.")
+            .addStructureInfo("The utility sockets also take a BHC Utility Hatch.")
+            .addStructureInfo("Utility sockets stay shell casing unless the projector")
+            .addStructureInfo("sets channel " + BTSStructures.OPTIONAL_HATCH_CHANNEL + ".")
+            .addStructureInfo("Hint dots 7 and 8 mark the module controllers.")
+            .addStructureInfo("No maintenance hatch.")
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
+    }
+
+    /** "8 SM" (whole masses without decimals). */
+    private static String fmtSm(double m) {
+        return (m == Math.rint(m) ? String.valueOf((long) m) : String.valueOf(m)) + " SM";
     }
 
     @Override

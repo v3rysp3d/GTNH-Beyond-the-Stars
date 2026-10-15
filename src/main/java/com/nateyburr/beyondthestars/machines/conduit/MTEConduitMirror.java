@@ -6,10 +6,12 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
 
@@ -101,14 +103,15 @@ public class MTEConduitMirror extends MTEConduitElement<MTEConduitMirror> {
         final int[] size = BTSShapes.size(PIECE);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Einstein-Rosen Conduit: Mirror")
-            .addInfo("Turns a gamma-ray burst stream through 90 degrees: in through the front throat, out of the")
-            .addInfo("  side throat (or the other way round). Its facing picks the plane: any turn between axes.")
+            .addInfo("Turns a burst stream through 90 degrees.")
+            .addInfo("In at the front throat, out of the side throat, or back.")
+            .addInfo("Its facing picks the plane of the turn.")
             .addSeparator();
-        commonInfo(tt).addInfo("Automation: OpenComputers bts_mirror (getLink, getThroat, getUpkeep, isOpen).")
+        commonInfo(tt).addInfo(BTSTip.hint("OpenComputers: bts_mirror."))
             .beginStructureBlock(size[0], size[1], size[2], false)
             .addController("Front, beside the in-throat")
             .addCasingInfoExactly("Superradiant Mirror Casing", bom(PIECE, 'M'), false);
-        commonStructure(tt, PIECE).toolTipFinisher();
+        commonStructure(tt, PIECE).toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

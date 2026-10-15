@@ -5,6 +5,14 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.bu;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.danger;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.euT;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.hint;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.num;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.parallel;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.speed;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.term;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.InputHatch;
@@ -39,6 +47,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
@@ -54,6 +63,7 @@ import com.nateyburr.beyondthestars.machines.conduit.ReceptorHatchElement;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.gui.BTSText;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 import com.nateyburr.beyondthestars.machines.reality.RealityRecipeMaps;
@@ -1231,44 +1241,47 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
         final int[] t3 = assembledSize(PIECES, 3);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Mixer, Homogeny")
-            .addInfo("A mega mixer. One controller, three tiers: build the next ring, then install its core.")
-            .addInfo(
-                EnumChatFormatting.AQUA + "T1 (UMV)"
-                    + EnumChatFormatting.GRAY
-                    + ": Raw Star Matter 100 : 1 into Excited Stellar Plasma Mixture. 1 parallel.")
-            .addInfo(
-                EnumChatFormatting.AQUA + "T2 (UXV)"
-                    + EnumChatFormatting.GRAY
-                    + ": 4 parallels. Unlocks Degenerate Stellar Mixture (White + Black Dwarf Matter in ESPM).")
-            .addInfo(
-                EnumChatFormatting.AQUA + "T3 (MAX)"
-                    + EnumChatFormatting.GRAY
-                    + ": 16 parallels. Unlocks Entanglement Medium, for Reality Diffraction.")
-            .addInfo("No overclock: each parallel draws the recipe's EU/t.")
-            .addInfo("No hydrogen or helium, no ignition, no maintenance: it runs unattended.")
-            .addInfo("Quasar link (optional): GRB Receptor Ports in the stirring ring's 3 port cells (hint 4).")
-            .addInfo("  σ = bursts ÷ 1.5 Bu/t (T2, 1.5e13 EU/t) or 6 (T3, 6.0e13 EU/t), 60 s mean. Speed")
-            .addInfo("  x(1 + 0.5 min(σ, 1)): up to")
-            .addInfo("  6x the T1 rate at T2, 24x at T3. Entanglement Medium needs σ ≥ 1 (a mix that loses it")
-            .addInfo("  pauses, never voids). Degenerate Stellar Mixture never needs bursts.")
-            .addInfo("It costs 100 L of Raw Star Matter per 1 L: 10x what an Eye T2 (Sirius A) needs.")
-            .addInfo("  Use it to bank a Sol surplus or run a hands-off line. It does not replace")
-            .addInfo("  Sirius A: Eye T2 is still required, and only an Eye hosting Sol makes Raw Star Matter.")
+            .addInfo("A mega mixer for stellar mixtures: one controller, three tiers.")
+            .addInfo("Runs unattended: no ignition, no gases, no maintenance.")
             .addSeparator()
-            .addInfo(EnumChatFormatting.GOLD + "Upgrading" + EnumChatFormatting.GRAY + " (permanent):")
-            .addInfo("  1. Build the next ring (the hologram's next stack size).")
-            .addInfo("  2. Mix " + fmt(MILESTONE_LITRES) + " L of the current tier's product (ESPM, then Degenerate).")
-            .addInfo("  3. Right-click the next Homogeny Core onto the controller (sneak-punch returns it).")
             .addInfo(
-                "  4. Press Install (GUI or screwdriver): " + INSTALL_TICKS / 20 / 60
-                    + " min offline at "
-                    + fmt(TierEU.RECIPE_UXV)
-                    + " (T2) / "
-                    + fmt(TierEU.RECIPE_MAX)
-                    + " (T3) EU/t.")
-            .addInfo("  A mix already running finishes first; no new mix starts while installing.")
-            .addInfo("  Progress shows in the GUI and the scanner, and survives a wrench.")
-            .addInfo("Automation: feed hatches take ME input hatches; outputs go to ME output hatches.")
+                "T1 (" + BTSTip.tier(BTSTip.UMV)
+                    + "): "
+                    + parallel(String.valueOf(PARALLELS[1]))
+                    + " parallel; "
+                    + term("Excited Stellar Plasma Mixture")
+                    + ".")
+            .addInfo("It takes " + num("100 L") + " of Raw Star Matter per litre.")
+            .addInfo(
+                "T2 (" + BTSTip.tier(BTSTip.UXV)
+                    + "): "
+                    + parallel(String.valueOf(PARALLELS[2]))
+                    + " parallels; adds "
+                    + term("Degenerate Stellar Mixture")
+                    + ".")
+            .addInfo(
+                "T3 (" + BTSTip.tier(BTSTip.MAX)
+                    + "): "
+                    + parallel(String.valueOf(PARALLELS[3]))
+                    + " parallels; adds "
+                    + term("Entanglement Medium")
+                    + ".")
+            .addInfo("No overclock: each parallel draws the recipe's EU/t.")
+            .addSeparator()
+            .addInfo("Upgrade: build the next ring, mix " + num(fmt(MILESTONE_LITRES) + " L") + " of the product,")
+            .addInfo("then right-click the next " + term("Homogeny Core") + " on and press Install.")
+            .addInfo("Installing takes " + num(INSTALL_TICKS / 20 / 60 + " min") + ", offline. " + danger("Permanent."))
+            .addInfo("It draws " + euT(INSTALL_EUT[2]) + " for T2, " + euT(INSTALL_EUT[3]) + " for T3.")
+            .addSeparator()
+            .addInfo(hint("Optional, T2+: GRB Receptor Ports on the stirring ring."))
+            .addInfo("A quasar link gives up to " + speed("x1.5") + " speed.")
+            .addInfo(
+                "T2 demand: " + bu(com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink.HOMOGENY_T2)
+                    + "; T3: "
+                    + bu(com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink.HOMOGENY_T3)
+                    + ".")
+            .addInfo("Entanglement Medium needs the full link; it pauses, never voids.")
+            .addInfo("Automation: ME input and output hatches work.")
             .beginVariableStructureBlock(t1[0], t3[0], t1[1], t3[1], t1[2], t3[2], false)
             .addController("Tip of the volute's discharge throat")
             .addCasingInfoExactly("Stirring Band Casing", bom(PIECE_T1, 'A'), false)
@@ -1295,15 +1308,17 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
             .addOtherStructurePart(
                 "T3 outer ring + tail",
                 bom(PIECE_T3, 'F') + " Eternity Shell Casing, " + bom(PIECE_T3, 'P') + " Casimir Plate")
-            .addOtherStructurePart("Input Hatch (fluid)", "top of each Feed Vessel (3 at T1, 6 at T2+)", 1)
-            .addOtherStructurePart("Output Hatch", "the throat, either face", 2)
-            .addOtherStructurePart("Energy or Laser Hatch", "bottom cap rim", 3)
+            .addInputHatch("1+", "Top of each Feed Vessel (3 at T1, 6 at T2+)", 1)
+            .addOutputHatch("1+", "The throat, either face", 2)
+            .addEnergyHatch("1+", "Bottom cap rim (energy or laser)", 3)
+            .addMiscHatch("0+", "GRB Receptor Port", "stirring ring, outer face (T2+)", 4)
             .addStructureInfo("Sizes: T1 " + size(t1) + ", T2 " + size(t2) + ", T3 " + size(t3) + ".")
-            .addStructureInfo("Rings are cumulative: the outer ring counts only with the stirring ring.")
-            .addOtherStructurePart("GRB Receptor Port (optional)", "3 cells on the stirring ring's outer face", 4)
-            .addStructureInfo("Hologram: stack 1 = T1, 2 = + stirring ring, 3 = + outer ring. NEI previews each tier.")
+            .addStructureInfo("Projector stack 1 builds T1, 2 adds the stirring ring,")
+            .addStructureInfo("3 adds the outer ring (it counts only with the stirring ring).")
+            .addStructureInfo("Optional sockets stay casing unless channel")
+            .addStructureInfo(BTSStructures.OPTIONAL_HATCH_CHANNEL + " is set on the projector.")
             .addStructureInfo("Builds never overwrite hatches or other tiles.")
-            .toolTipFinisher();
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

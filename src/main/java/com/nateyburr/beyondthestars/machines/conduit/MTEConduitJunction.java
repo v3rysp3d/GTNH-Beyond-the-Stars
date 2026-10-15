@@ -8,10 +8,12 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
@@ -322,26 +324,21 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
         final int[] size = BTSShapes.size(PIECE);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Einstein-Rosen Conduit: Junction")
-            .addInfo("Split (GUI): in through the big throat. Out 3 (-60 deg) takes a fixed GUI share p3 off the")
-            .addInfo("  top; out 1 (straight on) and out 2 (+60 deg) share the rest:")
-            .addInfo("  share 1 = c + k x (s/15 - 0.5), clamped 0..1. c and k (0, 1, 2, 4) in the GUI; s is the")
-            .addInfo("  redstone level on its Burst Control Hatch (k 0 or no hatch: c alone).")
-            .addInfo("Out 1 limit (GUI, Bu/t; 0 = none): share 1 is taken of at most this much and the rest goes")
-            .addInfo("  to out 2, so a loop on out 1 steers the same few Bu/t however big the quasar grows.")
-            .addInfo("  The Eye's J1: 7.5 Bu/t (7.5e13 EU/t) per parallel, x its time dial (the standard rig).")
-            .addInfo("Combine (GUI): up to 3 streams in through the small throats, the sum out of the big one.")
-            .addInfo(
-                "Rigs: J1 Eye : crown (P sensor, inverted, window 30, c 0.5, k 2, limit 7.5), J2 rail high : low (W),")
-            .addInfo("  J3 halo : rail (Lambda). Or two Directive bits as 15 / 8 / 0 (AE2: no analog needed).")
+            .addInfo("Splits one burst stream in three, or combines up to three.")
+            .addInfo("Split: in at the big throat. Out 3 takes a fixed share off the top;")
+            .addInfo("outs 1 and 2 share the rest, set in the GUI or by redstone.")
+            .addInfo("Out 1 limit (GUI): out 1 never takes more, the rest goes to out 2.")
+            .addInfo("Combine: up to three streams in at the small throats,")
+            .addInfo("the sum out of the big one.")
             .addSeparator();
-        commonInfo(tt).addInfo("Automation: Burst Control Hatch (Junction split mode); OpenComputers bts_junction")
-            .addInfo("  (getFlow, setRatio, setGain, setOut3, setLimit, setMode).")
+        commonInfo(tt).addInfo("Automation: a " + BTSTip.term("Burst Control Hatch") + " steers the split.")
+            .addInfo(BTSTip.hint("Rigs for the Eye: see the questbook. OpenComputers: bts_junction."))
             .beginStructureBlock(size[0], size[1], size[2], false)
             .addController("Top centre")
             .addCasingInfoExactly("Quantum Glass", bom(PIECE, 'G'), false)
-            .addOtherStructurePart("Burst Control Hatch", "2 sockets beside the controller (the second is spare)", 2)
-            .addOtherStructurePart("Energy Hatch (optional, unused)", "1 socket beside the controller", 3);
-        commonStructure(tt, PIECE).toolTipFinisher();
+            .addMiscHatch("0-2", "Burst Control Hatch", "beside the controller (the first is read)", 2)
+            .addEnergyHatch("0-1", "Beside the controller (optional, unused)", 3);
+        commonStructure(tt, PIECE).toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

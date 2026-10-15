@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.fluids.BTSFluids;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.enums.Materials;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -39,10 +40,11 @@ public class MTEHatchPrecisionInjector extends MTEHatchInput {
             aName,
             aNameRegional,
             4,
-            new String[] { "Spiral chamber injector (8 per plant, along the helix)",
-                "Stocked and timed automatically from the chamber's Propellant Input Hatch",
-                "Hand-feeding works, but only 1 L inside the ±2 tick window counts",
-                "Propellants: see NEI \"Nuclear Plant: Propellant\" · Capacity 16 L" });
+            new String[] { "Propellant port in the Spiral chamber wall.",
+                "The plant needs " + BTSTip.num("8") + ", along the helix.",
+                "Stocked and timed for you from the Propellant Input Hatch.",
+                "By hand: exactly " + BTSTip.num("1 L") + " inside the " + BTSTip.num("±2 tick") + " window.",
+                "Capacity: " + BTSTip.num("16 L") + ". Propellants: NEI, Nuclear Plant: Propellant." });
     }
 
     /**

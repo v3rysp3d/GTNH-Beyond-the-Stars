@@ -19,7 +19,6 @@ import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -30,12 +29,14 @@ import org.jetbrains.annotations.NotNull;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSText;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.NaniteTier;
@@ -763,21 +764,22 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
         final int[] s = size();
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Reality Refab, BEC reassembler")
-            .addInfo("Grabs the six Entangled Regions back out of the BEC network and reassembles them.")
-            .addInfo("Makes the Universal Upgrade Core: the Eye of Harmony's jump to T10.")
+            .addInfo("Reassembles the six Entangled Regions from the BEC network.")
+            .addInfo("Makes the " + BTSTip.term("Universal Upgrade Core") + ": the Eye's jump to T10.")
             .addSeparator()
-            .addInfo(EnumChatFormatting.GOLD + "Nanites" + EnumChatFormatting.GRAY + ": it borrows the nanites of the")
-            .addInfo("  nearest formed, running Condensate Assembler within " + LINK_RANGE + " blocks (links itself;")
-            .addInfo("  the scanner and GUI show which). They are never used up.")
-            .addInfo("Each item slot is one step. A step needs nanites of at least its tier; every tier")
-            .addInfo("  above slows it 2x. Durations are nanite-time: more nanites, faster crafts.")
-            .addInfo("More than three foreign condensates in its network clog it (it waits).")
+            .addInfo("Nanites: borrowed from the nearest running")
+            .addInfo(
+                BTSTip.term("Condensate Assembler") + " within "
+                    + BTSTip.num(LINK_RANGE + " blocks")
+                    + ". Never used up.")
+            .addInfo("Each step needs nanites of at least its tier.")
+            .addInfo("Every tier above slows the step " + BTSTip.num("2x") + ".")
+            .addInfo("Regions are drawn from its own BEC Hatch's network as it works;")
+            .addInfo("a short region pauses the craft. Nothing is wasted.")
+            .addInfo(BTSTip.warn("More than three foreign condensates clog it."))
             .addSeparator()
-            .addInfo(EnumChatFormatting.GOLD + "Regions" + EnumChatFormatting.GRAY + ": drawn from ITS OWN BEC Hatch's")
-            .addInfo("  network in lockstep with the progress: a short region pauses the craft,")
-            .addInfo("  nothing is wasted. Put it on the Reality Diffraction's network.")
-            .addInfo("Power: its own energy hatches, only on ticks that advance. No overclock.")
-            .addInfo("Automation: ME input bus in, ME output bus on the cap.")
+            .addInfo("Power: its own energy hatches, only while it advances.")
+            .addInfo("No overclock. Automation: ME input bus in, ME output bus out.")
             .beginStructureBlock(s[0], s[1], s[2], false)
             .addController("Foot, front")
             .addCasingInfoExactly("Reassembly Hull Plating", bom(PIECE, 'R'), false)
@@ -789,12 +791,12 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
             .addCasingInfoExactly("Spatially Transcendent Gravitational Lens Block", bom(PIECE, 'L'), false)
             .addCasingInfoExactly("Condensate Guidance Coil", bom(PIECE, 'V'), false)
             .addCasingInfoExactly("Electromagnetically-Isolated Casing", bom(PIECE, 'Q'), false)
-            .addOtherStructurePart("BEC Hatch (front facing a BEC conduit)", "foot", 1)
-            .addOtherStructurePart("Input Bus", "foot", 2)
-            .addOtherStructurePart("Output Bus", "cap, by the Reality Focus", 3)
-            .addOtherStructurePart("Energy or Laser Hatch", "foot", 4)
+            .addMiscHatch("1", "BEC Hatch", "foot, facing a BEC conduit", 1)
+            .addInputBus("1", "Foot", 2)
+            .addOutputBus("1", "Cap, by the Reality Focus", 3)
+            .addEnergyHatch("1+", "Foot (energy or laser)", 4)
             .addStructureInfo("Builds never overwrite hatches or other tiles.")
-            .toolTipFinisher();
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 }

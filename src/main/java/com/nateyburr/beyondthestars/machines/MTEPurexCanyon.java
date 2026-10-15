@@ -20,13 +20,13 @@ import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -188,16 +188,15 @@ public class MTEPurexCanyon extends MTEProductionHallBase<MTEPurexCanyon> {
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String aqua = EnumChatFormatting.AQUA.toString();
-        final String gray = EnumChatFormatting.GRAY.toString();
         tt.addMachineType("Fuel Reprocessor")
-            .addInfo("Chops, dissolves and partitions spent fuel: the head-end of PUREX.")
-            .addInfo(aqua + "Cooling time matters:" + gray + " how long the fuel cooled changes what")
-            .addInfo("comes out. Fuel cooled in a Decay Warehouse yields plutonium (for MOX);")
-            .addInfo("fuel straight from the reactor yields uranium and waste only.")
-            .addInfo("Circuit 1 = cooled fuel, 2 = uncooled fuel, 3 = partition the liquor.")
-            .addInfo("Its Nuclear Waste Water goes to a Distillation Tower: distilled water")
-            .addInfo("and a tantalum trace.")
+            .addInfo("Chops, dissolves and partitions spent fuel (PUREX).")
+            .addSeparator()
+            .addInfo("Circuit " + BTSTip.num(1) + ": cooled fuel, " + BTSTip.num(2) + ": uncooled fuel,")
+            .addInfo("circuit " + BTSTip.num(3) + ": partition the liquor.")
+            .addInfo("Only fuel cooled in a " + BTSTip.term("Decay Warehouse") + " yields plutonium.")
+            .addInfo("Uncooled fuel gives uranium and waste only.")
+            .addInfo("Nuclear Waste Water: a Distillation Tower gets water back.")
+            .addSeparator()
             .addStaticParallelInfo(PARALLEL)
             .beginStructureBlock(9, 7, 9, true)
             .addController("Front face, centre")

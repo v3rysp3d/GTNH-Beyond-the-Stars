@@ -8,6 +8,8 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
+
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
@@ -38,9 +40,10 @@ public class MTETurbineControlBlock extends MTEHatch {
             aNameRegional,
             4,
             0,
-            new String[] { "Turbine panel: output manifold back face, above its Maintenance Hatch",
-                "Each redstone pulse runs one turbine cycle (one steam slug + one injector window)",
-                "No pulses: the RPM decays to zero", "Right-click: turbine and output readout" });
+            new String[] { "Turbine panel of the Nuclear Plant.", "Each redstone pulse runs one turbine cycle.",
+                BTSTip.warn("No pulses: the turbine spins down to zero."),
+                "Goes in the manifold's back face, above its Maintenance Hatch.",
+                BTSTip.hint("Right-click: turbine and output readout.") });
     }
 
     public MTETurbineControlBlock(String aName, int aTier, String[] aDescription,

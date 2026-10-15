@@ -72,7 +72,8 @@ public final class KerrKit {
             SLConsoleTest.give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.SpaceTime, 64L));
             SLConsoleTest.give(player, GTOreDictUnificator.get(OrePrefixes.bolt, Materials.Neutronium, 64L));
         }
-        // KEE: bolt buses, energy (containment power), a utility hatch (no maintenance)
+        // KEE: bolt buses and energy (containment power) are all it needs; the utility hatch and the Directive
+        // Hatches are optional extras for the utility sockets (no maintenance)
         SLConsoleTest.giveMany(player, ItemList.Hatch_Input_Bus_MAX.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'b'));
         SLConsoleTest.giveMany(player, ItemList.Hatch_Energy_UIV.get(1L), socketCount(MTEKerrEngine.PIECE_T1, 'e'));
         SLConsoleTest.give(player, machine(MetaTileEntityIDs.HATCH_BLACK_HOLE_UTILITY.ID));
@@ -90,8 +91,9 @@ public final class KerrKit {
         tell(
             player,
             "Given: the KEE controller, both module controllers, " + qty(rails)
-                + " Bolt Injector Rails (Mk I), a Density Upgrade, 2 seeds + a collapser, bolts, and hatches"
-                + " (3 Directive Hatches for the utility sockets).");
+                + " Bolt Injector Rails (Mk I), a Density Upgrade, 2 seeds + a collapser, bolts, and hatches."
+                + " Optional extras: a BHC Utility Hatch and 3 Directive Hatches for the utility sockets"
+                + " (the KEE forms without them).");
         tell(player, EnumChatFormatting.YELLOW + "Grab the casings through NEI. Bills read from manifest.json:");
         for (String piece : new String[] { MTEKerrEngine.PIECE_T1, MTEKerrEngine.PIECE_T2,
             MTEKerrEngine.PIECE_COMPRESSOR, MTEKerrEngine.PIECE_EXTRACTOR }) {
@@ -238,7 +240,8 @@ public final class KerrKit {
             }
         }
 
-        // AUTOMATION PASS: Directive Hatches (Hole, Status; code output) in the first two utility sockets.
+        // AUTOMATION PASS (test rig only, optional on a real Kerr): Directive Hatches (Hole, Status; code output) in
+        // the first two utility sockets.
         final DirectiveSet[] sets = { DirectiveSet.KERR_HOLE, DirectiveSet.KERR_STATUS };
         int d = 0;
         for (int[] rel : BTSShapes.socketRels(core, 'u')) {

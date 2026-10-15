@@ -12,6 +12,7 @@ import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarSensorChannel;
 
 import gregtech.api.enums.Textures;
@@ -115,20 +116,24 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
 
     @Override
     public String[] getDescription() {
-        return new String[] {
-            "Goes in a Sensor socket (n) of the Eye of Harmony or the Quasar Engine (Beyond the Stars).",
-            "Outputs redstone from one channel. Eye: P, Θ, Ω, Π, shield, Integrity, Stability, zone,",
-            "  event warning (+ / - / any), upkeep OK or the T5 setpoint error; T7+: W, Λ, β, the link",
-            "  streak %, its 60 s mean (Bu/t), planet slot progress %, the event countdown (s).",
-            "Quasar: E, Φ, λ, a, M, M/cap, Bu/t (total, top, bottom; 1 Bu/t = 1e13 EU/t), zone, Integrity,",
-            "  Stability, eruption warning (Φ >= 90), seconds to the next eruption, best host σ, link streak %.",
-            "  Supermassive Lattice: M/safe, M/top, band x, the intake (Disc, Hold-up, Growth L/s, % of cap),",
-            "  hold-up cover, mass change %/h, buffer s, Overdrive (level, paid, upkeep), output X (x1 = 9.8e16",
-            "  EU/t), Unbound n, anchor cover, shedding, Supermassive Link source ready.",
-            "Threshold (digital): 15 when the value is above (or below) the threshold, else 0.",
-            "Analog: 0-15 across the range. Window w (default 120): signed values map -w..+w; masses, Bu/t,",
-            "  seconds and σ map 0..w; 0-100 values, λ 0..2, a 0..1 and the zone 0..4 have fixed scales.",
-            "Invert: 15 - output. Emits on all sides. Falls to 0 when its machine stops reporting." };
+        return BTSTip.withDetails(
+            new String[] { "Puts one live reading of its machine on redstone.",
+                "Fits the " + BTSTip.term("Eye of Harmony") + " and the " + BTSTip.term("Quasar Engine") + ".",
+                "Optional. Emits on all sides; " + BTSTip.num("0") + " when the machine stops.",
+                BTSTip.hint("Right-click: the channel, mode, threshold and window.") },
+            BTSTip.heading("Channels"),
+            BTSTip.bullet(BTSTip.term("Eye") + ": the gauges (P, Θ, Ω, Π), shield, Integrity,"),
+            "Stability, zone, event warning, upkeep; from T7 the",
+            "galaxy readings, the link and the slot progress.",
+            BTSTip.bullet(BTSTip.term("Quasar") + ": E, flux, λ, spin, mass, Bu/t, zone,"),
+            "Integrity, eruption warning and timer, the lattice.",
+            BTSTip.heading("Modes"),
+            BTSTip.bullet(
+                BTSTip.term(
+                    "Threshold") + ": " + BTSTip.num("15") + " above (or below) it, else " + BTSTip.num("0") + "."),
+            BTSTip.bullet(BTSTip.term("Analog") + ": " + BTSTip.num("0-15") + " across the range."),
+            "Window (default " + BTSTip.num("120") + ") sets the analog range.",
+            "Invert gives " + BTSTip.num("15") + " minus the output.");
     }
 
     // ------------------------------------------------------------------ the Eye's side

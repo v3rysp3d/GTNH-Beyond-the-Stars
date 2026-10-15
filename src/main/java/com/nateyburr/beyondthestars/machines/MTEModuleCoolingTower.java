@@ -20,6 +20,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -166,10 +167,10 @@ public class MTEModuleCoolingTower extends MTEPlantModuleBase implements ISurviv
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Plant Module - Cooling Tower")
             .addDeprecatedLine("this controller does nothing; kept so old worlds load.")
-            .addInfo("Cooling Towers are now pieces of the Nuclear Plant Foundation.")
-            .addInfo("To migrate: break this block, place a Solid Steel Machine Casing here")
-            .addInfo("and one in the cell directly outward of it (2 per tower).")
-            .addInfo("A legacy Maintenance Hatch in the ring may stay (it is not counted).")
+            .addInfo("Cooling Towers are pieces of the Nuclear Plant Foundation now.")
+            .addInfo("To migrate: break this block and place a Solid Steel Machine")
+            .addInfo("Casing here and in the cell right outward of it (" + BTSTip.num(2) + " per tower).")
+            .addInfo(BTSTip.hint("A legacy Maintenance Hatch in the ring may stay."))
             .beginStructureBlock(17, 20, 17, true)
             .addController("Base ring, front centre")
             .addCasing("50", "Solid Steel Machine Casing (base ring)", false)

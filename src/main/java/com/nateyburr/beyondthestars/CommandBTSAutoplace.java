@@ -54,7 +54,8 @@ import gregtech.common.misc.GTStructureChannels;
  * <li>{@code bare}: the same with no hatches at all. Auto-place must finish (casing in every socket), never stall.</li>
  * <li>{@code nei}: what BlockRenderer6343's preview does: the hatch channel ON and a creative source that hands out
  * any hatch. No optional hatch may appear.</li>
- * <li>{@code optional}: {@code nei} plus the {@code bts_optional} channel: the optional sockets take their hatches.</li>
+ * <li>{@code optional}: {@code nei} plus the {@code bts_optional} channel: the optional sockets take their
+ * hatches.</li>
  * </ul>
  * The controller faces north; the footprint's chunks are loaded first. Use a cleared superflat area.
  */
@@ -162,7 +163,8 @@ public class CommandBTSAutoplace extends CommandBase {
         // The trigger: a projector of stack size = tier, with the channels the mode asks for.
         final ItemStack trigger = new ItemStack(StructureLibAPI.getDefaultHologramItem(), tier);
         ChannelDataAccessor.setChannelData(trigger, GTStructureChannels.HATCH.get(), 1);
-        if (mode.equals("optional")) ChannelDataAccessor.setChannelData(trigger, BTSStructures.OPTIONAL_HATCH_CHANNEL, 1);
+        if (mode.equals("optional"))
+            ChannelDataAccessor.setChannelData(trigger, BTSStructures.OPTIONAL_HATCH_CHANNEL, 1);
 
         final IItemSource source;
         switch (mode) {
@@ -218,8 +220,9 @@ public class CommandBTSAutoplace extends CommandBase {
                             world.getBlockMetadata(px, py, pz));
                         String n;
                         try {
-                            n = s.getItem() != null ? s.getDisplayName() : world.getBlock(px, py, pz)
-                                .getUnlocalizedName();
+                            n = s.getItem() != null ? s.getDisplayName()
+                                : world.getBlock(px, py, pz)
+                                    .getUnlocalizedName();
                         } catch (RuntimeException ex) {
                             n = world.getBlock(px, py, pz)
                                 .getUnlocalizedName();

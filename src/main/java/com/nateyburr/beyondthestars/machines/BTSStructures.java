@@ -132,10 +132,12 @@ public final class BTSStructures {
      * A socket for an OPTIONAL hatch: the walk accepts the hatch or the casing, but every build path treats the cell as
      * the casing unless {@link #OPTIONAL_HATCH_CHANNEL} is set.
      * <p>
-     * Why: GT's {@code buildHatchAdder(...).atLeast(a, b, c).buildAndChain(casing)} asks for at least one of EACH listed
+     * Why: GT's {@code buildHatchAdder(...).atLeast(a, b, c).buildAndChain(casing)} asks for at least one of EACH
+     * listed
      * hatch. The NEI multiblock preview runs survival auto-place with GT's hatch channel on and a creative item source,
      * so it placed one of every optional hatch and listed them all in its required items; the hologram drew the
-     * hatch's hint dot; and a projector with the hatch channel on pulled the hatches from the player's inventory. For an
+     * hatch's hint dot; and a projector with the hatch channel on pulled the hatches from the player's inventory. For
+     * an
      * optional late-tier part (the GRB Receptor Port on a T1 Kerr) that read as "required".
      * <p>
      * With the channel set the socket behaves exactly like {@code buildAndChain}: hint dot, hatch first, casing as the
@@ -154,13 +156,15 @@ public final class BTSStructures {
 
             @Override
             public boolean spawnHint(T t, World world, int x, int y, int z, ItemStack trigger) {
-                if (wantsOptionalHatches(trigger)) return IStructureElementChain.super.spawnHint(t, world, x, y, z, trigger);
+                if (wantsOptionalHatches(trigger))
+                    return IStructureElementChain.super.spawnHint(t, world, x, y, z, trigger);
                 return casing.spawnHint(t, world, x, y, z, trigger);
             }
 
             @Override
             public boolean placeBlock(T t, World world, int x, int y, int z, ItemStack trigger) {
-                if (wantsOptionalHatches(trigger)) return IStructureElementChain.super.placeBlock(t, world, x, y, z, trigger);
+                if (wantsOptionalHatches(trigger))
+                    return IStructureElementChain.super.placeBlock(t, world, x, y, z, trigger);
                 return casing.placeBlock(t, world, x, y, z, trigger);
             }
 
@@ -187,8 +191,16 @@ public final class BTSStructures {
             public PlaceResult survivalPlaceBlock(T t, World world, int x, int y, int z, ItemStack trigger,
                 IItemSource source, EntityPlayerMP actor, Consumer<IChatComponent> chatter) {
                 if (wantsOptionalHatches(trigger)) {
-                    return IStructureElementChain.super
-                        .survivalPlaceBlock(t, world, x, y, z, trigger, source, actor, chatter);
+                    return IStructureElementChain.super.survivalPlaceBlock(
+                        t,
+                        world,
+                        x,
+                        y,
+                        z,
+                        trigger,
+                        source,
+                        actor,
+                        chatter);
                 }
                 return casing.survivalPlaceBlock(t, world, x, y, z, trigger, source, actor, chatter);
             }

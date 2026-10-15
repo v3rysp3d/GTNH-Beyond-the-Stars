@@ -11,6 +11,7 @@ import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.IIconContainer;
@@ -119,17 +120,21 @@ public class MTEHatchBurstControl extends MTEHatch {
 
     @Override
     public String[] getDescription() {
-        return new String[] {
-            "Reads redstone (0-15, any side, covers too) into a burst machine. Right-click: the mode.",
-            "§bQuasar Engine§7 (the 4 cap-rim sockets):",
-            "  Purge: a rising edge dumps the disc's flux early (refused below 20). Wire Disc bit 3 here.",
-            "  Field b: b = 0.5 + (coil tier - 0.5) x s/15, instead of the GUI's slider.",
-            "  Hold (lattice): the mass setpoint from the safe limit (1) to the band top (15), on a log scale;",
-            "    on an Unbound L4, from 4,194,304 SM (1) to 268,435,456 SM (15, two doublings). 0 leaves the GUI's.",
-            "  Overdrive (L3 lattice): o = s/15 in 5 % steps. Shed: a rising edge sets the mass setpoint to the safe limit.",
-            "§bConduit Junction§7: Junction split: share 1 = c + k x (s/15 - 0.5), clamped 0..1 (c, k in its GUI).",
-            "§bEye of Harmony§7: Begin: a rising edge begins the galaxy transition when Transition bit 1 is on.",
-            "A rising edge is 0 -> 1 or more; even a one-tick pulse counts. A hatch adopts its machine's mode." };
+        return BTSTip.withDetails(
+            new String[] { "Feeds a redstone level into a burst machine.",
+                "Reads " + BTSTip.num("0-15") + " from any side, covers included.",
+                "A rising edge (" + BTSTip.num("0") + " to " + BTSTip.num("1+") + ") counts, even for one tick.",
+                "Takes the mode of the machine it sits in.", BTSTip.hint("Right-click: the mode.") },
+            BTSTip.heading("Quasar Engine") + " (cap-rim sockets):",
+            BTSTip.bullet(BTSTip.term("Purge") + ": an edge dumps the disc flux early (from 20)."),
+            BTSTip.bullet(BTSTip.term("Field b") + ": the level sets the field instead of the GUI."),
+            BTSTip.bullet(BTSTip.term("Hold") + ": the lattice mass setpoint, safe limit to top."),
+            BTSTip.bullet(BTSTip.term("Overdrive") + " (L3 lattice): level/15, in 5 % steps."),
+            BTSTip.bullet(BTSTip.term("Shed") + ": an edge sets the setpoint to the safe limit."),
+            BTSTip.heading("Conduit Junction") + ": the level moves the split share.",
+            BTSTip.heading("Eye of Harmony") + ": an edge begins the galaxy transition",
+            "once its Transition bit [1] is on.",
+            "Level " + BTSTip.num("0") + " leaves the GUI's own value.");
     }
 
     // ------------------------------------------------------------------ live input

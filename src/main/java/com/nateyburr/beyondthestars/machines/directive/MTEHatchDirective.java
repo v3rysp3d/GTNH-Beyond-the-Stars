@@ -11,6 +11,7 @@ import com.cleanroommc.modularui.factory.PosGuiData;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.IIconContainer;
@@ -82,44 +83,35 @@ public class MTEHatchDirective extends MTEHatch {
         return new MTEHatchDirective(mName, mTier, mDescriptionArray, mTextures);
     }
 
-    /** The bit tables (task: "with the bit table in its tooltip"); docs/automation.md has the same tables. */
+    /**
+     * Short form, details behind Shift; the full bit tables live in the hatch GUI, docs/automation.md and the
+     * questbook.
+     */
     @Override
     public String[] getDescription() {
-        return new String[] { "Tells automation what its machine needs now, as a 4-bit redstone code (Degasser style).",
-            "Goes in an Eye of Harmony Sensor (n) or plinth (d) socket, a Kerr Ergosphere Engine utility socket (u)",
-            "  or a Quasar Engine control-box socket (d).",
-            "GUI: the set; the output (the code, one bit, any bit; invert); the window w. Comparators read the code.",
-            "Codes add up: [1] [2] [4] [8] are bits 1-4, several at once. Updates every second; 0 when silent.",
-            "A GT valve on a bit: a Machine Controller cover (enable with redstone) plus a Fluid Regulator",
-            "  cover set to Conditional, both on the tank that feeds the hatch. AE2: an export bus + redstone card.",
-            "§bEye Trims§7 (the star's trims, wanted when the gauge is past ±w):",
-            "  T1, T2: [1] Helium (P > +w) [2] Hydrogen (P < -w)",
-            "  T3: [1] Helium (P > +w or Θ < -w) [2] Hydrogen (P < -w) [4] Super Coolant (P or Θ > +w)",
-            "    A helium flash warned: [4] Coolant while Θ > -5 (pre-cool), [1] Helium only below Θ -35.",
-            "  T4, T6: [1] Space (P > +w) [2] SpaceTime (P < -w) [4] Super Coolant (Θ > +w) [8] Tengam (Ω > +w)",
-            "  T5: [1] DSSF (P or Θ > +w) [2] Raw Star Matter (Θ < -w) [4] Helium (P < -w)",
-            "§bEye Status§7: [1] buffers short [2] ignition charge wanted [4] event (T3 a flash's heat Θ > +20:",
-            "  more Coolant; T6 Agent wanted) [8] alarm (Critical, Breach, Integrity < 50, not formed, or off)",
-            "  Magnetar Merger: [4] asks above Π +66; feed 1 unit/s (100 L/s) while Transition [2] is on.",
-            "§bEye Transition§7: [1] ready: load the next chart [2] running [4] next core wanted [8] Tachyon wanted",
-            "§bEye Field§7 (T7+): [1] P > +w: Space trim [2] P < -w: more bursts [4] W > +w: aim high [8] W < -w: low",
-            "§bEye Events§7 (T7+): [1] Λ > +w: more to the halo [2] Λ < -w: less [4] a countdown runs [8] its sign -",
-            "§bEye Galaxy Transition§7: [1] ready: begin [2] running [4] purge now (the collapse assist: on from",
-            "  T-2 s, the 3 s eruption covers the collapse) [8] hold the purges (T-80 s to T-3 s).",
-            "§bEye Slots§7: [1] a slot idle [2] companion upkeep short [4] the last",
-            "  planet run lost parallels [8] link test fire wanted (J1 all to the Eye; T7 also J3 75 % halo;",
-            "  at T7 only while what J1 at 15 sends is 6-32 Bu/t (6.0e13-3.2e14 EU/t): the quasar's mean stream,",
-            "  or J1's out 1 limit if lower; the standard rig's limit, 7.5 Bu/t a parallel, fits at any size)",
-            "§bKerr Hole§7: [1] closed [2] below setpoint (1 SM) [4] bolts short (< w minutes) [8] above setpoint",
-            "§bKerr Status§7: [1] containment power short [2] no Black Hole Seed [4] unstable [8] not formed",
-            "§bQuasar Disc§7: [1] E < -w: pulse feed gas [2] E > +w: Space trim [4] flux at the purge setpoint:",
-            "  purge (wire it to a Burst Control Hatch) [8] alarm: blow-out or re-forming, no coil power, venting",
-            "§bQuasar Horizon§7 (a Supermassive Lattice): [1] hold-up short (leaking) [2] feed short (Accretion",
-            "  Buffer under 30 s) [4] anchor short (shedding) [8] Overdrive upkeep short",
-            "§bControl sets§7: redstone 1-15 sets the Kerr mass setpoint, the Eye time dial or the HSM feed",
-            "  (1 = lowest, 15 = highest; 0 leaves the GUI's value). The hatch emits nothing then.",
-            "Window w (1-60, default 10): the Eye's gauge band, the Kerr's bolt reserve in minutes,",
-            "  the quasar's E band (the questbook's standard rig uses 5)." };
+        return BTSTip.withDetails(
+            new String[] { "Tells automation what its machine needs, as redstone.",
+                "A 4-bit code: bits " + BTSTip.num("[1] [2] [4] [8]") + " add up; " + BTSTip.num("0") + " when quiet.",
+                "Fits the " + BTSTip.term("Eye of Harmony") + ", the " + BTSTip.term("Quasar Engine"),
+                "and the " + BTSTip.term("Kerr Ergosphere Engine") + ".",
+                "Optional on every machine. Updates once a second.",
+                BTSTip.hint("Right-click: pick the set, the output and the window.") },
+            BTSTip.heading("Sets") + " (the GUI names every bit live):",
+            BTSTip.bullet(BTSTip.term("Eye") + ": Trims, Status, Transition, Slots;"),
+            BTSTip.bullet("from T7: Field, Events, Galaxy Transition."),
+            BTSTip.bullet(BTSTip.term("Kerr") + ": Hole, Status."),
+            BTSTip.bullet(BTSTip.term("Quasar") + ": Disc, Horizon (with a Supermassive Lattice)."),
+            BTSTip.heading("Control sets") + ": redstone " + BTSTip.num("1-15") + " sets a value instead:",
+            BTSTip.bullet("the Kerr setpoint, the Eye time dial or its HSM feed."),
+            BTSTip.heading("Outputs") + ": the whole code, one bit, or any bit; invertible.",
+            "Window " + BTSTip.num(WINDOW_MIN + "-" + WINDOW_MAX)
+                + " (default "
+                + BTSTip.num(WINDOW_DEFAULT)
+                + "): the Eye gauge band,",
+            "the Kerr bolt reserve in minutes, or the quasar E band.",
+            BTSTip.heading("Wiring a bit") + ": a Machine Controller cover plus a",
+            "Fluid Regulator cover on the feed tank, or an AE2 export",
+            "bus with a redstone card. Comparators read the code.");
     }
 
     // ------------------------------------------------------------------ the host's side

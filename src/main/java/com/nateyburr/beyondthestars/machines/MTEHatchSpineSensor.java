@@ -5,6 +5,8 @@ import static gregtech.api.enums.Textures.BlockIcons.OVERLAY_FRONT_HEAT_EXCHANGE
 
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
+
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.MetaTileEntity;
@@ -31,9 +33,9 @@ public class MTEHatchSpineSensor extends MTEHatch {
             aNameRegional,
             4,
             0,
-            new String[] { "Optional: Spiral chamber roof, front centre",
-                "Emits a 2-tick redstone pulse on every accepted turbine cycle",
-                "Use it as the timing reference if you inject propellant by hand" });
+            new String[] { "Redstone echo of the turbine cycles.",
+                "Pulses " + BTSTip.num("2") + " ticks on every accepted cycle.",
+                "Optional: the Spiral chamber roof, front centre.", "Time hand-fed propellant on its pulse." });
     }
 
     public MTEHatchSpineSensor(String aName, int aTier, String[] aDescription,

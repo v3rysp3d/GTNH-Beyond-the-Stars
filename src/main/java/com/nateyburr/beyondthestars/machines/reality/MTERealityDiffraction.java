@@ -18,7 +18,6 @@ import javax.annotation.Nonnull;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -27,15 +26,18 @@ import org.jetbrains.annotations.NotNull;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
+import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.conduit.ReceptorHatchElement;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.gui.BTSText;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
@@ -683,37 +685,33 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         final int[] s = size();
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Reality Diffraction, BEC condensate source")
-            .addInfo("Splits Entanglement Medium across six regions outside reality. The six parts")
-            .addInfo("  leave as Entangled Region condensates, into the BEC network.")
+            .addInfo("Splits " + BTSTip.term("Entanglement Medium") + " across six regions of reality.")
+            .addInfo("Each region leaves as a condensate into the BEC network.")
             .addInfo(
-                EnumChatFormatting.AQUA + "4,000 L Entanglement Medium -> 1,000 L of each region"
-                    + EnumChatFormatting.GRAY
-                    + ", 120 s at MAX.")
+                "Recipe: " + BTSTip.litres(
+                    4_000) + " in, " + BTSTip.litres(1_000) + " of each region out, " + BTSTip.num("120 s") + ".")
             .addInfo("One parallel, no overclock.")
             .addSeparator()
-            .addInfo(EnumChatFormatting.GOLD + "Region Anchors" + EnumChatFormatting.GRAY + ": each region needs its")
-            .addInfo("  anchor fluid in its OWN socket (the red lens under its blade):")
-            .addInfo("  I Hyperspace: molten Space, II Subspace: molten SpaceTime,")
-            .addInfo("  III Forward Time: molten Time, IV Reverse Time: molten Eternity,")
-            .addInfo("  V Positive Mass: Superdense Ergomatter, VI Negative Mass: White Hole Matter.")
-            .addInfo("  An unanchored region yields nothing and its share of the medium is lost.")
-            .addInfo("  The GUI shows six lamps and names every missing anchor.")
+            .addInfo("Each region needs its anchor fluid in its own socket:")
+            .addInfo(BTSTip.bullet(REGION_NAMES[0] + ": " + BTSTip.term(anchorName(0))))
+            .addInfo(BTSTip.bullet(REGION_NAMES[1] + ": " + BTSTip.term(anchorName(1))))
+            .addInfo(BTSTip.bullet(REGION_NAMES[2] + ": " + BTSTip.term(anchorName(2))))
+            .addInfo(BTSTip.bullet(REGION_NAMES[3] + ": " + BTSTip.term(anchorName(3))))
+            .addInfo(BTSTip.bullet(REGION_NAMES[4] + ": " + BTSTip.term(anchorName(4))))
+            .addInfo(BTSTip.bullet(REGION_NAMES[5] + ": " + BTSTip.term(anchorName(5))))
+            .addInfo(BTSTip.warn("An unanchored region yields nothing; its medium is lost."))
             .addSeparator()
-            .addInfo(EnumChatFormatting.GOLD + "BEC network" + EnumChatFormatting.GRAY + ": a BEC Hatch on the base")
-            .addInfo("  ring, facing a BEC conduit, and a running Containment Field on that network.")
-            .addInfo("  What the network cannot take waits in the controller (never voided).")
-            .addInfo("  Give the regions their own network, or fence them with a Condensate Diode")
-            .addInfo("  (manual filters): more than three foreign condensates clog Condensate Assembler crafts.")
+            .addInfo("Output: a " + BTSTip.term("BEC Hatch") + " facing a BEC conduit, on a network")
+            .addInfo("with a running " + BTSTip.term("Containment Field") + ". The rest waits, never voided.")
+            .addInfo(BTSTip.warn("More than three foreign condensates clog Assembler crafts."))
+            .addInfo("Quasar link, optional: " + BTSTip.term("GRB Receptor Ports") + " in the portal.")
             .addInfo(
-                EnumChatFormatting.GOLD + "Quasar link"
-                    + EnumChatFormatting.GRAY
-                    + " (optional): GRB Receptor Ports in the six")
-            .addInfo("  portal cells (hint 10). With any port fitted the regions ride the stream:")
-            .addInfo("  σ = bursts ÷ 24 Bu/t (2.4e14 EU/t; 60 s mean), speed x min(σ, 1.5); below σ 0.5 runs")
-            .addInfo("  pause")
-            .addInfo("  (kept, never voided). With no port: fluid anchors alone, speed x1.")
-            .addInfo("Automation: anchors take ME input hatches; a level emitter on each keeps them stocked.")
-            .addInfo("Entanglement Medium is 0 K: pipe it with cryo-proof pipes.")
+                "Demand " + BTSTip.bu(BurstLink.REALITY)
+                    + ": up to "
+                    + BTSTip.speed("x" + BTSTip.trim(MAX_SPEED))
+                    + " speed.")
+            .addInfo(BTSTip.warn("With ports fitted, below " + BTSTip.trim(MIN_SIGMA) + "x the demand runs pause."))
+            .addInfo(BTSTip.warn("Entanglement Medium is 0 K: use cryo-proof pipes."))
             .beginStructureBlock(s[0], s[1], s[2], false)
             .addController("Base ring, front")
             .addCasingInfoExactly("Region Deck Band", bom(PIECE, 'A') + bom(PIECE, 'g'), false)
@@ -725,14 +723,16 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addCasingInfoExactly("Spatially Transcendent Gravitational Lens Block", bom(PIECE, 'L'), false)
             .addCasingInfoExactly("Coherence-Preserving Plasma Conduit", bom(PIECE, 'N'), false)
             .addCasingInfoExactly("Electromagnetically-Isolated Casing", bom(PIECE, 'Q'), false)
-            .addOtherStructurePart("BEC Hatch (front facing a BEC conduit)", "base ring", 1)
-            .addOtherStructurePart("Input Hatch (Entanglement Medium)", "base ring", 2)
-            .addOtherStructurePart("Region Anchor I..VI (any Input Hatch)", "under each blade, one each", 3)
-            .addOtherStructurePart("Energy or Laser Hatch", "base ring", 9)
-            .addStructureInfo("Anchor hints 3..8 = Regions I..VI (" + anchorName(0) + " .. " + anchorName(5) + ").")
-            .addOtherStructurePart("GRB Receptor Port (optional)", "6 portal cells, top deck band's outer face", 10)
+            .addMiscHatch("1", "BEC Hatch", "base ring, facing a BEC conduit", 1)
+            .addInputHatch("1", "Base ring: Entanglement Medium", 2)
+            .addInputHatch("6", "One under each blade: the Region Anchors", 3)
+            .addEnergyHatch("1+", "Base ring (energy or laser)", 9)
+            .addMiscHatch("0-" + bom(PIECE, 'g'), "GRB Receptor Port", "portal cells, top deck band", 10)
+            .addStructureInfo("Hint dots 3-8: the anchors of Regions I-VI.")
+            .addStructureInfo("Portal cells stay Region Deck Band unless channel")
+            .addStructureInfo(BTSStructures.OPTIONAL_HATCH_CHANNEL + " is set on the projector.")
             .addStructureInfo("Builds never overwrite hatches or other tiles.")
-            .toolTipFinisher();
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

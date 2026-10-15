@@ -14,11 +14,13 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.OwnerGate;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarGeometry;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstDocks;
@@ -370,20 +372,19 @@ public class MTEWormholeMouth extends MTEConduitElement<MTEWormholeMouth> implem
         final int[] size = BTSShapes.size(PIECE);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Einstein-Rosen Conduit: Wormhole Mouth")
-            .addInfo("Two mouths are one wormhole: a stream that enters one leaves the other, instantly and")
-            .addInfo("  losslessly, at any distance and across dimensions (both must be chunk-loaded).")
-            .addInfo("Pair: right-click one mouth with a Data Stick, then the other. One partner each.")
-            .addInfo("A stream enters the ring through the front face (the controller's side) and leaves the")
-            .addInfo("  partner out of its back, along the ring's axis.")
-            .addInfo("On a Quasar Engine jet port: lay the ring on the cap, front face on the port (the cell just")
-            .addInfo("  past the cap, on the jet axis), facing the quasar. It takes that jet; an unfit mouth vents.")
+            .addInfo("Two paired mouths are one wormhole for a burst stream.")
+            .addInfo("In at one, out of the other: any distance, any dimension.")
+            .addInfo("Pair: right-click each mouth with a " + BTSTip.term("Data Stick") + ".")
+            .addInfo("A stream enters the front face and leaves the partner's back.")
+            .addInfo("On a quasar jet port, front face on the port, it takes that jet.")
+            .addInfo(BTSTip.warn("Keep both mouths chunk-loaded."))
             .addSeparator();
-        commonInfo(tt).addInfo("Automation: OpenComputers bts_mouth (getLink, getThroat, getUpkeep, isOpen).")
+        commonInfo(tt).addInfo(BTSTip.hint("OpenComputers: bts_mouth."))
             .beginStructureBlock(size[0], size[1], size[2], false)
             .addController("Front face, below the ring")
             .addCasingInfoExactly("Rim Gas Injector", bom(PIECE, 'I'), false)
-            .addOtherStructurePart("Energy Hatch (optional, unused)", "1 socket beside the controller", 3);
-        commonStructure(tt, PIECE).toolTipFinisher();
+            .addEnergyHatch("0-1", "Beside the controller (optional, unused)", 3);
+        commonStructure(tt, PIECE).toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

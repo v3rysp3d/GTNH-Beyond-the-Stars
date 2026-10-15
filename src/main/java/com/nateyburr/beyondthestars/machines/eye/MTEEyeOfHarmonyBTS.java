@@ -7,6 +7,11 @@ import static com.nateyburr.beyondthestars.machines.BTSStructures.channelIndex;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.tieredBlock;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.hint;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.num;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.parallel;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.term;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.warn;
 import static gregtech.api.enums.HatchElement.Maintenance;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 
@@ -57,6 +62,7 @@ import com.nateyburr.beyondthestars.machines.directive.DirectiveHost;
 import com.nateyburr.beyondthestars.machines.directive.DirectiveSet;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.render.EyeCentreRender;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
@@ -3136,64 +3142,26 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         final int[] full = assembledSize();
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Stellar Forge, Eye of Harmony")
-            .addInfo("Beyond the Stars: replaces TecTech's Eye of Harmony.")
-            .addInfo("Put a Star Chart or a dimension display block in the controller slot (not consumed).")
-            .addInfo("Bands are cumulative: each tier needs every band below it.")
-            .addInfo("T1 core: Sol (Raw Star Matter) and planets R0-R3.")
-            .addInfo("T2 + beam band: Sirius A (Excited Stellar Plasma) and planets R4-R6.")
-            .addInfo("T3 + jet crescent: Arcturus (Raw Hyperdense Stellar Plasma) and planets R7-R8.")
-            .addInfo("T4 + spiral arms: the neutron star (White Dwarf Matter, born by the Core Collapse), Deep Dark.")
-            .addInfo("T5 + second arms: Sirius B (Black Dwarf Matter); T6 + galactic rim: the magnetar.")
-            .addInfo("  The magnetar's Antipolarization Agent upkeep (3,000 L/cycle) also charges its flare shield;")
-            .addInfo("  dose extra Agent into a Field socket on a flare warning.")
-            .addInfo("T7 + stability rail: Triangulum (Ergomatter); T8 + shard halo: the Milky Way (Superdense")
-            .addInfo("  Ergomatter from an Ergomatter feed). Galaxies live on a Quasar Engine's gamma-ray bursts on")
-            .addInfo("  the GRB Receptor Ports: bring 1.5x the demand (1.5 / 6 Bu/t = 1.5e13 / 6.0e13 EU/t; 1 Bu/t")
-            .addInfo("  = 10^13 EU/t), Space trims cool P, aim the")
-            .addInfo("  rail's high / low banks for W, the halo holds Λ. Unlocks: the Stability Link (T6) and the")
-            .addInfo("  Heavy Link (T7), 30 min of linked bursts; then the Magnetar Collapse and the Galactic Merger")
-            .addInfo("  begin on a signal. Planets mode: 3 / 6 planets from the slot bus; companions: 1 / 2 charts.")
-            .addInfo("Stars are LIVE: a Stellar Ignition Charge in a plinth input bus lights T1-T3; every")
-            .addInfo("  60 s cycle takes EU and upkeep; hold the stability field or the star is lost.")
-            .addInfo("  Once T4 is unlocked, a dark Eye with the Neutron Star chart relights Arcturus from a")
-            .addInfo("  charge and re-runs the Core Collapse by itself (no core).")
-            .addInfo("Tiers unlock in order: the current star's milestones, then the next core")
-            .addInfo("  (right-click it into escrow), then its transition. Sneak-punch returns the core.")
-            .addInfo("  A transition starts only when the buffers also hold the new star's first cycle.")
-            .addInfo("The stability field: trim fluids into the Field sockets (plain input hatches, not")
-            .addInfo("  buffered); Stellar Field Sensor Hatches read any gauge as redstone. Standard rig:")
-            .addInfo("  sensor -> Fluid Regulator cover or export bus with a redstone card -> Field hatch.")
-            .addInfo("The GUI shows every gauge, upkeep, the transition and the last failure, and sets the")
-            .addInfo("  time dial (Time Dilation generators; costs Tachyon Rich Temporal Fluid) and the T4 feed.")
-            .addInfo("Automation: every action has an AE2, redstone, OpenComputers and Factory Manager route.")
-            .addInfo("  Directive Hatches (Sensor sockets) put out what the Eye needs as a 4-bit code: Trims,")
-            .addInfo("  Status, Transition (tables on the hatch); a control-set hatch takes redstone for the dial.")
-            .addInfo("  T7+: the 'd' sockets take Directive Hatches (Field, Events, Galaxy Transition, Slots) or a")
-            .addInfo("  Burst Control Hatch (Begin: a rising edge begins a ready galaxy transition).")
-            .addInfo("  A plinth input bus takes the next core into escrow and a star chart into the controller")
-            .addInfo("  slot; the old target and spare copies leave through the ME output bus (export-bus card")
-            .addInfo("  on Signal pulse; no swap during a transition). OpenComputers: Adapter -> bts_eye.")
-            .addInfo("The star is drawn at the Eye's centre while it burns (GUI toggle, config eyeRenderCentre).")
-            .addInfo("Planets give TecTech's ores and plasmas, without Raw Star Matter or dwarf matter.")
+            .addInfo("Burns a live star, or mines planets, for the " + term("Star Chart") + " in its slot.")
+            .addInfo("Replaces TecTech's Eye of Harmony.")
             .addSeparator()
-            .addInfo("Power: wireless EU (planets: per run at start; stars: per cycle); none returned.")
-            .addInfo("Parallel x2 for every installed tier above the recipe's tier (stars: from the next charge).")
-            .addInfo("Field generators (any tier, mixable; the lowest tier of each type counts):")
-            .addInfo("  Spacetime Compression GATES the tier: Eye TN (T1-T8) needs every one at tier N+.")
-            .addInfo("  It alone decides the planets: a TN Eye runs every planet of T1..TN.")
-            .addInfo("  Planets: -3% time per compression tier above the planet's TecTech tier.")
-            .addInfo("  Time Dilation above the star's tier opens the time dial; Stabilisation calms the field.")
-            .addInfo("  Tier step: upgrade each generator in place in the Condensate Assembler (the old one plus")
-            .addInfo("  what the new tier adds; its Kerr controller stays inside). Stabilisation: + Retrofit Kits.")
-            .addInfo("A short wireless network runs fewer parallels rather than none.")
-            .addInfo("Inputs drain every second into internal buffers, only up to the target's intake cap:")
-            .addInfo("  stars max(ignition, 20 cycles of upkeep) plus a transition the Eye could begin; planets")
-            .addInfo("  2 runs at full parallel (T7/T8: each slot-bus planet; companions add 20 of their cycles).")
-            .addInfo("  The rest stays in the hatch or ME network (scanner: held / cap),")
-            .addInfo("  so one ME stocking hatch never drains the network. Outputs go to ME only.")
-            .addSeparator()
+            .addInfo("Light it: a " + term("Stellar Ignition Charge") + " in a plinth input bus.")
+            .addInfo("Feed " + term("Hydrogen") + " and " + term("Helium") + " into the plinth gas hatches.")
             .addInfo(
-                "Chunk-load the full footprint: while any chunk of it is unloaded the Eye is frozen (nothing is lost).")
+                "Each " + num((int) StellarField.CYCLE_SECONDS + " s") + " cycle takes wireless EU and fluid upkeep.")
+            .addInfo("Trim fluids in the Field hatches hold the stability field.")
+            .addInfo(warn("Let the field slip too far and the star is lost."))
+            .addInfo("The GUI shows every gauge, the upkeep and the next step.")
+            .addSeparator()
+            .addInfo("Each tier up to T" + MAX_TIER + " adds a band to the structure.")
+            .addInfo("Unlock in order: milestones, the next core, the transition.")
+            .addInfo("Spacetime Compression generators gate the tier:")
+            .addInfo("an Eye of tier N needs every one at tier N or higher.")
+            .addInfo(parallel("x2") + " parallels for each installed tier above the recipe's.")
+            .addInfo("T7 and T8 run on a Quasar Engine's bursts (GRB Receptor Ports).")
+            .addInfo("Outputs go to ME only.")
+            .addInfo(hint("Optional: Stellar Field Sensor and Directive Hatches for redstone."))
+            .addInfo(warn("Chunk-load the whole footprint; an unloaded Eye is frozen."))
             .beginVariableStructureBlock(core[0], full[0], core[1], full[1], core[2], full[2], false)
             .addController("Plinth, front centre")
             .addCasingInfoExactly("Reinforced Spatial Structure Casing", bom(PIECE_CORE, 'U'), false)
@@ -3201,7 +3169,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addCasingInfoExactly("Infinite SpaceTime Energy Boundary Casing", bom(PIECE_CORE, 'J'), false)
             .addCasingInfoExactly("Quantum Glass", bom(PIECE_CORE, 'Z') + bom(PIECE_CORE, 'A'), false)
             .addCasingInfoExactly(
-                "Spacetime Compression Field Generator (tier = Eye tier or higher)",
+                "Spacetime Compression Field Generator (Eye tier or higher)",
                 bom(PIECE_CORE, 'W'),
                 true)
             .addCasingInfoExactly("Time Dilation Field Generator (any tier)", bom(PIECE_CORE, 'X'), true)
@@ -3212,7 +3180,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addOtherStructurePart("T5 second arms", bom(PIECE_ARMS2, 'T') + " Galactic Shell Plating")
             .addOtherStructurePart(
                 "T6 galactic rim",
-                (bom(PIECE_RIM, 'T') + bom(PIECE_RIM, 'g')) + " Galactic Shell Plating (4 may be sockets)")
+                (bom(PIECE_RIM, 'T') + bom(PIECE_RIM, 'g')) + " Galactic Shell Plating")
             .addOtherStructurePart(
                 "T7 stability rail",
                 (bom(PIECE_RAIL, 'B') + bom(PIECE_RAIL, 'r')) + " Bastion Plate, "
@@ -3221,34 +3189,24 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addOtherStructurePart(
                 "T8 shard halo",
                 (bom(PIECE_HALO, 'B') + bom(PIECE_HALO, 'r')) + " Bastion Plate and glass")
-            .addOtherStructurePart(
-                "GRB Receptor Port",
-                "rail (4 high, 4 low) and halo (8); T7 needs 1+ per bank, T8 all 8 halo",
-                9)
-            .addOtherStructurePart("Directive Hatch or Burst Control Hatch", "plinth, 4 'd' sockets, optional", 7)
-            .addOtherStructurePart("Input bus (the slot bus: planets, companion charts)", "plinth, optional", 8)
-            .addOtherStructurePart("Gas input hatch (H, He), or input bus (ignition charges)", "plinth, 1+ hatch", 1)
-            .addOtherStructurePart("ME Output Bus + ME Output Hatch", "plinth, at least 1 of each", 2)
-            .addMaintenanceHatch("Plinth", 3)
-            .addOtherStructurePart("Stellar input hatch", "beam band, jet crescent and rim sockets", 4)
-            .addOtherStructurePart(
-                "Field input hatch (stability trims, not buffered; no ME stocking)",
-                "core band, " + bom(PIECE_CORE, 'f') + " sockets, optional",
-                5)
-            .addOtherStructurePart(
-                "Stellar Field Sensor Hatch or Directive Hatch",
-                "core band, " + bom(PIECE_CORE, 'n') + " sockets, optional",
-                6)
-            .addStructureInfo("Hologram: trigger stack 1 = T1 core, 2 = + beam band, 3 = + jet crescent, 4 = + arms,")
-            .addStructureInfo("  5 = + second arms, 6 = + galactic rim, 7 = + stability rail, 8 = + shard halo.")
-            .addStructureInfo("Compression generators are placed at the stack's tier (its 1:1 gate); Time")
-            .addStructureInfo("  Dilation and Stabilisation at tier 1. The projector's EOH channels")
-            .addStructureInfo("  (spacetime_compression, time_dilation, stabilisation) raise them.")
-            .addStructureInfo("Builds never overwrite hatches, nor downgrade a field generator already placed.")
-            .addStructureInfo("Window band at the star's height: a Quantum Glass pane in the core band's front, the")
-            .addStructureInfo(
-                "  cells behind it and the arm / rim cells in front of it open. Old Eyes keep their blocks.")
-            .toolTipFinisher();
+            .addInputHatch("1+", "Plinth gas sockets (Hydrogen, Helium)", 1)
+            .addInputBus("0+", "Plinth gas sockets (Stellar Ignition Charges)", 1)
+            .addOutputBus("1", "ME Output Bus, plinth", 2)
+            .addOutputHatch("1", "ME Output Hatch, plinth", 2)
+            .addMaintenanceHatch("1", "Plinth", 3)
+            .addInputHatch("1+", "Stellar fluids: beam band, jet crescent and rim sockets", 4)
+            .addInputHatch("0+", "Field sockets, core band: trim fluids (no ME stocking)", 5)
+            .addMiscHatch("0+", "Stellar Field Sensor Hatch, Directive Hatch", "core band sockets", 6)
+            .addMiscHatch("0+", "Directive Hatch, Burst Control Hatch", "plinth, above the controller", 7)
+            .addInputBus("0-1", "Plinth slot bus (planets, companion charts)", 8)
+            .addMiscHatch("1+", "GRB Receptor Port", "T7 rail: 1+ per bank; T8 halo: all 8", 9)
+            .addStructureInfo("Projector stack N builds tiers 1 to N (stack 1: the T1 core).")
+            .addStructureInfo("Compression generators go in at the stack's tier.")
+            .addStructureInfo("GT's EOH projector channels raise any generator tier.")
+            .addStructureInfo("Optional sockets stay casing unless channel")
+            .addStructureInfo(BTSStructures.OPTIONAL_HATCH_CHANNEL + " is set on the projector.")
+            .addStructureInfo("Builds never overwrite hatches or downgrade a generator.")
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 

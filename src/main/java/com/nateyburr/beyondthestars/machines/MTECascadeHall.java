@@ -21,12 +21,12 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -40,7 +40,6 @@ import gregtech.api.recipe.RecipeMapBuilder;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.MultiblockTooltipBuilder;
-import gregtech.api.util.tooltip.TooltipHelper;
 import gregtech.common.tileentities.machines.outputme.MTEHatchOutputME;
 
 /**
@@ -306,28 +305,29 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String aqua = EnumChatFormatting.AQUA.toString();
-        final String gray = EnumChatFormatting.GRAY.toString();
         tt.addMachineType("Gas Centrifuge")
-            .addInfo("Separates Uranium Hexafluoride into an enriched cut and a tails stream.")
-            .addInfo("Circuit 1 = low-enriched cut (IV), 2 = highly-enriched cut (needs LuV power).")
-            .addInfo("The hall has no input bus: put the Programmed Circuit in the controller's slot.")
-            .addInfo("The tails (Depleted UF6) are a product, not waste: they become MOX diluent")
-            .addInfo("and Depleted Uranium Ingots for shielded casings.")
+            .addInfo("Splits Uranium Hexafluoride into an enriched cut and tails.")
+            .addSeparator()
             .addInfo(
-                aqua + "Stage banks:"
-                    + gray
-                    + " each one doubles the parallel: "
-                    + TooltipHelper.parallelText(1)
-                    + " / "
-                    + TooltipHelper.parallelText(2)
-                    + " / "
-                    + TooltipHelper.parallelText(4)
-                    + " / "
-                    + TooltipHelper.parallelText(8)
-                    + " / "
-                    + TooltipHelper.parallelText(16))
-            .addInfo("Parallels are also limited by the power your Energy Hatches supply.")
+                "Circuit " + BTSTip.num(1)
+                    + ": low-enriched cut ("
+                    + BTSTip.tier(gregtech.api.enums.VoltageIndex.IV)
+                    + ").")
+            .addInfo(
+                "Circuit " + BTSTip.num(2)
+                    + ": highly-enriched cut ("
+                    + BTSTip.tier(gregtech.api.enums.VoltageIndex.LuV)
+                    + " power).")
+            .addInfo("No input bus: the circuit goes in the controller slot.")
+            .addInfo("The tails (" + BTSTip.term("Depleted UF6") + ") are a product, not waste:")
+            .addInfo("MOX diluent and Depleted Uranium Ingots.")
+            .addSeparator()
+            .addInfo(
+                "Each stage bank doubles the parallels: " + BTSTip.parallel("1")
+                    + " to "
+                    + BTSTip.parallel(String.valueOf(1 << MAX_BANKS))
+                    + ".")
+            .addInfo("Your Energy Hatches' power also caps them.")
             .beginVariableStructureBlock(5, 5, 5, 5, 8, 24, true)
             .addController("Front face, centre")
             .addCasing("140-397", "Tungstensteel Turbine Casing (+64 per stage bank)", false)
@@ -337,9 +337,9 @@ public class MTECascadeHall extends MTEProductionHallBase<MTECascadeHall> {
             .addEnergyHatch("1", "Front face, 2nd row from the top, right", 2)
             .addMaintenanceHatch("1", "Front face, 2nd row from the top, left", 1)
             .addInputHatch("1", "Front face, directly below the controller", 3)
-            .addOutputHatch("2", "Front face, either side of the controller: one per stream, or 1 ME Output Hatch", 4)
-            .addStructureInfo("Each stage bank adds 4 blocks of length: a ring of Iridium Reinforced")
-            .addStructureInfo("Block around one Tungstensteel Pipe Casing.")
+            .addOutputHatch("2", "Front face, either side of the controller (or 1 ME Output Hatch)", 4)
+            .addStructureInfo("Each stage bank adds 4 blocks of length: Iridium")
+            .addStructureInfo("Reinforced Block round one Tungstensteel Pipe Casing.")
             .addStructureInfo("Projector: stack size 1-5 builds 0-4 stage banks.")
             .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;

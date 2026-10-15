@@ -66,6 +66,7 @@ import com.nateyburr.beyondthestars.fluids.BTSFluids;
 import com.nateyburr.beyondthestars.fluids.BTSWaterGrade;
 import com.nateyburr.beyondthestars.items.BTSItems;
 import com.nateyburr.beyondthestars.items.BTSItemsFuel;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.progression.BTSChannel;
 import com.nateyburr.beyondthestars.progression.BTSMilestone;
 import com.nateyburr.beyondthestars.progression.BTSProgression;
@@ -8592,39 +8593,30 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         // The long explanations (swirl, injector window, laser painting, module layouts) live
         // in the questbook; the GUI's MATH section prints the live derivation.
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String aqua = EnumChatFormatting.AQUA.toString();
-        final String red = EnumChatFormatting.RED.toString();
-        final String gray = EnumChatFormatting.GRAY.toString();
         tt.addMachineType("Nuclear Reactor, Steam Turbine")
-            .addInfo(aqua + "A whole nuclear power plant, run from one controller.")
-            .addInfo("Fuel rods boil feedwater into steam; the turbine turns it into EU.")
-            .addInfo("One hologram projection builds every piece: platform, Reactor Silo,")
-            .addInfo("Spine, Spiral chamber, Rotor Assembly, Cooling Towers and the modules.")
+            .addInfo("A whole nuclear power plant, run from one controller.")
+            .addInfo("Fuel rods boil feedwater; the turbine turns the steam into EU.")
+            .addInfo("One projection builds every piece of the plant.")
             .addSeparator()
-            .addInfo(aqua + "Supply:" + gray + " rods + feedwater at the silo face; coolant + propellant at")
-            .addInfo("the Spiral chamber's front wall; Dynamos + Laser Sources at the manifold.")
-            .addInfo(aqua + "Running:" + gray + " each redstone pulse on the Turbine Control Block runs one cycle.")
+            .addInfo(BTSTip.heading("Supply"))
+            .addInfo(BTSTip.bullet("silo face: fuel rods and feedwater;"))
+            .addInfo(BTSTip.bullet("Spiral chamber front wall: coolant and propellant;"))
+            .addInfo(BTSTip.bullet("output manifold: Dynamo and Laser Source Hatches."))
+            .addInfo("Each redstone pulse on the " + BTSTip.term("Turbine Control Block") + " runs one cycle.")
+            .addSeparator()
             .addInfo(
-                aqua + "GUI:"
-                    + gray
-                    + String.format(
-                        " Rods 1-24 (up to 36), RPM limit %,d (up to %,d), Build Tier.",
-                        RPM_REDLINE,
-                        RPM_LIMIT_MAX))
-            .addInfo("A Programmed Circuit in the controller overrides the Rods field.")
+                "GUI: Rods " + BTSTip.num(
+                    "1-24") + " (up to " + BTSTip.num(36) + "), RPM limit " + BTSTip.num(BTSTip.fmt(RPM_REDLINE)) + ".")
+            .addInfo("A Programmed Circuit in the controller overrides Rods.")
             .addInfo(
-                red + "Heat:"
-                    + gray
-                    + String.format(
-                        " SCRAM at %,d, MELTDOWN at %,d; %d min of decay cooling.",
-                        SCRAM_HEAT,
-                        MELTDOWN_HEAT,
-                        DECAY_HEAT_TICKS / 1200))
-            .addInfo(red + String.format("Without a Switchyard, output is capped at %,d EU/t.", GRID_SOFT_CAP))
-            .addInfo(aqua + "Progress:" + gray + " milestones raise output; spend points in the Upgrade Tree.")
-            .addInfo("Progress is saved in the controller and survives breaking it.")
-            .addInfo("The GUI's MATH section shows how the EU/t is worked out.")
-            .addInfo("NEI: look up this controller for the fuel, propellant and coolant tables.")
+                BTSTip.warn(
+                    "SCRAM at " + BTSTip.fmt(SCRAM_HEAT) + " heat, MELTDOWN at " + BTSTip.fmt(MELTDOWN_HEAT) + "."))
+            .addInfo("Decay cooling after a stop: " + BTSTip.num(DECAY_HEAT_TICKS / 1200 + " min") + ".")
+            .addInfo(BTSTip.warn("No Switchyard: output capped at ") + BTSTip.euT(GRID_SOFT_CAP) + ".")
+            .addSeparator()
+            .addInfo("Milestones raise the output; spend points in the Upgrade Tree.")
+            .addInfo("Progress lives in the controller and survives breaking it.")
+            .addInfo(BTSTip.hint("NEI on this controller: the fuel, propellant and coolant tables."))
             // No addSupportLaser(): GT's green line means laser ENERGY INPUT, and the plant's
             // Energy Hatch sockets take plain Energy Hatches only. Its lasers are Laser Source
             // (output) hatches, which the info line above and the structure block name.
@@ -8635,18 +8627,11 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             // controller up (22 with a tier-1 silo).
             .beginVariableStructureBlock(50, 50, 2, 42, 50, 50, true)
             .addController("Silo face, centre, at platform level")
-            .addCasing("2,251", "Light Concrete (platform; +50 Spiral, +736 per Cooling Tower)", false)
+            .addCasing("2,251", "Light Concrete (platform; more with the Spiral and towers)", false)
             .addCasing("249", "Tungstensteel Reinforced Block (shield pad under the silo)", false)
-            .addCasing(
-                "451-1,667",
-                "Silo wall: Radiation Proof Machine Casing (T1-2), Europium Reinforced"
-                    + " Radiation Proof Machine Casing (T3-4), Radiant Naquadah Alloy Casing (T5)",
-                true)
+            .addCasing("451-1,667", "Silo wall: Radiation Proof, Europium or Radiant Naquadah", true)
             .addCasing("69-141", "Radiation Proof Machine Casing (silo bands, empty face sockets)", false)
-            .addCasing(
-                "113-497",
-                "Silo dome: Tungstensteel Reinforced Block (T1-2), Iridium Reinforced Block (T3+)",
-                true)
+            .addCasing("113-497", "Silo dome: Tungstensteel or Iridium Reinforced Block", true)
             .addCasing("0-830", "Tungstensteel Turbine Casing (Spine, Spiral chamber, Rotor Assembly)", false)
             .addCasing("0-1,608", "Reactor Fuel Pillar Frame (stacks of 8 on 45-201 pillars)", false)
             .addCasing("0-12", "Turbine Housing (4 in the Spine, 8 in the gallery)", false)
@@ -8658,36 +8643,23 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
                 "Module sockets",
                 "Derrick: Output Bus; Annex: Input Bus, Acid Input Hatch, Output Bus",
                 2)
-            .addOtherStructurePart(
-                "Laser Source Hatch",
-                "0-4: manifold back face, 6th row up; paint each to match its Laser Target",
-                5)
+            .addOtherStructurePart("Laser Source Hatch", "0-4: manifold back face, 6th row up", 5)
             .addDynamoHatch("0-4", "Output manifold back face, 4th row up", 4)
-            .addEnergyHatch(
-                "0-4",
-                "Manifold back face, 5th row up. The reactor needs none; they power the Derrick and the Annex",
-                4)
-            .addMaintenanceHatch(
-                "1-3",
-                "Silo face, beside the controller (required); Spiral floor and manifold",
-                1,
-                3,
-                4)
+            .addEnergyHatch("0-4", "Manifold back face, 5th row up (only for the Derrick and the Annex)", 4)
+            .addMaintenanceHatch("1-3", "Silo face by the controller; Spiral floor; manifold", 1, 3, 4)
             .addInputBus("1", "Rod Input Bus: silo face, 2 above the controller, left of centre", 1)
-            .addInputHatch(
-                "1-3",
-                "Feedwater: left of the Silo Control Block; Coolant, Propellant: Spiral front wall",
-                1,
-                3)
+            .addInputHatch("1-3", "Feedwater by the Silo Control Block; Spiral front wall", 1, 3)
             .addOutputBus("1", "Depleted Output Bus: silo face, 2 above the controller, right of centre", 1)
             .addOutputHatch("1", "Silo face, right of the Silo Control Block (water / steam out)", 1)
-            .addStructureInfo("Rod Loading Ports on top of the pillars are optional (hand-feeding).")
-            .addStructureInfo("Optional pieces: Spine, Spiral chamber, Rotor Assembly, 2 Cooling Towers,")
-            .addStructureInfo("Vent Stack, Switchyard, Extraction Derrick, Enrichment Annex.")
+            .addStructureInfo("Paint each Laser Source Hatch to match its Laser Target.")
+            .addStructureInfo("Rod Loading Ports on the pillars are optional (hand-feeding).")
+            .addStructureInfo("Optional pieces: Spine, Spiral chamber, Rotor Assembly,")
+            .addStructureInfo("2 Cooling Towers, Vent Stack, Switchyard, Extraction Derrick,")
+            .addStructureInfo("Enrichment Annex.")
             .addStructureInfo("The Blueprint quests list every piece's blocks.")
             .addMasterChannel("Silo tier 1-5 (a stack of 1 uses the GUI Build Tier)")
-            .addStructureInfo(
-                "A plant built by a much older version: a server operator runs /btsmigrate beside it once.")
+            .addStructureInfo("A plant from a much older version: an op runs")
+            .addStructureInfo("/btsmigrate beside it once.")
             .toolTipFinisher(com.nateyburr.beyondthestars.BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }

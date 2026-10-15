@@ -22,12 +22,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.casing.Casings;
@@ -39,7 +39,6 @@ import gregtech.api.recipe.RecipeMapBackend;
 import gregtech.api.recipe.RecipeMapBuilder;
 import gregtech.api.structure.error.StructureError;
 import gregtech.api.util.MultiblockTooltipBuilder;
-import gregtech.api.util.tooltip.TooltipHelper;
 
 /**
  * D-26 THE FUEL FABRICATION HALL - MTE 28110, IV (docs/production-lines.md S5.2).
@@ -234,24 +233,21 @@ public class MTEFuelFabricationHall extends MTEProductionHallBase<MTEFuelFabrica
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
-        final String aqua = EnumChatFormatting.AQUA.toString();
-        final String gray = EnumChatFormatting.GRAY.toString();
         tt.addMachineType("Fuel Rod Assembler")
-            .addInfo("Loads pellets into cladding tubes and bundles rods into assemblies.")
-            .addInfo("A tier-5 Reactor Silo burns 201 rods per decay cycle: this feeds it.")
-            .addInfo("Circuit 1 / 2 / 3 = the uranium, MOX and thorium grades.")
-            .addInfo("The naquadah grade is made elsewhere: its rods in a Precise Assembler,")
-            .addInfo("its assemblies on an Assembly Line.")
-            .addInfo("Parallel: " + TooltipHelper.parallelText(8) + " per shell tier (8 / 16 / 24)")
-            .addInfo(aqua + "Shell tier:" + gray + " Clean Stainless Steel 1, Iridium Reinforced 2,")
-            .addInfo("Radiant Naquadah Alloy 3. The weakest block in the wall sets it.")
-            .addInfo("Parallels are also limited by the power your Energy Hatches supply.")
+            .addInfo("Loads pellets into cladding and bundles rods into assemblies.")
+            .addInfo("Feeds a tier-5 Reactor Silo (" + BTSTip.num(201) + " rods per decay cycle).")
+            .addSeparator()
+            .addInfo("Circuit " + BTSTip.num("1 / 2 / 3") + ": the uranium, MOX and thorium grades.")
+            .addInfo("Naquadah rods: Precise Assembler; assemblies: Assembly Line.")
+            .addSeparator()
+            .addInfo(BTSTip.parallel("8") + " parallels per shell tier (" + BTSTip.parallel("8 / 16 / 24") + ").")
+            .addInfo(
+                "Shell tier: Clean Stainless Steel " + BTSTip.num(1) + ", Iridium Reinforced " + BTSTip.num(2) + ",")
+            .addInfo("Radiant Naquadah Alloy " + BTSTip.num(3) + ". The weakest wall block sets it.")
+            .addInfo("Your Energy Hatches' power also caps the parallels.")
             .beginStructureBlock(7, 5, 12, true)
             .addController("Front face, centre")
-            .addCasing(
-                "262-264",
-                "Clean Stainless Steel Machine Casing / Iridium Reinforced Block / Radiant Naquadah Alloy Casing",
-                true)
+            .addCasing("262-264", "Shell: Clean Stainless Steel, Iridium or Radiant Naquadah", true)
             .addCasing("10", "Tungstensteel Turbine Casing (spine down the centreline)", false)
             .addAir("The rest of the interior: keep pipes and cables outside")
             .addEnergyHatch("1-2", "Front face, 2nd row from the top", 2)

@@ -26,6 +26,7 @@ import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.items.BTSItemsFuel;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Materials;
@@ -203,18 +204,25 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Yellowcake Mill")
             .addInfo("Leaches Uraninite Dust with Hydrofluoric Acid into Yellowcake.")
-            .addInfo(String.format("Every 30 s: %d Uraninite Dust + %,d L Hydrofluoric Acid", INPUT_URANINITE, ACID_MB))
-            .addInfo(String.format("-> %d Yellowcake + %d Thorium Dust.", OUTPUT_YELLOWCAKE, OUTPUT_THORIUM))
+            .addSeparator()
             .addInfo(
-                "Uses " + TooltipHelper.euRateText(TierEU.RECIPE_HV)
-                    + " ("
-                    + TooltipHelper.voltageTierText(VoltageIndex.HV, false)
-                    + ")")
-            .addInfo("Same 4 Uraninite per Yellowcake as the full ore line:")
-            .addInfo("it saves machines, not ore.")
-            .addInfo("Next step: Chemical Plant, Yellowcake -> Uranium Tetrafluoride.")
-            .addInfo("Enrichment itself is the Cascade Hall.")
-            .addInfo("The Nuclear Plant Foundation has this built in as its Enrichment Annex.")
+                "Every " + BTSTip.num("30 s")
+                    + ": "
+                    + BTSTip.num(INPUT_URANINITE)
+                    + " Uraninite Dust + "
+                    + BTSTip.num(BTSTip.fmt(ACID_MB) + " L")
+                    + " Hydrofluoric Acid")
+            .addInfo(
+                "make " + BTSTip.num(OUTPUT_YELLOWCAKE)
+                    + " Yellowcake + "
+                    + BTSTip.num(OUTPUT_THORIUM)
+                    + " Thorium Dust.")
+            .addInfo("Uses " + TooltipHelper.euRateText(TierEU.RECIPE_HV) + " (" + BTSTip.tier(VoltageIndex.HV) + ").")
+            .addInfo("Same Uraninite per Yellowcake as the ore line: it saves machines.")
+            .addSeparator()
+            .addInfo("Next: a Chemical Plant makes Uranium Tetrafluoride.")
+            .addInfo("Enrichment itself is the " + BTSTip.term("Cascade Hall") + ".")
+            .addInfo(BTSTip.hint("The Nuclear Plant Foundation has one built in (Enrichment Annex)."))
             .beginStructureBlock(3, 3, 9, false)
             .addController("Front face, centre")
             .addCasing("65-69", "Clean Stainless Steel Machine Casing", false)

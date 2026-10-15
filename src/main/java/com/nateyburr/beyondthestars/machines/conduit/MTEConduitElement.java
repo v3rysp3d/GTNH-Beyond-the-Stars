@@ -41,6 +41,7 @@ import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.PrivateHatchFluids;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
@@ -932,16 +933,20 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
 
     /** The lines every element's tooltip shares (throat, upkeep, rays). */
     protected static MultiblockTooltipBuilder commonInfo(MultiblockTooltipBuilder tt) {
-        return tt.addInfo("Throat: a Conduit Throat in the controller slot (swap to upgrade): Mk I 24 Bu/t (2.4e14")
-            .addInfo("  EU/t), Mk II 384 (3.8e15), Mk III 6,144 (6.1e16), Mk IV 524,288 Bu/t (5.2e18 EU/t). Above")
-            .addInfo("  the cap the stream is clipped (shown), never damaged. 1 Bu/t = 10^13 EU/t in a crown.")
-            .addInfo("Upkeep, one unit per element: Molten SpaceTime 4 / 16 / 64 / 256 L/s by throat Mk, or")
-            .addInfo("  Ergomatter 0.25 / 1 / 4 / 16 L/s (after Eye T7); Mk IV prefers Superdense Ergomatter, 2 L/s.")
-            .addInfo("  GUI: Auto / SpaceTime / Ergomatter. Short upkeep closes")
-            .addInfo("  the element (its streams stop); it opens after 10 s of full upkeep (a new element too).")
-            .addInfo("Between elements: a straight ray of up to 64 blocks of air out of a throat into the next")
-            .addInfo("  element's throat (or onto a GRB Receptor Port). Any block in the way stops it (the scanner")
-            .addInfo("  says where). The stream keeps its source quasar all the way: that is the host's link.");
+        final double[] cap = BurstRouting.THROAT_CAP;
+        return tt.addInfo("A " + BTSTip.term("Conduit Throat") + " in the controller slot sets the cap:")
+            .addInfo(BTSTip.bullet("Mk I: " + BTSTip.bu(cap[1])))
+            .addInfo(BTSTip.bullet("Mk II: " + BTSTip.bu(cap[2])))
+            .addInfo(BTSTip.bullet("Mk III: " + BTSTip.bu(cap[3])))
+            .addInfo(BTSTip.bullet("Mk IV: " + BTSTip.bu(cap[4])))
+            .addInfo("Above the cap the stream is clipped, never damaged.")
+            .addInfo("Upkeep per element: Molten SpaceTime or Ergomatter (GUI).")
+            .addInfo(
+                BTSTip.warn(
+                    "Short upkeep closes it; it reopens after " + BurstRouting.REOPEN_SECONDS + " s of full upkeep."))
+            .addInfo(
+                "Streams fly up to " + BTSTip.num(BurstRouting.MAX_HOP + " blocks") + " of air to the next throat.")
+            .addInfo(BTSTip.warn("Any block in the way stops the stream."));
     }
 
     protected static MultiblockTooltipBuilder commonStructure(MultiblockTooltipBuilder tt, String piece) {
@@ -949,12 +954,9 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             .addCasingInfoExactly("Reinforced Temporal Structure Casing", bom(piece, 'A'), false)
             .addCasingInfoExactly("Casimir Plate", bom(piece, 'P'), false)
             .addCasingInfoExactly("Jet Collimator Ring", bom(piece, 'C'), false)
-            .addOtherStructurePart(
-                "Input Hatch (throat fuel, ME stocking OK)",
-                bom(piece, 'u') + " sockets, at least 1",
-                1)
-            .addStructureInfo("Any facing (wrench the front; sneak-wrench flips). Builds never overwrite a hatch.")
-            .addStructureInfo("No maintenance or power needed (the energy socket is optional).");
+            .addInputHatch("1-" + bom(piece, 'u'), "Throat fuel (ME stocking OK)", 1)
+            .addStructureInfo("Any facing: wrench the front, sneak-wrench flips.")
+            .addStructureInfo("No maintenance or power needed. Builds never overwrite a hatch.");
     }
 
     protected ITexture[] elementTexture(ForgeDirection side, ForgeDirection facing, boolean active,

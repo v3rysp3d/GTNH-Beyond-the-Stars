@@ -2,6 +2,10 @@ package com.nateyburr.beyondthestars.machines.kerr;
 
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.hint;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.parallel;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.speed;
+import static com.nateyburr.beyondthestars.machines.gui.BTSTip.term;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.InputBus;
@@ -15,6 +19,7 @@ import javax.annotation.Nonnull;
 
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
@@ -123,26 +128,28 @@ public class MTEKerrExtractorModule extends MTEKerrModuleBase<MTEKerrExtractorMo
         final int[] size = BTSShapes.size(p);
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Extractor")
-            .addInfo("A Kerr Ergosphere Engine module: a separate machine standing in the KEE's east arc.")
-            .addInfo("Runs only while linked to a formed KEE with an OPEN hole. When the hole closes it")
-            .addInfo("  pauses and keeps its recipe; it resumes when the hole reopens.")
-            .addInfo("Runs GT's Extractor recipes (items only).")
-            .addInfo("The hole sets the bonus, fixed when a recipe starts:")
-            .addInfo("  parallel 8 x the tier of this module's total input (V x A) x floor(sqrt(M)),")
-            .addInfo("  e.g. one 2 A UIV hatch counts as UMV: 384 at 16 SM, 768 at 64 SM;")
-            .addInfo("  speed x(3200/M)/50, from 1 to 4. The module costs the hole nothing.")
+            .addInfo("Extracts with the black hole of a " + term("Kerr Ergosphere Engine") + ".")
+            .addInfo("Its own machine, built in the Kerr's east arc.")
+            .addInfo("Runs only while the Kerr's hole is open; pauses, never voids.")
             .addSeparator()
-            .addInfo("Place this controller where the KEE's hologram shows marker 8, facing out of the cage.")
+            .addInfo("Runs GT's Extractor recipes (items only).")
+            .addSeparator()
+            .addInfo("The hole sets the bonus when a recipe starts:")
+            .addInfo(parallel(MTEKerrEngine.PARALLEL_PER_TIER + " x tier x floor(sqrt(M))") + " parallels,")
+            .addInfo("and " + speed("x1 to x" + (int) MTEKerrEngine.MAX_SPEED) + " speed; a smaller hole runs faster.")
+            .addInfo("The tier is that of this module's total input (V x A).")
+            .addInfo("A module costs the hole nothing.")
+            .addInfo(hint("Place it on hint dot 8 of the Kerr's hologram, facing out."))
             .beginStructureBlock(size[0], size[1], size[2], false)
-            .addController("East arc, outer face, on the 340 degree ray")
+            .addController("East arc, outer face")
             .addCasingInfoExactly("Ergosphere Extraction Casing", MTEKerrCompressorModule.bom(p, 'N'), false)
             .addCasingInfoExactly("Harmonic Lining", MTEKerrCompressorModule.bom(p, 'J'), false)
             .addCasingInfoExactly("Hawking Radiation Realignment Focus", MTEKerrCompressorModule.bom(p, 'K'), false)
-            .addInputBus("Any arc socket (at least 1)", 1)
-            .addOutputBus("Any arc socket (at least 1)", 1)
-            .addEnergyHatch("Any arc socket (1 laser/multi-amp or up to 2 energy hatches)", 1)
-            .addStructureInfo("No maintenance hatch. Item buses only. Hologram: one tier, the arc.")
-            .toolTipFinisher();
+            .addInputBus("1+", "Any arc socket", 1)
+            .addOutputBus("1+", "Any arc socket", 1)
+            .addEnergyHatch("1-2", "Any arc socket (1 laser or up to 2 energy hatches)", 1)
+            .addStructureInfo("No maintenance hatch. Item buses only.")
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 }

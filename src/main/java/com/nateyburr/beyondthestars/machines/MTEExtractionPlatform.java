@@ -27,6 +27,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
 import com.nateyburr.beyondthestars.BeyondTheStars;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.casing.Casings;
 import gregtech.api.enums.Materials;
@@ -160,17 +161,21 @@ public class MTEExtractionPlatform extends MTEExtendedPowerMultiBlockBase<MTEExt
     protected MultiblockTooltipBuilder createTooltip() {
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Ore Drill")
-            .addInfo("A uranium mine that never runs dry: needs only power.")
-            .addInfo("Every 10 s: 6 Uraninite Dust + 1 Thorium Dust,")
-            .addInfo("plus 1 Tantalum Dust every 4th cycle.")
+            .addInfo("A uranium mine that never runs dry: it needs only power.")
+            .addSeparator()
             .addInfo(
-                "Uses " + TooltipHelper.euRateText(TierEU.RECIPE_EV)
-                    + " ("
-                    + TooltipHelper.voltageTierText(VoltageIndex.EV, false)
-                    + ")")
-            .addInfo("Feed the Uraninite to a Yellowcake Mill to make Yellowcake.")
-            .addInfo("Output Bus required: output is lost without one.")
-            .addInfo("The Nuclear Plant Foundation has this drill built in as its Extraction Derrick.")
+                "Every " + BTSTip.num(CYCLE_TICKS / 20 + " s")
+                    + ": "
+                    + BTSTip.num(6)
+                    + " Uraninite Dust + "
+                    + BTSTip.num(1)
+                    + " Thorium Dust,")
+            .addInfo("plus " + BTSTip.num(1) + " Tantalum Dust every " + BTSTip.num("4th") + " cycle.")
+            .addInfo("Uses " + TooltipHelper.euRateText(TierEU.RECIPE_EV) + " (" + BTSTip.tier(VoltageIndex.EV) + ").")
+            .addInfo(BTSTip.warn("Needs an Output Bus: output is lost without one."))
+            .addSeparator()
+            .addInfo("Feed the Uraninite to a " + BTSTip.term("Yellowcake Mill") + ".")
+            .addInfo(BTSTip.hint("The Nuclear Plant Foundation has one built in (Extraction Derrick)."))
             .beginStructureBlock(5, 8, 5, false)
             .addController("Front face, centre, 2nd layer from the bottom")
             .addCasing("60-70", "Solid Steel Machine Casing", false)

@@ -47,6 +47,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
@@ -69,6 +70,7 @@ import com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRng;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstDocks;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.burst.IBurstDock;
@@ -81,6 +83,7 @@ import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarInputs;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarParams;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarResult;
 import com.nateyburr.beyondthestars.machines.quasar.engine.QuasarState;
+import com.nateyburr.beyondthestars.machines.quasar.engine.SmbhSim;
 import com.nateyburr.beyondthestars.machines.quasar.render.BlockQuasarHole;
 import com.nateyburr.beyondthestars.machines.quasar.render.TileQuasarHole;
 
@@ -2507,56 +2510,47 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     protected MultiblockTooltipBuilder createTooltip() {
         final int[] size = BTSShapes.size(PIECE);
         final int[] latticeSize = latticeSize();
+        final double[] cap = QuasarParams.COIL_CAP;
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Quasar, Gamma-Ray Burst Source")
-            .addInfo("Holds its own black hole and feeds it gas. The gas builds an accretion disc that spins")
-            .addInfo("  and grows the hole and drives two jets of gamma-ray bursts (Bu/t). Runs no recipes.")
-            .addInfo("  1 Bu/t = 10^13 EU/t in a crown: a 4,096 SM quasar's 9,796 Bu/t is 9.8e16 EU/t (98")
-            .addInfo("  quadrillion EU/t; a Supermassive Lattice goes up to x100), so every Bu/t in its GUI shows")
-            .addInfo("  its EU/t beside it.")
-            .addInfo("Seed it once: a Quasar Seed (Kerr T2 Densification) in the controller slot, then Open.")
-            .addInfo("  The hole starts at 64 SM, spin 0, and is never lost: Collapse only makes it dormant.")
+            .addInfo("Feeds gas to its own black hole and fires gamma-ray bursts")
+            .addInfo("out of two jets. Runs no recipes.")
+            .addInfo("A " + BTSTip.term("Burst Thermaliser Crown") + " turns " + BTSTip.bu(1) + " into EU.")
+            .addInfo("A " + BTSTip.num(fmtSm(QuasarParams.M_REF)) + " quasar makes " + BTSTip.bu(SmbhSim.X1_BU) + ".")
             .addSeparator()
-            .addInfo("Disc: E, the Eddington balance (target 0; the zones Resonant, Stable, Strained, Critical,")
-            .addInfo("  Breach on |E|), and the flux (0-100). Feed f x the Eddington feed 40 x M / k L/s")
-            .addInfo("  (k: Hydrogen 0.4, Helium 0.2, Raw Star Matter 0.1). Above f 1, E runs away.")
-            .addInfo("Flux charges b x lambda / 2.4 a second; at 100 it erupts (a burst spike, E -30).")
-            .addInfo("  A purge (Burst Control Hatch rising edge, or the GUI) dumps it early from 20.")
-            .addInfo("Bursts: G0 = lambda x a^2 x b^2 x (M/64)^2 up to 4,096 SM (past it 4,096 x the output x),")
-            .addInfo("  x Yq x (0.5 + flux/100); half per jet.")
-            .addInfo("Trims (plain input hatches in the 4 tank sockets, at most 10 units a second each):")
-            .addInfo("  feed gas, 1,000 x M/64 L a unit: E +2; Spatially Enlarged Fluid, 100 x M/64 L: E -2.")
-            .addInfo("Coils (one tier everywhere) cap b and the mass: T1 256, T2 1,024, T3 2,048, T4 4,096 SM.")
-            .addInfo("Coil power: 2 A UXV x b^2 from the energy sockets. Short power: b = 0, jets stop.")
+            .addInfo("Start: a " + BTSTip.term("Quasar Seed") + " in the controller slot, then Open.")
             .addInfo(
-                "Blow-out (Breach, or Integrity 0): the disc re-forms over 300 s at f 0.3 or more (no coil power).")
+                "The hole starts at " + BTSTip.num(fmtSm(QuasarParams.SEED_MASS)) + " and is never lost: Collapse only")
+            .addInfo("makes it dormant.")
+            .addInfo("Feed: Hydrogen, Helium or Raw Star Matter into the rim.")
+            .addInfo(
+                "Keep the Eddington balance " + BTSTip.num("E") + " near " + BTSTip.num(0) + ": overfed, it runs away.")
+            .addInfo(
+                "Disc Field Coils cap the mass: " + BTSTip.num(
+                    BTSTip.fmt((long) cap[1]) + " / "
+                        + BTSTip.fmt((long) cap[2])
+                        + " / "
+                        + BTSTip.fmt((long) cap[3])
+                        + " / "
+                        + BTSTip.fmt((long) cap[4])
+                        + " SM")
+                    + ".")
+            .addInfo(
+                "Coil power: " + BTSTip.amps((long) QuasarParams.COIL_AMPS_PER_B2, BTSTip.UXV)
+                    + BTSTip.GRAY
+                    + " x b^2 (b: the field strength).")
+            .addInfo(BTSTip.warn("Without coil power the jets stop."))
             .addSeparator()
-            .addInfo("Jets: dock a Burst Thermaliser Crown or a Wormhole Mouth on each cap's port (above the")
-            .addInfo("  top cap, below the bottom one). An empty port vents its bursts.")
-            .addInfo("Automation: Directive Hatch, Disc set: [1] E low: gas trim [2] E high: Space trim")
-            .addInfo("  [4] flux at the purge setpoint: purge [8] alarm. Wire [4] to a Burst Control Hatch.")
-            .addInfo("  Sensor Hatches read E, flux, lambda, a, M, Bu/t and more. OpenComputers: bts_quasar.")
-            .addInfo("Chunk-load the whole footprint: an unloaded chunk freezes the disc and pauses its hosts.")
-            .addSeparator()
-            .addInfo("Supermassive Lattice (the last upgrade, in place): an armillary cage round this quasar. It")
-            .addInfo("  unlocks at Saturation: 4,096 SM on MagMatter coils, |E| <= 40, for 1 hour unbroken.")
-            .addInfo("  48 Containment Nodes, all one tier, set the safe limit / top: L1")
-            .addInfo("  16,384 / 65,536 SM, L2 65,536 / 262,144, L3 262,144 /")
-            .addInfo("  4,194,304 (Overdrive), L4 Constrained Eternity 4,194,304 / 67,108,864 (Unbind).")
-            .addInfo("  Past 4,096 SM power grows as the square root of mass: x2 (2.0e17 EU/t) at 16,384 SM,")
-            .addInfo("  x7.9 (7.7e17) at 262,144, x31 (3.0e18 EU/t, 3 quintillion) at the L4 top.")
-            .addInfo("  Intake (GUI bar): Disc (your feed f, the only part that moves E), then Hold-up (3 x band")
-            .addInfo("  x x the Eddington feed: holds the mass over the safe limit), then Growth (the rest), up to")
-            .addInfo("  5x the Eddington feed. Short hold-up: the extra mass leaks back (halves per hour), never")
-            .addInfo("  below the safe limit. The Accretion Buffer holds 60 s of Disc + Hold-up (a wrench or")
-            .addInfo("  a break keeps the hole on the item, not the buffer).")
-            .addInfo("  Mass setpoint (GUI, OC, Burst Control 'Hold'): growth stops there; lower it to shed (2 %/s,")
-            .addInfo("  no power meanwhile). Overdrive (L3+): up to x100 (9.8e18 EU/t) for 100,000 x o^2 L/s each")
-            .addInfo("  of Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture (trim or gas sockets).")
-            .addInfo("  Unbind (L4): each doubling")
-            .addInfo("  past 67,108,864 SM halves that upkeep, for 1,024 x 4^(n^2) L/s of Primordial Matter.")
-            .addInfo("  Automation: Directive 'Horizon' set, Sensor channels, OpenComputers (setMassSetpoint, ...).")
-            .addInfo("  A broken lattice under a hole over 4,096 SM freezes the quasar until it is repaired.")
+            .addInfo("Jets: dock a crown or a " + BTSTip.term("Wormhole Mouth") + " on each cap's port.")
+            .addInfo(BTSTip.warn("An empty port vents its bursts."))
+            .addInfo("Automation: Directive, Sensor and Burst Control Hatches.")
+            .addInfo(
+                "Upgrade: a " + BTSTip.term("Supermassive Lattice")
+                    + " grows the hole past "
+                    + BTSTip.num(fmtSm(QuasarParams.M_REF)))
+            .addInfo("for up to " + BTSTip.num("x" + (int) QuasarParams.X_CEIL) + " the output.")
+            .addInfo(BTSTip.hint("The GUI and the questbook explain the disc and the lattice."))
+            .addInfo(BTSTip.warn("Chunk-load the whole footprint."))
             .beginStructureBlock(size[0], size[1], size[2], false)
             .addController("Control box, front face of the lower wall")
             .addCasingInfoExactly("Eddington Wall Casing", bom('E'), false)
@@ -2568,28 +2562,33 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .addCasingInfoExactly("Jet Collimator Ring", bom('C'), false)
             .addCasingInfoExactly("Rim Gas Injector", bom('I'), false)
             .addCasingInfoExactly("Casimir Plate", bom('P'), false)
-            .addOtherStructurePart("Input Hatch (gas feed, ME stocking OK)", "24 rim sockets, at least 1", 1)
-            .addOtherStructurePart("Input Hatch, plain only (trims)", "4 wall-tank sockets", 2)
-            .addOtherStructurePart("Burst Control Hatch", "4 cap-rim sockets, optional", 3)
-            .addOtherStructurePart("Stellar Field Sensor Hatch", "2 control-box sockets, optional", 4)
-            .addOtherStructurePart("Directive Hatch (Disc set)", "2 control-box sockets, optional", 5)
-            .addEnergyHatch("Control box, 3 sockets (laser hatches for b 2+): coil power", 6)
+            .addInputHatch("1-" + bom('h'), "Rim: the gas feed (ME stocking OK)", 1)
+            .addInputHatch("0-" + bom('t'), "Wall tanks: trims (plain hatches only)", 2)
+            .addMiscHatch("0-" + bom('c'), "Burst Control Hatch", "cap rims", 3)
+            .addMiscHatch("0-" + bom('n'), "Stellar Field Sensor Hatch", "control box", 4)
+            .addMiscHatch("0-" + bom('d'), "Directive Hatch", "control box", 5)
+            .addEnergyHatch("1-" + bom('e'), "Control box: coil power (laser hatches for b 2+)", 6)
             .addStructureInfo(
-                "Optional Supermassive Lattice (" + latticeSize[0]
+                "Optional Supermassive Lattice: " + latticeSize[0]
                     + " x "
                     + latticeSize[1]
                     + " x "
                     + latticeSize[2]
-                    + " with the quasar): "
-                    + String.format(Locale.ROOT, "%,d", bom(PIECE_LATTICE, 'L'))
-                    + " Lattice Frame Casing, "
+                    + " with the quasar,")
+            .addStructureInfo(
+                BTSTip.fmt(bom(PIECE_LATTICE, 'L')) + " Lattice Frame Casing and "
                     + bom(PIECE_LATTICE, 'N')
-                    + " Containment Nodes (one tier)")
-            .addStructureInfo("Hologram: the coil channel (or trigger stack 1-4) picks the coil tier;")
-            .addStructureInfo("  the lattice channel (1-4) adds the lattice at that node tier, on MagMatter coils.")
-            .addStructureInfo("No maintenance hatch needed. Builds never overwrite a hatch.")
-            .toolTipFinisher();
+                    + " Containment Nodes (one tier).")
+            .addStructureInfo("Projector channel " + CHANNEL_COIL + " (or stack 1-4) picks the coil tier.")
+            .addStructureInfo("Channel " + CHANNEL_LATTICE + " (1-4) adds the lattice, on MagMatter coils.")
+            .addStructureInfo("No maintenance hatch. Builds never overwrite a hatch.")
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
+    }
+
+    /** "64 SM", "4,096 SM" for the tooltip. */
+    private static String fmtSm(double m) {
+        return BTSTip.fmt((long) m) + " SM";
     }
 
     @Override

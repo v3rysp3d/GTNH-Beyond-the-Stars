@@ -37,6 +37,7 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
@@ -48,6 +49,7 @@ import com.nateyburr.beyondthestars.machines.conduit.ConduitThroats;
 import com.nateyburr.beyondthestars.machines.conduit.FlowBook;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
+import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstDocks;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
@@ -749,26 +751,25 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final int[] size = BTSShapes.size(PIECES[MK_MAX - 1]);
+        final double[] cap = BurstRouting.CROWN_CAP;
         final MultiblockTooltipBuilder tt = new MultiblockTooltipBuilder();
         tt.addMachineType("Gamma-Ray Burst Power Plant")
-            .addInfo("Turns gamma-ray bursts into EU: 1 Bu/t = 10^13 EU/t, pushed to your wireless network.")
-            .addInfo("  No dynamo hatch. Its Mk is the crown built around the controller:")
-            .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 Bu/t (5.1e15 EU/t), Mk III 8,192 Bu/t (8.2e16 EU/t).")
-            .addInfo("  Upgrade by building the bigger crown around the same controller. The bigger Mk does not keep")
-            .addInfo(
-                "  the smaller one's petals and collimators: clear them first (the projector never breaks a block).")
-            .addInfo("  A crown stacked on top sits higher over a bigger lower crown: re-place it after the upgrade.")
-            .addInfo(
-                "  Mk IV, the Event Horizon Crown: 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion), for a Supermassive")
-            .addInfo(
-                "  Lattice quasar. Its core is Event Horizon Thermaliser Casing (4 Mk IV are the most any hole needs).")
-            .addInfo("On a Quasar Engine jet port: the base centre on the port cell (the cell just past the cap,")
-            .addInfo("  on the jet axis), standing on the top cap, upside down under the bottom cap (wrench the")
-            .addInfo("  front to rotate). It takes that jet. A portable scanner on the Quasar Engine prints both port")
-            .addInfo("  cells, and where each crown's controller goes and which way it faces.")
-            .addInfo("Remote: a GRB Receptor Port in the base takes a conduit stream.")
-            .addInfo("A second crown stacked on this one (same facing) takes the overflow; the rest is clipped.")
-            .addInfo("Automation: nothing to do. OpenComputers bts_crown (getPower, getStream, getMk).")
+            .addInfo("Turns gamma-ray bursts into EU for your wireless network.")
+            .addInfo("Rate: " + BTSTip.bu(1) + ". No dynamo hatch.")
+            .addSeparator()
+            .addInfo("Its Mk is the crown built round the controller:")
+            .addInfo(BTSTip.bullet("Mk I: " + BTSTip.bu(cap[1])))
+            .addInfo(BTSTip.bullet("Mk II: " + BTSTip.bu(cap[2])))
+            .addInfo(BTSTip.bullet("Mk III: " + BTSTip.bu(cap[3])))
+            .addInfo(BTSTip.bullet("Mk IV, Event Horizon Crown: " + BTSTip.bu(cap[4])))
+            .addInfo("Upgrade: build the bigger crown round the same controller.")
+            .addInfo(BTSTip.warn("Clear the smaller crown's petals and collimators first."))
+            .addSeparator()
+            .addInfo("Sits on a Quasar Engine jet port and takes that jet.")
+            .addInfo("Under the bottom cap it hangs upside down.")
+            .addInfo("Remote: a " + BTSTip.term("GRB Receptor Port") + " in the base takes a conduit.")
+            .addInfo("A second crown stacked on this one takes the overflow.")
+            .addInfo(BTSTip.hint("A scanner on the Quasar Engine shows where each crown goes."))
             .beginStructureBlock(size[0], size[1], size[2], false)
             .addController("Base, beside the intake")
             .addCasingInfoExactly(casingName("Radiator Petal", 'R'), bom(1, 'R'), false)
@@ -776,10 +777,10 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
             .addCasingInfoExactly("Event Horizon Thermaliser Casing (Mk IV only)", bom(4, 'X'), false)
             .addCasingInfoExactly(casingName("Extreme Density Space-Bending Casing", 'A'), bom(1, 'A'), false)
             .addCasingInfoExactly(casingName("Jet Collimator Ring", 'C'), bom(1, 'C'), false)
-            .addOtherStructurePart("GRB Receptor Port (remote feed)", "1 base socket, optional", 1)
-            .addStructureInfo("Hologram: the crown channel (or trigger stack 1-4) picks the Mk.")
-            .addStructureInfo("No energy or maintenance hatch needed. Builds never overwrite a hatch.")
-            .toolTipFinisher();
+            .addMiscHatch("0-1", "GRB Receptor Port", "base, for a remote feed", 1)
+            .addStructureInfo("Projector channel " + CHANNEL_CROWN + " (or stack 1-4) picks the Mk.")
+            .addStructureInfo("No energy or maintenance hatch. Builds never overwrite a hatch.")
+            .toolTipFinisher(BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }
 
