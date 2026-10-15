@@ -51,6 +51,10 @@ public class TileEyeStar extends TileEntity {
     private float transP;
     // renders v2 WP-5: the T8 satellite crossing's hit as a world tick (0 none)
     private long xAt;
+    /** P5: the T9 / T10 render-only snapshot (null for every other object). */
+    private EyeP5Look p5;
+    /** Dev-only render QA (P5): when not NaN, {@link #flowIn} / {@link #universeAge} return these. NaN in play. */
+    public static volatile double debugFlowIn = Double.NaN, debugUniverseAge = Double.NaN;
     /** Client: the event the channel showed before the current one, and its hit (an afterglow outlives the event). */
     private byte pastEv;
     private long pastEvAt;
@@ -130,6 +134,7 @@ public class TileEyeStar extends TileEntity {
         trans = look.trans;
         transP = look.transP;
         xAt = look.xAt;
+        p5 = look.p5;
         markDirty();
         if (!(worldObj instanceof WorldServer)) return;
         final WorldServer world = (WorldServer) worldObj;
@@ -197,6 +202,44 @@ public class TileEyeStar extends TileEntity {
     /** Kind-specific 0..1 ({@link EyeStarLook#aux}): the dwarf's cooling fraction, the magnetar's warning. */
     public float getAux() {
         return aux;
+    }
+
+    /** P5: the last synced T9 / T10 snapshot, or null. */
+    public EyeP5Look getP5() {
+        return p5;
+    }
+
+    /** P5, client: seconds to the flow's arrival (negative after it), NaN with none. */
+    @SideOnly(Side.CLIENT)
+    public double flowIn(double now) {
+        if (!Double.isNaN(debugFlowIn)) return debugFlowIn;
+        return p5 == null || p5.flowAt == 0 ? Double.NaN : (p5.flowAt - now) / 20.0;
+    }
+
+    /** P5, client: the universe's age in seconds (extrapolated unless paused), NaN with none. */
+    @SideOnly(Side.CLIENT)
+    public double universeAge(double now) {
+        if (!Double.isNaN(debugUniverseAge)) return debugUniverseAge;
+        if (p5 == null || p5.uniStartAt == 0) return Double.NaN;
+        return p5.paused ? p5.uniAge : (now - p5.uniStartAt) / 20.0;
+    }
+
+    /** P5, client: seconds to Cosmic Dawn's hit (negative after it), NaN with none. */
+    @SideOnly(Side.CLIENT)
+    public double dawnIn(double now) {
+        return p5 == null || p5.dawnAt == 0 ? Double.NaN : (p5.dawnAt - now) / 20.0;
+    }
+
+    /** P5, client: seconds to Recombination (negative after it), NaN with none. */
+    @SideOnly(Side.CLIENT)
+    public double recombinationIn(double now) {
+        return p5 == null || p5.recAt == 0 ? Double.NaN : (p5.recAt - now) / 20.0;
+    }
+
+    /** P5, client: seconds since the last universe ended (Big Rip, Big Crunch, last light), NaN with none. */
+    @SideOnly(Side.CLIENT)
+    public double endAge(double now) {
+        return p5 == null || p5.endAt == 0 ? Double.NaN : (now - p5.endAt) / 20.0;
     }
 
     /** Renders v2: the star's tier (1..8), 0 unknown. */
@@ -403,6 +446,8 @@ public class TileEyeStar extends TileEntity {
         }
         // renders v2 WP-5: the satellite crossing's hit
         if (xAt != 0) look.setLong("xAt", xAt);
+        // P5: the T9 / T10 snapshot, only when set
+        if (p5 != null) look.setTag("p5", p5.write());
         return look;
     }
 
@@ -428,6 +473,7 @@ public class TileEyeStar extends TileEntity {
         xAt = look.getLong("xAt");
         trans = look.getByte("tr");
         transP = look.getFloat("trP");
+        p5 = look.hasKey("p5") ? EyeP5Look.read(look.getCompoundTag("p5")) : null;
     }
 
     /** Only the look goes to clients (the owner is server business). */

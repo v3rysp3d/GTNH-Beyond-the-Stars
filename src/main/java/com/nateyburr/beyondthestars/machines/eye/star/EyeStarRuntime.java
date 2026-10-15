@@ -463,6 +463,10 @@ public final class EyeStarRuntime {
             p = ((MagnetarCollapse) tr).progress();
         } else if (tr instanceof GalacticMerger) {
             p = ((GalacticMerger) tr).progress();
+        } else if (tr instanceof Infall) {
+            p = ((Infall) tr).progress();
+        } else if (tr instanceof Inflation) {
+            p = ((Inflation) tr).progress();
         } else {
             p = 0;
         }
@@ -767,6 +771,11 @@ public final class EyeStarRuntime {
     /** The highest tier this server lets an Eye unlock: 10, or 8 with {@code enableEyeT9T10} off. */
     public static int maxUnlock() {
         return com.nateyburr.beyondthestars.Config.enableEyeT9T10 ? MAX_UNLOCK : 8;
+    }
+
+    /** P5: the live field (render, GUI), or null. Server state, read only. */
+    public FieldState fieldState() {
+        return fs;
     }
 
     /** P5: the T9 / T10 state (the beam's inputs, the Deep Link, the universe charge). Server state. */
@@ -1519,7 +1528,12 @@ public final class EyeStarRuntime {
         }
         if (out.flowArrived) lastEvent = "Galactic Flow: " + fs.flow.size
             + " galaxies stream into the core (240 s; hold Stable to capture them)";
-        if (out.flowPassed) lastEvent = "the declined group streams past along the filament: nothing captured, nothing lost";
+        if (out.flowPassed) {
+            lastEvent = "the declined group streams past along the filament: nothing captured, nothing lost";
+            a.passT = fs.t;
+            a.passSize = fs.flow.size;
+            a.passSign = fs.flow.sign;
+        }
         if (out.flowEnded) {
             final double dm = out.flowDarkMatter * p;
             emitFluid(EyeAttractor.darkMatter(), dm);

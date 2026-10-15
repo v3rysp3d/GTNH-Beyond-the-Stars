@@ -43,6 +43,9 @@ public final class EyeAttractor {
     int endKind;
     /** The last flow's outcome for the GUI ("" none yet). */
     String lastFlow = "";
+    /** The last declined group: when it streamed past (field clock), its size and side (render). */
+    long passT = -1;
+    int passSize, passSign;
 
     // ---------------------------------------------------------------- transient (this second)
     /** The beam's grade fired (0 none), the injector's barrel Mk, ρ_max, the hold rating, pellets per second. */
@@ -122,6 +125,38 @@ public final class EyeAttractor {
         return uniOwed;
     }
 
+    public boolean firing() {
+        return firing;
+    }
+
+    public long captureT() {
+        return captureT;
+    }
+
+    public int captureN() {
+        return captureN;
+    }
+
+    public long endT() {
+        return endT;
+    }
+
+    public int endKind() {
+        return endKind;
+    }
+
+    public long passT() {
+        return passT;
+    }
+
+    public int passSize() {
+        return passSize;
+    }
+
+    public int passSign() {
+        return passSign;
+    }
+
     public String lastFlow() {
         return lastFlow;
     }
@@ -185,6 +220,9 @@ public final class EyeAttractor {
         t.setLong("endT", endT);
         t.setInteger("endKind", endKind);
         t.setString("lastFlow", lastFlow);
+        t.setLong("passT", passT);
+        t.setInteger("passSize", passSize);
+        t.setInteger("passSign", passSign);
         final NBTTagCompound d = new NBTTagCompound();
         d.setInteger("streak", deep.link.streak);
         d.setInteger("best", deep.link.best);
@@ -206,6 +244,9 @@ public final class EyeAttractor {
         endT = t.getLong("endT");
         endKind = t.getInteger("endKind");
         lastFlow = t.getString("lastFlow");
+        passT = t.hasKey("passT") ? t.getLong("passT") : -1;
+        passSize = t.getInteger("passSize");
+        passSign = t.getInteger("passSign");
         final NBTTagCompound d = t.getCompoundTag("deep");
         final double[] w = new double[3 * 60];
         for (int i = 0; i < w.length; i++) w[i] = d.getDouble("w" + i);
@@ -223,6 +264,8 @@ public final class EyeAttractor {
         endT = -1;
         endKind = 0;
         lastFlow = "";
+        passT = -1;
+        passSize = passSign = 0;
         deep.restore(new double[3 * 60], 0);
         deep.link.streak = deep.link.best = 0;
         deep.link.done = false;

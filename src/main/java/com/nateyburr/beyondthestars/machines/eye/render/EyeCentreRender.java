@@ -126,6 +126,11 @@ public final class EyeCentreRender {
         final EyeStarLook raw = look != null ? look : now < novaUntil && formed ? EyeStarLook.NOVA_FLASH : null;
         // renders v2 (R-04): the event's hit as a world tick, so the client counts down without a packet a second
         final EyeStarLook want = raw == null ? null : raw.at(now);
+        // P5: the snapshot's clocks as world ticks, and the facing (the crown's tilt and the filaments' sides)
+        if (want != null && want.p5 != null) want.p5 = want.p5.at(
+            now,
+            facing.getDirection()
+                .ordinal());
         final boolean show = want != null && enabled && Config.eyeRenderCentre;
         final boolean changed = show != (pos != null);
         if (!changed && aTick % 10 != 0) return;
