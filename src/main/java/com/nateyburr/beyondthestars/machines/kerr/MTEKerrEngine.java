@@ -718,7 +718,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         burstHost.second(receptors, key, "Kerr Ergosphere Engine", burstDemand(), 0);
     }
 
-    /** The hole's parallel for a module: {@code 8 x tier(module energy) x floor(sqrt(M))}. */
+    /**
+     * The hole's parallel for a module: {@code 8 x tier(module input) x floor(sqrt(M))}, where the tier is GT's of the
+     * module's total input V x A (as GT's Black Hole Compressor: a 2 A UIV hatch is tier 12, UMV; QA-A05).
+     */
     public static int parallelFor(long moduleMaxInputEu, double m) {
         final int base = PARALLEL_PER_TIER * Math.max(1, GTUtility.getTierExtended(moduleMaxInputEu));
         return base * Math.max(1, (int) Math.floor(Math.sqrt(Math.max(0, m))));
@@ -1718,7 +1721,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInfo("  SpaceTime 1/4 SM, at most 4/8/16 a tick by the LOWEST injector rail (Mk I/II/III).")
             .addInfo("Containment: 8,388,608 EU/t (1 A UEV) while open. Without it the governor stops and")
             .addInfo("  the hole bleeds; below 2 SM it evaporates. The power switch does not stop the hole.")
-            .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4).")
+            .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4); the tier is")
+            .addInfo("  that of the module's total input, V x A (a 2 A UIV hatch counts as UMV).")
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
             .addInfo("Quasar link (optional): a GRB Receptor Port in a utility socket. σ = bursts ÷ 0.1 Bu/t")
             .addInfo(
