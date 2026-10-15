@@ -294,19 +294,21 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         float bottom, int eventNow, float flashFrac, float spinNow, float phiNow, boolean lockNow, float reformNow) {
         if (worldObj == null || worldObj.isRemote) return false;
         final boolean flash = eventNow > 0;
-        final boolean moved = Math.abs(scale - holeScale) > 0.02f * Math.max(0.1f, holeScale)
-            || Math.abs(stability - shaderStability) > 0.02f
-            || Math.abs(lambdaC - lc) > 0.02f
+        // QA-B35: compared with what was last SENT, so a slow drift (flux +1.25 a second against a threshold of 2)
+        // goes out once it adds up instead of never
+        final boolean moved = Math.abs(scale - sent[0]) > 0.02f * Math.max(0.1f, sent[0])
+            || Math.abs(stability - sent[1]) > 0.02f
+            || Math.abs(lambdaC - sent[2]) > 0.02f
             || zoneNow != zone
-            || Math.signum(eNow) != Math.signum(e) && Math.abs(eNow - e) > 2
-            || Math.abs(eNow - e) > 8
-            || jetMoved(top, jetTop)
-            || jetMoved(bottom, jetBottom)
+            || Math.signum(eNow) != Math.signum(sent[3]) && Math.abs(eNow - sent[3]) > 2
+            || Math.abs(eNow - sent[3]) > 8
+            || jetMoved(top, sent[4])
+            || jetMoved(bottom, sent[5])
             || flash
-            || Math.abs(spinNow - spin) > 0.01f
-            || Math.abs(phiNow - phi) > 2f
+            || Math.abs(spinNow - sent[6]) > 0.01f
+            || Math.abs(phiNow - sent[7]) > 2f
             || lockNow != lock
-            || Math.abs(reformNow - reform) > 0.02f
+            || Math.abs(reformNow - sent[8]) > 0.02f
             || smbhMoved;
         smbhMoved = false;
         holeScale = scale;
@@ -335,9 +337,21 @@ public class TileQuasarHole extends RenderingTileEntityBlackhole {
         return Math.abs(now - was) > 0.05f * Math.max(now, was);
     }
 
+    /** The look as last sent (server): scale, stability, λc, E, top, bottom, spin, flux, re-form. */
+    private final float[] sent = new float[9];
+
     /** The look to the players watching this chunk, without a block update (no chunk re-render). */
     public void sendLook() {
         if (!(worldObj instanceof WorldServer)) return;
+        sent[0] = holeScale;
+        sent[1] = shaderStability;
+        sent[2] = lc;
+        sent[3] = e;
+        sent[4] = jetTop;
+        sent[5] = jetBottom;
+        sent[6] = spin;
+        sent[7] = phi;
+        sent[8] = reform;
         final WorldServer world = (WorldServer) worldObj;
         final Packet packet = getDescriptionPacket();
         final int cx = xCoord >> 4;
