@@ -1210,7 +1210,17 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (!running()) return Double.POSITIVE_INFINITY;
         final double medd = QuasarParams.eddingtonFeed(q.M, gas);
         final double perSecond = Math.max(0, feed) * medd + accretion()[1];
-        return perSecond > 0 ? buffer(gasFluid(gas)) / perSecond : Double.POSITIVE_INFINITY;
+        // QA-B26: a buffer filled for a heavier hole (the mass dropped) reads as full, never "69 s" of a 60 s buffer
+        return perSecond > 0 ? Math.min(QuasarParams.ACCRETION_SECONDS, bufferShown() / perSecond)
+            : Double.POSITIVE_INFINITY;
+    }
+
+    /**
+     * The Accretion Buffer as players see it (GUI, OpenComputers), litres: at most its cap. After the mass drops the
+     * buffer can hold more than the new cap; that rest is still burnt first and is not refilled (QA-B26).
+     */
+    public long bufferShown() {
+        return Math.min(buffer(gasFluid(gas)), bufferCap());
     }
 
     /**
@@ -1915,6 +1925,18 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return String.format(Locale.ROOT, "%.2f", v);
     }
 
+    /**
+     * A mass rate for players, from a fraction of M per hour: "+2.2 % per hour", or past 100 % an hour (a shed, a
+     * re-forming leak) per second, "-2.00 % a second", never an impossible "-7200 % per hour" (QA-B25).
+     */
+    public static String rateText(double fracPerHour) {
+        final double pct = 100 * fracPerHour;
+        if (!Double.isFinite(pct) || Math.abs(pct) < 1e-4) return "0 %";
+        if (Math.abs(pct) >= 100) return String.format(Locale.ROOT, "%+.2f %% a second", pct / 3600);
+        return (Math.abs(pct) >= 0.1 ? String.format(Locale.ROOT, "%+.1f", pct)
+            : String.format(Locale.ROOT, "%+.2g", pct)) + " % per hour";
+    }
+
     /** "1.2e+15"-free Bu/t, the number only: "0.81", "12.3", "4,712" ({@link BTSFormat#buNum}). */
     public static String bu(double v) {
         return BTSFormat.buNum(v);
@@ -2016,7 +2038,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                 out.add(
                     String.format(
                         Locale.ROOT,
-                        "Intake %s of %s L/s max: disc %s, hold-up %s of %s (%.0f %%%s), growth %s; mass %+.2f %% per hour",
+                        "Intake %s of %s L/s max: disc %s, hold-up %s of %s (%.0f %%%s), growth %s; mass %s",
                         fmt(gasDrawn + r.holdUpLitres + r.growthLitres),
                         fmt(r.intakeCap),
                         fmt(gasDrawn),
@@ -2025,7 +2047,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                         100 * r.holdUpCoverage,
                         r.leaking ? ", LEAKING" : "",
                         fmt(r.growthLitres),
-                        100 * massRatePerHour));
+                        rateText(massRatePerHour)));
                 if (overdriveInUse() > 0 && getLatticeInForce() < QuasarParams.LATTICE_OVERDRIVE) {
                     out.add(
                         String.format(
@@ -2063,7 +2085,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     + " -> "
                     + (jetDock[i] == null ? "venting (nothing docked)"
                         : jetRefused[i] ? "venting (" + jetDock[i] + " misaligned)"
-                            : jetDock[i] + " took " + bu(jetTaken[i])));
+                            : jetDock[i] + " took " + buEu(jetTaken[i])));
         }
         out.add(
             "Eruptions " + eruptions

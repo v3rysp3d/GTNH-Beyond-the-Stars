@@ -98,11 +98,15 @@ public final class BTSFormat {
      */
     public static final double EU_PER_BU = 1e13;
 
-    /** The number of a Bu/t figure: {@code 0.81}, {@code 12.3}, {@code 4,712} (no unit). */
+    /**
+     * The number of a Bu/t figure: {@code 0.81}, {@code 12.3}, {@code 4,712} (no unit); under 0.01 two significant
+     * figures ({@code 0.0036}), so a young hole's stream never reads "0.00" beside a real EU/t (QA-B23).
+     */
     public static String buNum(double bu) {
         final double a = Math.abs(bu);
         if (a >= 1000) return String.format(Locale.ROOT, "%,.0f", bu);
         if (a >= 10) return String.format(Locale.ROOT, "%.1f", bu);
+        if (a > 0 && a < 0.00995) return String.format(Locale.ROOT, "%.2g", bu);
         return String.format(Locale.ROOT, "%.2f", bu);
     }
 

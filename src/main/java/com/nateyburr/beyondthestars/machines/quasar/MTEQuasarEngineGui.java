@@ -203,12 +203,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         return "";
     }
 
-    /** "+2.2 % per hour" for a fraction of M per hour (two significant figures under 0.1 %). */
+    /** "+2.2 % per hour", or "-2.00 % a second" past 100 % an hour ({@link MTEQuasarEngine#rateText}). */
     static String perHour(double frac) {
-        final double pct = 100 * frac;
-        if (Math.abs(pct) < 1e-4) return "0 %";
-        return (Math.abs(pct) >= 0.1 ? String.format(Locale.ROOT, "%+.1f", pct)
-            : String.format(Locale.ROOT, "%+.2g", pct)) + " %";
+        return MTEQuasarEngine.rateText(frac);
     }
 
     // ===================================================================== server-side lines
@@ -221,7 +218,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         if (dock == null) return head + tr(bu > 0 ? K + "jet.venting" : K + "jet.nothing");
         if (m.jetRefused(port)) return head + tr(K + "jet.misaligned", dock);
         final double clipped = bu - m.jetTaken(port);
-        return head + dock + (clipped > 0.005 ? " " + tr(K + "jet.clipped", MTEQuasarEngine.bu(clipped)) : "");
+        return head + dock + (clipped > 0.005 ? " " + tr(K + "jet.clipped", MTEQuasarEngine.buEu(clipped)) : "");
     }
 
     static String linksText(MTEQuasarEngine m) {
@@ -527,8 +524,11 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 BTSFormat.pct(r.holdUpCoverage))
             : BTSText.lang(K + "intake.line", BTSFormat.litres(disc), BTSFormat.litres(hold));
         rows.note(BTSRows.ICON_NONE, BTSGuiKit.VALUE, split, BTSText.lang(K + "intake.line.tip"));
+        // B-164 #1: at the setpoint the Growth segment draws nothing (QA-B09), and the row says why
+        final boolean atSetpoint = grow <= 0 && m.getMass() >= m.getMassCap() * (1 - 1e-9);
         final String growth = shed ? BTSText.lang(K + "intake.line2.shed", BTSFormat.litres(grow))
-            : BTSText.lang(K + "intake.line2", BTSFormat.litres(grow), perHour(m.getMassRatePerHour()));
+            : atSetpoint ? BTSText.lang(K + "intake.line2.at")
+                : BTSText.lang(K + "intake.line2", BTSFormat.litres(grow), perHour(m.getMassRatePerHour()));
         rows.note(BTSRows.ICON_NONE, BTSGuiKit.VALUE, growth, BTSText.lang(K + "intake.line.tip"));
         if (r.leaking) {
             rows.note(
@@ -543,10 +543,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         rows.stat(
             BTSText.lang(K + "buffer"),
             BTSText.lit((bufShort ? "§c" : "") + (Double.isInfinite(bufS) ? "-" : BTSFormat.duration((long) bufS))),
-            BTSText.lang(
-                K + "buffer.tip",
-                BTSFormat.exact(m.buffer(MTEQuasarEngine.gasFluid(m.getGas()))),
-                BTSFormat.exact(m.bufferCap())),
+            BTSText.lang(K + "buffer.tip", BTSFormat.exact(m.bufferShown()), BTSFormat.exact(m.bufferCap())),
             BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "buffer.tip2")));
         // Overdrive (L3+)
         final double o = m.getOverdriveInUse();

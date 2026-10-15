@@ -631,11 +631,11 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         out.add(
             String.format(
                 Locale.ROOT,
-                "Stream %s Bu/t (jets %s, receptor %s, from below %s) -> %s used",
-                MTEQuasarEngine.bu(lastStream),
-                MTEQuasarEngine.bu(lastJets),
-                MTEQuasarEngine.bu(lastRemote),
-                MTEQuasarEngine.bu(lastOverIn),
+                "Stream %s (jets %s, receptor %s, from below %s) -> %s used",
+                MTEQuasarEngine.buEu(lastStream),
+                MTEQuasarEngine.buEu(lastJets),
+                MTEQuasarEngine.buEu(lastRemote),
+                MTEQuasarEngine.buEu(lastOverIn),
                 MTEQuasarEngine.buEu(lastUsed)));
         out.add(
             String.format(
@@ -710,7 +710,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         tt.addMachineType("Gamma-Ray Burst Power Plant")
             .addInfo("Turns gamma-ray bursts into EU: 1 Bu/t = 10^13 EU/t, pushed to your wireless network.")
             .addInfo("  No dynamo hatch. Its Mk is the crown built around the controller:")
-            .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 (5.1e15), Mk III 8,192 (8.2e16 EU/t, 82 quadrillion).")
+            .addInfo("  Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 Bu/t (5.1e15 EU/t), Mk III 8,192 Bu/t (8.2e16 EU/t).")
             .addInfo("  Upgrade by building the bigger crown around it.")
             .addInfo(
                 "  Mk IV, the Event Horizon Crown: 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion), for a Supermassive")

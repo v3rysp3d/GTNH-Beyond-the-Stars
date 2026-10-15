@@ -21,6 +21,7 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
 import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
 import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
+import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrModuleBase;
@@ -94,7 +95,9 @@ public final class BTSComputerApi {
         m.put("sigma", sigmaUsed);
         m.put("sigmaLast", h.sigma());
         m.put("delivered", h.delivered());
+        m.put("deliveredEUt", h.delivered() * BTSFormat.EU_PER_BU);
         m.put("mean", h.mean());
+        m.put("meanEUt", h.mean() * BTSFormat.EU_PER_BU);
         m.put("linked", h.linked());
         final BurstSource s = h.linkSource();
         m.put("source", s == null ? "" : s.label());
@@ -112,6 +115,7 @@ public final class BTSComputerApi {
         m.put("parallels", h.maxParallel());
         m.put("speed", h.speedFactor());
         m.put("demand", h.burstDemand());
+        m.put("demandEUt", h.burstDemand() * BTSFormat.EU_PER_BU);
         m.put("entanglementOpen", h.quasarSigma() >= 1.0);
         m.put("running", h.mMaxProgresstime > 0);
         m.put("progress", h.mMaxProgresstime > 0 ? (double) h.mProgresstime / h.mMaxProgresstime : 0.0);
@@ -126,6 +130,7 @@ public final class BTSComputerApi {
         m.put("burstDriven", r.burstDriven());
         m.put("speed", r.speedFactor());
         m.put("demand", BurstLink.REALITY);
+        m.put("demandEUt", BurstLink.REALITY * BTSFormat.EU_PER_BU);
         m.put("running", r.mMaxProgresstime > 0);
         m.put("progress", r.mMaxProgresstime > 0 ? (double) r.mProgresstime / r.mMaxProgresstime : 0.0);
         m.put("anchorMask", r.anchorMask() & 63);
