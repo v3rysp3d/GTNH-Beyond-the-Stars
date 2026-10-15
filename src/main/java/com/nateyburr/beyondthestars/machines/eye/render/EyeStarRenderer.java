@@ -173,6 +173,11 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
 
         final double now = world.getTotalWorldTime() + partialTicks;
         final byte kind = star.getKind();
+        // P5: the Great Attractor (T9) and the Universe (T10) draw through CosmosFx, at every quality
+        if (kind == EyeStarLook.ATTRACTOR || kind == EyeStarLook.UNIVERSE) {
+            drawCosmos(star, kind, pass, now, partialTicks, x + 0.5, y + 0.5, z + 0.5);
+            return;
+        }
         final double age = star.kindAge(now);
         float radius = star.easedRadius(now);
         float gamma = star.getGamma();
@@ -348,6 +353,101 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             }
         } finally {
             NoiseTex.unbind(was);
+        }
+    }
+
+    private final CosmosFx.Look cosmosLook = new CosmosFx.Look();
+
+    /**
+     * P5 (design p5-t9-t10.md §9.5): the Great Attractor or the Universe. Pass 0 the dark core (opaque, writing depth);
+     * pass 1 the rest: the Attractor's lensed backdrop, filaments, galaxies and halo, collar rings and pellet beam, or
+     * the Universe's jet, last-scattering surface, web, crown glow and Cosmic Dawn rays; at L3 a glow sprite; FIXED
+     * (renderQuality=low, no shaders) the fixed-function look of {@link CosmosFx#drawFixed}. The Universe ranks by its
+     * crown, 62 blocks above the centre.
+     */
+    private void drawCosmos(TileEyeStar star, byte kind, int pass, double now, float partialTicks, double cx, double cy,
+        double cz) {
+        final boolean universe = kind == EyeStarLook.UNIVERSE;
+        final World world = star.getWorldObj();
+        final double ry = universe ? cy + CosmosFx.CROWN_Y : cy;
+        final double dist = Math.sqrt(cx * cx + ry * ry + cz * cz);
+        final Lod.Tier tier;
+        if (pass != 1 || !tiers.containsKey(star)) {
+            tier = RenderQuality.tier(
+                star,
+                universe ? CosmosFx.UNIVERSE_BOUND : CosmosFx.ATTRACTOR_BOUND,
+                dist,
+                universe ? CosmosFx.UNIVERSE_PROGRAMS : CosmosFx.ATTRACTOR_PROGRAMS);
+            tiers.put(star, tier);
+        } else {
+            tier = tiers.get(star);
+        }
+        final EyeCosmosLook c = star.getCosmos();
+        final CosmosFx.Look l = cosmosLook;
+        eye(l.eye);
+        final float time = RenderClock.seconds(world, partialTicks);
+        final int detail = tier == Lod.Tier.L0 ? 3 : tier == Lod.Tier.L1 ? 2 : 1;
+        if (universe) {
+            CosmosFx.computeUniverse(
+                l,
+                c,
+                now,
+                time,
+                detail,
+                star.getTransition(),
+                star.getTransitionProgress(),
+                cx,
+                cy,
+                cz);
+        } else {
+            final float day = Math.max(0f, Math.min(1f, (world.getSunBrightness(partialTicks) - 0.25f) / 0.7f));
+            CosmosFx.computeAttractor(
+                l,
+                c,
+                now,
+                time,
+                detail,
+                day,
+                star.getTransition(),
+                star.getTransitionProgress(),
+                cx,
+                cy,
+                cz);
+        }
+        GpuTimer.begin("eye");
+        final boolean glCheck = RenderQuality.glCheckBegin(star);
+        final GlSave save = GlSave.capture();
+        try {
+            if (!tier.shaded()) {
+                final GlSave flat = Layers.untextured();
+                try {
+                    CosmosFx.drawFixed(l, c, universe, pass, now);
+                } finally {
+                    flat.restore();
+                }
+                return;
+            }
+            final int[] was = NoiseTex.bind();
+            try {
+                for (int i = 0; i < REPEAT; i++) {
+                    if (pass != 1) CosmosFx.drawCore(l);
+                    if (pass == 0) continue;
+                    final GlSave e = Layers.emissive();
+                    try {
+                        if (tier == Lod.Tier.L3) CosmosFx.drawSprite(l, universe);
+                        else if (universe) CosmosFx.drawUniverse(l);
+                        else CosmosFx.drawAttractor(l);
+                    } finally {
+                        e.restore();
+                    }
+                }
+            } finally {
+                NoiseTex.unbind(was);
+            }
+        } finally {
+            save.restore();
+            RenderQuality.glCheckEnd(star, glCheck, "the Eye's centre");
+            GpuTimer.end();
         }
     }
 

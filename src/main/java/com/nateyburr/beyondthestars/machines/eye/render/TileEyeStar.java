@@ -51,6 +51,8 @@ public class TileEyeStar extends TileEntity {
     private float transP;
     // renders v2 WP-5: the T8 satellite crossing's hit as a world tick (0 none)
     private long xAt;
+    /** P5: the Attractor's / the Universe's render look (EyeStarLook.cosmos), null for every other kind. */
+    private EyeCosmosLook cosmos;
     /** Client: the event the channel showed before the current one, and its hit (an afterglow outlives the event). */
     private byte pastEv;
     private long pastEvAt;
@@ -73,6 +75,12 @@ public class TileEyeStar extends TileEntity {
      * crossing's hit, negative after it). NaN in play.
      */
     public static volatile double debugCrossingIn = Double.NaN;
+    /**
+     * Dev-only render QA (P5): when not null, {@link #getCosmos} returns this for the Attractor and the Universe (a
+     * look with its clocks as world ticks, so a still catches a flow or the Cosmic Dawn at a fixed point). Null in
+     * play.
+     */
+    public static volatile EyeCosmosLook debugCosmos;
 
     /** Client: magnetar flares, every {@link #FLARE_MIN}..{@link #FLARE_MIN}x2 ticks. */
     static final int FLARE_MIN = 80;
@@ -130,6 +138,7 @@ public class TileEyeStar extends TileEntity {
         trans = look.trans;
         transP = look.transP;
         xAt = look.xAt;
+        cosmos = look.cosmos;
         markDirty();
         if (!(worldObj instanceof WorldServer)) return;
         final WorldServer world = (WorldServer) worldObj;
@@ -199,7 +208,16 @@ public class TileEyeStar extends TileEntity {
         return aux;
     }
 
-    /** Renders v2: the star's tier (1..8), 0 unknown. */
+    /**
+     * P5: the Attractor's / the Universe's render look, or null. Dev-only render QA may override it on the client
+     * ({@link #debugCosmos}).
+     */
+    public EyeCosmosLook getCosmos() {
+        final EyeCosmosLook forced = debugCosmos;
+        return forced != null && (kind == EyeStarLook.ATTRACTOR || kind == EyeStarLook.UNIVERSE) ? forced : cosmos;
+    }
+
+    /** Renders v2: the star's tier (1..10), 0 unknown. */
     public int getTierN() {
         return tierN;
     }
@@ -345,11 +363,15 @@ public class TileEyeStar extends TileEntity {
         return pass == 0 || pass == 1;
     }
 
-    /** The object and the nova / bounce shells (up to 3x the radius), plus a block. */
+    /**
+     * The object and the nova / bounce shells (up to 3x the radius), plus a block. P5: the Attractor's filaments reach
+     * {@code COSMOS_REACH} blocks out and the Universe's crown and spikes sit up to 110 blocks above the centre.
+     */
     @Override
     @SideOnly(Side.CLIENT)
     public AxisAlignedBB getRenderBoundingBox() {
-        final float r = Math.max(radius, 15f) * 3f + 1f;
+        final boolean cosmic = kind == EyeStarLook.ATTRACTOR || kind == EyeStarLook.UNIVERSE;
+        final float r = cosmic ? COSMOS_REACH : Math.max(radius, 15f) * 3f + 1f;
         if (box == null || boxRadius != r) {
             box = AxisAlignedBB
                 .getBoundingBox(xCoord - r, yCoord - r, zCoord - r, xCoord + 1 + r, yCoord + 1 + r, zCoord + 1 + r);
@@ -357,6 +379,9 @@ public class TileEyeStar extends TileEntity {
         }
         return box;
     }
+
+    /** P5: how far the cosmic renders reach from the centre (the filaments' far ends), blocks. */
+    static final float COSMOS_REACH = 210f;
 
     /** The Eye is up to 158 blocks across: its star shows from well outside it (vanilla is 64 blocks). */
     @Override
@@ -403,6 +428,8 @@ public class TileEyeStar extends TileEntity {
         }
         // renders v2 WP-5: the satellite crossing's hit
         if (xAt != 0) look.setLong("xAt", xAt);
+        // P5: the Attractor's / the Universe's render look
+        if (cosmos != null) look.setTag("cos", cosmos.write());
         return look;
     }
 
@@ -428,6 +455,7 @@ public class TileEyeStar extends TileEntity {
         xAt = look.getLong("xAt");
         trans = look.getByte("tr");
         transP = look.getFloat("trP");
+        cosmos = look.hasKey("cos") ? EyeCosmosLook.read(look.getCompoundTag("cos")) : null;
     }
 
     /** Only the look goes to clients (the owner is server business). */

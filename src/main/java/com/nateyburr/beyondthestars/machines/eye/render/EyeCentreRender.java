@@ -125,7 +125,10 @@ public final class EyeCentreRender {
         final EyeStarLook look = !formed ? null : forced != null ? forced : EyeStarLook.of(runtime);
         final EyeStarLook raw = look != null ? look : now < novaUntil && formed ? EyeStarLook.NOVA_FLASH : null;
         // renders v2 (R-04): the event's hit as a world tick, so the client counts down without a packet a second
-        final EyeStarLook want = raw == null ? null : raw.at(now);
+        // P5: the Attractor's and the Universe's look also carries the voxel frame (the crown's tilt, the filaments)
+        final EyeStarLook want = raw == null ? null
+            : raw.at(now)
+                .framed(facing);
         final boolean show = want != null && enabled && Config.eyeRenderCentre;
         final boolean changed = show != (pos != null);
         if (!changed && aTick % 10 != 0) return;
