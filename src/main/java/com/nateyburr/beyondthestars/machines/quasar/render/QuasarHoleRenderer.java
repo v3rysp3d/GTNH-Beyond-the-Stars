@@ -92,6 +92,13 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
      * they are drawn at this nominal stream while {@code JetLook.shed} is set (B-166).
      */
     private static final float SHED_JET_BU = 1000f;
+    /** QA-B12: the shed flare's exposure lift, and its period (the shader's giant knot, every 1.4 s). */
+    private static final float SHED_EXPOSURE = 1.6f, SHED_PERIOD = 1.4f;
+    /**
+     * QA-B12: each hole's last lit jet stream (client only): a shed draws its flare at the stream it replaced (at least
+     * {@link #SHED_JET_BU}), never dimmer and calmer than the running jet was.
+     */
+    private final Map<TileQuasarHole, Float> lastJetBu = new WeakHashMap<>();
 
     private static final int SEGMENTS = 96;
     private static final int RINGS = 6;
@@ -221,7 +228,8 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         final float od = smbh ? clamp01(q.getOverdrive()) : 0f;
         final float un = smbh ? Math.max(0f, Math.min(6f, q.getUnboundN())) : 0f;
         final float gr = smbh && zi < 5 ? clamp01(q.getGrowth()) : 0f;
-        final boolean shed = smbh && q.getShed() && zi < 5;
+        // QA-B12: any shed shows (a coil-downgrade shed has no lattice in force)
+        final boolean shed = q.getShed() && zi < 5;
         final float leak = smbh && zi < 5 ? clamp01((1f - q.getHold()) * 4f) : 0f;
 
         // ---- the hole (GT's growth curve, size as GT's halo)
@@ -234,6 +242,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         final double rs = rsFull * Math.max(growth, 0.02f);
         holeLook(hole, zi, a, event, evAge, evSize, time);
         if (smbh) smbhHole(hole, zi, sm, od, gr);
+        if (shed) hole.exposure *= 1.3f; // QA-B12: the held flare lights the disc too
         hole.cx = cx;
         hole.cy = cy;
         hole.cz = cz;
@@ -284,7 +293,15 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         // ---- the jets: brightness, knots, helix
         final float pitch = (14f - 8f * a) * (1f - 0.35f * phi / 100f);
         final float z0 = (float) (rs * 2.8);
-        final float topBu = q.getJetTop(), bottomBu = q.getJetBottom();
+        float topBu = q.getJetTop(), bottomBu = q.getJetBottom();
+        if (topBu > 0 || bottomBu > 0) lastJetBu.put(q, Math.max(topBu, bottomBu));
+        // QA-B12: a shedding hole's jets sync 0 Bu/t; its flare is drawn at the stream it replaced
+        final float shedBu = shed ? Math.max(SHED_JET_BU, lastJetBu.getOrDefault(q, 0f)) : 0f;
+        final float shedPhase = (time % SHED_PERIOD) / SHED_PERIOD;
+        if (shed) {
+            if (topBu <= 0) topBu = shedBu;
+            if (bottomBu <= 0) bottomBu = shedBu;
+        }
         // the ribbon's across vector: horizontal, perpendicular to the view of the axis
         double sx = -cz, sz = cx;
         final double sl = Math.sqrt(sx * sx + sz * sz);
@@ -339,6 +356,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
                     (float) sz);
                 if (tier.ordinal() <= Lod.Tier.L2.ordinal()) QuasarFx.drawField(cx, cy, cz, field, -1f);
                 drawShell(cx, cy, cz, rs, event, evAge, evSize, time, GL11.GL_FRONT);
+                if (shed && event == 0) drawShedShell(cx, cy, cz, rs, shedPhase, time, GL11.GL_FRONT);
                 // SMBH: the intake streaming in across the ring
                 if (gr > 0.002f && tier.ordinal() <= Lod.Tier.L1.ordinal()) drawStreams(cx, cy, cz, gr, ring.h0, time);
             } finally {
@@ -386,6 +404,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
                     (float) sz);
                 if (tier.ordinal() <= Lod.Tier.L2.ordinal()) QuasarFx.drawField(cx, cy, cz, field, 1f);
                 drawShell(cx, cy, cz, rs, event, evAge, evSize, time, GL11.GL_BACK);
+                if (shed && event == 0) drawShedShell(cx, cy, cz, rs, shedPhase, time, GL11.GL_BACK);
                 GL11.glDisable(GL11.GL_CULL_FACE);
                 if (RenderQuality.particles()
                     && (event == TileQuasarHole.EV_ERUPTION || event == TileQuasarHole.EV_BLOWOUT)) {
@@ -404,7 +423,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
                         right,
                         up);
                 }
-                drawGlows(q, cx, cy, cz, zi, z0, topBu, bottomBu, rs, tier, event, evAge);
+                drawGlows(q, cx, cy, cz, zi, z0, topBu, bottomBu, rs, tier, event, evAge, shed ? shedPhase : -1f);
                 // SMBH: the Containment Nodes, their field arcs and (Unbound) the anchor threads
                 if (smbh && tier.ordinal() <= Lod.Tier.L2.ordinal()) {
                     drawLattice(cx, cy, cz, lt, zi, od, un, leak, ring.r1, tier, time);
@@ -604,7 +623,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         j.z0 = z0;
         j.zEnd = JET_LEN;
         j.seed = dir > 0 ? 1f : 2f;
-        j.exposure = 1f;
+        j.exposure = j.shed > 0 ? SHED_EXPOSURE : 1f;
         final boolean jetEvent = event == TileQuasarHole.EV_ERUPTION || event == TileQuasarHole.EV_PURGE;
         j.event = jetEvent ? event : 0;
         j.eventAge = evAge;
@@ -641,17 +660,36 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         QuasarFx.drawShell(cx, cy, cz, radius, intensity, time, r, g, b, 4.5f);
     }
 
+    /**
+     * QA-B12: while shedding, a weak shock pulse in phase with each giant knot (the eruption's shell, a fifth of its
+     * reach and a third of its light), so a shed reads from far outside.
+     */
+    private static void drawShedShell(double cx, double cy, double cz, double rs, float phase, float time,
+        int cullFace) {
+        final float radius = (float) (rs * 3 + 26 * (1 - Math.exp(-phase * SHED_PERIOD / 0.6)));
+        final float intensity = 0.22f * (1f - smooth(phase));
+        if (intensity <= 0.005f) return;
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(cullFace);
+        QuasarFx.drawShell(cx, cy, cz, radius, intensity, time, 1.0f, 0.86f, 0.70f, 4.5f);
+    }
+
     /** The jet base glares, the cap glows (the outside look, R-09) and, small on screen, the whole quasar's glow. */
     private static void drawGlows(TileQuasarHole q, double cx, double cy, double cz, int zi, float z0, float topBu,
-        float bottomBu, double rs, Lod.Tier tier, int event, float evAge) {
+        float bottomBu, double rs, Lod.Tier tier, int event, float evAge, float shedPhase) {
         for (int dir = -1; dir <= 1; dir += 2) {
             final float bu = dir > 0 ? topBu : bottomBu;
             if (bu <= 0) continue;
             final float bright = Math.max(0.08f, Math.min(1f, (float) (0.35 + 0.2 * Math.log10(bu))));
             float pulse = 1f;
             if (event == TileQuasarHole.EV_PURGE) pulse += 1.5f * (float) Math.exp(-evAge / 0.5);
-            GlowSprite
-                .draw(cx, cy + dir * z0, cz, 1.0 + rs * 1.1, 0.80f, 0.90f, 1.0f, 0.6f * bright * pulse, 0.16f, 0.4f);
+            // QA-B12: a shed's glare is bigger and pulses with each giant knot leaving the base (what reads at range)
+            double size = 1.0 + rs * 1.1;
+            if (shedPhase >= 0) {
+                pulse *= 1.4f + 1.1f * (float) Math.exp(-shedPhase * SHED_PERIOD / 0.35);
+                size *= 1.6;
+            }
+            GlowSprite.draw(cx, cy + dir * z0, cz, size, 0.80f, 0.90f, 1.0f, 0.6f * bright * pulse, 0.16f, 0.4f);
         }
         final float[] c = zoneGlow(zi);
         final float capI = zi == 5 ? 0.18f : 0.30f;
@@ -746,8 +784,11 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
         try {
             drawDisc(q, t);
-            drawJet(q.getJetTop(), 1, t);
-            drawJet(q.getJetBottom(), -1, t);
+            // QA-B12: a shedding hole's jets (0 Bu/t) still show the shed's flare on the LOW path
+            final boolean shed = q.getShed() && q.getZone() >= 0;
+            final float pulse = shed ? 1.25f + 0.35f * (float) Math.exp(-((t / 20f) % SHED_PERIOD) / 0.35) : 1f;
+            drawJet(q.getJetTop() > 0 || !shed ? q.getJetTop() : SHED_JET_BU, 1, t, pulse);
+            drawJet(q.getJetBottom() > 0 || !shed ? q.getJetBottom() : SHED_JET_BU, -1, t, pulse);
         } finally {
             save.restore();
             GL11.glPopMatrix();
@@ -817,9 +858,9 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
      * One jet: a cone from the horizon out to {@link #JET_LEN} along {@code dir} (+1 up, −1 down), as bright as its
      * Bu/t (log scale: 0.1 Bu/t faint, 1,000 Bu/t full), a core and a sheath.
      */
-    private static void drawJet(float bu, int dir, float t) {
+    private static void drawJet(float bu, int dir, float t, float pulse) {
         if (bu <= 0) return;
-        final float bright = Math.max(0.08f, Math.min(1f, (float) (0.35 + 0.2 * Math.log10(bu))));
+        final float bright = pulse * Math.max(0.08f, Math.min(1f, (float) (0.35 + 0.2 * Math.log10(bu))));
         final float[] core = { 0.85f, 0.95f, 1f };
         final float[] sheath = { 0.35f, 0.65f, 1f };
         drawCone(core, 0.55f * bright, 0.6f, 1.4f, dir, t);

@@ -199,7 +199,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         if (m.overdriveFromHatch()) return tr(K + "od.hatch");
         final QuasarResult r = m.lastResult();
         if (r.anchorShort) return tr(K + "anchor.short", String.format(Locale.ROOT, "%.2f", r.anchorPaysN));
-        if (m.state().shed) return tr(K + "shed.v", MTEQuasarEngine.fmt(r.shedTarget));
+        if (m.state().shed && r.shedding) return tr(K + "shed.v", MTEQuasarEngine.fmt(r.shedTarget));
         return "";
     }
 
@@ -452,7 +452,10 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         final QuasarResult r = m.lastResult();
         final int L = m.getLatticeInForce();
         final boolean saturationShown = !m.isSaturated() && m.getCoilTier() >= QuasarParams.LATTICE_COIL;
-        if (L == 0 && !saturationShown && m.getLatticeBuilt() == 0) return;
+        if (L == 0 && !saturationShown && m.getLatticeBuilt() == 0) {
+            shedRow(rows);
+            return;
+        }
         rows.section(
             BTSText.lang(K + "sec.lattice"),
             L > 0 ? BTSText.lang(K + "sec.lattice.v", L, QuasarParams.LATTICE_NAME[L]) : "");
@@ -466,10 +469,12 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                 sec / (double) MTEQuasarEngine.SATURATION_SECONDS,
                 BTSText.lang(K + "chk.saturation.tip"),
                 BTSText.cat(BTSText.lit("§7"), BTSText.lang(K + "chk.saturation.tip2")));
+            shedRow(rows);
             return;
         }
         if (L == 0) {
             if (m.getLatticeBuilt() > 0) rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lang(K + "lat.coils"));
+            shedRow(rows);
             return;
         }
         // the band: x, the setpoint as a tick
@@ -606,16 +611,25 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
                     BTSText.lang(K + "anchor.short.tip"));
             }
         }
-        if (m.state().shed) {
-            rows.note(
-                BTSRows.ICON_WARN,
-                BTSGuiKit.WARN,
-                BTSText.lang(
-                    K + "shedding",
-                    r.shedTarget >= 999_999.5 ? BTSFormat.litres(r.shedTarget) : MTEQuasarEngine.fmt(r.shedTarget),
-                    BTSFormat.duration(Math.round(QuasarParams.shedSeconds(m.getMass(), r.shedTarget)))),
-                BTSText.lang(K + "shedding.tip", MTEQuasarEngine.shedWhy(r.shedReason)));
-        }
+        shedRow(rows);
+    }
+
+    /**
+     * The shed note: shown with or without a lattice (a coil-downgrade shed has none, QA-B12), and only once a disc
+     * second has run since a load, so a saved shed never reads "Shedding to 0 SM" (QA-B36).
+     */
+    private void shedRow(BTSRows.Builder rows) {
+        final MTEQuasarEngine m = multiblock;
+        final QuasarResult r = m.lastResult();
+        if (!m.state().shed || !r.shedding) return;
+        rows.note(
+            BTSRows.ICON_WARN,
+            BTSGuiKit.WARN,
+            BTSText.lang(
+                K + "shedding",
+                r.shedTarget >= 999_999.5 ? BTSFormat.litres(r.shedTarget) : MTEQuasarEngine.fmt(r.shedTarget),
+                BTSFormat.duration(Math.round(QuasarParams.shedSeconds(m.getMass(), r.shedTarget)))),
+            BTSText.lang(K + "shedding.tip", MTEQuasarEngine.shedWhy(r.shedReason)));
     }
 
     private void massRow(BTSRows.Builder rows) {

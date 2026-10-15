@@ -1092,6 +1092,40 @@ public final class RenderTest {
         smbh(out, "l4_67m", 4, 67_108_864, 1, 0f, 0f, 0f, 1f, false, "L4 lattice (Constrained Eternity), 67.1 M SM");
         smbh(out, "l4_od100", 4, 67_108_864, 1, 1f, 0f, 0f, 1f, false, "L4 lattice at its top, Overdrive 100 %");
         smbh(out, "l4_shedding", 4, 33_554_432, 1, 0f, 0f, 0f, 1f, true, "L4 lattice, 33.6 M SM, shedding");
+        // QA-B12: a real shed syncs 0 Bu/t on both jets; the flare must still read from outside the cage, at 200 blocks
+        // as at 150, against the same hole with its jets live
+        final String[] far = { "orbit", "orbit200", "orbit@night", "orbit200@night" };
+        final float[] dark = { 1, 0.9f, 10f, 0f, 0f, -1f, 0f, 0, 0.9f, 35f, 0, 0f, 4, 0f, 0f, 0f, 1f, 1, 33_554_432f };
+        out.add(
+            new Case(
+                "smbh_l4_shed_dark",
+                Site.SMBH,
+                33_554_432,
+                null,
+                "L4, 33.6 M SM, shedding (jets 0 Bu/t)",
+                -1,
+                dark).with("high", far.clone()));
+        out.add(
+            new Case(
+                "smbh_l4_shed_dark_low",
+                Site.SMBH,
+                33_554_432,
+                null,
+                "L4, 33.6 M SM, shedding (jets 0 Bu/t, quality low)",
+                -1,
+                dark.clone()).with("low", far.clone()));
+        final float[] lit = dark.clone();
+        lit[3] = lit[4] = 2500f;
+        lit[TileQuasarHole.DBG_SHED] = 0;
+        out.add(
+            new Case(
+                "smbh_l4_live_far",
+                Site.SMBH,
+                33_554_432,
+                null,
+                "L4, 33.6 M SM, jets 2,500 Bu/t (reference)",
+                -1,
+                lit).with("high", far.clone()));
         smbh(out, "unbound_n1", 4, 134_217_728, 1, 0f, 1f, 0f, 1f, false, "Unbound, n = 1 (134 M SM)");
         return out;
     }
@@ -2148,6 +2182,14 @@ public final class RenderTest {
     static String view(String view, boolean night) {
         final Built b = current;
         if (b == null || b.error != null) return "no site";
+        // "orbit<d>": the orbit view d blocks out (QA-B12's distance shots)
+        double orbitDistance = 150;
+        if (view.startsWith("orbit") && view.length() > 5) {
+            try {
+                orbitDistance = Double.parseDouble(view.substring(5));
+            } catch (NumberFormatException ignored) {}
+            view = "orbit";
+        }
         final WorldServer world = world();
         world.setWorldTime(night ? 18000 : 6000);
         final EntityPlayerMP player = player();
@@ -2266,11 +2308,12 @@ public final class RenderTest {
                     break;
                 }
                 case "orbit": {
-                    // SMBH (R-19): outside the lattice, three-quarter from the front-right and raised, 150 blocks out:
-                    // the cage's nodes and arcs, the ring over the wall, the jets and both crowns
+                    // SMBH (R-19): outside the lattice, three-quarter from the front-right and raised, 150 blocks out
+                    // ("orbit<d>": d blocks out): the cage's nodes and arcs, the ring over the wall, the jets and both
+                    // crowns
                     target = b.centre;
                     final double[] dir = norm(new double[] { F[0] * 0.8 + L[0] * 0.6, 0.42, F[2] * 0.8 + L[2] * 0.6 });
-                    eye = add(b.centre, dir, 150);
+                    eye = add(b.centre, dir, orbitDistance);
                     break;
                 }
                 case "hero": {

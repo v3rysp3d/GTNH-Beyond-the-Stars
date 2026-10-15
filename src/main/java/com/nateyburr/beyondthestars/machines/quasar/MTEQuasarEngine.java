@@ -2034,7 +2034,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                         unbound ? " (Unbound, n " + String.format(Locale.ROOT, "%.2f", r.n) + ")" : "",
                         r.x,
                         r.outputX,
-                        q.shed ? ", SHEDDING to " + fmt(r.shedTarget) + " SM (" + shedWhy(r.shedReason) + ")" : ""));
+                        q.shed && r.shedding
+                            ? ", SHEDDING to " + fmt(r.shedTarget) + " SM (" + shedWhy(r.shedReason) + ")"
+                            : ""));
                 out.add(
                     String.format(
                         Locale.ROOT,
