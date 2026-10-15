@@ -3410,7 +3410,8 @@ public final class EyeStarRuntime {
                 .append(' ');
         }
         legacyPay.clear();
-        lastEvent = sb.append("owed (a T5 salvage made while unformed or picked up, or a run started on an older version)")
+        lastEvent = sb
+            .append("owed (a T5 salvage made while unformed or picked up, or a run started on an older version)")
             .toString();
         com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", lastEvent);
         host.markDirty();
