@@ -615,7 +615,7 @@
       ]
     },
     {
-      "low": 48122, "key": "stellar_smds", "chapter": "umv", "stem": "StellarSMDs", "x": 948, "y": 456, "size": 24,
+      "low": 48122, "key": "stellar_smds", "chapter": "umv", "stem": "StellarSMDs", "x": 912, "y": 348, "size": 24,
       "name": "{c}{l}{n}Stellar SMDs", "icon": "beyondthestars:stellarSmdCapacitor", "needs": ["circuits"],
       "prereqs": [48114, 48118], "questLogic": "OR",
       "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:stellarSmdTransistor", "1x beyondthestars:stellarSmdResistor", "1x beyondthestars:stellarSmdCapacitor", "1x beyondthestars:stellarSmdDiode", "1x beyondthestars:stellarSmdInductor"] } ],
@@ -632,7 +632,7 @@
       ]
     },
     {
-      "low": 48123, "key": "empyrean_circuits", "chapter": "umv", "stem": "EmpyreanCircuits", "x": 1140, "y": 408, "size": 48, "main": true,
+      "low": 48123, "key": "empyrean_circuits", "chapter": "umv", "stem": "EmpyreanCircuits", "x": 1032, "y": 408, "size": 48, "main": true,
       "name": "{c}{l}{n}Empyrean Circuits", "icon": "beyondthestars:empyreanMainframe", "needs": ["circuits"],
       "prereqs": [48117, 48121, 48122],
       "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:empyreanProcessor", "1x beyondthestars:empyreanMainframe"] } ],
@@ -2161,7 +2161,7 @@
     { "id": "E51", "quest": "AAAAAAAAAAAAAAAAAAAKEA==", "expectName": "Stargate Chevron", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 540, "y": 156, "size": 48 } ] },
     { "id": "E52", "quest": "AAAAAAAAAAAAAAAAAAAKDQ==", "expectName": "Stargate Ring Block", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 660, "y": 156, "size": 48 } ] },
     { "id": "E53", "quest": "AAAAAAAAAAAAAAAAAAAKDw==", "expectName": "Stargate Chevron Block", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 780, "y": 156, "size": 48 } ] },
-    { "id": "E54", "quest": "AAAAAAAAAAAAAAAAAAAKJQ==", "expectName": "Stargate Command", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 780, "y": 252, "size": 48 } ] },
+    { "id": "E54", "quest": "AAAAAAAAAAAAAAAAAAAKJQ==", "expectName": "Stargate Command", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 780, "y": 60, "size": 48 } ] },
     { "id": "E55", "quest": "AAAAAAAAAAAAAAAAAAAKDg==", "expectName": "Stargate Base", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 900, "y": 156, "size": 48 } ] },
     { "id": "E56", "quest": "AAAAAAAAAAAAAAAAAAAKJg==", "expectName": "What, How?", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 1008, "y": 144, "size": 72 } ] },
     { "id": "E57", "quest": "OCv5OWo6Q9KDfqe1w0ET9w==", "expectName": "The Factory Must Grow!", "expectChapter": "egoals", "ops": [ { "op": "move", "to": "end", "x": 1128, "y": 120, "size": 24 } ] },
