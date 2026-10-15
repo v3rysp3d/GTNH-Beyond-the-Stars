@@ -148,7 +148,7 @@
       "{5}{l}BUILD{r}",
       "- Hologram Projector, stack 1: Kerr T1, {bomdims:kerr_t1}. Chunk-load all of it.",
       "- The Black Hole Compressor's own Extreme Density Space-Bending Casing, Hawking Radiation Realignment Focus and Naquadah Alloy frames, plus Beyond the Stars' Superradiant Mirrors, Mirror Backing, Ergosphere Field Coils, Beam Focusing Quadrupoles, Beam Dumps, Harmonic Lining and {bom:kerr_t1:E} Bolt Injector Rails. At the hole's height a {9}window band{r} runs round the drum: one Quantum Glass pane (the outer mirror ring's skin, and the governor arc in front of the hole) with the cells behind it left open, so the hole shows from the front. The optional task is the full bill.",
-      "- Hatches: 1 laser or up to 2 energy hatches in the governor arc, 1 to {bom:kerr_t1:b} {9}bolt buses{r} (plain input buses) on the cage, and optional BHC Utility Hatches beside them. No maintenance hatch.",
+      "- Hatches: 1 laser or up to 2 energy hatches in the governor arc and 1 to {bom:kerr_t1:b} {9}bolt buses{r} (plain input buses) on the cage. That is all a Kerr needs, at T1 and at T2: no maintenance hatch, and nothing in the 8 {9}utility sockets{r} beside the bolt buses. The projector builds them as plain shell; a hatch can go there later (a BHC Utility Hatch or a Directive Hatch for redstone, see {c}Feeding the Governor{r}).",
       "- Hologram markers 7 and 8 show where the two module controllers go.",
       "",
       "{5}{l}RUN{r} Everything is in the GUI.",
@@ -280,7 +280,7 @@
         "{5}{l}AUTOMATE{r}",
         "- Stock the bolt buses from ME: an ME Interface, or an export bus on each bus. The GUI shows how long the stock lasts.",
         "- {9}Auto{r} (on by default, in the GUI's Hole control panel): a Seed in a bolt bus opens a closed hole once at least 1 SM of bolts and containment power are there, and a Collapser closes an open hole only while the setpoint is at its minimum, 2 SM (redstone 1 on a setpoint Directive Hatch, or setSetpoint(2)).",
-        "- BHC Utility Hatches on the cage give redstone while the hole is open. Invert it into an export bus holding Seeds, and a hole that evaporates reseeds itself.",
+        "- A BHC Utility Hatch in a utility socket gives redstone while the hole is open. Invert it into an export bus holding Seeds, and a hole that evaporates reseeds itself.",
         "",
         "{2}{l}DONE WHEN{r} you hold 64 Neutronium bolts (HOLD {to} CLAIM {to} INSTALL)."
       ]
