@@ -271,6 +271,12 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     @Override
     protected void addStatusRows(BTSRows.Builder rows) {
+        // QA-A11: frozen while a footprint chunk is unloaded; S-05: switched off, and why
+        if (multiblock.isFrozen()) {
+            rows.note(BTSRows.ICON_BAD, BTSGuiKit.WARN, BTSText.lang("beyondthestars.gui.eye.frozen"));
+        }
+        final String off = multiblock.offReasonForGui();
+        if (!off.isEmpty()) rows.note(BTSRows.ICON_BAD, BTSGuiKit.WARN, BTSText.lit(off));
         final Badge b = badgeCode();
         switch (b) {
             case NOT_FORMED:

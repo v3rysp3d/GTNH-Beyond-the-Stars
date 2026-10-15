@@ -75,7 +75,7 @@ public final class EyeStarBench {
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
-        + "field <fluid> <L> | eu set <n> | mebus setup|stock|manual|power|status | damage | repair | walk | "
+        + "field <fluid> <L> | eu set <n> | mebus setup|stock|manual|power|status | damage | repair | walk | unload | "
         + "punch [owner] | "
         + "render [on|off] | "
         + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
@@ -310,6 +310,30 @@ public final class EyeStarBench {
             case "repair":
                 out.add(repair(world));
                 break;
+            case "unload": {
+                // unload: queue every chunk of the Eye's T1-T3 footprint for unloading except the controller's (run
+                // /btskerr release first; a player nearby keeps them): a partly loaded footprint (QA-A11)
+                final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+                final int[] box = com.nateyburr.beyondthestars.machines.SLConsoleTest.bounds(
+                    eye.getExtendedFacing(),
+                    base.getXCoord(),
+                    base.getYCoord(),
+                    base.getZCoord(),
+                    MTEEyeOfHarmonyBTS.PIECE_CORE,
+                    MTEEyeOfHarmonyBTS.PIECE_BEAM,
+                    MTEEyeOfHarmonyBTS.PIECE_JET);
+                final int ccx = base.getXCoord() >> 4, ccz = base.getZCoord() >> 4;
+                int n = 0;
+                for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
+                    for (int cz = box[2] >> 4; cz <= box[5] >> 4; cz++) {
+                        if (cx == ccx && cz == ccz) continue;
+                        ((net.minecraft.world.WorldServer) world).theChunkProviderServer.unloadChunksIfNotNearSpawn(cx, cz);
+                        n++;
+                    }
+                }
+                out.add(n + " chunk(s) queued to unload (all but the controller's)");
+                return out;
+            }
             case "walk": {
                 // walk: GT's structure check now, whatever chunks are loaded (QA-A11: a walk across unloaded chunks)
                 final IGregTechTileEntity base = eye.getBaseMetaTileEntity();

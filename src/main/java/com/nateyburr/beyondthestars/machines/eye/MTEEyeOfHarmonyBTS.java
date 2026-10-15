@@ -597,6 +597,85 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (errors.isEmpty() && runtime.legacyPending()) {
             runtime.grandfather(legacyStructureTier(), legacyFootprintLoaded(aBaseMetaTileEntity));
         }
+        // QA-A11: the bands the footprint check covers: raised by every formed walk, lowered only by one that saw the
+        // whole footprint it covered loaded (a band taken down on purpose)
+        final int tier = structureTier();
+        if (footprintLoaded(aBaseMetaTileEntity)) footprintBands = Math.max(1, tier);
+        else footprintBands = Math.max(footprintBands, tier);
+    }
+
+    // ============================================================================ chunk freeze (QA-A11)
+
+    /**
+     * QA-A11 / R-8: the pieces (core first) whose chunks must all be loaded for the Eye to run: the most a formed walk
+     * has counted (tile NBT); 0 before any, then the unlocked tier stands in (the transitions needed those bands).
+     */
+    private int footprintBands;
+    /** The footprint's chunks were all loaded at the last field second (false: the Eye is frozen). */
+    private boolean footprintLoaded = true;
+    private int[] footprintBox;
+    private com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing footprintBoxFacing;
+    private int footprintBoxBands;
+    /** QA-A11 / QS-02: a periodic re-walk (ticks), as the KEE and the quasar make, while the footprint is loaded. */
+    private static final int RECHECK = 200;
+
+    private int footprintPieces() {
+        final int bands = footprintBands > 0 ? footprintBands : runtime.unlockedTier();
+        return Math.max(1, Math.min(PIECES.length, bands));
+    }
+
+    /**
+     * True when every chunk under the footprint's pieces is loaded (never loads one). StructureLib fails a cell in
+     * an unloaded chunk as a missing block, so a walk then is not to be believed, and the Eye freezes instead of
+     * putting its star out (R-8: "an unloaded chunk freezes it"), as the KEE and the quasar do.
+     */
+    private boolean footprintLoaded(IGregTechTileEntity base) {
+        if (base == null || base.getWorld() == null) return false;
+        final int bands = footprintPieces();
+        final com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing f = getExtendedFacing();
+        if (footprintBox == null || footprintBoxFacing != f || footprintBoxBands != bands) {
+            footprintBox = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                .bounds(f, base.getXCoord(), base.getYCoord(), base.getZCoord(), Arrays.copyOf(PIECES, bands));
+            footprintBoxFacing = f;
+            footprintBoxBands = bands;
+        }
+        final int[] b = footprintBox;
+        return base.getWorld()
+            .checkChunksExist(b[0], 0, b[2], b[3], 255, b[5]);
+    }
+
+    /** GT's per-check tile update, kept to real changes: the periodic re-walk must not resend the controller. */
+    private final com.nateyburr.beyondthestars.machines.QuietTileUpdate quietTileUpdate = new com.nateyburr.beyondthestars.machines.QuietTileUpdate();
+
+    @Override
+    protected void onStructureCheckFinished(IGregTechTileEntity aBaseMetaTileEntity) {
+        super.onStructureCheckFinished(quietTileUpdate.wrap(aBaseMetaTileEntity));
+        quietTileUpdate.after(this, aBaseMetaTileEntity);
+    }
+
+    /** QA-A11: frozen (a footprint chunk is not loaded): no drain, no field second; nothing is lost. GUI, scanner. */
+    public boolean isFrozen() {
+        return !footprintLoaded;
+    }
+
+    /**
+     * The field second's freeze gate (server): false while a footprint chunk is unloaded. When the chunks come back
+     * the Eye re-walks before its star moves again, so a walk made across unloaded chunks never puts it out; every
+     * {@link #RECHECK} ticks it re-walks anyway (edits far from the controller reach it, QS-02).
+     */
+    private boolean footprintGate(IGregTechTileEntity base, long aTick) {
+        if (mStartUpCheck >= 0) return true; // the runtime waits for GT's first walk by itself
+        final boolean loaded = footprintLoaded(base);
+        if (!loaded) {
+            footprintLoaded = false;
+            return false;
+        }
+        if (!footprintLoaded || aTick % RECHECK == 0) {
+            footprintLoaded = true;
+            checkStructure(true, base);
+            resumeIfRepaired(base);
+        }
+        return true;
     }
 
     /** "" per piece, so the status lines of a tile that has not been walked yet read "absent". */
@@ -1269,7 +1348,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
         resumeIfRepaired(aBaseMetaTileEntity);
-        if (aTick % DRAIN_INTERVAL == 0) {
+        if (aTick % DRAIN_INTERVAL == 0 && !footprintGate(aBaseMetaTileEntity, aTick)) {
+            // frozen: the hatches only hear that the Eye reports (their codes stay as they were)
+            publishDirectives();
+            aBaseMetaTileEntity.markDirty();
+        } else if (aTick % DRAIN_INTERVAL == 0) {
             refreshSlotItems();
             if (mMachine) {
                 takeFromPlinthBuses();
@@ -1929,6 +2012,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 : "switched back on: the structure is whole again");
     }
 
+    /** S-05: why the Eye is switched off ("" while it may work). GUI (server side). */
+    public String offReasonForGui() {
+        return offReason();
+    }
+
     /** S-05: why the Eye is switched off, for the GUI's and the scanner's wait line ("" while it may work). */
     private String offReason() {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
@@ -2271,6 +2359,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         EyeNbt.writeStar(runtime, aNBT);
         centre.writeTile(aNBT);
         if (!autoOff.isEmpty()) aNBT.setString("btsEyeAutoOff", autoOff);
+        if (footprintBands > 0) aNBT.setInteger("btsEyeFootprint", footprintBands);
         if (runningKey != null) {
             aNBT.setString("btsEyeRunKey", runningKey);
             aNBT.setLong("btsEyeRunParallel", runningParallel);
@@ -2306,6 +2395,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             }
         }
         autoOff = aNBT.getString("btsEyeAutoOff");
+        footprintBands = aNBT.getInteger("btsEyeFootprint");
         runningKey = aNBT.hasKey("btsEyeRunKey") ? aNBT.getString("btsEyeRunKey") : null;
         runningParallel = aNBT.getLong("btsEyeRunParallel");
         runningSuccesses = aNBT.getLong("btsEyeRunSuccesses");
@@ -2735,7 +2825,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + ", compression T"
                 + compressionTier()
                 + "; "
-                + bandStates());
+                + bandStates()
+                + (footprintLoaded ? "" : "; FROZEN (a chunk of the footprint is not loaded)"));
         final String gap = bandGap();
         if (!gap.isEmpty()) out.add(gap);
         out.add(
