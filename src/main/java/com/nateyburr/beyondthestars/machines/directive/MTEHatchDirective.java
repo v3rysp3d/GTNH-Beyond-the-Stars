@@ -297,6 +297,11 @@ public class MTEHatchDirective extends MTEHatch {
     }
 
     /** One line for the GUI, the host's scanner and the bench. */
+    /** Bench: the settings alone ("set EYE_STATUS, output BIT_3, invert true, w 25"). */
+    public String settingsLine() {
+        return "set " + set.name() + ", output " + output.name() + ", invert " + invert + ", w " + window;
+    }
+
     public String statusLine() {
         if (!fresh()) {
             return set.label + ": no machine reporting (place it in an Eye n, a Kerr u or a Quasar d socket)";

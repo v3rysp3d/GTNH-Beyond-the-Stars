@@ -75,7 +75,7 @@ public final class EyeStarBench {
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
-        + "field <fluid> <L> | eu set <n> | mebus setup|stock|manual|power|status | damage | repair | walk | unload | "
+        + "field <fluid> <L> | eu set <n> | mebus setup|stock|manual|power|status | damage | repair | walk | unload [all] | planet <key> | hatchwrench | "
         + "punch [owner] | "
         + "render [on|off] | "
         + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
@@ -326,13 +326,44 @@ public final class EyeStarBench {
                 int n = 0;
                 for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
                     for (int cz = box[2] >> 4; cz <= box[5] >> 4; cz++) {
-                        if (cx == ccx && cz == ccz) continue;
+                        if (cx == ccx && cz == ccz && !"all".equals(a5)) continue;
                         ((net.minecraft.world.WorldServer) world).theChunkProviderServer
                             .unloadChunksIfNotNearSpawn(cx, cz);
                         n++;
                     }
                 }
                 out.add(n + " chunk(s) queued to unload (all but the controller's)");
+                return out;
+            }
+            case "planet": {
+                // planet <key>: a planet's display block in the controller slot (a GT planet run, QA-A06)
+                final String key = a5.startsWith("planet:") ? args[5] : "planet:" + args[5];
+                final com.nateyburr.beyondthestars.machines.eye.EyeRecipe r = com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry
+                    .byKey(key);
+                if (r == null) {
+                    out.add("Unknown planet " + key);
+                    return out;
+                }
+                eye.debugSetTarget(r.trigger.copy());
+                out.add("Target: " + r.name);
+                break;
+            }
+            case "hatchwrench": {
+                // hatchwrench: every Directive and Sensor hatch's item NBT read back into a fresh hatch of its kind,
+                // as a pick-up and placement does (QM-05)
+                for (com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective h : eye.directiveHatches()) {
+                    final net.minecraft.nbt.NBTTagCompound tag = new net.minecraft.nbt.NBTTagCompound();
+                    h.setItemNBT(tag);
+                    final com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective fresh = (com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective) h
+                        .newMetaEntity(h.getBaseMetaTileEntity());
+                    fresh.loadNBTData(tag);
+                    out.add("Directive: before " + h.settingsLine() + " | after a wrench " + fresh.settingsLine());
+                }
+                for (MTEHatchStellarFieldSensor h : eye.sensorHatches()) {
+                    final net.minecraft.nbt.NBTTagCompound tag = new net.minecraft.nbt.NBTTagCompound();
+                    h.setItemNBT(tag);
+                    out.add("Sensor item NBT: " + tag);
+                }
                 return out;
             }
             case "walk": {
