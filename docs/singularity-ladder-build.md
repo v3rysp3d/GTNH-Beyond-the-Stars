@@ -173,7 +173,7 @@ calls: questions B-34..B-38, B-45, B-62 (review fixes) and B-63 (unit 5).
   standard rig). The screwdriver still steps the dial (sneak: the feed).
 - **Centre render:** the Eye draws its current object at the centre of the structure while it is formed and its star
   exists: the igniting protostar, the live star (Sol 9, Sirius A 11, Arcturus 15 blocks, each in its own colour),
-  the neutron star, the white dwarf cooling to black over its batch, the magnetar (throbbing on its flare warnings),
+  the neutron star, the white dwarf cooling to black over its batch, the magnetar (a steady body since B-219; its flare warnings show in the magnetosphere),
   and the Core Collapse (Arcturus swelling, then the bounce's shock shell, or a supernova flash). It uses TecTech's
   star shader and textures (the Forge of the Gods' `tectech:star` and `StarLayer0..2`). Config `eyeRenderCentre`
   and a per-Eye switch in the GUI; the render block is placed only into air, never into a block, and removes
