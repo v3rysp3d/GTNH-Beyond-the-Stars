@@ -74,6 +74,9 @@ public class CommandBTSRecipes extends CommandBase {
 
     private static final Pattern FORMATTING = Pattern.compile("§.");
 
+    /** {@code /btsrecipes dump <file>}: a bare file name, nothing that can leave config/beyondthestars/. */
+    private static final Pattern SAFE_DUMP_NAME = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,63}");
+
     @Override
     public String getCommandName() {
         return "btsrecipes";
@@ -81,7 +84,7 @@ public class CommandBTSRecipes extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsrecipes [status | dump [file] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]"
+        return "/btsrecipes [status | dump [file name, written to config/beyondthestars/] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]"
             + " | chain <build|plan <family>|make <family>|gt <umv|uxv|max>|status|stop> x y z]";
     }
 
@@ -138,8 +141,19 @@ public class CommandBTSRecipes extends CommandBase {
         }
         if (!"dump".equals(sub) || args.length > 2) throw new WrongUsageException(getCommandUsage(sender));
         final String name = args.length > 1 ? args[1] : "bts-recipes.json";
+        // A plain file name only, written into config/beyondthestars/: no absolute path, no folders, no "..".
+        if (!SAFE_DUMP_NAME.matcher(name)
+            .matches() || name.contains("..")) {
+            BTSChat.error(
+                sender,
+                "Use a plain file name (letters, digits, - _ .), for example bts-recipes.json. "
+                    + "It is written to config/beyondthestars/.");
+            return;
+        }
         final MinecraftServer server = MinecraftServer.getServer();
-        final File file = new File(name).isAbsolute() || server == null ? new File(name) : server.getFile(name);
+        final File folder = server == null ? new File("config", "beyondthestars")
+            : server.getFile("config" + File.separator + "beyondthestars");
+        final File file = new File(folder, name);
         final Map<String, Object> dump = collect();
         try {
             final File parent = file.getAbsoluteFile()
