@@ -827,6 +827,12 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                 .min(QuasarParams.TRIM_CAP, Math.floor(available(trimHatches, spaceFluid()) / spaceUnitL) + ocS);
             final QuasarResult r = QuasarDisc.step(q, in);
             HorizonLattice.step(q, in, plan, r);
+            // QA-B27: on a bound L4 the structure holds the L4 top, so a structure shed there is Bind's
+            if (r.shedding && "structure".equals(r.shedReason)
+                && !unbound
+                && QuasarParams.latticeInForce(in.coilTier, latticeTier) == QuasarParams.LATTICE_MAX) {
+                r.shedReason = "bound";
+            }
             final double intake = r.holdUpLitres + r.growthLitres;
             if (intake > 0) takeBuffer(gasFluid(gas), (long) Math.ceil(intake));
             if (r.mhdcsmLitres > 0) spendCredit(espmFluid(), r.mhdcsmLitres);
@@ -1175,6 +1181,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     static String shedWhy(String reason) {
         if ("structure".equals(reason)) return "the structure holds less";
         if ("anchor".equals(reason)) return "anchor short";
+        if ("bound".equals(reason)) return "bound again";
         return "setpoint lowered";
     }
 

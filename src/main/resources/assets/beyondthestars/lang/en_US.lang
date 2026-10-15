@@ -863,6 +863,7 @@ beyondthestars.gui.reality.diffracting=Diffracting
 beyondthestars.gui.reality.wait.network=BEC network
 beyondthestars.gui.reality.wait.full=Network full
 beyondthestars.gui.reality.wait.anchors=Anchors
+beyondthestars.gui.reality.wait.stability=Quasar link
 beyondthestars.gui.reality.regions=Regions
 beyondthestars.gui.reality.lamp.title=Region %s
 beyondthestars.gui.reality.lamp.diffraction.1=Green: anchored for the next run.

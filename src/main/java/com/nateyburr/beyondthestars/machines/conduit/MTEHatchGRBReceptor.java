@@ -211,7 +211,9 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             if (out.bySource.containsKey(e.getKey())) continue;
             if (warming || e.getKey()
                 .pauses()) {
-                if (!out.bySource.isEmpty() && now - e.getValue() > FORGET_PAUSED_TICKS) {
+                // QA-B20: never during the warm-up: restored sources carry tick 0, and the first to arrive would
+                // make the port forget the others at once
+                if (!warming && !out.bySource.isEmpty() && now - e.getValue() > FORGET_PAUSED_TICKS) {
                     it.remove();
                     continue;
                 }

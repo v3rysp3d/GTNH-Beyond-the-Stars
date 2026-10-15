@@ -34,6 +34,9 @@ public class RealityDiffractionGui extends BTSControllerGui<MTERealityDiffractio
         if (!multiblock.hasNetwork() || !multiblock.hasStorage()) return "wait.network";
         if (multiblock.pendingLitres() > 0) return "wait.full";
         if ((multiblock.anchorMask() & 0x3F) == 0) return "wait.anchors";
+        // QA-B43: fitted ports and no quasar link: every check fails on stability
+        if (multiblock.mMaxProgresstime == 0 && multiblock.burstDriven()
+            && multiblock.quasarSigma() < MTERealityDiffraction.MIN_SIGMA) return "wait.stability";
         return null;
     }
 

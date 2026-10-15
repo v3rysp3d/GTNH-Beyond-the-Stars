@@ -896,6 +896,9 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
     /** "Quasar link σ 1.02: speed x1.50" for the GUI / scanner; "" with no receptor port. Server state. */
     public String burstLine() {
         if (receptorCount() == 0) return "";
+        // QA-B44: at installed T1 the ports report a demand to the quasar but give no speed
+        if (burstDemand() <= 0)
+            return "Quasar link: it speeds the Homogeny up from installed T2 (" + burstHost.linkLine() + ")";
         if (burstHost.paused()) return burstHost.linkLine() + " (link paused: speed x1, Entanglement Medium paused)";
         return String.format(
             Locale.ROOT,
