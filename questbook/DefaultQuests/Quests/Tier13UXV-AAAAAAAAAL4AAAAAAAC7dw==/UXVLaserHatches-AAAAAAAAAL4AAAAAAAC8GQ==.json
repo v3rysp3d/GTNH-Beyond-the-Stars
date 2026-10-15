@@ -16,8 +16,8 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 1,
-      "desc:8": "The UXV laser source and target hatches already exist in the pack. Put them on anything that drinks more than an energy hatch can give.\n\n[note]On a Kerr module the energy hatch's voltage sets the parallels: a UXV laser makes them 8 × 13 × floor(sqrt M).[/note]\n\n§2§lDONE §lWHEN§r you hold a UXV 256A/t Laser Source Hatch and a matching Target Hatch.",
+      "countAsQuest:1": 0,
+      "desc:8": "The pack's UXV laser source and target hatches carry more power than any energy hatch. They are built from the pack's UXV parts, which need Universium, so they come with Eye T10 (coming later).\n\n[note]On a Kerr module the tier of the total input (voltage × amps) sets the parallels: a 256A UXV laser counts as tier 17, so 8 × 17 × floor(sqrt M).[/note]\n\n§2§lDONE §lWHEN§r you hold a 256A UXV Laser Source Hatch and its Target Hatch.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -28,7 +28,7 @@
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§4§l§nUXV Laser Hatches",
+      "name:8": "§8Coming later: §7§l§nUXV Laser Hatches§r",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,28 +59,8 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
-      "autoConsume:1": 0,
-      "consume:1": 0,
-      "groupDetect:1": 0,
-      "ignoreNBT:1": 1,
       "index:3": 0,
-      "partialMatch:1": 1,
-      "requireOnlyOneItem:1": 0,
-      "requiredItems:9": {
-        "0:10": {
-          "Count:3": 1,
-          "Damage:2": 15238,
-          "OreDict:8": "",
-          "id:8": "gregtech:gt.blockmachines"
-        },
-        "1:10": {
-          "Count:3": 1,
-          "Damage:2": 15138,
-          "OreDict:8": "",
-          "id:8": "gregtech:gt.blockmachines"
-        }
-      },
-      "taskID:8": "bq_standard:retrieval"
+      "taskID:8": "bq_standard:checkbox"
     }
   }
 }

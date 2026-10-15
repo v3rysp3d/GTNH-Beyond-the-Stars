@@ -545,9 +545,9 @@ function build(data, opts) {
         if (!/^[a-z0-9_]+$/.test(q.key || '')) error(`${where}: missing or malformed key`);
         const placeholder = !!(q.needs && q.needs.length && !built(q.needs));
         const rec = { q, where, b64, chapter: q.chapter, placeholder, size: q.size || 24 };
-        // name: a placeholder is grey and says so, so the book shows at a glance what is not built
+        // name: a placeholder is grey and starts 'Coming later:', so the book shows at a glance what is not built
         const baseName = fmt.title(q.name, where);
-        rec.name = placeholder ? '\u00a77\u00a7l\u00a7n' + strip(baseName) + '\u00a7r \u00a78(planned)' : baseName;
+        rec.name = placeholder ? '\u00a78Coming later: \u00a77\u00a7l\u00a7n' + strip(baseName) + '\u00a7r' : baseName;
         rec.stem = q.stem || strip(baseName).replace(/[^A-Za-z0-9]/g, '').slice(0, 16);
         const descParts = [fmt(q.desc, where)];
         if (placeholder) descParts.push(planned);
@@ -1176,7 +1176,7 @@ function writeSvgs(views, dir) {
             for (const e of v.ents) {
                 const fill = e.ours ? '#2f5d9e' : (e.touched ? '#9e7a2f' : '#44444c');
                 out.push(`<rect x="${e.x}" y="${e.y}" width="${e.w}" height="${e.h}" fill="${fill}" stroke="${e.hit ? '#ff3b3b' : '#ddd'}" stroke-width="${e.hit ? 1.5 : 0.5}"/>`);
-                const lab = e.label.replace(/^pack '/, '').replace(/'$/, '').replace(/ \(planned\)$/, '*');
+                const lab = e.label.replace(/^pack '/, '').replace(/'$/, '').replace(/^Coming later: /, '*');
                 out.push(`<text x="${e.x + e.w / 2}" y="${e.y + e.h + 7}" font-size="5.5" fill="#eee" text-anchor="middle">${esc(lab.slice(0, 34))}</text>`);
             }
             out.push(`<text x="4" y="10" font-size="9" fill="#fff">${esc(v.name)} - layout '${scn}'</text></svg>`);

@@ -144,11 +144,12 @@ public final class BTSRecipesSingularity {
                 .metadata(RESEARCH_ITEM, SLBlocks.casing(BlockSLCasing.MIRROR, 1))
                 .metadata(SCANNING, new Scanning(2 * MINUTES, TierEU.RECIPE_UIV))
                 .itemInputs(
-                    BTSRecipeGuard.req(OrePrefixes.plate, Materials.Neutronium, 32L),
-                    BTSRecipeGuard.req(OrePrefixes.foil, Materials.Infinity, 64L),
-                    nn(ItemList.Emitter_UIV.get(4L), "ItemList.Emitter_UIV"),
-                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UIV, 4L),
-                    SLBlocks.casing(BlockSLCasing.MIRROR, 4))
+                    BTSRecipeGuard.alInputs(
+                        BTSRecipeGuard.req(OrePrefixes.plate, Materials.Neutronium, 32L),
+                        BTSRecipeGuard.req(OrePrefixes.foil, Materials.Infinity, 64L),
+                        nn(ItemList.Emitter_UIV.get(4L), "ItemList.Emitter_UIV"),
+                        BTSRecipeGuard.anyCircuit(Materials.UIV, 4),
+                        SLBlocks.casing(BlockSLCasing.MIRROR, 4)))
                 .fluidInputs(molten(Materials.Infinity, 18_432), molten(Materials.SpaceTime, 2_304))
                 .itemOutputs(BTSRecipeGuard.stack(SLItems.superradiantMirrorSegment, 1))
                 .duration(4_800)

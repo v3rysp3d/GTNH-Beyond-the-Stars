@@ -68,6 +68,11 @@ function BomReq($counts, [string]$item) {
     '{0:N0}' -f $counts[$item]
 }
 
+# The total block count of a bill, so a "N blocks" line can never drift from the items above it.
+function BomTotal($counts) {
+    '{0:N0}' -f (($counts.Values | Measure-Object -Sum).Sum)
+}
+
 # ----------------------------------------- module EU draw, READ OUT OF THE JAVA (B1)
 # 0.21.0 made the Extraction Derrick and the Enrichment Annex the first things on this
 # campus that CONSUME EU, and they consume it through the output manifold's four Energy
@@ -269,7 +274,7 @@ $HOLD_FIRST = '{8}This quest only LOOKS at what you are carrying, and it takes n
 $quests = @(
 
     # =========================================================== THE PATH (10 steps)
-    @{ Key = 'p1'; Name = '{6}{l}Step 1 - The Controller'; X = 0; Y = 0; Size = 32
+    @{ Key = 'p1'; Name = '{6}{l}Step 1 - The Controller'; X = 48; Y = 0; Size = 32
         Icon = $ICON_CTRL; Task = (Machine $MTE_CONTROLLER 1); Prereqs = @()
         Reward = @($PROJECTOR, (Icon 'gregtech:gt.blockcasings3' 12 16))
         Desc = (@(
@@ -293,16 +298,16 @@ $quests = @(
                 'The controller is in your inventory. {8}Nothing is taken from you - this quest only looks, and once it has seen the controller it stays complete for ever.{r}'
                 '{8}Claim the reward before step 2 plants that controller in the ground.{r}'
                 ''
-                '[note]This ONE machine is the whole plant. There are no module controllers any more: the cooling towers, the spine duct, the spiral chamber, the rotor gallery AND the four plant modules (Vent Stack, Switchyard, Extraction Derrick, Enrichment Annex) are all pieces of THIS controller, raised by the same projection.[/note]'
+                '[note]This ONE machine is the whole plant. There are no module controllers: the cooling towers, the spine duct, the spiral chamber, the rotor gallery AND the four plant modules (Vent Stack, Switchyard, Extraction Derrick, Enrichment Annex) are all pieces of THIS controller, raised by the same projection.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'p2'; Name = '{6}{l}Step 2 - Break Ground'; X = 48; Y = 0; Size = 32
+    @{ Key = 'p2'; Name = '{6}{l}Step 2 - Break Ground'; X = 96; Y = 0; Size = 32
         Icon = $PROJECTOR; Task = $PROJECTOR; Prereqs = @('p1')
         Reward = @((Icon 'gregtech:gt.blockconcretes' 8 64))
         Desc = (@(
                 '{5}{l}DO THIS{r}'
-                '{9}1.{r} Find flat ground with room. The plant is {9}50 blocks square{r}: the projection measures 32 blocks BEHIND the controller, 17 in FRONT and 25 to each side, and wants 20 to 40 blocks of headroom depending on tier.'
+                '{9}1.{r} Find flat ground with room. The platform is {9}50 x 50 blocks{r}: it reaches 32 blocks BEHIND the controller and 17 in FRONT, with the controller about halfway across, and the plant wants 20 to 40 blocks of headroom depending on tier.'
                 ''
                 '{9}2.{r} Place the Nuclear Plant Foundation. {1}Whichever way you are facing when you place it is the plant''s FRONT{r} - the silo grows straight back from it, and every socket you will ever pipe into faces the way you are facing now.'
                 ''
@@ -324,7 +329,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'p3'; Name = '{6}{l}Step 3 - One Projection'; X = 96; Y = 0; Size = 32
+    @{ Key = 'p3'; Name = '{6}{l}Step 3 - One Projection'; X = 144; Y = 0; Size = 32
         Icon = $CASING_RADPROOF; Prereqs = @('p2')
         Task = @((Icon 'gregtech:gt.blockconcretes' 8 64), (Icon 'gregtech:gt.blockcasings3' 12 16))
         Reward = @((Icon 'gregtech:gt.blockcasings3' 12 32), (Machine $MTE_MAINTENANCE 3))
@@ -354,13 +359,13 @@ $quests = @(
                 ''
                 '{c}Those 12 ghosts never go solid, and you have not done anything wrong.{r} The hologram draws them and always will; the survival projector skips them every single time, on purpose, because a housing carries a spin setting and a rotor it has no business guessing. Step 7 places all twelve by hand. Do not stand there clicking at them.'
                 ''
-                '{c}The controller is also still NOT FORMED at the end of this step.{r} That is correct too. It is short of its {9}Maintenance Hatch{r}, its {9}Feedwater Input Hatch{r}, its {9}Output Hatch{r} and its {9}Depleted Output Bus{r} - four sockets, and they are the whole job of step 4. {1}The plant forms at the end of step 4, not here.{r}'
+                '{c}The controller is also still NOT FORMED at the end of this step.{r} That is correct too. It is short of its {9}Maintenance Hatch{r}, its {9}Feedwater Input Hatch{r}, its {9}Output Hatch{r} and its {9}Depleted Output Bus{r} - four sockets, and step 4 fits all four along with the rest of the silo face and the chamber wall. {1}The plant forms at the end of step 4, not here.{r}'
                 ''
                 '[note]Only the PLATFORM is mandatory. Silo, spine, spiral, gallery and towers are all optional pieces - but a platform on its own generates nothing, and a silo with no gallery is a steam EXPORT plant rather than a generator.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'p4'; Name = '{6}{l}Step 4 - Plumb the Points of Use'; X = 144; Y = 0; Size = 32
+    @{ Key = 'p4'; Name = '{6}{l}Step 4 - Plumb the Points of Use'; X = 192; Y = 0; Size = 32
         Icon = (Machine $MTE_INPUT_BUS_IV 1); Prereqs = @('p3')
         Task = @(
             (Machine $MTE_INPUT_BUS_IV 1),
@@ -379,7 +384,7 @@ $quests = @(
                 '{5}THE SILO FACE - the flat wall your controller is set into{r}'
                 'Three courses, one cell either side of the controller''s own column - exactly as drawn above:'
                 '  {9}y2{r}  {9}ROD{r} Input Bus . {9}DEP{r} Depleted Output Bus'
-                '     {8}the bottom FUEL course - the exact segment the cascade burns{r}'
+                '     {8}two courses up: the lowest FUEL course, the exact segment the cascade burns{r}'
                 '  {9}y1{r}  {9}H2O{r} Input Hatch . {9}SILO CONTROL BLOCK{r} . {9}OUT{r} Output Hatch'
                 '     {8}the drum course - feedwater in, waste water and exported steam out{r}'
                 '  {9}y0{r}  {9}MAINT{r} Maintenance Hatch, in the cell beside the controller'
@@ -407,7 +412,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'p5'; Name = '{6}{l}Step 5 - Load the Rods'; X = 192; Y = 0; Size = 32
+    @{ Key = 'p5'; Name = '{6}{l}Step 5 - Load the Rods'; X = 240; Y = 0; Size = 32
         Icon = (BTSItem 'fuelRodUranium' 1); Prereqs = @('p4')
         Task = (BTSItem 'fuelRodUranium' $STEP5_RODS)
         Reward = @((BTSItem 'fuelRodUranium' $STEP5_RODS))
@@ -437,11 +442,11 @@ $quests = @(
                 ''
                 '[warn]Classic fuel ASSEMBLIES in the bus still work, but at HALF output - the panel calls it "Assembly fallback (output halved)". The cascade is where the other half lives.[/warn]'
                 ''
-                '[note]{1}Where rods come from changed in 0.24.0.{r} The four-step Assembler chain is retired; rods are now built on the {9}The Fuel Line{r} row at the bottom of this chapter - twenty-three steps, ore to bundle. {9}Four pellets to a rod and three rods to a bundle are unchanged{r}, so every rod and assembly you already own is worth exactly what it was.[/note]'
+                '[note]{1}Where rods come from:{r} {9}The Fuel Line{r} row at the bottom of this chapter - twenty-three steps, ore to bundle. {9}Four pellets make a rod and three rods make a bundle.{r}[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'p6'; Name = '{6}{l}Step 6 - First Steam'; X = 192; Y = 52; Size = 32
+    @{ Key = 'p6'; Name = '{6}{l}Step 6 - First Steam'; X = 240; Y = 52; Size = 32
         Icon = (Icon 'minecraft:water_bucket' 0 1); Prereqs = @('p5')
         Task = (Icon 'minecraft:water_bucket' 0 1)
         Reward = @((BTSItem 'turbineHousing' 12))
@@ -457,7 +462,7 @@ $quests = @(
                 'Nothing on the ten-step path needs to be powered. The plant generates; it does not consume - the reactor, the spine, the chamber and the gallery draw nothing at all, not idling, not starting, not running - and the four Energy Hatches in step 9 are {9}not a structure requirement{r}: this plant forms and runs perfectly well without a single one of them.'
                 ''
                 '{1}TWO THINGS ON THIS CAMPUS DO DRAW EU. BOTH ARE OPTIONAL MODULES.{r}'
-                "The {9}Extraction Derrick{r} ({2}$DERRICK_EUT{r}) and the {9}Enrichment Annex{r} ({2}$ANNEX_EUT{r}) take their power {9}through those same four Energy Hatches{r} and from nowhere else. Build either one and the hatches stop being furniture: fit at least one and {9}wire it to a live grid{r}, or that module silently never turns over. Their blueprints are on the bottom row and both say so at the top."
+                "The {9}Extraction Derrick{r} ({2}$DERRICK_EUT{r}) and the {9}Enrichment Annex{r} ({2}$ANNEX_EUT{r}) take their power {9}through those same four Energy Hatches{r} and from nowhere else. Build either one and the hatches stop being furniture: fit at least one and {9}wire it to a live grid{r}, or that module silently never turns over. Their blueprints are on the second blueprint row and both say so at the top."
                 ''
                 '{5}{l}READ IT ANYWHERE{r}'
                 'The {9}Silo Control Block{r} prints the same instrument panel the GUI does. So does the Turbine Control Block, and so does a Portable Scanner. {8}One panel, everywhere - no readout can disagree with another.{r}'
@@ -474,7 +479,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'p7'; Name = '{6}{l}Step 7 - Seat the Rotors'; X = 144; Y = 52; Size = 32
+    @{ Key = 'p7'; Name = '{6}{l}Step 7 - Seat the Rotors'; X = 192; Y = 52; Size = 32
         Icon = (BTSItem 'turbineRotor' 1); Prereqs = @('p6')
         Task = @((BTSItem 'turbineHousing' 12), (BTSItem 'turbineRotor' 8))
         # A Water Bucket is a stack-size-1 item, exactly like the Turbine Rotor above it, so the
@@ -519,7 +524,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'p8'; Name = '{6}{l}Step 8 - Wire the Clock'; X = 96; Y = 52; Size = 32
+    @{ Key = 'p8'; Name = '{6}{l}Step 8 - Wire the Clock'; X = 144; Y = 52; Size = 32
         Icon = (Machine $MTE_TURBINE_PANEL 1); Prereqs = @('p7')
         # C2 (third instance): the four Water Buckets are NOT a gate. This step's own
         # numbered instructions empty them into the COOL hatch, and an emptied bucket is a
@@ -565,7 +570,7 @@ $quests = @(
                 '{2}{l}DONE WHEN{r}'
                 'The Turbine Control Block, the Spiral Cycle Sensor and all {9}EIGHT{r} Precision Injectors are in your inventory together. {8}Steps 4 and 7 paid you four injectors each - that is the eight, and they are the eight this step installs. All of it has to be on you AT ONCE: four now and four later counts as zero.{r}'
                 $HOLD_FIRST
-                '{8}The four Water Buckets step 7 paid you are deliberately NOT part of this gate. You pour them away into the COOL hatch here and an emptied bucket is a different item, so a gate that asked for them could never be met by anyone who followed the instructions. Fill the hatch whenever you like; the quest cannot see it either way.{r}'
+                '{8}The four Water Buckets step 7 paid you are not part of this gate: you pour them into the COOL hatch here, so fill it whenever you like.{r}'
                 ''
                 '{5}{l}CHECK YOUR WORK{r}'
                 'The STEAM CHAIN group reads {2}Spiral 8/8 injectors{r} and its coolant line has stopped saying {c}Coolant NOT SUPPLIED{r} - it now names the fluid with a live L/t figure. The TURBINE group shows a rising {2}RPM{r} and a {2}cyc/min{r} figure, and the {9}Spiral Cycle Sensor{r} pulses once per ACCEPTED cycle. Use that pulse as your confirmation.'
@@ -575,7 +580,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'p9'; Name = '{6}{l}Step 9 - First EU'; X = 48; Y = 52; Size = 32
+    @{ Key = 'p9'; Name = '{6}{l}Step 9 - First EU'; X = 96; Y = 52; Size = 32
         Icon = (Machine $MTE_DYNAMO_IV 1); Prereqs = @('p8')
         Task = @((Machine $MTE_DYNAMO_IV 4), (Machine $MTE_ENERGY_IV 4))
         Reward = @((BTSItem 'turbineRotor' 1), (Icon 'gregtech:gt.blockcasings4' 12 32))
@@ -594,7 +599,7 @@ $quests = @(
                 '{9}They are never a STRUCTURE demand.{r} The reactor, the spine, the chamber and the gallery consume nothing - no draw, no idle cost, no start-up cost - so leaving all four E sockets empty can never un-form the plant or stop the campaign, and while any are missing the OUTPUT group prints one grey line counting them.'
                 ''
                 '{c}THEY ARE NOT FURNITURE, THOUGH. TWO MODULES RUN ON THEM.{r}'
-                'Two of the optional modules on the bottom row draw their power through these four sockets and from nowhere else:'
+                'Two of the optional modules on the second blueprint row draw their power through these four sockets and from nowhere else:'
                 "  {9}Extraction Derrick{r} {2}$DERRICK_EUT{r} while it drills"
                 "  {9}Enrichment Annex{r} {2}$ANNEX_EUT{r} while it enriches"
                 "{c}Build either one with no Energy Hatch fitted - or with one fitted and nothing wired into it - and that module silently never turns over.{r} So fit at least one {9}Energy Hatch (IV){r} here and run a live cable INTO it: your base grid, or straight off one of the Dynamo Hatches in the row below. Both modules running at once is {2}$MODULES_EUT{r}, which a single IV hatch carries on its own."
@@ -616,7 +621,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'p10'; Name = '{6}{l}Step 10 - Read the Panel'; X = 0; Y = 52; Size = 32
+    @{ Key = 'p10'; Name = '{6}{l}Step 10 - Read the Panel'; X = 48; Y = 52; Size = 32
         Icon = (BTSItem 'fuelRodThoriumBonded' 1); Prereqs = @('p9')
         Task = (BTSItem 'fuelRodThoriumBonded' 1)
         Reward = @((BTSItem 'fuelRodThoriumBonded' 4))
@@ -628,10 +633,11 @@ $quests = @(
                 '  {9}2{r} x1.55 spine speed x1.00 efficiency = 46,028,832 L/t'
                 '  {9}3{r} x RPM 12,000/500 x rotors = 1,104,691,968 EU/t demand'
                 '  {9}4{r} under ceiling 1,610,645,504 -> 1,104,691,968 EU/t out'
+                '{8}The panel rounds each factor to two places: the spine speed in line 2 is 1.553.{r}'
                 ''
                 'Burn a MIXED silo and step 1 says so instead of flattering you: {8}45 pillars avg x6.69 fuel (32x9 + 13x1) x16,384{r}. With {9}no rotor turning{r} - no gallery at all, or a gallery of empty housings - the whole group re-titles itself {8}how that steam figure is derived{r} and step 3 becomes the export line. The title turns on ROTORS SEATED, not on housings placed, so it can never invent a generator you have not finished.'
                 ''
-                'Then a fifth line: {1}Weakest term:{r}. It ranks pillars filled, fuel grade, throttle, spine, and - only where a generator exists - RPM, rotor condition and the output clamp, names the one costing you the most, and tells you the fix.'
+                'Then a fifth line, {1}Weakest term{r}, ranks pillars filled, fuel grade, throttle, spine, and - only where a generator exists - RPM, rotor condition and the output clamp, names the one costing you the most, and tells you the fix.'
                 ''
                 '{8}The RPM entry is not one answer but five: no Spiral chamber, no injectors fitted, {c}injectors dry{r}, {c}chamber cannot be cooled{r}, or simply cycle faster. It follows the interlock''s own order of refusal, so this line and the {9}HOLD:{r} line above it can never name two different faults for the same tick. The other entries are just as literal - an EMPTY silo is told to stack Reactor Fuel Pillar Frames rather than to keep a bus stocked, and a duct with no housings in it is told it is EMPTY rather than told to wrench four housings that are not there.{r}'
                 ''
@@ -646,12 +652,12 @@ $quests = @(
                 ''
                 '{1}AND THAT IS THE BUILD FINISHED - NOT THE CAMPAIGN{r}'
                 'The ten steps were CONSTRUCTION. What the plant does from here is EARN: four milestone lines climb just by running, seven tiers each, paying multipliers into the very derivation you have just learned to read and then unlocking maxima this plant has never had - control rods past 24/24, a redline above 12,000, cheaper water, faster modules. They also pay the points that buy a twenty-five node upgrade tree.'
-                'Nothing is carried over from before you loaded this version: every counter starts at zero, today, and the first tier arrives within the hour. {1}Open THE CAMPAIGN BEGINS on the bottom row.{r}'
+                'Every counter starts at zero, and the first tier arrives within the hour. {1}Open THE CAMPAIGN BEGINS on the campaign row, under the blueprints.{r}'
             ) -join "`n")
     }
 
     # ================================================================ MASTERY (5)
-    @{ Key = 'lasers'; Name = '{3}{l}Break the Clamp'; X = 0; Y = 112
+    @{ Key = 'lasers'; Name = '{3}{l}Break the Clamp'; X = 96; Y = 120
         Icon = (Machine $MTE_LASER_SOURCE 1); Prereqs = @('p10')
         Task = @((Machine $MTE_LASER_SOURCE 1), (Machine $MTE_LASER_TARGET 1))
         Reward = @((Machine $MTE_LASER_PIPE 8))
@@ -663,7 +669,6 @@ $quests = @(
                 '  + 1 ZPM 4,096A source     536,903,680   (48.6%)'
                 '  + 2 sources               1,073,774,592 (97.2%)'
                 '  {2}+ 3 sources               1,610,645,504 - clears a maxed tier 5{r}'
-                '  + 4 sources               past the 2,147,483,647 integer cap'
                 ''
                 '{5}{l}DO THIS{r}'
                 '{9}1.{r} Fit Laser Source Hatches into the four L sockets.'
@@ -681,7 +686,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'spin'; Name = '{3}{l}Spin Doctrine'; X = 48; Y = 112
+    @{ Key = 'spin'; Name = '{3}{l}Spin Doctrine'; X = 144; Y = 120
         Icon = (BTSItem 'turbineHousing' 1); Prereqs = @('p10')
         Task = 'checkbox'   # C2: the 4 housings this quest is ABOUT are in the spine from step 7
         Reward = @((Icon 'gregtech:gt.blockcasings4' 12 32))
@@ -707,13 +712,13 @@ $quests = @(
                 '{2}{l}DONE WHEN{r}'
                 'You tick it, once the Spine line prints the pattern you chose.'
                 ''
-                '{8}This one is a TICK BOX on purpose. The four housings it talks about have been bolted into the spine since step 7, so a gate wanting four MORE in your pocket would only have made you craft spares you are never going to place.{r}'
+                '{8}A tick box, because the four housings it talks about have been in the spine since step 7.{r}'
                 ''
                 '[note]A COOLED chamber carries residual swirl away in the coolant instead of taking it as heat. So an all-riding spine costs you coolant rather than a meltdown - as long as the coolant is actually there. On a plant with no gallery, only SPEED is ever paid for: export is carried out of the silo on spine speed alone.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'propellant'; Name = '{3}{l}The Propellant Ladder'; X = 96; Y = 112
+    @{ Key = 'propellant'; Name = '{3}{l}The Propellant Ladder'; X = 192; Y = 120
         Icon = (Machine $MTE_INJECTOR 1); Prereqs = @('p7')
         Task = 'checkbox'   # C2: all 8 injectors are in the chamber wall from step 8
         Reward = @((Machine $MTE_INJECTOR 2))
@@ -737,8 +742,8 @@ $quests = @(
                 ''
                 '{c}"NAQUADAH PROPELLANT" IS NOT "NAQUADAH FUEL"{r}'
                 'They are two different fluids and this ladder means the first one exactly.'
-                '  {2}Naquadah Propellant Grade 1-6{r} - {9}ours{r}. What the injectors want.'
-                '  {c}Light Naquadah Fuel{r} and {c}Naquadah Based Liquid Fuel MkI-MkVI{r} - GoodGenerator''s reactor fuels. They are the {9}INPUT{r} our Mixer recipes turn INTO the propellant.'
+                '  {2}Naquadah Propellant Grade 1-6{r} - {9}this mod''s{r}. What the injectors want.'
+                '  {c}Light Naquadah Fuel{r} and {c}Naquadah Based Liquid Fuel MkI-MkVI{r} - GoodGenerator''s reactor fuels. They are the {9}INPUT{r} the Mixer recipes above turn INTO the propellant.'
                 'Feed the fuel to an injector and nothing breaks - the plant simply scores it at the {c}P x1.00{r} floor, which is worse than Benzene. Read the tooltip: if it does not say {9}PROPELLANT{r}, it is the wrong fluid.'
                 ''
                 '{5}{l}MAKING IT{r}'
@@ -748,19 +753,19 @@ $quests = @(
                 '  Grade 3  Naquadah Based Liquid Fuel MkIII + 4x Adamantium Dust       {8}(UV){r}'
                 '{8}Grades 4-6 continue up the same family - look "Naquadah Propellant" up in NEI for the exact rung you want.{r}'
                 ''
-                '{5}OR MAKE IT PROPERLY - the P-01 to P-04 chain{r}'
-                '0.24.0 added a second, longer route to the {1}same six fluids{r}, at {9}half the naquadah fuel per rung{r}. Every Mixer recipe above is untouched and always will be; this is what to build when the fuel starts to hurt.'
-                '  {9}P-01{r} {8}Chemical Plant t2, EV{r}   {2}2,000 L Nitric Acid + 1,000 L Dinitrogen Tetroxide  ->  3,000 L Oxidiser Blend{r}'
+                '{5}OR MAKE IT PROPERLY - the long route{r}'
+                'A second, longer route makes the {1}same six fluids{r} at {9}half the naquadah fuel per rung{r}. Every Mixer recipe above still works; this is what to build when the fuel starts to hurt.'
+                '  {9}1. Oxidiser{r} {8}Chemical Plant t2, EV{r}   {2}2,000 L Nitric Acid + 1,000 L Dinitrogen Tetroxide  ->  3,000 L Oxidiser Blend{r}'
                 '     {8}Red fuming nitric acid. EITHER N2O4 works - GT core''s gas or GT++''s fluid - so a standing rocket-fuel line already feeds it.{r}'
-                '  {9}P-02a{r} {8}IsaMill{r}          {2}8x Aluminium / Adamantium / Infinity Dust + 1x Alumina Milling Ball  ->  1x Ultrafine Powder{r}'
-                '  {9}P-02b{r} {8}Chemical Plant t2{r} {2}1x Ultrafine Powder + 1,000 L Kerosene  ->  2,000 L Metal Slurry{r}'
-                '  {9}P-03{r} {8}Chemical Plant t3, circuit 5, Grades 1-3{r}'
-                '  {9}P-03h{r} {8}Quantum Force Transformer, circuit 1, Simple Naquadah Catalyst, Grades 4-6{r}'
+                '  {9}2. Powder{r} {8}IsaMill{r}          {2}8x Aluminium / Adamantium / Infinity Dust + 1x Alumina Milling Ball  ->  1x Ultrafine Powder{r}'
+                '  {9}3. Slurry{r} {8}Chemical Plant t2{r} {2}1x Ultrafine Powder + 1,000 L Kerosene  ->  2,000 L Metal Slurry{r}'
+                '  {9}4. Propellant{r} {8}Chemical Plant t3, circuit 5, Grades 1-3{r}'
+                '     {8}or Quantum Force Transformer, circuit 1, Simple Naquadah Catalyst, Grades 4-6{r}'
                 '     {2}500 L naquadah fuel + 1,000 L Oxidiser Blend + slurry  ->  250 L of the rung{r} {8}(30 s){r}'
                 '     {c}Circuit 1 on the QFT half, not 5.{r} {8}On that machine the circuit picks WHICH OUTPUT the focus lands on, and these recipes have exactly one. Circuit 5 would name an output that does not exist and pay you nothing.{r}'
-                '  {9}P-04{r} {8}Fluid Solidifier / Fluid Extractor, LuV{r}  {2}1,000 L of a rung + a Ball Mould  ->  a Propellant Cartridge, and 1,000 L straight back out again{r}'
+                '  {9}5. Storage{r} {8}Fluid Solidifier / Fluid Extractor, LuV{r}  {2}1,000 L of a rung + a Ball Mould  ->  a Propellant Cartridge, and 1,000 L straight back out again{r}'
                 '     {8}Storage and logistics, never a rung: a cartridge is worth exactly the litre count that went into it, and the Spiral chamber cannot be fed one.{r}'
-                '{8}250 L per cycle on every rung of both routes, which is what keeps the D-20 supply-rate balance where it was.{r}'
+                '{8}Both routes give 250 L of propellant per recipe on every rung.{r}'
                 ''
                 '{5}{l}DO THIS{r}'
                 'Feed the Spiral chamber''s {9}PROP{r} Input Hatch - front wall, one course above the floor - and keep it ahead of the clock. Eight injectors, one litre each, per accepted cycle; a line that only keeps five stocked runs at 5/8 gain, permanently.'
@@ -768,7 +773,7 @@ $quests = @(
                 '{2}{l}DONE WHEN{r}'
                 'You tick it, once you have read the ladder and picked your rung.'
                 ''
-                '{8}This one is a TICK BOX on purpose. From step 8 onward your eight injectors are bolted into the chamber wall, and a gate that wanted eight in your POCKET would have made you wrench every one of them back out to satisfy a reading quest.{r}'
+                '{8}A tick box, because from step 8 on your eight injectors are already in the chamber wall.{r}'
                 ''
                 '[note]Past Grade 3 the gains go deliberately LINEAR, +0.5 a grade. The plant will happily drink Grade 6, but the sane stop is Grade 3 unless you are chasing a number rather than a ratio.[/note]'
                 ''
@@ -776,7 +781,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'coolant'; Name = '{3}{l}The Coolant Ladder'; X = 144; Y = 112
+    @{ Key = 'coolant'; Name = '{3}{l}The Coolant Ladder'; X = 240; Y = 120
         Icon = (Icon 'IC2:itemCellEmpty' 0 1); Prereqs = @('p7')
         Task = (Icon 'IC2:itemCellEmpty' 0 16)
         Reward = @((Machine $MTE_INPUT_IV 4))
@@ -801,13 +806,13 @@ $quests = @(
                 ''
                 'Halve the RPM and the bill drops to a QUARTER. That is the entire trade.'
                 ''
-                '{5}MAKING IT IN BULK{r} {8}- new in 0.24.0, beside the stock recipes, never instead of them{r}'
+                '{5}MAKING IT IN BULK{r} {8}- beside the stock recipes, never instead of them.{r}'
                 'Two of those rungs get an {9}8x batch route{r} that runs in {1}half the time eight stock cycles would take{r}. Neither stock recipe was touched, so nothing you have already automated changes.'
-                '  {9}C-04{r} {8}LCR, HV, 20 s{r}   {2}2x Lithium Dust + 2,000 L Boric Acid + 1,000 L Water + circuit 1  ->  2,000 L Chemical Shim{r}'
+                '  {9}Shim{r} {8}LCR, HV, 20 s{r}   {2}2x Lithium Dust + 2,000 L Boric Acid + 1,000 L Water + circuit 1  ->  2,000 L Chemical Shim{r}'
                 '     {8}A real PWR chemical shim: soluble borate poison, with lithium hydroxide holding the pH up so it does not eat the loop. It is a REAGENT - it is never fed to the chamber, and it is not a seventh rung of the ladder above.{r}'
-                '  {9}C-02{r} {8}Chemical Plant t2, EV, 1,024 ticks{r}   {2}8x Lapis Dust + 8,000 L Distilled Water + 200 L Shim + circuit 11  ->  8,000 L IC2 Coolant{r}'
-                '  {9}C-03{r} {8}Vacuum Freezer, IV, 800 ticks{r}   {2}8,000 L Hot Super Coolant + 400 L Shim  ->  8,000 L Super Coolant{r}'
-                '{8}8,000 L is exactly one plain Input Hatch, which is why the batch is 8x and not 10x. One C-04 batch doses 80,000 L of C-02 or 40,000 L of C-03, so the shim is a light tax rather than the thing that gates you.{r}'
+                '  {9}IC2 Coolant batch{r} {8}Chemical Plant t2, EV, 1,024 ticks{r}   {2}8x Lapis Dust + 8,000 L Distilled Water + 200 L Shim + circuit 11  ->  8,000 L IC2 Coolant{r}'
+                '  {9}Super Coolant batch{r} {8}Vacuum Freezer, IV, 800 ticks{r}   {2}8,000 L Hot Super Coolant + 400 L Shim  ->  8,000 L Super Coolant{r}'
+                '{8}8,000 L is exactly one plain Input Hatch, which is why the batch is 8x and not 10x. One shim run (2,000 L) doses 80,000 L of IC2 Coolant batches or 40,000 L of Super Coolant batches, so the shim is a light tax rather than the thing that gates you.{r}'
                 ''
                 '{5}{l}DO THIS{r}'
                 'Feed the Spiral chamber''s {9}COOL{r} Input Hatch - front wall, one course above the floor, beside the propellant hatch - and scale the loop every single time you climb the propellant ladder. The plant does not forgive a cooling loop designed for last month''s speed.'
@@ -827,7 +832,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'safety'; Name = '{c}{l}Written in Fire'; X = 192; Y = 112
+    @{ Key = 'safety'; Name = '{c}{l}Written in Fire'; X = 0; Y = 172
         Icon = (Icon 'IC2:itemArmorHazmatChestplate' 0 1); Prereqs = @('p10')
         Task = @(
             (Icon 'IC2:itemArmorHazmatHelmet' 0 1),
@@ -842,7 +847,7 @@ $quests = @(
                 ''
                 '{5}{l}DECAY HEAT{r}'
                 'Every shutdown leaves it: {9}twenty minutes of mandatory cooling water{r}, out of the {9}same Feedwater hatch{r} the running plant drank from. It is deferred, never waived - dismantling the silo does not cancel the bill.'
-                '{1}It takes every fluid the running draw takes, worst rung first{r} - {8}plain Water, Distilled Water, IC2 Coolant, then Grades 1 to 8 Purified Water{r} - so a plant plumbed for ONE grade of purified water and nothing else can still pay its shutdown. {c}It could not before 0.24.0:{r} the shutdown draw knew about three fluids and the running draw knew about eleven, and a purified-only feedwater line was a guaranteed meltdown handed to the player who followed the tooltip.'
+                '{1}It takes every fluid the running draw takes, worst rung first{r} - {8}plain Water, Distilled Water, IC2 Coolant, then Grades 1 to 8 Purified Water{r} - so a plant plumbed for ONE grade of purified water and nothing else can still pay its shutdown.'
                 ''
                 '{5}{l}COOLING TOWERS{r}'
                 'Two 17x17x20 hyperboloids on the platform strip to your LEFT as you face the silo, raised by the same projection. Per standing tower, up to two: feedwater draw {2}x0.5{r}, passive heat decay {2}x2{r}, decay-heat demand {2}x0.5{r}.'
@@ -861,7 +866,7 @@ $quests = @(
                 '{2}{l}DONE WHEN{r}'
                 'A full hazmat suit - helmet, chestplate, leggings and Rubber Boots - is on you at once.'
                 ''
-                '{8}Wear it - do not just carry it. Radiation does not care what is in your backpack. The quest itself reads your ARMOUR slots as well as your pack, so the suit you are standing in satisfies the gate either way.{r}'
+                '{8}Near a running plant, wear it: radiation does not care what is in your backpack. The quest reads your ARMOUR slots as well as your pack, so the suit you are wearing completes it.{r}'
                 ''
                 '[warn]The plant is generous with power and unforgiving with physics.[/warn]'
             ) -join "`n")
@@ -870,7 +875,7 @@ $quests = @(
     # ============================================================= BLUEPRINTS (5)
     # Every count below is interpolated from $BTS_BOM, which gen-bom.ps1 derives from the
     # structure shape code on every run. Nothing here is a remembered number.
-    @{ Key = 'bpground'; Name = '{3}{l}Blueprint: The Platform'; X = 0; Y = 164
+    @{ Key = 'bpground'; Name = '{3}{l}Blueprint: The Platform'; X = 96; Y = 164
         Icon = $BLOCK_CONCRETE; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}MANDATORY. Everything else in the plant is optional.{r}'
@@ -881,13 +886,13 @@ $quests = @(
                 ''
                 'The controller (the Nuclear Plant Foundation) stands on the pad''s front line, embedded in the silo face at walking level - it is already there before the silo is, and it never moves.'
                 ''
-                '{1}There is no automation bay any more.{r} Every insert and extract point moved onto the building it serves; see the individual blueprints below and step 4.'
+                '{1}There is no central automation bay.{r} Every insert and extract point sits on the building it serves; see the individual blueprints below and step 4.'
                 ''
                 '{8}This quest does not count toward chapter completion. It is a shopping list.{r}'
             ) -join "`n")
     }
 
-    @{ Key = 'bpsilo'; Name = '{3}{l}Blueprint: Reactor Silo'; X = 48; Y = 164
+    @{ Key = 'bpsilo'; Name = '{3}{l}Blueprint: Reactor Silo'; X = 144; Y = 164
         Icon = (BTSItem 'reactorFuelColumn' 1); Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}Optional piece - but this one is the reactor.{r}'
@@ -915,13 +920,11 @@ $quests = @(
                 ''
                 "{8}Rod Loading Ports above the pillars are OPTIONAL - the rod bus feeds every pillar internally. A full set is $($BTS_BOM.Pillars[5]) at tier 5 if you want them for hand-feeding.{r}"
                 ''
-                '[warn]MIGRATION - a plant raised by {9}0.19.0 or earlier{r}. Its silo FACE is the retired plumbing frontage: four Energy Hatches across the drum course and the buses out at the corners. That layout conflicts with the six sockets above {9}cell for cell{r} - each one puts a hatch where the other wants wall - so it fails at EVERY tier, and no projection can repair it: the projector MEASURES the shell that is standing and will not re-tier or overwrite it. The controller says so in as many words - {c}Tier N Reactor Silo is standing but not formed{r} - and the STRUCTURE ERRORS panel above that line carries the first wrong cell with its coordinates.[/warn]'
-                ''
-                '[note]{1}THE FIX IS ONE COMMAND.{r} Stand beside the controller and run {9}/btsmigrate{r} {8}(operator){r}. It reads the tier off the standing walls, then rewrites the front row''s bottom three courses - the only cells the two layouts disagree about. Cells that are already right are left alone; wrong ones drop their contents at the wall as items before the correct casing or socket goes in, so every hatch you owned comes back with what was inside it. {9}The shell, the ribs, the dome, the pillars and the rods standing in them are never read and never written.{r} Then it re-forms the plant and reports the tier, the cells rewritten and the machines handed back. Pick those up: the four Energy Hatches belong on the output manifold''s back face now. They are not a structure demand there - but they are where the Extraction Derrick and the Enrichment Annex draw their EU, so refit at least one and wire it if you ever build either module.[/note]'
+                '[note]A plant built by a much older version of the mod may need {9}/btsmigrate{r}, run by a server operator beside the controller.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'bpchain'; Name = '{3}{l}Blueprint: Spine + Spiral'; X = 96; Y = 164
+    @{ Key = 'bpchain'; Name = '{3}{l}Blueprint: Spine + Spiral'; X = 192; Y = 164
         Icon = $CASING_TURBINE; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}The steam chain between the silo and the turbine.{r}'
@@ -939,13 +942,13 @@ $quests = @(
                 "  {9}$(Bom $BTS_BOM.Spiral 'Maintenance Hatch')x{r} Maintenance Hatch, in the floor's front-right corner"
                 "  {9}$(Bom $BTS_BOM.Spiral 'Input Hatch (IV)')x{r} Input Hatch (IV) in the FRONT WALL, one course above the floor -"
                 '     {9}COOLANT{r} and {9}bulk PROPELLANT{r}, one near each end of that wall'
-                '     {8}(step 4 has the drawn map)'
+                '     {8}(step 4 has the drawn map).{r}'
                 ''
                 '{8}Both chamber hatches are point-of-use: the coolant cools the thing that overheats, and the propellant line stands directly under the eight injectors it stocks.{r}'
             ) -join "`n")
     }
 
-    @{ Key = 'bpturbine'; Name = '{3}{l}Blueprint: Rotor Assembly'; X = 144; Y = 164
+    @{ Key = 'bpturbine'; Name = '{3}{l}Blueprint: Rotor Assembly'; X = 240; Y = 164
         Icon = (BTSItem 'turbineHousing' 1); Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}The rotor gallery and its output manifold, down the platform strip to your RIGHT as you stand at the front and look at the silo face - the opposite side from the cooling towers. Same bill at every tier.{r}'
@@ -968,7 +971,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'bptower'; Name = '{3}{l}Blueprint: Cooling Towers'; X = 192; Y = 164
+    @{ Key = 'bptower'; Name = '{3}{l}Blueprint: Cooling Towers'; X = 288; Y = 164
         Icon = $CASING_SOLIDSTEEL; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}Optional. Two of them, both raised by the same projection.{r}'
@@ -976,18 +979,12 @@ $quests = @(
                 ''
                 '{5}PER TOWER{r}'
                 "  {9}$(Bom $BTS_BOM.Tower 'Light Concrete')x{r} Light Concrete {8}(the flare){r}"
-                "  {9}$(Bom $BTS_BOM.Tower 'Solid Steel Machine Casing')x{r} Solid Steel Machine Casing {8}(the base ring, now a CLOSED ring){r}"
+                "  {9}$(Bom $BTS_BOM.Tower 'Solid Steel Machine Casing')x{r} Solid Steel Machine Casing {8}(the base ring, a closed ring){r}"
                 ''
                 '{5}PER STANDING TOWER{r} (maximum two)'
                 '  feedwater draw {2}x0.5{r}'
                 '  passive heat decay {2}x2{r}'
                 '  decay-heat demand {2}x0.5{r}'
-                ''
-                '[note]If you still own a "Plant Module - Cooling Tower" controller from an older version, it is a museum piece: it loads, it has no recipe, and it does nothing.[/note]'
-                ''
-                '[warn]MIGRATION: a tower raised by that old controller has a GAP in its base ring where the controller stood. Break the retired controller and place {9}2x Solid Steel Machine Casing{r} per tower - the cell it stood in, and the cell directly outward of it toward the platform edge - or the tower will never be detected.[/warn]'
-                ''
-                '[note]The 0.19.0 MAINTENANCE HATCH in that base ring can STAY - the ring cell TOLERATES one, so it is not a reason to take the tower apart. It is {9}not adopted{r}: a tower hatch is never counted toward the plant''s maintenance, which is the silo face, the Spiral floor and the manifold and nothing else. Replacing it with a Solid Steel casing is equally fine.[/note]'
                 ''
                 '[note]{1}A tower that has blocks standing and still refuses to form says WHY, on every panel.{r} The REACTOR group carries a {9}Cooling towers:{r} line of its own - {2}Cooling Tower x1{r}, or {8}no cooling towers{r} when there are none - and a failing one appends {c}FRONT-LEFT tower NOT FORMED:{r} or {c}BACK-LEFT tower NOT FORMED:{r} with the reason. {8}That line is on every panel in every state, silo or no silo. It has to be: towers can go up long before the Silo Control Block exists, because that block IS one of the silo face''s own sockets.{r}[/note]'
                 ''
@@ -1005,7 +1002,7 @@ $quests = @(
     # 48020 belongs to the pack-line entry quest and is stepped over. Never insert a quest
     # above this point or every id below it moves.
 
-    @{ Key = 'bpvent'; Name = '{3}{l}Blueprint: Vent Stack'; X = 0; Y = 216
+    @{ Key = 'bpvent'; Name = '{3}{l}Blueprint: Vent Stack'; X = 96; Y = 216
         Icon = $CASING_FILTER; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}Optional module. A pure SAFETY building - it makes nothing, holds no hatches and has no sockets to wire.{r}'
@@ -1014,7 +1011,7 @@ $quests = @(
                 '{5}BILL{r}'
                 "  {9}$(BomReq $BTS_BOM.Vent 'Clean Stainless Steel Machine Casing')x{r} Clean Stainless Steel Machine Casing"
                 "  {9}$(BomReq $BTS_BOM.Vent 'Filter Machine Casing')x{r} Filter Machine Casing"
-                '  {8}313 blocks, and not one hatch.{r}'
+                "  {8}$(BomTotal $BTS_BOM.Vent) blocks, and not one hatch.{r}"
                 ''
                 '{5}WHAT IT BUYS YOU{r}'
                 'It halves BOTH safety clocks:'
@@ -1023,11 +1020,11 @@ $quests = @(
                 ''
                 '[note]{1}Finishing it mid-cooldown shortens THAT cooldown.{r} Both windows are re-clamped every single tick, not merely stamped at the moment the clock starts - so you do not have to sit through the long version one last time.[/note]'
                 ''
-                '[note]Site: {9}a 2-8, c 21-27{r}, ground to 19 up. No tier term anywhere in that rectangle, so it is in the same place on a tier-1 plant and a tier-5 one.[/note]'
+                '[note]Site: {9}a 2-8, c 21-27{r}, ground to 19 up. {8}Site cells are platform cells as step 3''s plan view draws them: {9}a{r}{8} counts 0-49 from left to right as you stand at the front facing the silo, and {9}c{r}{8} counts 0-49 from the front edge to the back.{r} The site does not depend on the silo tier, so it is in the same place on a tier-1 plant and a tier-5 one.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'bpyard'; Name = '{3}{l}Blueprint: Switchyard'; X = 48; Y = 216
+    @{ Key = 'bpyard'; Name = '{3}{l}Blueprint: Switchyard'; X = 144; Y = 216
         Icon = $CASING_SOLIDSTEEL; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}Optional module - until your plant outgrows 100,000,000 EU/t, at which point it is the most valuable building on the pad.{r}'
@@ -1036,7 +1033,7 @@ $quests = @(
                 '{5}BILL{r}'
                 "  {9}$(BomReq $BTS_BOM.Switchyard 'Solid Steel Machine Casing')x{r} Solid Steel Machine Casing"
                 "  {9}$(BomReq $BTS_BOM.Switchyard 'Steel Frame Box')x{r} Steel Frame Box"
-                '  {8}351 blocks, and not one hatch.{r}'
+                "  {8}$(BomTotal $BTS_BOM.Switchyard) blocks, and not one hatch.{r}"
                 ''
                 '{5}WHAT IT BUYS YOU{r}'
                 'It removes the {c}100,000,000 EU/t{r} grid soft cap. That is the whole function.'
@@ -1051,7 +1048,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'bpderrick'; Name = '{3}{l}Blueprint: Extraction Derrick'; X = 96; Y = 216
+    @{ Key = 'bpderrick'; Name = '{3}{l}Blueprint: Extraction Derrick'; X = 192; Y = 216
         Icon = (Machine $MTE_OUTPUT_BUS_IV 1); Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}Optional module. Half of the fuel cycle: it digs your uraninite up for you.{r}'
@@ -1062,13 +1059,13 @@ $quests = @(
                 "  {9}$(BomReq $BTS_BOM.Derrick 'Steel Frame Box')x{r} Steel Frame Box"
                 "  {9}$(BomReq $BTS_BOM.Derrick 'Steel Pipe Casing')x{r} Steel Pipe Casing"
                 "  {9}$(BomReq $BTS_BOM.Derrick 'Output Bus (IV)')x{r} Output Bus {8}(deck front wall, one course up){r}"
-                '  {8}244 blocks.{r}'
+                "  {8}$(BomTotal $BTS_BOM.Derrick) blocks.{r}"
                 ''
                 '{5}WHAT IT PRODUCES{r}'
                 'Every {9}200 powered ticks{r} (10 seconds):'
                 '  {2}6x Uraninite Dust + 1x Thorium Dust{r}'
                 '  {2}+1x Tantalum Dust{r} on every 4th cycle'
-                "Draws {9}$DERRICK_EUT{r} while it runs. That is the standalone Extraction Platform's rate, unchanged - this is the same machine, absorbed into the plant."
+                "Draws {9}$DERRICK_EUT{r} while it runs."
                 ''
                 '{c}IT NEEDS POWER, AND THE REACTOR WILL NOT GIVE IT ANY{r}'
                 "The word {9}powered{r} in that cycle count is literal. This is the {9}first thing on the whole campus that CONSUMES EU{r}, and it takes its $DERRICK_EUT out of the {9}output manifold's ENERGY HATCHES{r} - the four {9}E{r} sockets one course above the dynamos, from step 9 - and out of nothing else. The reactor's own output does not reach it."
@@ -1088,7 +1085,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'bpannex'; Name = '{3}{l}Blueprint: Enrichment Annex'; X = 144; Y = 216
+    @{ Key = 'bpannex'; Name = '{3}{l}Blueprint: Enrichment Annex'; X = 240; Y = 216
         Icon = $CASING_STAINLESS; Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
                 '{3}Optional module. The other half of the fuel cycle: it turns ore into yellowcake.{r}'
@@ -1098,22 +1095,20 @@ $quests = @(
                 "  {9}$(BomReq $BTS_BOM.Annex 'Clean Stainless Steel Machine Casing')x{r} Clean Stainless Steel Machine Casing"
                 "  {9}$(BomReq $BTS_BOM.Annex 'Steel Pipe Casing')x{r} Steel Pipe Casing"
                 "  {9}$(BomReq $BTS_BOM.Annex 'Input Bus (IV)')x{r} Input Bus {8}(uraninite){r}, {9}$(BomReq $BTS_BOM.Annex 'Input Hatch (IV)')x{r} Input Hatch {8}(Hydrofluoric Acid){r}, {9}$(BomReq $BTS_BOM.Annex 'Output Bus (IV)')x{r} Output Bus {8}(yellowcake){r}"
-                '  {8}307 blocks. All three sockets sit in the same wall, one course up.{r}'
+                "  {8}$(BomTotal $BTS_BOM.Annex) blocks. All three sockets sit in the same wall, one course up.{r}"
                 ''
                 '{5}WHAT IT PRODUCES{r}'
                 'Every {9}600 powered ticks{r} (30 seconds):'
                 '  {2}8x Uraninite Dust + 2,000 L Hydrofluoric Acid  ->  2x Yellowcake + 2x Thorium Dust{r}'
-                "Draws {9}$ANNEX_EUT{r} while it runs - the standalone Yellowcake Mill's rate, unchanged."
+                "Draws {9}$ANNEX_EUT{r} while it runs."
                 ''
                 '{c}IT NEEDS POWER TOO, THROUGH THE SAME FOUR SOCKETS{r}'
                 "{9}Powered{r} ticks again: the Annex takes its $ANNEX_EUT out of the {9}output manifold's ENERGY HATCHES{r} - the four {9}E{r} sockets one course above the dynamos, from step 9 - and not out of the reactor. Fit at least one {9}Energy Hatch (IV){r} there and run a live cable into it, or this shed forms perfectly and then never starts a batch."
                 "{8}Derrick and Annex together are $MODULES_EUT, which a single IV Energy Hatch carries on its own. Starved, the panel prints {c}Annex: UNDER-POWERED - it draws $ANNEX_EUT and the manifold's Energy Hatches hold{r}{8} and then what they actually hold. Nothing is being drawn while it says that - an under-fed module banks the trickle instead of burning it, and simply advances slowly.{r}"
                 ''
-                '[note]{1}It is a head start, not a shortcut - and that changed in 0.24.0.{r} This shed used to pay finished {8}Fuel Pellets{r} straight out of ore, which skipped all twenty-three steps of {9}The Fuel Line{r}. It now pays {9}YELLOWCAKE{r}, at {2}4 Uraninite per cake{r} - the exact ratio F-01 to F-08 reach by hand. So it buys you the eight-step front end and nothing else: {9}F-09 onward stays compulsory{r}, and it is still the only way to a rod of any grade.[/note]'
+                '[note]{1}It is a head start, not a shortcut.{r} It pays {9}YELLOWCAKE{r}, at {2}4 Uraninite per cake{r} - the same ratio the eight Front End steps reach by hand. So it saves you the Front End and nothing else: {9}everything from conversion on is still needed{r}, and The Fuel Line is still the only way to a rod of any grade.[/note]'
                 ''
-                '[warn]{c}Anything reading this bus gets a DIFFERENT ITEM than it did in 0.23.0.{r} An AE2 storage bus, an interface pattern or a pipe filter pointed at the Annex product bus is now handed {9}Yellowcake{r} where it used to be handed {9}Fuel Pellet (Uranium){r}. Re-filter it before you turn the plant back on.[/warn]'
-                ''
-                '[note]{1}Derrick + Annex feed the fuel line; they do not replace it.{r} The Derrick digs the uraninite and the Annex converts it, but what comes out is {9}feedstock{r} - yellowcake and thorium dust. It joins the chain at {9}F-09{r}, and F-09 to F-18 still have to be standing before any of it becomes a rod. {8}No module in this mod makes a finished rod.{r}[/note]'
+                '[note]{1}Derrick + Annex feed the fuel line; they do not replace it.{r} The Derrick digs the uraninite and the Annex converts it, but what comes out is {9}feedstock{r} - yellowcake and thorium dust. It joins the chain at {9}conversion{r} (Conversion and the Cascade), and every step from there to the Fuel Fabrication Hall still has to be standing before any of it becomes a rod. {8}No module in this mod makes a finished rod.{r}[/note]'
                 ''
                 '[note]These three sockets belong to the Annex alone. The rod cascade can never eat the uraninite you stock here, and nothing the silo demands can reach this acid.[/note]'
                 ''
@@ -1123,7 +1118,7 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'gridcap'; Name = '{c}{l}The 100M Wall'; X = 240; Y = 112
+    @{ Key = 'gridcap'; Name = '{c}{l}The 100M Wall'; X = 0; Y = 120
         Icon = $CASING_SOLIDSTEEL; Task = 'checkbox'; Prereqs = @('p10')
         Reward = @((Icon 'gregtech:gt.blockcasings2' 0 64))
         Desc = (@(
@@ -1141,7 +1136,7 @@ $quests = @(
                 '{9}2.{r} Re-project, or place it by hand. It is a piece of the main controller, so it is detected on the next structure check - there is nothing to wire and nothing to turn on.'
                 ''
                 '{2}{l}DONE WHEN{r}'
-                'You have read this. {8}There is nothing to hand in: no quest can gate on 351 casings you are supposed to be BUILDING WITH, and no quest can read what you have built.{r}'
+                'You have read this. {8}There is nothing to hand in: the yard''s blocks go into the building, and a quest cannot see what you have built.{r}'
                 ''
                 '{5}{l}CHECK YOUR WORK{r}'
                 'The Switchyard line reads green and the OUTPUT headline has dropped the {c}GRID-CAPPED{r} tag.'
@@ -1164,7 +1159,7 @@ $quests = @(
     # MTEReactorCoreMk1.mathTurbineLine, and the three beyondthestars.gui.tree.* lang
     # entries). Only the ASCII part of a line is ever quoted: the panel separates fields
     # with a middle dot, which this ASCII-only script cannot write.
-    @{ Key = 'progcampaign'; Name = '{6}{l}The Campaign Begins'; X = 0; Y = 268; Size = 32
+    @{ Key = 'progcampaign'; Name = '{6}{l}The Campaign Begins'; X = 48; Y = 268; Size = 32
         Icon = $ICON_CTRL; Task = 'checkbox'; Prereqs = @('p10')
         Reward = @((BTSItem 'fuelRodThoriumBonded' 8))
         Desc = (@(
@@ -1186,7 +1181,7 @@ $quests = @(
                 '{9}Tiers 5-7 pay an UNLOCK{r} - a NEW MAXIMUM. The control rods withdraw past the 24/24 design stop. The turbine redline lifts off 12,000. The feedwater draw halves again. The process modules turn over faster.'
                 '{9}Every tier also pays PROGRESSION POINTS{r}, and those are the currency of the {9}Upgrade Tree{r} - see the next two quests.'
                 ''
-                '{2}{2}Nothing here can take away anything you already have.{r} Every unlock raises a ceiling; none of them gates a capability. A plant sitting at zero progress does exactly what it did before this system existed, down to the last EU.'
+                '{2}Nothing here can take away anything you already have.{r} Every unlock raises a ceiling; none of them gates a capability. A plant at zero progress simply runs stock, down to the last EU.'
                 ''
                 '{5}{l}DO THIS{r}'
                 '{9}1.{r} Open any panel and scroll to {9}MILESTONES{r}. Read the four lines and the roll-up under them.'
@@ -1198,13 +1193,11 @@ $quests = @(
                 ''
                 '{8}A TICK BOX on purpose: a milestone tier is not an item, and there is nothing to carry into a quest window.{r}'
                 ''
-                '[note]Where the progress lives.{r} On {9}THIS CONTROLLER{r}, in its own NBT - not on you, and not on the world. It survives a world reload, a chunk unloading and coming back, the structure un-forming and re-forming, and a {9}wrench{r}: pick the controller up and the campaign rides along in the item, then loads straight back when you place it. A controller that has never earned anything still stacks like an ordinary machine.[/note]'
-                ''
-                '[warn]There is no back-fill. However long this plant has been running, the four counters start at ZERO the first time you load 0.22.0. That is deliberate - the alternative was inventing a history the plant never recorded.[/warn]'
+                '[note]{1}Where the progress lives:{r} on {9}THIS CONTROLLER{r}, in its own NBT - not on you, and not on the world. It survives a world reload, a chunk unloading and coming back, the structure un-forming and re-forming, and a {9}wrench{r}: pick the controller up and the campaign rides along in the item, then loads straight back when you place it. A controller that has never earned anything still stacks like an ordinary machine.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'progtiers'; Name = '{6}{l}The Four Lines'; X = 48; Y = 268; Size = 32
+    @{ Key = 'progtiers'; Name = '{6}{l}The Four Lines'; X = 96; Y = 268; Size = 32
         Icon = (BTSItem 'fuelRodNaqBonded' 1); Prereqs = @('progcampaign')
         Task = (BTSItem 'fuelRodNaqBonded' 1)
         Reward = @((BTSItem 'fuelRodNaqBonded' 2))
@@ -1213,7 +1206,7 @@ $quests = @(
                 'Tiers are a plain table, not a curve. A line is at tier N when its counter has passed the Nth number in its column - no rounding, no logarithm, nothing to reverse-engineer.'
                 ''
                 '{5}{l}THE THRESHOLDS{r}'
-                '  {8}T   UPTIME      BURNUP    REPROC    TURBINE{r}'
+                '  {8}T   UPTIME      BURNUP    ORE PROC  TURBINE{r}'
                 '  {9}1{r}      72,000     2,000       250      1,800'
                 '  {9}2{r}     144,000     5,000       700      5,000'
                 '  {9}3{r}     288,000    13,000     1,900     15,000'
@@ -1226,10 +1219,10 @@ $quests = @(
                 '{9}UPTIME{r} counts only ticks on which the plant actually put EU on the grid. An idle plant sitting in a loaded chunk earns nothing, and no amount of engineering makes it count faster: 72,000 ticks is one hour, every hour. It is the shallowest ladder on purpose - the line that just wants you to keep the lights on.'
                 '{9}BURNUP{r} scores one segment per live pillar per cascade cycle, {1}weighted by rod grade{r}. 201 uranium pillars score 201. The same 201 pillars on Naquadah-Bonded rods score {9}1,809{r}. A bus-fallback slice runs at half output and scores at half rate. This is the line that says {8}your fuel chain is not finished{r} - and it is why this quest asks for the top rod.'
                 '{9}ORE PROCESSING{r} scores on the DEPOSIT, never on the tick: one per Extraction Derrick load, one per Enrichment Annex batch. A load parked waiting on a full bus scores once, when it lands. It is the only line that needs a BUILDING, so its rewards go straight back into those two modules - and the only line that speeds ITSELF up.'
-                '{9}TURBINE{r} needs the steam slug {1}AND{r} all eight injectors landed inside their window. A fast clock with no fuel scores nothing - no slug, no credit. Seven of eight timed scores nothing at all. The chain refills one slug every 20 ticks, so {1}3,600 perfect cycles an hour is the ceiling and nothing raises it{r} - the buffer unlocks raise the burst, never the fill rate. Its ladder is sized against exactly that number: tier 7 is about 333 hours of cycling, which seats it between REPROCESSING (~208 h) and BURNUP (~497 h).'
+                '{9}TURBINE{r} needs the steam slug {1}AND{r} all eight injectors landed inside their window. A fast clock with no fuel scores nothing - no slug, no credit. Seven of eight timed scores nothing at all. The chain refills one slug every 20 ticks, so {1}3,600 perfect cycles an hour is the ceiling and nothing raises it{r} - the buffer unlocks raise the burst, never the fill rate. Its ladder is sized against exactly that number: tier 7 is about 333 hours of cycling, which seats it between ORE PROCESSING (~208 h) and BURNUP (~497 h).'
                 ''
                 '{5}TIERS 1-4 - THE MULTIPLIER{r}'
-                '  {8}T     UPTIME   BURNUP   REPROC  TURBINE{r}'
+                '  {8}T     UPTIME   BURNUP   ORE PROC TURBINE{r}'
                 '  {9}1{r}     x1.020   x1.030   x1.020   x1.025'
                 '  {9}2{r}     x1.050   x1.070   x1.045   x1.050'
                 '  {9}3{r}     x1.090   x1.120   x1.070   x1.085'
@@ -1248,8 +1241,8 @@ $quests = @(
                 '{9}ORE PROCESSING{r}'
                 '  {2}5{r} {8}DEEP CUT - Derrick tantalum every 3rd load{r}'
                 '  {2}6{r} {8}PROCESS INTENSIFICATION - Derrick and Annex cycles -20%{r}'
-                '  {2}7{r} {8}YIELD UPLIFT - Annex batch 24 pellets{r}'
-                '     {8}The panel still says PELLETS. The Annex has paid {r}{8}YELLOWCAKE{r}{8} since 0.24.0; what this tier does is multiply the batch by 1.2, and it carries the fraction instead of dropping it - 2, 2, 3, 2, 3, twelve cakes every five batches.{r}'
+                '  {2}7{r} {8}YIELD UPLIFT - Annex batch x1.2 yellowcake{r}'
+                '     {8}It carries the fraction instead of dropping it - 2, 2, 3, 2, 3, twelve cakes every five batches.{r}'
                 '{9}TURBINE{r}'
                 '  {2}5{r} {8}OVERSPEED TRIM I - redline MAY BE SET to 13,500 (RPM LIMIT field); gain follows it{r}'
                 '  {2}6{r} {8}OVERSPEED TRIM II - redline MAY BE SET to 15,000 (RPM LIMIT field); gain follows it{r}'
@@ -1261,27 +1254,26 @@ $quests = @(
                 ''
                 '{5}{l}DO THIS{r}'
                 'Assemble one {9}Naquadah-Bonded Fuel Rod{r} - the top of the cascade ladder, x9, the rod that turns BURNUP from a twenty-day line into a manageable one.'
-                '{c}The one-step ZPM Assembler recipe this quest used to name is GONE.{r} It went with the rest of the four-step chain in 0.24.0. The rod is now the last rung of {9}The Fuel Line{r}, and it takes two machines:'
-                '  {9}F-22{r} {8}- Quantum Force Transformer, UHV, 60 s, over an Advanced Naquadah Catalyst{r}'
+                'The rod is the last rung of {9}The Fuel Line{r}, and it takes two machines:'
+                '  {9}Pellets{r} {8}- Quantum Force Transformer, UHV, 60 s, over an Advanced Naquadah Catalyst{r}'
                 '    {2}8x Sintered Pellet + 4x Enriched Naquadah Dust + 2x U-235 Dust + 200 L Highly Enriched UF6 + 2 ingots molten Naquadah  ->  8x Naquadah-Bonded Pellet{r}'
-                '  {9}F-23{r} {8}- Precise Assembler, casing tier 2, UV, 30 s{r}'
+                '  {9}Rod{r} {8}- Precise Assembler, casing tier 2, UV, 30 s{r}'
                 '    {2}4x Naquadah-Bonded Pellet + 1x Cladding Tube + 1x Rod Hardware Set + circuit 4 + 100 L Helium  ->  1x NAQUADAH-BONDED FUEL ROD{r}'
-                '{8}Four pellets to a rod, exactly as every other grade. The 200 L of highly enriched UF6 is the F-11b cut, and this is the only step in the mod that spends it.{r}'
+                '{8}Four pellets to a rod, exactly as every other grade. The 200 L of highly enriched UF6 is the Cascade Hall''s high-enrichment cut (circuit 2), and this is the only step in the mod that spends it.{r}'
                 ''
-                '{8}Want the BUNDLE too? F-18n is on the {9}Assembly Line{r}{8} - 3 rods + 2 Grid Spacers + 2 Iridium Plates + 4 Zircaloy-4 Plates + 2 ingots molten Naquadah, scanned off a Thorium-Bonded Fuel Assembly. The cascade burns loose rods perfectly well, so this quest asks only for the rod.{r}'
+                '{8}Want the BUNDLE too? It is an {9}Assembly Line{r}{8} recipe - 3 rods + 2 Grid Spacers + 2 Iridium Plates + 4 Zircaloy-4 Plates + 2 ingots molten Naquadah, scanned off a Thorium-Bonded Fuel Assembly. The cascade burns loose rods perfectly well, so this quest asks only for the rod.{r}'
                 ''
                 '{2}{l}DONE WHEN{r}'
-                'A Naquadah-Bonded Fuel Rod is in your inventory.'
-                $HOLD_FIRST
+                'A Naquadah-Bonded Fuel Rod is in your inventory. {8}Claim it before you feed the rod to the bus: the quest only looks at what you are carrying, and it takes nothing.{r}'
                 ''
                 '{5}{l}CHECK YOUR WORK{r}'
                 'Feed the rods to the Rod Input Bus, let one cascade cycle commit, and watch the BURNUP line jump by the number of live pillars times nine instead of by the number of live pillars.'
                 ''
-                '[note]The roll-up under the four lines reads {8}Milestones 0/28{r} then a live output term then {8}112 progression points earned{r}. Twenty-eight tiers pay 112 points in total, triangularly - 1+2+3 and so on, so tier 7 on one line is worth 28 by itself. The Upgrade Tree costs exactly 112.[/note]'
+                '[note]The roll-up under the four lines reads {8}Milestones 0/28{r}, then the plant output term, then {8}0/112 progression points earned{r} on a fresh plant. Points add up triangularly - tier 1 on a line is worth 1, tier 2 is worth 3, and tier 7 is worth 28 by itself - so all twenty-eight tiers pay 112 in total. The Upgrade Tree costs exactly 112.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'progtree'; Name = '{6}{l}The Upgrade Tree'; X = 96; Y = 268; Size = 32
+    @{ Key = 'progtree'; Name = '{6}{l}The Upgrade Tree'; X = 48; Y = 320; Size = 32
         Icon = $CASING_NAQALLOY; Task = 'checkbox'; Prereqs = @('progcampaign')
         Reward = @((BTSItem 'turbineRotor' 1), (BTSItem 'turbineRotor' 1))
         Desc = (@(
@@ -1343,16 +1335,13 @@ $quests = @(
     # which is also what BTSDisplayRecipes' fourth NEI page renders, so the book, the NEI page
     # and the reactor readout all come from one table.
 
-    @{ Key = 'fuelline'; Name = '{6}{l}The Fuel Line'; X = 0; Y = 320; Size = 32
+    @{ Key = 'fuelline'; Name = '{6}{l}The Fuel Line'; X = 48; Y = 372; Size = 32
         Icon = (BTSItem 'yellowcake' 1); Task = 'checkbox'; Prereqs = @(); CountAs = 0
         Desc = (@(
-                '{1}THE FOUR-STEP CHAIN IS GONE. THIS IS WHAT REPLACED IT.{r}'
-                'Dust to pellet to rod to assembly used to be four Assembler recipes. It is now {9}twenty-three steps{r}, and they follow the real industrial process almost exactly: mill the ore, float it, leach it, extract it, calcine it, fluorinate it, enrich it, reconvert it, press it, sinter it, grind it, clad it, load it, bundle it.'
+                '{1}TWENTY-THREE STEPS, ORE TO BUNDLE{r}'
+                'Fuel is made in {9}twenty-three steps{r} that follow the real industrial process almost exactly: mill the ore, float it, leach it, extract it, calcine it, fluorinate it, enrich it, reconvert it, press it, sinter it, grind it, clad it, load it, bundle it.'
                 ''
-                '{c}READ THIS FIRST IF YOU ARE UPGRADING{r}'
-                '{9}Ten recipes were removed{r} - nine Assembler entries and one Mixer entry, the whole dust-to-pellet-to-rod-to-bundle route. {9}Nothing you are holding was deleted{r}: every pellet, rod and assembly in a chest still works and still buys exactly what it bought before. But {c}ten Assembler and Mixer setups will stop{r} on world load, and every AE2 pattern feeding them goes invalid. No crash, no item loss - the machine simply finds no recipe and idles.'
-                '{2}Your CENTRIFUGES are safe.{r} The eight recipes that shred depleted rods and assemblies back into dust were cut in the first draft of this release and {9}put back before it shipped{r}, unchanged to the last chance roll. A standing reprocessing array keeps running through the update, and the PUREX Canyon is an upgrade you build when you want one - not a toll gate you must build before your spent fuel has anywhere to go.'
-                'The two ratios that mattered are {9}preserved exactly{r}: {2}4 pellets to a rod{r} and {2}3 rods to a bundle{r}.'
+                '{2}4 pellets make a rod{r} and {2}3 rods make a bundle{r}.'
                 ''
                 '{5}THE FIVE QUESTS ON THIS ROW{r}'
                 '  {9}Front End{r} {8}- ore to yellowcake, eight steps, EV{r}'
@@ -1361,86 +1350,84 @@ $quests = @(
                 '  {9}Pellets, Rods, Bundles{r} {8}- back to the items you already know{r}'
                 '  {9}Reprocessing{r} {8}- what comes back out of the reactor{r}'
                 ''
-                '[note]{1}The whole chain is drawn on one page.{r} {9}docs/production-flowchart.html{r} in the mod folder shows every step of all four lines, the machine each runs on, and where the water grade enters. Open it in a browser.[/note]'
-                ''
-                '{5}THE FOUR NEW CONTROLLERS, AND HOW TO CRAFT THEM{r}'
+                '{5}THE FOUR CONTROLLERS THIS ROW ADDS, AND HOW TO CRAFT THEM{r}'
                 'All four are {9}Assembler{r} jobs, each built out of the casing it is walled in - and every one of those casings keeps its stock GT recipe, so there is no bootstrap loop: you can build the Batching Plant before the Batching Plant exists.'
                 '  {9}Site Batching Plant{r} {8}EV, 30 s, circuit 14{r}'
                 '    {2}8x Solid Steel Machine Casing + 4x Steel Frame Box + 2x Steel Pipe Casing + 2x Conveyor Module (EV) + 2x EV Circuit{r}'
                 '    {8}The cheapest of the four on purpose: it is the one you build FIRST, in order to build the silo.{r}'
                 '  {9}Cascade Hall{r} {8}IV, 45 s, circuit 15{r}'
-                '    {2}8x Tungstensteel Turbine Casing + 4x Tungstensteel Pipe Casing + 4x Electric Motor (IV) + 8x Long Tungstensteel Rod + 2x RhPdPalladium Plate + 4x IV Circuit + 1 ingot molten Platinum{r}'
+                '    {2}8x Tungstensteel Turbine Casing + 4x Tungstensteel Pipe Casing + 4x Electric Motor (IV) + 8x Long Tungstensteel Rod + 2x Rhodium-Plated Palladium Plate + 4x IV Circuit + 1 ingot molten Platinum{r}'
                 '  {9}Fuel Fabrication Hall{r} {8}IV, 45 s, circuit 16{r}'
-                '    {2}8x Clean Stainless Steel Machine Casing + 4x Tungstensteel Turbine Casing + 4x Robot Arm (IV) + 4x Conveyor Module (IV) + 2x RhPdPalladium Plate + 4x IV Circuit + 1 ingot molten Platinum{r}'
+                '    {2}8x Clean Stainless Steel Machine Casing + 4x Tungstensteel Turbine Casing + 4x Robot Arm (IV) + 4x Conveyor Module (IV) + 2x Rhodium-Plated Palladium Plate + 4x IV Circuit + 1 ingot molten Platinum{r}'
                 '  {9}PUREX Canyon{r} {8}IV, 45 s, circuit 17{r}'
-                '    {2}8x Radiation Proof Machine Casing + 4x Dense Lead Plate + 4x Electric Pump (IV) + 4x Medium Stainless Steel Pipe + 2x RhPdPalladium Plate + 4x IV Circuit + 1 ingot molten Platinum{r}'
+                '    {2}8x Radiation Proof Machine Casing + 4x Dense Lead Plate + 4x Electric Pump (IV) + 4x Medium Stainless Steel Pipe + 2x Rhodium-Plated Palladium Plate + 4x IV Circuit + 1 ingot molten Platinum{r}'
                 ''
                 '[note]Everything else in the chain runs on a machine GTNH already had - an IsaMill, a Flotation Cell, a Digester, a Chemical Plant, an LCR, a Dehydrator, a Vacuum Furnace, a Forming Press, a Lathe, a Neutron Activator, a Quantum Force Transformer, a Precise Assembler, an Assembly Line and a plain Assembler.[/note]'
                 ''
-                '[note]{1}The Enrichment Annex is a HEAD START on this row, not a way round it.{r} {9}8x Uraninite + 2,000 L Hydrofluoric Acid -> 2x Yellowcake{r} every 600 ticks - the same {2}4 Uraninite per cake{r} the eight-step front end reaches by hand. It buys you {9}Front End{r} and nothing else; the line joins at F-09 and everything from there on is compulsory. {8}It paid finished Fuel Pellets until 0.24.0, which is why the Reprocessing quest warns anything filtering that bus.{r}[/note]'
+                '[note]{1}The Enrichment Annex is a HEAD START on this row, not a way round it.{r} {9}8x Uraninite + 2,000 L Hydrofluoric Acid -> 2x Yellowcake{r} every 600 ticks - the same {2}4 Uraninite per cake{r} the eight-step front end reaches by hand. It buys you {9}Front End{r} and nothing else; the line joins at conversion, and everything from there on is still needed.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'fuelfront'; Name = '{3}{l}Front End - Ore to Yellowcake'; X = 48; Y = 320
+    @{ Key = 'fuelfront'; Name = '{3}{l}Front End - Ore to Yellowcake'; X = 96; Y = 372
         Icon = (BTSItem 'uraniniteConcentrate' 1); Task = 'checkbox'; Prereqs = @('fuelline'); CountAs = 0
         Desc = (@(
                 '{9}EIGHT STEPS, AND EVERY ONE OF THEM IS A REAL UNIT OPERATION.{r}'
                 'This is hydrometallurgy as it is actually done. It is long, it is mostly EV, and it ends at the yellow powder every uranium mine on earth ships.'
                 ''
-                '{5}{l}F-01 COMMINUTION{r} {8}- Ore Milling Plant (IsaMill), HV, 20 s{r}'
+                '{5}{l}1. COMMINUTION{r} {8}- Ore Milling Plant (IsaMill), HV, 20 s{r}'
                 '  {2}16x Uraninite Dust + 1x Alumina Milling Ball + circuit 1  ->  16x Milled Uraninite{r}'
                 '  {8}Or 12x Pitchblende Dust on circuit 2 - the richer ore buys the same sixteen.{r}'
-                '  {1}The Alumina Milling Ball is part of the RECIPE, and it is also NOT consumed.{r} {8}Both are true: the recipe has to name a ball or the IsaMill returns NO RECIPE and never starts, and the physical ball is then taken from the mill''s Milling Ball hatch and worn down a point at a time. So stock the ball bus as usual - just do not be surprised to see the ball on the NEI page. Every milling step in this mod uses the ALUMINA ball, F-01, F-19, F-21b and the propellant''s P-02a alike.{r}'
+                '  {1}The Alumina Milling Ball is part of the RECIPE, and it is also NOT consumed.{r} {8}Both are true: the recipe has to name a ball or the IsaMill returns NO RECIPE and never starts, and the physical ball is then taken from the mill''s Milling Ball hatch and worn down a point at a time. So stock the ball bus as usual - just do not be surprised to see the ball on the NEI page. Every milling step in this mod uses the ALUMINA ball: this one, the MOX and thorium co-milling, and the propellant powder alike.{r}'
                 ''
-                '{5}F-02 FROTH FLOTATION{r} {8}- Flotation Cell, EV, 30 s{r}'
+                '{5}2. FROTH FLOTATION{r} {8}- Flotation Cell, EV, 30 s{r}'
                 '  first: {2}2x Soda Ash + circuit 4 + 1,000 L Pine Oil  ->  1x Froth Cell{r} {8}(Mixer, MV){r}'
                 '  then:  {2}16x Milled Uraninite + 1x Froth Cell + 8,000 L Water  ->  8,000 L Uraninite Flotation Froth{r}'
                 '  then:  {2}8,000 L Froth + circuit 1  ->  12x Concentrate + 4x Tailings + 2x Gangue + 3,000 L Water back{r} {8}(Dehydrator){r}'
                 '  {8}The cell emits a FLUID, not a solid - it has no item output slot at all, which is how GT++''s own sphalerite line works too. The third step is where the solids come back and where the barren rock leaves.{r}'
                 ''
-                '{5}F-03 SULFURIC LEACH{r} {8}- Digester, EV, 40 s{r}'
+                '{5}3. SULFURIC LEACH{r} {8}- Digester, EV, 40 s{r}'
                 '  {2}12x Concentrate + 2x Pyrolusite Dust + circuit 1 + 6,000 L Sulfuric Acid  ->  8,000 L Pregnant Leach Solution + 3x Leach Residue{r}'
                 ''
-                '{5}F-04 / F-05 / F-06 CLEAN-UP AND SOLVENT EXTRACTION{r} {8}- Chemical Plant t2 then t3, EV/IV{r}'
+                '{5}4-6. CLEAN-UP AND SOLVENT EXTRACTION{r} {8}- Chemical Plant t2 then t3, EV/IV{r}'
                 '  {2}8,000 L PLS + 1x Ion Exchange Resin  ->  6,000 L Clarified Uranyl + 2,000 L Raffinate{r} {8}(resin returns 90% of the time){r}'
                 '  {2}6,000 L Clarified + 2,000 L TBP/Kerosene  ->  4,000 L Loaded Organic + 2,000 L Raffinate{r}'
                 '  {2}4,000 L Loaded Organic + 4x Soda Ash + 2,000 L Water  ->  3,000 L Strip Liquor + 1,800 L TBP back{r}'
-                '  {8}Tributyl phosphate in kerosene is the extractant every real uranium refinery uses, and you make it yourself at F-05a. 1,800 of the 2,000 L come back, so the running cost is 200 L of make-up.{r}'
+                '  {8}Tributyl phosphate in kerosene is the extractant every real uranium refinery uses, and you make it yourself (look up TBP/Kerosene Solvent in NEI). 1,800 of the 2,000 L come back, so the running cost is 200 L of make-up.{r}'
                 ''
-                '{5}F-07 / F-08 PRECIPITATE AND CALCINE{r} {8}- LCR then Dehydrator, HV/EV{r}'
+                '{5}7-8. PRECIPITATE AND CALCINE{r} {8}- LCR then Dehydrator, HV/EV{r}'
                 '  {2}3,000 L Strip Liquor + 1,000 L Ammonia  ->  6x Ammonium Diuranate + 1,000 L Ammonium Sulfate Liquor{r}'
                 '  {2}6x Ammonium Diuranate  ->  4x YELLOWCAKE + 500 L Ammonia back{r}'
                 ''
-                '[warn]{c}Plumb F-07b or your line will stall.{r} {9}1,000 L Ammonium Sulfate Liquor{r} is a co-product with nowhere else to go, and {9}a GT machine whose output hatch is full STOPS{r}. Run it through a Distillation Tower - {2}300 L Ammonia back + 400 L Diluted Sulfuric Acid{r} - or give it a void hatch.[/warn]'
+                '[warn]{c}Plumb the Ammonium Sulfate Liquor or your line will stall.{r} {9}1,000 L Ammonium Sulfate Liquor{r} is a co-product with nowhere else to go, and {9}a GT machine whose output hatch is full STOPS{r}. Run it through a Distillation Tower - {2}300 L Ammonia back + 400 L Diluted Sulfuric Acid{r} - or give it a void hatch.[/warn]'
                 ''
                 '[note]Nothing here is waste for the sake of it. Gangue, tailings and leach residue each have a cheap Centrifuge recipe, and the {9}tailings give back Uraninite at 33%{r} - a real scavenger circuit.[/note]'
                 ''
-                '[note]{1}The headline number:{r} {9}16x Uraninite Dust in at F-01 is one Uranium Fuel Rod out{r}, at Grade 1 purified water. The next two quests are why.[/note]'
+                '[note]{1}The headline number:{r} {9}16x Uraninite Dust in at step 1 is one Uranium Fuel Rod out{r}, at Grade 1 purified water. The next two quests are why.[/note]'
             ) -join "`n")
     }
 
-    @{ Key = 'fuelconv'; Name = '{3}{l}Conversion and the Cascade'; X = 96; Y = 320
+    @{ Key = 'fuelconv'; Name = '{3}{l}Conversion and the Cascade'; X = 144; Y = 372
         Icon = (Machine 28113 1); Task = 'checkbox'; Prereqs = @('fuelfront'); CountAs = 0
         Desc = (@(
                 '{9}YELLOWCAKE IS NOT FUEL. IT IS 0.7% OF THE RIGHT ISOTOPE.{r}'
-                'Fluorinate it into a gas, spin the gas, keep the light fraction. This is the only way anyone has ever enriched uranium at scale, and it is the only part of this chain that needs a machine GTNH did not already have.'
+                'Fluorinate it into a gas, spin the gas, keep the light fraction. This is the only way anyone has ever enriched uranium at scale, and it is where the chain first needs one of the new halls.'
                 ''
-                '{5}F-09 / F-10 CONVERSION{r} {8}- Chemical Plant t3, IV{r}'
+                '{5}9-10. CONVERSION{r} {8}- Chemical Plant t3, IV{r}'
                 '  {2}4x Yellowcake + 4,000 L Hydrofluoric Acid + 1,000 L Hydrogen  ->  6,000 L Uranium Tetrafluoride + 2,000 L Steam{r}'
                 '  {2}6,000 L UF4 + 2,000 L Fluorine  ->  6,000 L Uranium Hexafluoride{r}'
                 ''
-                '[note]{1}Those two fluids are GT++''s OWN materials, not ours.{r} If you already run an LFTR line, its uranium hexafluoride feeds straight into the Cascade Hall below - and our UF4/UF6 feed straight into the LFTR chain. Two routes to the same fluid, from ore instead of from metal. Nothing of GT++''s was edited.[/note]'
+                '[note]{1}Those two fluids are GT++''s OWN materials.{r} If you already run an LFTR line, its uranium hexafluoride feeds straight into the Cascade Hall below - and the UF4/UF6 made here feed straight into the LFTR chain. Two routes to the same fluid, from ore instead of from metal. Nothing of GT++''s was edited.[/note]'
                 ''
-                '{5}F-11 THE CASCADE HALL{r} {8}- new multiblock, MTE 28113, IV, 60 s{r}'
+                '{5}11. THE CASCADE HALL{r} {8}- new multiblock, IV, 60 s{r}'
                 '  {2}6,000 L UF6 + circuit 1  ->  1,000 L Enriched UF6 + 5,000 L Tails{r}'
-                'One sixth leaves enriched. Five sixths leave as tails - {9}and the tails are a product, not waste{r}.'
+                'One sixth leaves enriched. Five sixths leave as tails ({9}Depleted Uranium Hexafluoride{r}) - {9}and the tails are a product, not waste{r}.'
                 ''
                 '{5}WHAT THE TAILS ARE FOR{r}'
                 '  {2}5,000 L Tails + 8x Calcium Dust  ->  4x Depleted Uranium Ingot + 8x Fluorspar{r} {8}(Neutron Activator, LuV){r}'
-                '  {2}5,000 L Tails + Hydrogen + Water  ->  20x Depleted UO2 Powder{r} {8}(F-20 - the MOX diluent){r}'
-                'The ingots are shielding: {9}M-03b{r} on the Site Batching Plant spends {2}8 of them per 8 Tungstensteel Reinforced Blocks{r}. That is a deliberate interlock - {1}your fuel line feeds your casing line{r}.'
+                '  {2}2,000 L Tails + 4,000 L Hydrogen + 4,000 L of a water rung  ->  8x Depleted UO2 Powder at Grade 1{r} {8}(Chemical Plant t3 - the MOX diluent; The Water Step has the ladder){r}'
+                'The ingots are shielding: the Site Batching Plant''s Tungstensteel Reinforced Block recipe spends {2}8 of them per 8 blocks{r}. That is a deliberate interlock - {1}your fuel line feeds your casing line{r}.'
                 ''
-                '{5}F-11b THE HEU BRANCH{r} {8}- Cascade Hall, circuit 2, LuV, 90 s{r}'
+                '{5}THE HIGH-ENRICHMENT BRANCH{r} {8}- Cascade Hall, circuit 2, LuV, 90 s{r}'
                 '  {2}1,000 L Enriched UF6 + circuit 2  ->  200 L Highly Enriched UF6 + 800 L Tails{r}'
                 '  {8}Four fifths of the enriched cut, spent to make one fifth of something hotter. Only the naquadah fuel grade ever wants it.{r}'
                 ''
@@ -1450,53 +1437,53 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'fuelwater'; Name = '{3}{l}The Water Step'; X = 144; Y = 320; Size = 32
+    @{ Key = 'fuelwater'; Name = '{3}{l}The Water Step'; X = 192; Y = 372; Size = 32
         Icon = (Icon 'minecraft:water_bucket' 0 1); Task = 'checkbox'; Prereqs = @('fuelconv'); CountAs = 0
         Desc = (@(
                 '{3}THREE RECIPES IN THIS MOD CARE WHAT GRADE YOUR WATER IS - THE THREE THAT MAKE AN OXIDE.{r}'
                 'In every one of them the water is not a coolant and not a solvent. It is {1}literally the reagent{r}: whatever it leaves behind ends up in the fired ceramic, which is why the grade lands on these three steps and on nothing else in the mod.'
                 ''
-                '{5}F-12 RECONVERSION{r} {8}- Chemical Plant t3, IV, 30 s - the URANIUM grade{r}'
+                '{5}12. RECONVERSION{r} {8}- Chemical Plant t3, IV, 30 s - the URANIUM grade{r}'
                 '  {2}1,000 L Enriched UF6 + 2,000 L Hydrogen + 2,000 L of ONE WATER RUNG + circuit 1  ->  N x Ceramic UO2 Powder + 4,000 L HF back{r}'
                 '  {8}UF6 + 2 H2O + H2 -> UO2 + 4 HF. Base 4 at Grade 1.{r}'
                 ''
-                '{5}F-20 TAILS RECONVERSION{r} {8}- Chemical Plant t3, IV, 18 s - the MOX diluent{r}'
+                '{5}20. TAILS RECONVERSION{r} {8}- Chemical Plant t3, IV, 18 s - the MOX diluent{r}'
                 '  {2}2,000 L Depleted UF6 + 4,000 L Hydrogen + 4,000 L of ONE WATER RUNG + circuit 1  ->  N x Depleted UO2 Powder{r}'
                 '  {8}The same reaction on the cascade tails, and the dirty route: no HF comes back. Base 8 at Grade 1.{r}'
                 ''
-                '{5}{l}F-21a THORIA{r} {8}- Chemical Dehydrator, IV, 25 s - the THORIUM grade{r}'
+                '{5}{l}21. THORIA{r} {8}- Chemical Dehydrator, IV, 25 s - the THORIUM grade{r}'
                 '  {2}8x Thorium Oxalate Dust + circuit 1 + 2,000 L of ONE WATER RUNG  ->  N x Thorium Dioxide Powder + 2,000 L Carbon Dioxide{r}'
                 '  {8}The oxalate cake is WASHED before it is fired - which is exactly what the real process does. Base 6 at Grade 1.{r}'
                 ''
                 '{5}{l}THE LADDER{r} {8}- twenty-seven recipes, nine rungs on each of the three{r}'
-                '  {8}rung                  yield    F-12   F-20   F-21a{r}'
+                '  {8}rung                  yield    UO2    MOX    ThO2{r}'
                 '  {8}Distilled Water       x0.5{r}    {2}2{r}      {2}4{r}      {2}3{r}     {8}~32 Uraninite a rod{r}'
                 '  {8}Grade 1 Purified      x1.0{r}    {2}4{r}      {2}8{r}      {2}6{r}     {8}16.0 Uraninite a rod{r}'
                 '  {8}Grade 2               x1.5{r}    {2}6{r}     {2}12{r}      {2}9{r}'
                 '  {8}Grade 3               x2.0{r}    {2}8{r}     {2}16{r}     {2}12{r}'
-                '  {8}Grade 4               x2.5{r}   {2}10{r}     {2}20{r}     {2}15{r}     {8}~6.4 - the retired chain''s cost{r}'
+                '  {8}Grade 4               x2.5{r}   {2}10{r}     {2}20{r}     {2}15{r}     {8}~6.4{r}'
                 '  {8}Grade 5               x3.0{r}   {2}12{r}     {2}24{r}     {2}18{r}'
                 '  {8}Grade 6               x3.5{r}   {2}14{r}     {2}28{r}     {2}21{r}'
                 '  {8}Grade 7               x4.0{r}   {2}16{r}     {2}32{r}     {2}24{r}'
                 '  {9}Grade 8 Purified      x4.5{r}   {2}18{r}     {2}36{r}     {2}27{r}     {9}3.6 Uraninite a rod{r}'
                 ''
-                '{1}Grade 1 is the IDENTITY rung, so nothing you already build got dearer.{r} {8}F-20 gives 8 powder per 2,000 L of tails in 18 s where it used to give 20 per 5,000 L in 45 s - identical per litre and per second - and F-21a still gives its 6 per 8 oxalate. The ladder is new; the Grade 1 economics are not.{r}'
+                '{1}Grade 1 is the base rung, x1.0.{r} {8}Distilled water gives half of it; every grade above adds another half.{r}'
                 ''
-                '{5}WHY ALL THREE, AND NOT JUST F-12{r}'
-                'Because a ladder that only touches uranium is a ladder that {c}inverts the balance rule on two of the four fuel grades{r}. MOX is 30 parts F-20 powder to 2 parts plutonium dioxide, and thorium fuel is 30 parts F-21a thoria to 2 parts F-12 ceramic. With plain water on those two steps, the water ladder was worth {8}x1.00{r} to a MOX line and {8}x1.12{r} to a thorium line - against the {8}x1.40{r} the same water pays on the reactor. The bonus for POWER was bigger than the bonus for FUEL, which is precisely backwards. Graded, the four fuel grades feel {2}x9.00, x7.15, x9.00 and x2.83{r}, and every one of them is comfortably larger than x1.40 again.'
+                '{5}WHY ALL THREE OXIDE STEPS{r}'
+                'MOX is 30 parts tails powder to 2 parts plutonium dioxide, and thorium fuel is 30 parts thoria to 2 parts uranium ceramic, so better water makes every fuel grade cheaper, not just uranium. Across the whole ladder the four fuel grades gain {2}x9.00, x7.15, x9.00 and x2.83{r} - every one of them well above the {8}x1.40{r} the same water pays on the reactor.'
                 ''
                 '{5}WHAT THAT IS WORTH{r}'
                 'One {9}Extraction Derrick{r} digs 6 Uraninite every 200 ticks - 36 a minute, {9}3,240 over a 90-minute decay cycle{r}. A full tier-5 silo burns {9}201 rods{r} in that time, and 3,240 / 16.0 is 202.5.'
-                '{1}At Grade 1, one Derrick exactly feeds a fully built tier-5 plant.{r} At Grade 4 you are back to what the retired four-step chain cost. At Grade 8 you are well past it.'
+                '{1}At Grade 1, one Derrick exactly feeds a fully built tier-5 plant.{r} At Grade 8 one Derrick feeds several.'
                 ''
                 '{5}AND A SECOND, MUCH SMALLER EFFECT{r}'
                 'Purified water in the {9}reactor''s feedwater hatch{r} also multiplies the plant''s EU: {2}+5% a grade, x1.05 at Grade 1 up to x1.40 at Grade 8{r}. The panel says so, in the STEAM CHAIN group:'
                 '  {9}Feedwater: Grade 8 Purified Water - output x1.40{r}'
                 '  {8}(plain and distilled water run this plant at x1.00 - the grade is a bonus, never a requirement){r}'
                 ''
-                '[warn]{c}It has to be a DEDICATED feedwater line.{r} The reactor draws its feedwater {9}worst-first{r}, so a hatch row holding plain water and Grade 8 spends the plain water and pays you nothing. The fuel line does the exact opposite - F-12 matches the BEST rung you have piped to it.[/warn]'
+                '[warn]{c}It has to be a DEDICATED feedwater line.{r} The reactor draws its feedwater {9}worst-first{r}, so a hatch row holding plain water and Grade 8 spends the plain water and pays you nothing. The fuel line does the exact opposite - each oxide step matches the BEST rung you have piped to it.[/warn]'
                 ''
-                '[note]{1}Plain water is still enough, permanently.{r} Plain and distilled both count as x1.00 on the reactor, so a plant that never sees a Purification Plant derives the same EU it derived before this release - to the last digit. No line appears on the panel below Grade 1.[/note]'
+                '[note]{1}Plain water is still enough, permanently.{r} Plain and distilled both count as x1.00 on the reactor: the grade is a bonus, never a requirement. No line appears on the panel below Grade 1.[/note]'
                 ''
                 '[note]{1}Distilled water is a real rung of the FUEL ladder, not an omission.{r} It yields half of Grade 1 on all three steps, and {9}every other step in the chain is grade-blind{r} - the press, the sinter, the lathe, the Hall and the Assembly Line neither know nor care. So without a Purification Plant you still reach all four fuel grades, at half rate. There is no second gate.[/note]'
                 ''
@@ -1506,75 +1493,75 @@ $quests = @(
             ) -join "`n")
     }
 
-    @{ Key = 'fuelfab'; Name = '{3}{l}Pellets, Rods, Bundles'; X = 192; Y = 320
+    @{ Key = 'fuelfab'; Name = '{3}{l}Pellets, Rods, Bundles'; X = 240; Y = 372
         Icon = (BTSItem 'claddingTube' 1); Task = 'checkbox'; Prereqs = @('fuelwater'); CountAs = 0
         Desc = (@(
                 '{9}FROM HERE ON YOU ARE BACK AMONG ITEMS YOU ALREADY KNOW.{r}'
-                'Ceramic powder becomes a pellet, a pellet becomes a rod, three rods become a bundle - and the last two ratios are exactly the ones the retired chain used.'
+                'Ceramic powder becomes a pellet, four pellets become a rod, three rods become a bundle.'
                 ''
-                '{5}F-13 / F-14 / F-15 THE CERAMIC ROUTE{r}'
+                '{5}13-15. THE CERAMIC ROUTE{r}'
                 '  {2}4x Ceramic UO2 Powder + grade circuit + 250 L Lubricant  ->  4x Green Pellet{r} {8}(Forming Press, MV){r}'
                 '  {2}4x Green Pellet + 1,000 L Hydrogen  ->  4x Sintered Pellet{r} {8}(Vacuum Furnace, 1,800 K, IV){r}'
                 '  {2}1x Sintered Pellet  ->  1x Fuel Pellet{r} + grinding sludge at 10% {8}(Lathe, MV){r}'
                 '  {8}The hydrogen is not decoration - UO2 fired in air oxidises. Sludge goes back to powder 8-for-4 in a Dehydrator.{r}'
                 ''
-                '{5}F-16 THE CLADDING{r} {8}- Assembler, EV{r}'
+                '{5}16. THE CLADDING{r} {8}- Assembler, EV{r}'
                 '  {2}2x Zircaloy-4 Plate + circuit 7 + 100 L Lubricant  ->  1x Cladding Tube{r}'
-                '  {2}Stainless Rod + Stainless Spring + RhPdPalladium Plate + circuit 5  ->  1x Rod Hardware Set{r}'
+                '  {2}Stainless Rod + Stainless Spring + Rhodium-Plated Palladium Plate + circuit 5  ->  1x Rod Hardware Set{r}'
                 '  {2}2x Zircaloy-4 Plate + 4x Stainless Ring + circuit 6  ->  2x Grid Spacer{r}'
                 '  {8}Zircaloy-4 is GoodGenerator''s, and it is the real alloy a PWR fuel rod is clad in.{r}'
                 ''
-                '{5}F-17 / F-18 THE FUEL FABRICATION HALL{r} {8}- new multiblock, MTE 28110, IV{r}'
+                '{5}17-18. THE FUEL FABRICATION HALL{r} {8}- new multiblock, IV{r}'
                 '  {2}4x Fuel Pellet + Cladding Tube + Rod Hardware Set + grade circuit + 100 L Helium  ->  1x FUEL ROD{r}'
                 '  {2}3x Fuel Rod + 2x Grid Spacer + Iridium Plate + molten Platinum  ->  1x FUEL ASSEMBLY{r}'
                 ''
-                '{1}Four pellets to a rod. Three rods to a bundle.{r} {8}Those are the retired chain''s ratios, kept to the number, which is why everything already in your chests is worth exactly what it was worth yesterday.{r}'
+                '{1}Four pellets to a rod. Three rods to a bundle.{r}'
                 ''
                 '[note]{1}Why a multiblock and not an Assembler?{r} Throughput. A tier-5 silo eats {9}201 rods every 90-minute cycle{r}, in up to four grades at once. The Hall runs {9}8 recipes in parallel per casing tier{r}; an Assembler runs one.[/note]'
                 ''
                 '{5}THE OTHER THREE GRADES{r}'
-                '  {9}MOX{r} {8}x2 steam{r} - 2x PuO2 co-milled into 30x Depleted UO2 in the {9}IsaMill{r} (F-19). That is {9}6.25% plutonium{r}, which is what commercial MOX actually is, and the diluent is the cascade tails from the last quest, reconverted at {9}F-20{r} - {1}which takes a water rung of its own{r}.'
-                '  {9}Thorium-Bonded{r} {8}x5{r} - GoodGenerator''s thorium oxalate WASHED and calcined to thoria at {9}F-21a{r} - {1}the third water rung{r} - then co-milled with two parts F-12 ceramic in the IsaMill. {8}Thoria is fertile, not fissile: it needs a driver.{r}'
-                '  {9}Naquadah-Bonded{r} {8}x9{r} - sintered pellets infiltrated with naquadah vapour in a Quantum Force Transformer at UHV, using the {9}200 L of highly enriched UF6{r} from F-11b. Rod on a {9}Precise Assembler{r} (casing tier 2, UV); bundle on the {9}Assembly Line{r}, scanned off a Thorium-Bonded Fuel Assembly and needing 4 Zircaloy-4 plates for the channel box on top of the usual spacers and iridium.'
-                '  {8}Both IsaMill steps want an Alumina Milling Ball in the ball bus, exactly as F-01 does.{r}'
+                '  {9}MOX{r} {8}x2 steam{r} - 2x PuO2 co-milled into 30x Depleted UO2 in the {9}IsaMill{r}. That is {9}6.25% plutonium{r}, which is what commercial MOX actually is, and the diluent is the cascade tails from {9}Conversion and the Cascade{r}, reconverted on The Water Step - {1}which takes a water rung of its own{r}.'
+                '  {9}Thorium-Bonded{r} {8}x5{r} - GoodGenerator''s thorium oxalate WASHED and calcined to thoria on The Water Step - {1}the third water rung{r} - then co-milled with two parts uranium ceramic in the IsaMill. {8}Thoria is fertile, not fissile: it needs a driver.{r}'
+                '  {9}Naquadah-Bonded{r} {8}x9{r} - sintered pellets infiltrated with naquadah vapour in a Quantum Force Transformer at UHV, using the {9}200 L of highly enriched UF6{r} from the Cascade Hall''s high-enrichment branch. Rod on a {9}Precise Assembler{r} (casing tier 2, UV); bundle on the {9}Assembly Line{r}, scanned off a Thorium-Bonded Fuel Assembly and needing 4 Zircaloy-4 plates for the channel box on top of the usual spacers and iridium.'
+                '  {8}Both IsaMill steps want an Alumina Milling Ball in the ball bus, exactly as the first milling step does.{r}'
                 ''
                 '[warn]The press and the sinter are grade-TAGGED items, not one shared pellet, and that is on purpose: a circuit cannot survive an item. One fungible green pellet would let plain uranium powder be pressed and sintered into MOX pellets with no plutonium anywhere in the line.[/warn]'
             ) -join "`n")
     }
 
-    @{ Key = 'fuelrepro'; Name = '{c}{l}Reprocessing'; X = 240; Y = 320
+    @{ Key = 'fuelrepro'; Name = '{c}{l}Reprocessing'; X = 288; Y = 372
         Icon = (Machine 28111 1); Task = 'checkbox'; Prereqs = @('fuelfab'); CountAs = 0
         Desc = (@(
                 '{c}A SPENT BUNDLE IS MOSTLY STILL URANIUM.{r}'
-                'PUREX is the good way to reprocess it. The {9}eight old Centrifuge recipes are still here{r} - they were cut during this release and put back before it shipped, unchanged to the last chance roll - so a standing centrifuge array keeps running and your spent fuel is never stranded. The Canyon is what you build to get {1}far more{r} back out of the same bundle.'
+                'PUREX is the good way to reprocess it. The {9}Centrifuge recipes{r} for spent rods and bundles always work, so your spent fuel is never stranded. The Canyon is what you build to get {1}far more{r} back out of the same bundle.'
                 ''
-                '{5}R-00 THE CRUDE ROUTE{r} {8}- plain Centrifuge, EV to LuV, unchanged since 0.23.0{r}'
+                '{5}THE CRUDE ROUTE{r} {8}- plain Centrifuge, EV to LuV{r}'
                 '  {2}1x Depleted Fuel Assembly  ->  Uranium + Plutonium + Lead dust{r} {8}(+ Platinum foil, or Thorium / Naquadah on the bonded grades), 60 s{r}'
-                '  {2}1x Depleted Fuel Rod  ->  a third of that{r} {8}, 20 s{r}'
-                '  {8}No programmed circuit, deliberately: adding one would have invalidated every AE2 pattern already pointed at these.{r}'
-                '{c}What it does NOT give you:{r} no ceramic UO2 (so the metal has to climb back from F-09), no cladding hulls for R-04, and {9}no Nuclear Waste Water{r}. That is the whole argument for the Canyon.'
+                '  {2}1x Depleted Fuel Rod  ->  a third of that{r} {8}(20 s){r}'
+                '{c}What it does NOT give you:{r} no ceramic UO2 (so the metal has to climb back through conversion), no cladding hulls for hull recovery, and {9}no Nuclear Waste Water{r}. That is the whole argument for the Canyon.'
                 ''
-                '{5}R-01 THE COOLING POND{r} {8}- Decay Warehouse{r}'
+                '{5}THE COOLING POND{r} {8}- Decay Warehouse{r}'
                 'Depleted rods and assemblies go in and come out as their {9}cooled{r} form, on a real half-life. Four grades, rods and assemblies, eight recipes.'
                 ''
-                '{5}R-02 / R-03 THE PUREX CANYON{r} {8}- new multiblock, MTE 28111, IV{r}'
+                '{5}THE PUREX CANYON{r} {8}- new multiblock, IV{r}'
                 '  {9}circuit 1{r} {2}cooled fuel + Nitric Acid  ->  Dissolver Liquor + Cladding Hulls + that grade''s own return{r}'
                 '  {9}circuit 3{r} {2}6,000 L Dissolver Liquor + 2,000 L TBP  ->  4x Ceramic UO2 + 1x PuO2 + Lead + 2,000 L Nuclear Waste Water{r}'
-                'The uranium oxide goes {9}straight back into F-13{r}. The plutonium dioxide is the {1}only{r} source of the MOX blend.'
+                'The uranium oxide goes {9}straight back into the ceramic route{r} (Pellets, Rods, Bundles). The plutonium dioxide is the {1}only{r} source of the MOX blend.'
                 ''
-                '{5}R-02h THE UNCOOLED RUSH{r} {8}- PUREX Canyon, circuit 2{r}'
-                '  {2}depleted fuel STRAIGHT from the reactor + 1.5x Nitric Acid  ->  4x Ceramic UO2 + Lead + Hulls + 2,000 L Nuclear Waste Water{r}'
+                '{5}THE UNCOOLED RUSH{r} {8}- PUREX Canyon, circuit 2{r}'
+                '  {2}1x Depleted Fuel Assembly STRAIGHT from the reactor + 6,000 L Nitric Acid  ->  4x Ceramic UO2 + Lead + 2x Hulls + 2,000 L Nuclear Waste Water{r}'
+                '  {8}Half as much acid again as the cooled route (4,000 L). A single depleted rod takes 2,000 L.{r}'
                 '  {c}No plutonium.{r} {8}Skipping the pond costs you the element that needed the wait - which is exactly the trade a real reprocessor makes.{r}'
                 ''
-                '[note]{1}This is your migration path.{r} If you already have a pile of depleted fuel and no Decay Warehouse, the Canyon ALONE clears it on circuit 2. You only need the pond if you want plutonium, which means only if you want MOX.[/note]'
+                '[note]{1}No pond yet?{r} If you already have a pile of depleted fuel and no Decay Warehouse, the Canyon ALONE clears it on circuit 2. You only need the pond if you want plutonium, which means only if you want MOX.[/note]'
                 ''
-                '{5}R-04 HULL RECOVERY{r} {8}- LCR, EV{r}'
+                '{5}HULL RECOVERY{r} {8}- LCR, EV{r}'
                 '  {2}4x Cladding Hull + 1,000 L Hydrofluoric Acid  ->  1x Zircaloy-4 Ingot + 1x Zirconium Dust{r}'
                 '  {8}Zircaloy is expensive and the hulls are most of what a bundle weighs.{r}'
                 ''
-                '[note]{1}Nuclear Waste Water now has a SECOND producer, and a controllable one.{r} The reactor itself has always made it: while the silo is generating it puts out {9}one litre per live pillar per tick{r} through its own Output Hatch - about {8}201 L/t on a full tier-5 plant{r} - which is a flood you cannot throttle and can only get while the plant is running. R-02h and R-03 give you {2}2,000 L a batch{r} on demand instead, out of the fuel you already burned. Both feed the same Distillation Tower recipe this mod has shipped since day one: {2}8,000 L -> small Tantalum Dust + 7,200 L Distilled Water{r}.[/note]'
+                '[note]{1}Nuclear Waste Water has two producers, and this one is controllable.{r} The reactor itself makes it: while the silo is generating it puts out {9}one litre per live pillar per tick{r} through its own Output Hatch - about {8}201 L/t on a full tier-5 plant{r} - which is a flood you cannot throttle and can only get while the plant is running. The Canyon''s two dissolving recipes give you {2}2,000 L a batch{r} on demand instead, out of the fuel you already burned. Both feed the same Distillation Tower recipe: {2}8,000 L -> Small Pile of Tantalum Dust + 7,200 L Distilled Water{r}.[/note]'
                 ''
-                '[note]That distilled water is not a rounding error: it is {9}the bottom rung of the fuel ladder{r}. A closed reprocessing loop pays part of its own F-12 water bill.[/note]'
+                '[note]That distilled water is not a rounding error: it is {9}the bottom rung of the fuel ladder{r}. A closed reprocessing loop pays part of its own reconversion water bill.[/note]'
             ) -join "`n")
     }
 )
@@ -1681,7 +1668,9 @@ WriteJson (Join-Path $out "QuestLines\$lineDir\QuestLine.json") ([ordered]@{
                             ''
                             'The third row is the deep end - laser output, spin doctrine, the propellant and coolant ladders, and the safety sheet. The two fluid ladders open at step 7, one step before the clock, because a chamber with no propellant and no coolant refuses every cycle and the plant never spins. The two middle rows are bills of materials; those do not count toward completion.'
                             ''
-                            '{1}The bottom row is THE CAMPAIGN{r} - and it is where the ten-step path leads. Finishing the build is the beginning, not the end: four milestone lines climb just by running the plant, and the points they pay buy a twenty-five node upgrade tree on the Nuclear Plant Foundation.'
+                            '{1}The row under the blueprints is THE CAMPAIGN{r} - and it is where the ten-step path leads. Finishing the build is the beginning, not the end: four milestone lines climb just by running the plant, and the points they pay buy a twenty-five node upgrade tree on the Nuclear Plant Foundation.'
+                            ''
+                            'The last row is {1}The Fuel Line{r}: every rod this plant burns, from ore to bundle.'
                         ) -join "`n")))
                 'icon:10'      = $ICON_CTRL
                 'name:8'       = (Fmt '{6}{l}Beyond the Stars')
@@ -1715,6 +1704,8 @@ function QuestJson($q) {
     if ($q.RawPrereqs) {
         foreach ($rp in $q.RawPrereqs) {
             $pre["${pi}:10"] = [ordered]@{ 'questIDHigh:4' = [long]$rp.High; 'questIDLow:4' = [long]$rp.Low }
+            # BetterQuesting's prerequisite type: 0 normal, 1 implicit (line on hover), 2 hidden (no line).
+            if ($rp.Type) { $pre["${pi}:10"]['type:1'] = [int]$rp.Type }
             $pi++
         }
     }
@@ -1806,14 +1797,16 @@ foreach ($q in $quests) {
 # its folders (placement + quest), in our high-190 ID namespace, so no pack file is ever
 # modified and a pack update can never collide. Prerequisite: "Standard Nuclear Fuel:
 # Uranium" (ID 0/191), the chapter's mid-game entry into nuclear power - the same rods
-# Unit One's cascade burns. Placement (540,324) is a free cell just below the chapter's
-# nuclear cluster (uranium fuel sits at 504,216).
+# Unit One's cascade burns. Uranium (528,240) is boxed in on all eight sides, so no line from
+# it can reach any free cell without crossing a pack icon: the prerequisite is HIDDEN (BQ
+# prerequisite type 2 - it still gates, it just draws no line) and the quest sits at
+# (528,348), the first free cell at the foot of the nuclear-fuel column, clear of every icon.
 $packLineDir = 'HowtoGeneratePow-AAAAAAAAAAAAAAAAAAAACQ=='
 $packQuest = @{
-    Key      = 'packentry'; Name = '{5}{l}Beyond the Stars - The Nuclear Plant'; X = 540; Y = 324; Size = 24
+    Key      = 'packentry'; Name = '{5}{l}Beyond the Stars - The Nuclear Plant'; X = 528; Y = 348; Size = 24
     Icon     = $ICON_CTRL; Task = (Machine $MTE_CONTROLLER 1); Prereqs = @()
     Reward   = @((BTSItem 'fuelRodUranium' 4))
-    RawPrereqs = @(@{ High = 0; Low = 191 })  # Standard Nuclear Fuel: Uranium
+    RawPrereqs = @(@{ High = 0; Low = 191; Type = 2 })  # Standard Nuclear Fuel: Uranium, hidden line
     Desc     = (@(
             '{5}A WHOLE NUCLEAR CAMPUS FROM ONE PROJECTION{r}'
             'A 50x50 platform, a reactor silo fed by falling fuel rods, a chirality-tuned turbine spine, an eight-injector spiral chamber and a rotor gallery at the end of the pipe. Rods fall, swirl accumulates, injectors fire inside a +/-2 tick window - and a fully optimised tier-5 plant pushes toward a {9}billion EU/t{r}.'

@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "§91 Bu/t = 10¹³ EU/t§r. A 64 SM quasar at coils 3 makes about 2 Bu/t (2e13 EU/t, 20 trillion); the stream grows as M², and the hole grows with its disc up to the coil cap.\n\nSizing: G0 = λ × a² × b² × (M/64)². Never purging averages 1.11 × G0 × Y_q, purging at flux 40 about 0.8. A good 1,024 SM quasar is worth about 5 to 10 × 10¹⁵ EU/t, depending on how well its disc is held.\n\nThe NEI page Burst Thermaliser Crown lists each Mk's cap and EU/t.\n\n§2§lDONE §lWHEN§r a crown feeds your network (tick the box).",
+      "desc:8": "§91 Bu/t = 10¹³ EU/t§r. A 64 SM quasar at coils 3 makes about 2 Bu/t (2e13 EU/t, 20 trillion); the stream grows as M², and the hole grows with its disc up to the coil cap.\n\nSizing: G0 = λ × a² × b² × (M/64)². Never purging averages 1.11 × G0 × the jet yield, purging at flux 40 about 0.8. A good 1,024 SM quasar is worth about 5 to 10 × 10¹⁵ EU/t, depending on how well its disc is held.\n\nThe NEI page Burst Thermaliser Crown lists each Mk's cap and EU/t.\n\n§2§lDONE §lWHEN§r a crown feeds your network (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

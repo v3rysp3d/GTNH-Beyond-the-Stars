@@ -551,7 +551,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
     /** One line naming every missing anchor, or "". Server state. */
     public String anchorLine() {
         final GTRecipe r = recipe();
-        if (r == null) return "SL-R03 is not registered (its fluids are missing)";
+        if (r == null) return "The Diffraction recipe did not load (its fluids are missing; see the server log)";
         final StringBuilder sb = new StringBuilder();
         for (int k = 0; k < 6; k++) {
             if (anchored(k)) continue;

@@ -14,7 +14,7 @@ What this pass added:
 |---|---|---|
 | **Directive Hatch** (MTE 28127) | GT's Grade-7 water Degasser Control Hatch pattern: a 4-bit redstone code naming what the machine needs now. One hatch for every host; the set is chosen in its GUI. Control sets turn it into a redstone input for a setpoint. | `machines/directive/MTEHatchDirective` |
 | **Plinth-bus pickups** (Eye) | An item in a plinth input bus can now do the two things that used to need a hand: the next transition core goes into escrow, and a star chart goes into the controller slot (the old target leaves through the ME output bus). | `MTEEyeOfHarmonyBTS.takeFromPlinthBuses` |
-| **OpenComputers** (soft dependency) | Adapter components `bts_eye`, `bts_kerr`, `bts_kerr_module`, `bts_sensor`, `bts_directive`. Registered only if OpenComputers is installed. | `integration/oc`, `integration/BTSComputerApi` |
+| **OpenComputers** (soft dependency) | Adapter components `bts_eye`, `bts_kerr`, `bts_kerr_module`, `bts_sensor`, `bts_directive` (this pass); `bts_quasar`, `bts_mouth`, `bts_mirror`, `bts_junction`, `bts_crown`, `bts_receptor`, `bts_homogeny` and `bts_reality` came later (§7.3, §8). Registered only if OpenComputers is installed. | `integration/oc`, `integration/BTSComputerApi` |
 | **The proof** | An offline simulation (`DirectiveRigSim`) and a dev-server bench (`autorig`, `ocloop`). | §6 |
 
 Nothing in the stability field, the star recipes or the transition rules changed. The Directive bits are read from
@@ -542,13 +542,13 @@ crown; the GUIs, scanners, tooltips, NEI pages and quests show the EU/t beside e
 
 | [1] | [2] | [4] | [8] |
 |---|---|---|---|
-| Hold-up short: the mass over the safe limit leaks | Feed short: the Accretion Buffer holds under 30 s of Disc + Hold-up | Anchor short: an Unbound hole sheds to the doubling the Primordial Matter pays for | Overdrive upkeep short (MHDCSM or Universium) |
+| Hold-up short: the mass over the safe limit leaks | Feed short: the Accretion Buffer holds under 30 s of Disc + Hold-up | Anchor short: an Unbound hole sheds to the doubling the Primordial Matter pays for | Overdrive upkeep short (Excited Stellar Plasma Mixture or Hyperdense Stellar Mixture) |
 
 **Burst Control Hatch** modes on the quasar's `c` sockets (a hatch in a mode overrides the GUI's value while it is in it):
 
 | Mode | What the signal does |
 |---|---|
-| Hold | The mass setpoint from the safe limit (s 0) to the band top (s 15), log-linear. On an Unbound L4: 4,194,304 SM to 268,435,456 SM (two doublings past the L4 top). |
+| Hold | The mass setpoint from the safe limit (s 1) to the band top (s 15), log-linear. On an Unbound L4: 4,194,304 SM to 268,435,456 SM (two doublings past the L4 top). Strength 0 leaves the GUI's setpoint (as a Directive control set), so a level emitter that reads 0 while the network boots never sheds the hole. |
 | Overdrive | o = s / 15, snapped to 5 % (needs L3) |
 | Shed | A rising edge sets the mass setpoint to the safe limit (a 2 %/s shed, no power while it lasts) |
 
@@ -583,7 +583,7 @@ least 65,536 SM, linkable). The window now reaches 2,000,000,000 and the thresho
 | **Intake** (hold-up and growth gas) | ME stocking hatches in the 24 rim sockets; the controller draws every tick while they give (each drain at most 2^31 - 1 L) into its 60 s Accretion Buffer | Horizon [2] (buffer short) → an alarm or a backup supply | `getIntake()`, `getBuffer()` | Fluid node into the rim hatches |
 | **Mass setpoint** | Level emitter on a stock → a Burst Control Hatch in Hold (two presets) | Analog redstone → Hold | `setMassSetpoint(M)` | Redstone emitter (analog) on the Hold hatch |
 | **Shed** | — | A pulse into a hatch in Shed mode | `shed()` | Redstone pulse |
-| **Overdrive** | Level emitters on the MHDCSM / Universium stocks → the Overdrive hatch (cut it when a stock runs low) | Horizon [8] → cut the Overdrive hatch's signal | `setOverdrive(o)` | Analog emitter |
+| **Overdrive** | Level emitters on the two stellar-mixture stocks → the Overdrive hatch (cut it when a stock runs low) | Horizon [8] → cut the Overdrive hatch's signal | `setOverdrive(o)` | Analog emitter |
 | **Overdrive / anchor fluids** | ME stocking hatch in a rim socket, or export bus into a plain trim hatch | Horizon [8] / [4] → a Fluid Regulator on the supply tank | `getOverdrive()`, `getAnchor()` | Fluid node |
 | **Unbind** | — | — | `setUnbound(true)` | — (the GUI's two-click button) |
 

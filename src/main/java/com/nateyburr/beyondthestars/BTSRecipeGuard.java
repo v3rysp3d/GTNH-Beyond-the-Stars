@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.util.GTOreDictUnificator;
 import gregtech.api.util.GTRecipe;
@@ -344,6 +345,129 @@ public final class BTSRecipeGuard {
             }
         }
         return collisions;
+    }
+
+    // ------------------------------------------------------------------------------------------
+    // "Any circuit of the tier" in an Assembly Line slot.
+    // ------------------------------------------------------------------------------------------
+
+    /**
+     * An Assembly Line input slot that takes ANY circuit of {@code tier}, for {@code itemInputs(Object...)}: GT's
+     * ore-dict pair {@code {"circuitXxx", count}}, which the builder expands into every item of that ore name.
+     * <p>
+     * The Assembly Line matches each slot only against that slot's alternatives ({@code areStacksEqual}, no ore-dict
+     * fallback), so a plain {@code GTOreDictUnificator.get(circuit, tier, n)} stack, the coremod's uncraftable "Any
+     * UMV Circuit" placeholder, would make the recipe uncraftable. Ordinary recipe maps match circuits by ore name and
+     * may keep the plain stack. Raises {@link MissingComponent} if the ore name has no items.
+     */
+    public static Object[] anyCircuit(Materials tier, int count) {
+        final String ore = String.valueOf(OrePrefixes.circuit.get(tier));
+        if (GTOreDictUnificator.getOres(ore)
+            .isEmpty()) {
+            throw new MissingComponent("ore-dict circuit " + ore + " x" + count + " (no item has that ore name)");
+        }
+        return new Object[] { ore, count };
+    }
+
+    /**
+     * Assembly Line item inputs for {@code itemInputs(Object...)}: ItemStacks and ItemStack[]s (each stack its own
+     * slot, as a dense-plate split gives them) flattened in order, and {@link #anyCircuit} pairs kept as one slot each.
+     * At most 16 slots.
+     */
+    public static Object[] alInputs(Object... parts) {
+        final List<Object> out = new ArrayList<>();
+        for (Object part : parts) {
+            if (part instanceof ItemStack) {
+                out.add(part);
+            } else if (part instanceof ItemStack[]) {
+                for (ItemStack stack : (ItemStack[]) part) out.add(stack);
+            } else if (part instanceof Object[] && ((Object[]) part).length == 2
+                && ((Object[]) part)[0] instanceof String
+                && ((Object[]) part)[1] instanceof Number) {
+                    out.add(part);
+                } else {
+                    throw new IllegalArgumentException("not an assembly-line item input: " + part);
+                }
+        }
+        if (out.size() > 16) {
+            throw new IllegalStateException("assembly line takes at most 16 item inputs, got " + out.size());
+        }
+        return out.toArray(new Object[0]);
+    }
+
+    /** The coremod's "Any <tier> Circuit" display items: never craftable, only an NEI label. */
+    private static final java.util.regex.Pattern CIRCUIT_PLACEHOLDER = java.util.regex.Pattern
+        .compile("^dreamcraft:Circuit(ULV|LV|MV|HV|EV|IV|LuV|ZPM|UV|UHV|UEV|UIV|UMV|UXV|MAX)$");
+
+    /** True for the coremod's uncraftable "Any <tier> Circuit" placeholder item. */
+    public static boolean isCircuitPlaceholder(ItemStack stack) {
+        if (stack == null || stack.getItem() == null) return false;
+        final Object id = Item.itemRegistry.getNameForObject(stack.getItem());
+        return id != null && CIRCUIT_PLACEHOLDER.matcher(String.valueOf(id))
+            .matches();
+    }
+
+    /**
+     * Every Assembly Line slot of ours whose only candidates are the uncraftable circuit placeholder (the Assembly Line
+     * would never start). One line per offender; empty when clean. Read by {@link #checkCircuitPlaceholders()} at
+     * load-complete and by {@code /btsrecipes circuits}.
+     */
+    public static List<String> circuitPlaceholderSlots() {
+        final List<String> out = new ArrayList<>();
+        final java.util.Map<GTRecipe.RecipeAssemblyLine, String> lines = new java.util.IdentityHashMap<>();
+        for (GTRecipe.RecipeAssemblyLine own : ownAssemblyLines) lines.put(own, "");
+        for (BTSRecipeLedger.Added a : BTSRecipeLedger.allAdded()) {
+            if (a.assemblyLine != null) lines.put(a.assemblyLine, a.id + " ");
+        }
+        for (java.util.Map.Entry<GTRecipe.RecipeAssemblyLine, String> e : lines.entrySet()) {
+            final GTRecipe.RecipeAssemblyLine own = e.getKey();
+            if (own == null || own.mInputs == null) continue;
+            for (int i = 0; i < own.mInputs.length; i++) {
+                final ItemStack[] alts = own.mOreDictAlt != null && i < own.mOreDictAlt.length ? own.mOreDictAlt[i]
+                    : null;
+                boolean placeholder = false;
+                boolean real = false;
+                if (alts != null && alts.length > 0) {
+                    for (ItemStack alt : alts) {
+                        if (alt == null) continue;
+                        if (isCircuitPlaceholder(alt)) placeholder = true;
+                        else real = true;
+                    }
+                } else {
+                    placeholder = isCircuitPlaceholder(own.mInputs[i]);
+                }
+                if (placeholder && !real) {
+                    out.add(
+                        e.getValue() + describe(
+                            own.mOutput) + " slot " + (i + 1) + ": only " + describe(own.mInputs[i]));
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Load-complete check: an Assembly Line recipe of ours that takes only the circuit placeholder can never run. Logs
+     * an ERROR per slot; in a development environment it also stops the boot, so such a recipe cannot ship unnoticed.
+     */
+    public static void checkCircuitPlaceholders() {
+        final List<String> bad = circuitPlaceholderSlots();
+        if (bad.isEmpty()) {
+            BeyondTheStars.LOG.info(
+                "[BTS] Assembly Line circuits: no assembly-line recipe of ours takes only the circuit placeholder.");
+            return;
+        }
+        BeyondTheStars.LOG.error(
+            "[BTS] ASSEMBLY LINE CIRCUIT PLACEHOLDER: {} slot(s) of our assembly-line recipes accept only the "
+                + "uncraftable \"Any ... Circuit\" item, so those recipes can never run. Please report this.",
+            bad.size());
+        for (String line : bad) BeyondTheStars.LOG.error("[BTS]   {}", line);
+        final Object dev = net.minecraft.launchwrapper.Launch.blackboard == null ? null
+            : net.minecraft.launchwrapper.Launch.blackboard.get("fml.deobfuscatedEnvironment");
+        if (Boolean.TRUE.equals(dev)) {
+            throw new IllegalStateException(
+                "[BTS] " + bad.size() + " assembly-line circuit slot(s) take only the circuit placeholder: " + bad);
+        }
     }
 
     /** The research-station recipes this mod added on the last pass (read-only view, for checks). */

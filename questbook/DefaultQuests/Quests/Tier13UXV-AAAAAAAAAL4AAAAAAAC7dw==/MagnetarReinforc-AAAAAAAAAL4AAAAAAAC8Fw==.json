@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 0,
-      "desc:8": "The UXV glass tier for multiblocks that check their glass, made with Magnetar Matter. It is part of the planned swap that takes Universium out of UXV parts.\n\n[note]§lComing §llater.§r This part of Beyond the Stars is designed but not built yet, so the quest is a checkbox: tick it to keep the chapter moving. The numbers above are the current plan and may change. When it ships, this quest gets its real tasks under the same id, and a ticked box is cleared so the real step counts.[/note]",
+      "desc:8": "The UXV glass tier for multiblocks that check their glass, made with Magnetar Matter. It belongs to the new UXV parts, which will take Universium out of UXV recipes.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -28,7 +28,7 @@
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§7§l§nMagnetar-Reinforced Borosilicate Glass§r §8(planned)",
+      "name:8": "§8Coming later: §7§l§nMagnetar-Reinforced Borosilicate Glass§r",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,

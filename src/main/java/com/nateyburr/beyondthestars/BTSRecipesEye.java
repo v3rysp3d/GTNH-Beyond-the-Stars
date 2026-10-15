@@ -5,9 +5,6 @@ import static gregtech.api.util.GTRecipeConstants.AssemblyLine;
 import static gregtech.api.util.GTRecipeConstants.RESEARCH_ITEM;
 import static gregtech.api.util.GTRecipeConstants.SCANNING;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -68,7 +65,7 @@ public final class BTSRecipesEye {
                 .metadata(RESEARCH_ITEM, BTSRecipeGuard.stack(SLItems.stabiliserPylon, 1))
                 .metadata(SCANNING, new Scanning(8 * MINUTES, TierEU.RECIPE_UMV))
                 .itemInputs(
-                    items(
+                    BTSRecipeGuard.alInputs(
                         tectech(CustomItemList.EOH_Reinforced_Spatial_Casing, 64),
                         tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 64),
                         // Tier0 (Crude): the T1 Eye's own compression gate (1:1, Q-20), as TecTech's EOH
@@ -76,7 +73,7 @@ public final class BTSRecipesEye {
                         tectech(CustomItemList.SpacetimeCompressionFieldGeneratorTier0, 1),
                         tectech(CustomItemList.TimeAccelerationFieldGeneratorTier0, 1),
                         tectech(CustomItemList.StabilisationFieldGeneratorTier0, 1),
-                        BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UMV, 64L),
+                        BTSRecipeGuard.anyCircuit(Materials.UMV, 64),
                         nn(ItemList.Field_Generator_UMV.get(32L), "ItemList.Field_Generator_UMV"),
                         denseSpaceTime(64),
                         tectech(CustomItemList.EOH_Infinite_Energy_Casing, 64),
@@ -110,26 +107,6 @@ public final class BTSRecipesEye {
     private static ItemStack tectech(CustomItemList entry, int count) {
         if (!entry.hasBeenSet()) return nn(null, "CustomItemList." + entry.name());
         return nn(entry.get(count), "CustomItemList." + entry.name());
-    }
-
-    /** Flattens ItemStacks and ItemStack[]s into one input array (at most 16 slots). */
-    private static ItemStack[] items(Object... parts) {
-        final List<ItemStack> out = new ArrayList<>();
-        for (Object part : parts) {
-            if (part instanceof ItemStack) {
-                out.add((ItemStack) part);
-            } else if (part instanceof ItemStack[]) {
-                for (ItemStack stack : (ItemStack[]) part) {
-                    out.add(stack);
-                }
-            } else {
-                throw new IllegalArgumentException("not an item input: " + part);
-            }
-        }
-        if (out.size() > 16) {
-            throw new IllegalStateException("assembly line takes at most 16 item inputs, got " + out.size());
-        }
-        return out.toArray(new ItemStack[0]);
     }
 
     private static <T> T nn(T value, String what) {

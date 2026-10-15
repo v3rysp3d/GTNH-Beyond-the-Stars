@@ -9,8 +9,8 @@ multiblock with its own questbook chapter.
 - **Mod id:** `beyondthestars` · **Minecraft** 1.7.10 · **Pack:** GTNH 2.9.0-RC-2 only
 - **Version:** 0.24.x playtest builds (untagged builds show a version such as `0.24.1-master.308+ff2493fa3f`)
 - **Status:** playtest. Back up your world before you install it, and expect balance changes between builds.
-- **Playtest jar vs master:** the last playtest jar handed out (`0.24.1-master.308`) predates the Supermassive Lattice
-  and the EU/t labels beside every Bu/t. Both are on master and will be in the next jar.
+- **Installing:** read [INSTALL.md](INSTALL.md) first. With the default config an already built TecTech Eye of
+  Harmony stops working, and a few pack recipes change.
 
 ![The Kerr Ergosphere Engine's black hole, seen through the cage](docs/images/kerr-hole.jpg)
 
@@ -62,7 +62,7 @@ Most of the mod adds things. Two pack machines are replaced, and the replacement
 | Godforge magmatter upgrade | Costs 8 Black Dwarf Matter frame boxes instead of 2 Universium ones, so MagMatter is reachable before the top of the ladder. | `replaceTecTechEyeOfHarmony` |
 | TecTech Reinforced Spatial / Temporal Structure Casing | Their Condensate Assembler recipes make 32 instead of 4 (an Eye uses thousands). | none |
 | Nanochip Assembly Complex: Piko, Quantum, Raw Manifold Bud, Planck | 2.5x the time at the same EU/t, 2x the items and fluids (the Quantum CPU, Planck CPU and Calabi-Yau Manifold inside stay at 1). | `raiseStockSpecialCircuits` (`true`) |
-| UMV / UXV / MAX circuit slots | Three new circuit families fill every "any circuit of the tier" slot, at far lower cost. Nothing requires them by name. | `stellarCircuits` (`true`) |
+| UMV / UXV / MAX circuit slots | Three new circuit families fill every "any circuit of the tier" slot (Assembly Line slots included), at far lower cost. Nothing requires them by name. | `stellarCircuits` (`true`) |
 | The pack's questbook | 66 pack quests are edited (the BHC quest becomes the Kerr, the EOH quest becomes our Eye, UXV / MAX / endgame quests move into our chapters) and the emptied Endgame Goals chapter is hidden. Progress is kept. | `questbookPackEdits` (`true`) |
 
 With every switch off, the BHC, TecTech's EOH and the stock circuit costs are exactly as the pack ships them, and our
@@ -87,11 +87,14 @@ Each rung produces the matter, or the stability, that the next one needs. Quests
 | UXV | **Quasar Engine**, **Einstein-Rosen Conduit**, **Burst Thermaliser Crowns** | Gamma-ray bursts, and EU/t onto your wireless network | Holds Eye T7 / T8 stable; links speed up the Kerr and Homogeny |
 | UXV | **Eye T7: Triangulum** | Ergomatter | Conduit upkeep; Eternity; Eye T8 |
 | UXV | **Eye T8: the Milky Way** | Superdense Ergomatter | Supermassive Lattice L1; Homogeny T3 |
-| UXV / MAX | **Supermassive Lattice** L1 to L4 on the Quasar Engine | Holes past 4,096 solar masses, far larger bursts | Endgame power; the Eye T9 to T10 link |
-| MAX (planned) | Eye T9 (Sgr A\*), Homogeny T3, Reality Diffraction, Reality Refab, Eye T10 | White Hole Matter, Entanglement Medium, the Universal Upgrade Core, Universium | The Endgame chapter (MHDCSM line, the crafted Stargate) |
+| UXV / MAX | **Supermassive Lattice** L1 to L4 on the Quasar Engine, Overdrive and Unbound | Holes past 4,096 solar masses, far larger bursts | Endgame power; the Eye T9 to T10 link |
+| MAX (coming later) | Eye T9 (Sgr A\*), Homogeny T3, Reality Diffraction, Reality Refab, Eye T10 | White Hole Matter, Entanglement Medium, the Universal Upgrade Core, Universium | The Endgame chapter (MHDCSM line, the crafted Stargate) |
 
-Everything above the "planned" row runs in survival on master. The planned row's machines and recipes are already
-registered (you will see them in NEI) but cannot be reached until Eye T9 makes White Hole Matter.
+Everything above the "coming later" row runs in survival. The last row's machines and recipes are already registered
+(you will see them in NEI) but cannot be reached until Eye T9 and T10 are built. Universium stays an Eye T10 product,
+so nothing above that row needs it: the lattice nodes, Overdrive and the parts that used to take Universium, MHDCSM
+or White Hole Matter are made from Superdense Ergomatter, Magnetar Matter, the dwarf matters and the stellar
+mixtures instead.
 
 ## Units used in this README
 
@@ -283,7 +286,7 @@ fresh 64 SM hole never is; a settled quasar of about 136 SM or more is).
 
 #### Eye T9 and T10
 
-Not built yet. Eye T9 (Sgr A\*) will make White Hole Matter; T10 is the Universe and the sole Universium source. The
+Coming later. Eye T9 (Sgr A\*) will make White Hole Matter; T10 is the Universe and the sole Universium source. The
 T9 to T10 milestone, the **Supermassive Link** (96 Bu/t = 9.6 x 10^14 EU/t for 30 min from a lattice quasar of at
 least 65,536 SM), is already tracked and saved on your Eye, so the time you put in now counts.
 
@@ -433,9 +436,14 @@ hole open at 4,096 SM or more, and E within ±40 for 3,600 s unbroken. Saturatio
 | Lattice | Containment Nodes | Safe limit | Band top |
 |---|---|---|---|
 | L1 | Superdense Ergomatter | 16,384 SM | 65,536 SM |
-| L2 | White Hole Matter | 65,536 SM | 262,144 SM |
-| L3 | Universium | 262,144 SM | 4,194,304 SM |
-| L4 | Constrained Eternity | 4,194,304 SM | 67,108,864 SM |
+| L2 | Superdense Ergomatter + Magnetar Matter | 65,536 SM | 262,144 SM |
+| L3 | Superdense Ergomatter + Magnetar and Black Dwarf Matter | 262,144 SM | 4,194,304 SM |
+| L4 | Constrained Eternity (Superdense Ergomatter, Magnetar Matter, Eternity, MagMatter) | 4,194,304 SM | 67,108,864 SM |
+
+Each node is made from the tier below in the Condensate Assembler (L1 on the Assembly Line). Per node: L1 8,000 L
+Superdense Ergomatter and 2,304 L Magnetar Matter; L2 16,000 L and 4,608 L (entangled); L3 48,000 L, 9,216 L and
+9,216 L Black Dwarf Matter; L4 144,000 L, 18,432 L, 2,880 L Eternity and 8 Eternity + 8 MagMatter plates. Break the
+48 old nodes before you place the next tier: the projector does not replace them.
 
 All 48 nodes must be one tier. An incomplete lattice under a hole above 4,096 SM unforms the quasar and freezes it;
 nothing is lost.
@@ -453,7 +461,7 @@ nothing is lost.
   4,096 SM quasar. At 16,384 SM about 2x; at 262,144 SM about 7.9x (about 7.7 x 10^17 EU/t); at 67,108,864 SM about
   31x (about 3.0 x 10^18 EU/t).
 - **Overdrive (L3+):** a level o from 0 to 100 % in 5 % steps pushes the output toward the cap (about 99x, roughly
-  9.7 x 10^18 EU/t at the L4 top). It costs 100,000 x o² L/s each of Molten MHDCSM and Molten Universium, drawn from the
+  9.7 x 10^18 EU/t at the L4 top). It costs 100,000 x o² L/s each of Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture, drawn from the
   trim sockets, then the gas sockets. Short upkeep lowers the effective level.
 - **Unbound (L4):** Unbind lets the setpoint pass 67,108,864 SM. Each doubling n past it halves the Overdrive upkeep,
   but needs an anchor of 1,024 x 4^(n²) L/s of Primordial Matter (4,096 L/s at n = 1, 262,144 L/s at n = 2). A short
@@ -517,8 +525,9 @@ matter, so the BEC line you already built carries on being useful.
   transition cores, the Kerr Density Upgrade, the band casings, the Homogeny and Reality blocks, the quasar's coils
   and casings, the conduit throats, and the lattice nodes.
 - TecTech's Reinforced Spatial and Temporal Structure Casing recipes make 32 per craft instead of 4.
-- Some cores take twice as many **UMV** parts instead of UXV parts (the T4 to T5 and T5 to T6 cores, the Homogeny Tier II
-  Core), because RC-2's UXV parts still need Universium.
+- Some cores and blocks take twice as many **UMV** parts instead of UXV parts (the T4 to T5 and T5 to T6 cores, the
+  Homogeny Tier II Core, the lattice's L1 node, the Region Crystal, Phase Ring, Reassembly Claw and Region Anchor), because
+  RC-2's UXV parts need Universium, which only Eye T10 will make.
 
 ## Field-generator upgrade path
 
@@ -542,11 +551,11 @@ says.
 | Antipolarization Agent | Vacuum Freezer: 1,000 L slurry + 2,000 L Super Coolant (UXV) | Eye T6 upkeep and shield, the Magnetar Merger |
 | Magnetar Matter | Eye T6 | Eye T7 upkeep, Quasar Seed, Quasar Engine, lattice nodes |
 | Ergomatter | Eye T7 | Conduit throats, Eye T8 feed, Eternity, Region Crystals |
-| Superdense Ergomatter | Eye T8 (1 : 1 from its feed), or Kerr T2 (8 : 1) | Lattice L1 nodes, Throat Mk IV, Homogeny T3, Reality |
+| Superdense Ergomatter | Eye T8 (1 : 1 from its feed), or Kerr T2 (8 : 1) | Lattice nodes L1-L4, Throat Mk IV, Homogeny T3, Reality |
 | Degenerate Stellar Mixture | Homogeny T2 | Homogeny T3, Reality machines |
 | Entanglement Medium | Homogeny T3 | Reality Diffraction |
 | Entangled Region I-VI | Reality Diffraction | Reality Refab |
-| White Hole Matter | Eye T9 (planned) | Registered now as a placeholder |
+| White Hole Matter | Eye T9 (coming later) | Registered now as a placeholder |
 
 Our blocks are four casing families (`slCasing`, `slCasing2`, `slCasing3`, `slCasing4`): mirror, rail, coil and plate
 casings for the Kerr; band casings for the Eye; coils, walls and injectors for the quasar; Homogeny and Reality blocks;
@@ -722,6 +731,8 @@ screen, and only a set number of the biggest objects draw at full detail at once
 
 ## Installation
 
+The short version for playtesters and server owners is [INSTALL.md](INSTALL.md).
+
 ### Requirements
 
 | Mod | Version (as in GTNH 2.9.0-RC-2) | |
@@ -734,7 +745,8 @@ screen, and only a set number of the biggest objects draw at full detail at once
 
 - **GTNH 2.9.0-RC-2 only.** It does not load on 2.9.0-beta-1 or older. On a later RC, expect a startup crash naming a
   GregTech class, or log lines saying the BHC swap or a pack quest edit was skipped; wait for an update.
-- **Java:** whatever your RC-2 instance already runs. We play-test on Java 17-21.
+- **Java:** whatever your RC-2 instance already runs. Tested on Java 8 and on Java 21 with lwjgl3ify.
+- **Version guard:** with an older GregTech than 5.09.54.205, Forge stops at its missing-mods screen.
 - The same jar goes on the client and the server.
 
 ### Client
@@ -860,7 +872,7 @@ than 15 % of the footprint is solid; add `force` to override.
 | `/btsquests uninstall edits` | Restore every edited pack quest and Endgame Goals; our chapters stay |
 | `/btsquests uninstall all` (also plain `uninstall`) | That, then remove our chapters. Auto-install stays off until an op runs `install` |
 | `/btsquests verify`, `/btsquests dumpids` | Resolve every item / fluid / ore name the book uses; write them to `config/beyondthestars/questbook-registry.json` |
-| `/btsrecipes [status]`, `/btsrecipes dump [file]` | Count, or write as JSON (default `bts-recipes.json`), every recipe we add, rewrite or remove, read from the live recipe maps |
+| `/btsrecipes [status]`, `/btsrecipes dump [file name]` | Count, or write as JSON into `config/beyondthestars/` (default `bts-recipes.json`), every recipe we add, rewrite or remove, read from the live recipe maps. `/btsrecipes circuits` checks the circuit slots, including every Assembly Line slot |
 | `/btsrecipes circuits` | Every circuit check (ore names, chain, slot lookups, research, rack, raise, NAC), PASS / FAIL per section |
 | `/btseye gates`, `/btseye bec` | The compression-gate audit; our Condensate Assembler recipes and whether GT's lookup finds them |
 | `/btskerr migrate [x y z]`, `/btsmigrate` | Convert an old Kerr or an old plant silo in place |
@@ -875,10 +887,11 @@ The full argument lists are in each command's usage line (type the command with 
 
 - Eye T9 and T10, White Hole Matter, the Homogeny T3, and every Reality Diffraction / Refab run. The Universal Upgrade
   Core and Star Chart: The Observable Universe have no use until Eye T10 exists.
-- Supermassive Lattice **L2-L4**, **Overdrive** and **Unbound**: their nodes and upkeep need White Hole Matter or
-  Universium, and with `replaceTecTechEyeOfHarmony=true` nothing makes Universium until Eye T10. L1 is fully playable.
-- The UXV parts redesign. Until it lands, a few cores take twice as many UMV parts (see
-  [BEC integration](#bec-condensate-assembler-integration)). Nothing of ours up to Eye T8 needs the pack's UXV parts.
+- Universium and everything made from it in the pack (MHDCSM, the pack's UXV Field Generator, Sensor and Emitter, the
+  Stargate line): Universium comes with Eye T10. With `replaceTecTechEyeOfHarmony=false` TecTech's Eye still makes it.
+- The UXV parts redesign. Until it lands, our recipes take twice as many UMV parts (see
+  [BEC integration](#bec-condensate-assembler-integration)). Nothing of ours outside the "coming later" row needs the
+  pack's UXV parts.
 
 **Renders (client only):**
 

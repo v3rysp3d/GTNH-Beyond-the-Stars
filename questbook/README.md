@@ -148,9 +148,9 @@ stay retrievals. Water buckets are the one gate item that cannot be wrenched bac
 machine it went into, so step 8 says *claim before you pour* rather than relying on
 `HOLD → CLAIM → INSTALL` alone.
 
-**Row 3 — MASTERY (`y=112`):** Break the Clamp (laser output), Spin Doctrine *(checkbox)*,
-Written in Fire (SCRAM / meltdown / decay heat / seizure) and **The 100M Wall** *(checkbox,
-`x=240`)* sit behind step 10. The 100M Wall is the Switchyard's place on the main path: it
+**Row 3 — MASTERY (`y=120`):** Break the Clamp (laser output), Spin Doctrine *(checkbox)*,
+Written in Fire (SCRAM / meltdown / decay heat / seizure) and **The 100M Wall** *(checkbox)* sit behind step 10
+(the last two at the left edge, `x=0`, below Step 10, so no prerequisite line runs under another icon). The 100M Wall is the Switchyard's place on the main path: it
 names the `100,000,000 EU/t` grid soft cap, shows the panel text that announces it
 (`[GRID-CAPPED from N - no Switchyard]`), carries the yard's derived bill, and says plainly
 that fitting more Dynamo or Laser hatches will not move it because the cap is applied AFTER
@@ -160,11 +160,11 @@ Ladder *(checkbox)* and The Coolant Ladder sit behind step 7** — one step befo
 because step 8 cannot spin the fan until both chamber hatches are fed, and a ladder the player
 cannot open while they need it is not depth, it is a dead end (see *Coolant is on the path*).
 
-**Row 4 — PLANT BLUEPRINTS (`y=164`, `countAsQuest 0`, checkbox tasks, no prerequisites):**
+**Row 4 — PLANT BLUEPRINTS (from `x=96`, `countAsQuest 0`, checkbox tasks, no prerequisites):**
 bills of materials for The Platform, Steam Generator, Spine + Spiral, Turbine Generator,
 Cooling Towers.
 
-**Row 5 — MODULE BLUEPRINTS (`y=216`, same shape):** Vent Stack, Switchyard, Extraction
+**Row 5 — MODULE BLUEPRINTS (same shape):** Vent Stack, Switchyard, Extraction
 Derrick, Enrichment Annex — the four D-17 plant modules, one page each, with footprint,
 derived bill, effect and failure mode. They were a single cramped section inside *Blueprint:
 Cooling Towers* until the id budget was widened past the entry quest; that page now just

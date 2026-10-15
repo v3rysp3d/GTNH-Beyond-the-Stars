@@ -7467,7 +7467,7 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             + String.format("%,d", GRID_SOFT_CAP)
             + " EU/t soft cap is discarding "
             + String.format("%,d", wanted - GRID_SOFT_CAP)
-            + " EU/t. BUILD THE SWITCHYARD: project this controller (or /btsbuild) and it raises the transformer yard on the platform's back edge, behind the silo - "
+            + " EU/t. BUILD THE SWITCHYARD: project this controller and it raises the transformer yard on the platform's back edge, behind the silo - "
             + String.format("%,d", BTSBom.SWITCHYARD.of(BTSBom.SOLID_STEEL_MACHINE_CASING))
             + " "
             + BTSBom.SOLID_STEEL_MACHINE_CASING
@@ -8686,7 +8686,8 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
             .addStructureInfo("Vent Stack, Switchyard, Extraction Derrick, Enrichment Annex.")
             .addStructureInfo("The Blueprint quests list every piece's blocks.")
             .addMasterChannel("Silo tier 1-5 (a stack of 1 uses the GUI Build Tier)")
-            .addStructureInfo("Plants built on 0.19.0 or older: run /btsmigrate beside the controller once.")
+            .addStructureInfo(
+                "A plant built by a much older version: a server operator runs /btsmigrate beside it once.")
             .toolTipFinisher(com.nateyburr.beyondthestars.BeyondTheStars.TOOLTIP_AUTHOR);
         return tt;
     }

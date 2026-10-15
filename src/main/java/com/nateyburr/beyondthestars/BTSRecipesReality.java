@@ -425,7 +425,8 @@ public final class BTSRecipesReality {
                     gt(CondensateType.MagMatter, 1 * INGOTS)),
                 s(block(BlockGodforgeGlass.INSTANCE, 0, 2, "Spatially Transcendent Gravitational Lens Block"), N6),
                 s(BTSRecipeGuard.req(OrePrefixes.block, Materials.Hexanite, 2L), N4),
-                s(item(ItemList.Emitter_UXV, 2), N5),
+                // D-51: RC-2's UXV parts need Universium (Eye T10), so two UMV parts for each UXV one (the B-72 rule).
+                s(item(ItemList.Emitter_UMV, 4), N5),
                 s(item(ItemList.MetaMaterial_WaveFocus2, 2), N6)));
 
         // SL-R13 Phase Ring Casing x32 (Diffraction). Ergomatter: P4.
@@ -438,7 +439,7 @@ public final class BTSRecipesReality {
                 cond(cond(degenerate, 500), cond(ergomatter, 1_000), gt(CondensateType.SpaceTime, 32 * INGOTS)),
                 s(tectech(CustomItemList.EOH_Reinforced_Temporal_Casing, 2), N4),
                 s(dense(Materials.CosmicNeutronium, 16), N2),
-                s(item(ItemList.Field_Generator_UXV, 1), N6),
+                s(item(ItemList.Field_Generator_UMV, 2), N6),
                 s(item(ItemList.CondensateTransformativeCoil, 1), N5),
                 s(item(ItemList.MetaMaterial_Waveguide2, 1), N6)));
 
@@ -471,7 +472,8 @@ public final class BTSRecipesReality {
                 s(item(ItemList.MetaMaterial_FieldManipulator2, 1), N6)));
 
         // SL-R16 Reassembly Claw x32. The doc's x8 was priced for its estimate of 190 claws; the exported Refab has
-        // 688, so x32 keeps the bill near the doc's (22 crafts, 176 Robot Arm UXV). Superdense Ergomatter: P4.
+        // 688, so x32 keeps the bill near the doc's (22 crafts). Superdense Ergomatter: P4. UMV arms and conveyors
+        // x2 for the card's UXV ones (D-51).
         BTSRecipeGuard.recipe(
             "SL-R16",
             () -> assemble(
@@ -479,8 +481,8 @@ public final class BTSRecipesReality {
                 1_200 * SECONDS,
                 TierEU.RECIPE_UXV,
                 cond(cond(superdense, 500), cond(degenerate, 500)),
-                s(item(ItemList.Robot_Arm_UXV, 8), N5),
-                s(item(ItemList.Conveyor_Module_UXV, 4), N5),
+                s(item(ItemList.Robot_Arm_UMV, 16), N5),
+                s(item(ItemList.Conveyor_Module_UMV, 8), N5),
                 s(c3(BlockSLCasing3.REASSEMBLY_TRAY, 4), N3),
                 s(circuit(Materials.UXV, 4), N4),
                 s(item(ItemList.MetaMaterial_FieldManipulator2, 1), N6)));
@@ -497,7 +499,7 @@ public final class BTSRecipesReality {
                 s(c3(BlockSLCasing3.REGION_CRYSTAL, 2), N7),
                 s(item(ItemList.ElectromagneticallyIsolatedCasing, 2), N4),
                 s(SLBlocks.casing2(BlockSLCasing2.LINING, 4), N1),
-                s(item(ItemList.Sensor_UXV, 1), N5)));
+                s(item(ItemList.Sensor_UMV, 2), N5)));
     }
 
     // ============================================================= the Reality controllers (MAX, stage S9)

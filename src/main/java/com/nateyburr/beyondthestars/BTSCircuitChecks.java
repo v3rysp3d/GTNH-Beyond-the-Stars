@@ -53,6 +53,8 @@ public final class BTSCircuitChecks {
         fails += section(out, "raise", BTSStockCircuitRaise.report());
         // C5: the NAC patch (judged against the mode: patch active or not, routes on or off).
         fails += section(out, "nac", BTSRecipesNac.report());
+        // Every Assembly Line circuit slot of ours takes real circuits, not only the coremod's placeholder.
+        fails += section(out, "assembly-line circuit slots", assemblyLineCircuitSlots());
         if (!Config.stellarCircuits) {
             out.add("stellarCircuits=false: no recipe, slot, research or rack check applies.");
             out.add(
@@ -90,6 +92,58 @@ public final class BTSCircuitChecks {
                     .oreName(t) + " [" + SLCircuitItems.TIER_NAMES[t] + "] unifies to " + describe(main));
         }
         lines.add((bad == 0 ? "PASS" : "FAIL") + " unification: every circuit ore name keeps a stock target");
+        return lines;
+    }
+
+    // ------------------------------------------------------------------------------ assembly-line circuit slots
+
+    /**
+     * Each circuit slot of each assembly-line recipe of ours: how many items it accepts, and whether a real circuit is
+     * among them. The Assembly Line matches a slot only against its own alternatives, so a slot holding only the
+     * coremod's "Any ... Circuit" placeholder can never be filled.
+     */
+    private static List<String> assemblyLineCircuitSlots() {
+        final List<String> lines = new ArrayList<>();
+        int slots = 0;
+        for (BTSRecipeLedger.Added a : BTSRecipeLedger.allAdded()) {
+            final GTRecipe.RecipeAssemblyLine line = a.assemblyLine;
+            if (line == null || line.mInputs == null) continue;
+            for (int i = 0; i < line.mInputs.length; i++) {
+                final ItemStack[] alts = line.mOreDictAlt != null && i < line.mOreDictAlt.length ? line.mOreDictAlt[i]
+                    : null;
+                final ItemStack[] candidates = alts != null && alts.length > 0 ? alts
+                    : new ItemStack[] { line.mInputs[i] };
+                boolean circuit = false;
+                int real = 0;
+                for (ItemStack c : candidates) {
+                    if (c == null) continue;
+                    final ItemData data = GTOreDictUnificator.getAssociation(c);
+                    final boolean placeholder = BTSRecipeGuard.isCircuitPlaceholder(c);
+                    if (placeholder || data != null && data.mPrefix == OrePrefixes.circuit) circuit = true;
+                    if (!placeholder) real++;
+                }
+                if (!circuit) continue;
+                slots++;
+                lines.add(
+                    (real > 0 ? "ok   " : "BAD  ") + a.id
+                        + " "
+                        + describe(line.mOutput)
+                        + " slot "
+                        + (i + 1)
+                        + ": "
+                        + candidates.length
+                        + " item(s), "
+                        + real
+                        + " real circuit(s)");
+            }
+        }
+        final List<String> bad = BTSRecipeGuard.circuitPlaceholderSlots();
+        lines.add(
+            (bad.isEmpty() ? "PASS" : "FAIL") + " assembly-line circuit slots: "
+                + slots
+                + " circuit slot(s), "
+                + bad.size()
+                + " take only the placeholder");
         return lines;
     }
 

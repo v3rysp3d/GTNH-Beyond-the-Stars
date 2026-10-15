@@ -94,6 +94,7 @@ public class CommonProxy {
         BTSRecipeRemovals.guard("MagMatter before Eye T10 (SL-Q36, B-153)", BTSGodforgeMagMatter::onLoadComplete);
         BTSRecipeRemovals.run();
         BTSRecipeGuard.checkResearchCollisions();
+        BTSRecipeGuard.checkCircuitPlaceholders();
     }
 
     public void serverStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
