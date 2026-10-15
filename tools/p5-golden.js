@@ -18,11 +18,12 @@
  *                                              re-copy the P5 block (default: the design repo's designs/p5-prototype.html);
  *                                              its ENGINE and P4 blocks must equal the fixtures' (plus the one engine line)
  *
- * Two documented patches are applied to the P5 block in memory (singularity-ladder-questions.md B-169):
- *   1. universeTier's d sets S.q (as attractorTier's does). Without it a T10 started at T10 reads S.q undefined, so
- *      Recombination's P drop and Cosmic Dawn's P kick turn into NaN, which the engine's (d[k]||0) silently drops
+ * The two universeTier fixes of B-169 are in the design repo's prototype itself since the P5 merge (the fixture was
+ * refreshed from it; nothing is patched in memory any more):
+ *   1. universeTier's d sets S.q (as attractorTier's does). Without it a T10 started at T10 read S.q undefined, so
+ *      Recombination's P drop and Cosmic Dawn's P kick turned into NaN, which the engine's (d[k]||0) silently drops
  *      (the whole P drift of those seconds). An Eye that reached T10 through Inflation always had S.q set.
- *   2. universeTier's perSec puts the countdown (Recombination or Cosmic Dawn ahead) on S.warn. The d's S.warn = 1 is
+ *   2. universeTier's perSec puts the countdown (Recombination or Cosmic Dawn ahead) on S.warn. The d's S.warn = 1 was
  *      overwritten by step's own S.warn = warn later in the same second, so the Universe set's bit 3 and the event
  *      channel never showed the countdown.
  *
@@ -111,13 +112,7 @@ function loadEngine() {
     if (live !== want('p5-sha1')) console.warn(`WARNING: the design repo's P5 prototype (P5 ${live}) differs from the fixture ` +
       `(${want('p5-sha1')}).\n         Run --refresh-fixture if the prototype is the newer truth, then port the change to the Java.`);
   }
-  // B-169: the two documented patches (see the header)
-  let p5p = once(p5, '    d:S=>{\n      const U=S.uni||(S.uni=newUniverse(S)), tr=S.trans;',
-    '    d:S=>{\n      S.q=1-0.05*(S.cfg.ts-1); const U=S.uni||(S.uni=newUniverse(S)), tr=S.trans;', 'the P5 block (universe d)');
-  p5p = once(p5p, '    perSec:S=>{ const U=S.uni; if(!U || S.trans) return;',
-    '    perSec:S=>{ const U=S.uni; if(U && !S.trans && ((U.t>U_REC.at-U_REC.warn && U.t<U_REC.at) || (U.t>U.dawn-U_DAWN.warn && U.t<U.dawn))) S.warn=1; if(!U || S.trans) return;',
-    'the P5 block (universe perSec)');
-  return { engine: p5Engine(eng) + '\n' + p4 + '\n' + p5p, engineSha1: engSha, p4Sha1: want('p4-sha1'), p5Sha1: want('p5-sha1'),
+  return { engine: p5Engine(eng) + '\n' + p4 + '\n' + p5, engineSha1: engSha, p4Sha1: want('p4-sha1'), p5Sha1: want('p5-sha1'),
     sourceSha1: want('source-sha1') };
 }
 
@@ -259,7 +254,7 @@ function main() {
   const results = runPrototype(engine, list);
   const doc = {
     about: 'P5 golden results (Eye T9 the Great Attractor, the Deep Link, The Infall, Eye T10 the Universe, Inflation) from the ' +
-      'prototype engine with patches B-169 (tools/p5-golden.js). QuasarSim golden-p5 must match every number exactly. Regenerate; do not edit.',
+      'prototype engine (the B-169 fixes are in the prototype). QuasarSim golden-p5 must match every number exactly. Regenerate; do not edit.',
     engineSha1, p4Sha1, p5Sha1, sourceSha1,
     cases: list.map((c, i) => ({ name: c.name, spec: c.spec, expect: results[i] })),
   };

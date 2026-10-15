@@ -220,7 +220,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * P5: slCasing4's meta for the Universal Compression Field Generator, the tenth compression tier (p5-t9-t10.md
      * §6.3; the content unit's {@code BlockSLCasing4.UNIVERSAL_COMPRESSION}). Walks as compression meta 9 (tier 10).
      */
-    public static final int UNIVERSAL_COMPRESSION_META = 6;
+    public static final int UNIVERSAL_COMPRESSION_META = com.nateyburr.beyondthestars.blocks.BlockSLCasing4.UNIVERSAL_COMPRESSION;
     /** The highest tier the structure can carry. */
     public static final int MAX_TIER = PIECES.length;
 

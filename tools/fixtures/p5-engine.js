@@ -3,10 +3,10 @@
 // The P5 block of the P5 play prototype, verbatim (the reference for the Java Eye T9 / T10 maths). It runs on top
 // of the shared ENGINE block (with P5's one changed line) and the P4 block (tools/fixtures/quasar-engine.js).
 // source: designs/p5-prototype.html (design repo GTNH-Addons)
-// source-sha1: 6c0c157327a69497cbe943ab77c2dcc990b98efe
+// source-sha1: 6f9e1d8846343f36464cfd598ceb8d3f43ccf800
 // engine-sha1: c28c22097debf085fd21226aed3f656c7706d04b
 // p4-sha1: 8bc2943b9f93db5da721d4469b63bddb3da7b1f2
-// p5-sha1: d18b3f49b8c0d570d5852da489045b70e1901dd7
+// p5-sha1: f158517cd247cb5fcd12ebac34d017bc1c111bb3
 /*P5-START*/
 /* P5 extension: Eye T9 (the Great Attractor: gauge V, the pellet beam, Galactic Flow, The Infall) and Eye T10 (the
    Universe: gauge H, one universe per batch, Recombination, Cosmic Dawn, Inflation). Uses the D-49 engine and the P4
@@ -111,7 +111,7 @@ function universeTier(){
     trims:{Space:{cap:10,fx:{P:-2}}, DM:{cap:10,fx:{H:-2}}, ST:{cap:10,fx:{H:2}}},
     prod:{name:'Universium',base:0}, up:[], universe:true,
     d:S=>{
-      const U=S.uni||(S.uni=newUniverse(S)), tr=S.trans; const out={P:3*(S.g.beta-1), H:0};
+      S.q=1-0.05*(S.cfg.ts-1); const U=S.uni||(S.uni=newUniverse(S)), tr=S.trans; const out={P:3*(S.g.beta-1), H:0};
       if(tr && tr.kind==='inf'){ out.H = tr.phase>=2 ? 0.4 : 0; return out; }
       U.t++;
       out.H=deDrift(U.t);
@@ -120,13 +120,12 @@ function universeTier(){
       if(U.t>=U_REC.at && U.t<U_REC.at+5) out.P-=6*S.q;
       if(U.t===U.dawn-U_DAWN.warn){ S.mark|=1; log(S,'Event channel: Cosmic Dawn in 120 s. The first stars ignite in a starburst across the crown.','warn'); }
       if(U.t>=U.dawn && U.t<U.dawn+U_DAWN.dur){ const tau=U.t-U.dawn; out.P+=12*Math.pow(1+tau/10,-5/3)*S.q; out.H+=0.3; if(S.zone>1) U.dawnOk=false; if(tau===0){ S.mark|=2; log(S,'Cosmic Dawn: the starburst floods the crown. P +12·(1 + τ/10)^(−5/3) and H +0.3/s for 300 s.','warn'); } }
-      if((U.t>U_REC.at-U_REC.warn && U.t<U_REC.at) || (U.t>U.dawn-U_DAWN.warn && U.t<U.dawn)) S.warn=1;
       return out; },
     ctrl:(E)=>{ const u=spaceRig(E); if(U_RIG.on){ if(E.H>5) u.DM=U_RIG.dm; if(E.H<-5) u.ST=U_RIG.st; } return u; },
     rig:()=>['J1 Eye : crown ← sensor P, analog, inverted, window ±w, k = 2 (all bursts land on the crown\'s 12 receptors)',
       'Eye Space trim: Field bit 1 (P > +5) → Space valve, 10 units of 100 L/s',
       'Universe bit 1 (H > +5) → Dark Matter valve, 2 units of 4 L/s; bit 2 (H < −5) → Molten SpaceTime valve, 2 units of 100 L/s'],
-    perSec:S=>{ const U=S.uni; if(!U || S.trans) return; U.ySum+=S.Y; U.n++; U.rMin=Math.min(U.rMin,S.cfg.r);
+    perSec:S=>{ const U=S.uni; if(U && !S.trans && ((U.t>U_REC.at-U_REC.warn && U.t<U_REC.at) || (U.t>U.dawn-U_DAWN.warn && U.t<U.dawn))) S.warn=1; if(!U || S.trans) return; U.ySum+=S.Y; U.n++; U.rMin=Math.min(U.rMin,S.cfg.r);
       if(U.t>=U_BATCH){ const mY=U.ySum/U.n, base=U_OUT*mY*U.rMin, bonus=U.dawnOk?U_OUT*U_DAWN_BONUS*U.rMin:0;
         add(S.L.prod,'Universium',base+bonus); S.L.batches++; S.mark|=8; if(U.dawnOk) S.L.dawns=(S.L.dawns||0)+1;
         log(S,`Universe ${S.L.batches} ran to its last light: +${fmtL(base)} Universium (mean Y ${mY.toFixed(2)})${bonus?`, +${fmtL(bonus)} for catching Cosmic Dawn`:''}. The next universe is charged.`,'ok');

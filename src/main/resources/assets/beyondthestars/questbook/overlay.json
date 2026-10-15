@@ -6,7 +6,7 @@
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "ea421b7 p5-eye",
+    "srcHead": "d0a4339 p5-integrate",
     "manifestSha": "7796eeb6b7823f938be225118e9e1e7fa0c89d83"
   },
   "features": {

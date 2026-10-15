@@ -7389,6 +7389,12 @@ Two prototype bugs are patched in memory, both in `universeTier`, both logged in
 "Ergomatter Mk I accepting every flow", where the spec's appendix says 12 / 11 / 17; the appendix looks older than
 the engine. Re-run `suite.js` before the numbers go into the questbook.
 
+**Done (p5-integrate).** Both fixes are in `designs/p5-prototype.html` (design repo e22fdf7); the fixture was refreshed
+and `p5-golden.js` patches nothing in memory any more. The 46 cases and the Java port are unchanged bit for bit (only
+the golden's sha fields moved). The suites were re-run and the spec's tables updated: "Ergomatter Mk I accepting every
+flow" is 6 / 8 / 6 failures, the unwired beam 43 / 39 / 41 (was 74 / 71 / 80), T10's standard rig 24,638 / 24,727 /
+24,720 L Universium in 4 h. No quest text cites the changed numbers.
+
 ### B-170 The standard J1 limit for T9 and T10 [p5-eye, judgement call]
 
 **Context.** P4-88 caps the standard rig's J1 out 1 at 5 x D7 = 7.5 Bu/t per parallel. T9 needs 24 Bu/t on the Eye (36
