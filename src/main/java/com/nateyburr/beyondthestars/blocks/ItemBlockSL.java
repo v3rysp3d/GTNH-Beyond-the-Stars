@@ -6,8 +6,6 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlockWithMetadata;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -34,11 +32,6 @@ public class ItemBlockSL extends ItemBlockWithMetadata {
     @SideOnly(Side.CLIENT)
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void addInformation(ItemStack stack, EntityPlayer player, List lines, boolean advanced) {
-        final String key = getUnlocalizedName(stack) + ".tooltip";
-        if (!StatCollector.canTranslate(key)) return;
-        for (String line : StatCollector.translateToLocal(key)
-            .split("\\\\n")) {
-            lines.add(EnumChatFormatting.GRAY + line);
-        }
+        com.nateyburr.beyondthestars.items.BTSTooltipItem.addLangTooltip(getUnlocalizedName(stack), lines);
     }
 }

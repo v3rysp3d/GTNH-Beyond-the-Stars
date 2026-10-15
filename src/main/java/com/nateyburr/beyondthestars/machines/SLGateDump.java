@@ -492,7 +492,8 @@ public final class SLGateDump {
             }
             final String head = tag + " "
                 + gate.label
-                + (gate.gate == 0 ? " (optional, reported only)" : " (gate Eye T" + gate.gate + ")");
+                + (gate.gate == 0 ? " (optional, reported only)" : " (gate Eye T" + gate.gate + ")")
+                + ("P4".equals(tag) || gate.item == null ? "" : " [" + registryId(gate.item) + "]");
             if (gate.gate == 0) {
                 SLConsoleTest.tell(sender, head + ": " + recs.size() + " recipe(s)");
                 for (Rec rec : recs) SLConsoleTest.tell(sender, "  in (" + rec.where + "): " + describe(rec));
@@ -606,6 +607,12 @@ public final class SLGateDump {
         final int loops = judge(sender, gates, "P5");
         SLConsoleTest.tell(sender, "== P5 gate audit done: " + loops + " part(s) break the gate rule ==");
         return loops;
+    }
+
+    /** {@code modid:name:meta} of a stack, the form the questbook's tasks use. */
+    private static String registryId(ItemStack stack) {
+        final Object id = Item.itemRegistry.getNameForObject(stack.getItem());
+        return id + ":" + stack.getItemDamage();
     }
 
     /** A GT machine by MTE id, or a Gate with no item if that id is not registered (another unit's machine). */

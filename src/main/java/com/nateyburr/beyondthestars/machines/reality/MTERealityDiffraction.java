@@ -78,7 +78,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
 
     public static final String PIECE = "reality_diffraction";
     public static final String[] REGION_NAMES = { "I Hyperspace", "II Subspace", "III Forward Time", "IV Reverse Time",
-        "V Positive Mass", "VI Negative Mass" };
+        "V Visible Mass", "VI Dark Mass" };
     /** Socket chars of Regions I..VI in the exported shape. */
     public static final char[] ANCHOR_CHARS = { 'r', 's', 't', 'u', 'v', 'w' };
 
@@ -676,7 +676,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         final GTRecipe r = recipe();
         if (r != null) return r.mFluidInputs[k + 1].getLocalizedName();
         final String[] fallback = { "Space", "SpaceTime", "Time", "Eternity", "Superdense Ergomatter",
-            "White Hole Matter" };
+            "Attractor Dark Matter" };
         return fallback[k];
     }
 

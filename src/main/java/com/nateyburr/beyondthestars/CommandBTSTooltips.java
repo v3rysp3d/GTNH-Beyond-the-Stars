@@ -146,6 +146,11 @@ public class CommandBTSTooltips extends CommandBase {
                 final String key = line.substring(0, eq);
                 if ((key.startsWith("item.") || key.startsWith("tile.")) && key.endsWith(".tooltip")) {
                     out.put(key.substring(0, key.length() - ".tooltip".length()), line.substring(eq + 1));
+                } else if ((key.startsWith("item.") || key.startsWith("tile.")) && key.endsWith(".tooltip.shift")) {
+                    // the [LSHIFT] details (BTSTooltipItem.addLangTooltip)
+                    out.put(
+                        key.substring(0, key.length() - ".tooltip.shift".length()) + " [LSHIFT]",
+                        line.substring(eq + 1));
                 }
             }
         } catch (Exception ignored) {
