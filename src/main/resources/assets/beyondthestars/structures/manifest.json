@@ -1,7 +1,7 @@
 {
  "generator": "tools/export-structures.js",
  "source": "designs/voxel.js",
- "sha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1",
+ "sha": "7796eeb6b7823f938be225118e9e1e7fa0c89d83",
  "format": "StructureLib native String[d][h] (w chars). Layer 0 = controller front (mockup +z), rows top to bottom, chars left to right seen from the front (mockup +x). off = controller (h,v,d) in the piece's own frame. ' ' = skip.",
  "orientation": {
   "flipH": false,
