@@ -155,6 +155,7 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
             runNeedsLink = false;
             return null;
         }
+        densityAsked = true;
         if (!recipeGateOpen()) return SimpleCheckRecipeResult.ofFailure("beyondthestars.kerr.module.density");
         final MTEKerrEngine kee = kee();
         final double minMass = BTSRecipesQuasar.densityMinMass(recipe);
@@ -169,6 +170,13 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
         return null;
     }
 
+    /**
+     * QA-A12: the last recipe check met a DENSITY recipe (its inputs are in the module), so the Densification line
+     * concerns the player. Without it a T1 compressor showed an amber "needs Kerr T2" all the time, which read as
+     * "this module needs T2" although GT's compressor recipes run at T1. Server state.
+     */
+    private boolean densityAsked;
+
     private static boolean linkHolds(@Nullable MTEKerrEngine kee) {
         return kee != null && kee.burstSigma() >= BTSRecipesQuasar.SUPERDENSE_MIN_SIGMA;
     }
@@ -177,6 +185,7 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
     @Nonnull
     public CheckRecipeResult checkProcessing() {
         runNeedsLink = false;
+        densityAsked = false;
         final CheckRecipeResult r = super.checkProcessing();
         if (!r.wasSuccessful()) runNeedsLink = false;
         return r;
@@ -222,6 +231,8 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
     /** The DENSITY gate, live: what is missing, or that it is open. */
     @Override
     public String gateLine() {
+        // QA-A12: only once Densification inputs are in, or while its gate is open
+        if (!densityAsked && !recipeGateOpen()) return "";
         final MTEKerrEngine kee = kee();
         if (kee == null || !kee.isHoleOpen()) {
             return "§8Densification: needs a linked Kerr T2 hole of 128 SM";
@@ -270,7 +281,8 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
             .addInfo("  Quasar Seed and Superdense Ergomatter need 256 SM; Superdense also a quasar link on")
             .addInfo("  the KEE at σ ≥ 1 (a run that loses it pauses, never voids).")
             .addInfo("The hole sets the bonus, fixed when a recipe starts:")
-            .addInfo("  parallel 8 x voltage tier (this module's energy) x floor(sqrt(M)),")
+            .addInfo("  parallel 8 x the tier of this module's total input (V x A) x floor(sqrt(M)),")
+            .addInfo("  e.g. one 2 A UIV hatch counts as UMV: 384 at 16 SM, 768 at 64 SM;")
             .addInfo("  speed x(3200/M)/50, from 1 to 4. The module costs the hole nothing.")
             .addSeparator()
             .addInfo("Place this controller where the KEE's hologram shows marker 7, facing out of the cage.")

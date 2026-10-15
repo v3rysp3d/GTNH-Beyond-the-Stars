@@ -75,7 +75,8 @@ public final class EyeStarBench {
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
-        + "field <fluid> <L> | "
+        + "field <fluid> <L> | eu set <n> | mebus setup|stock|manual|power|status | damage | repair | walk | unload [all] | planet <key> | hatchwrench | "
+        + "punch [owner] | "
         + "render [on|off] | "
         + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
         + "gui [info|galaxy] | "
@@ -278,14 +279,126 @@ public final class EyeStarBench {
                 out.addAll(com.nateyburr.beyondthestars.rendertest.IntakeBench.run(eye, args));
                 return out;
             case "eu": {
-                // eu: 10^18 wireless EU to the owner, buffers untouched (fill also fills the buffers)
+                // eu: 10^18 wireless EU to the owner, buffers untouched (fill also fills the buffers);
+                // eu set <n>: the owner's network holds exactly n EU (a network that runs short)
                 final UUID owner = rt.host.owner();
+                if (owner != null && "set".equals(a5) && args.length > 6) {
+                    WirelessNetworkManager.strongCheckOrAddUser(owner);
+                    final BigInteger want = new BigInteger(args[6]);
+                    WirelessNetworkManager
+                        .addEUToGlobalEnergyMap(owner, want.subtract(WirelessNetworkManager.getUserEU(owner)));
+                    out.add("the owner's network now holds " + WirelessNetworkManager.getUserEU(owner) + " EU");
+                    return out;
+                }
                 if (owner != null) {
                     WirelessNetworkManager.strongCheckOrAddUser(owner);
                     WirelessNetworkManager.addEUToGlobalEnergyMap(owner, BigInteger.TEN.pow(18));
                 }
                 out.add(owner != null ? "10^18 EU granted" : "no owner: no EU");
                 return out;
+            }
+            case "mebus":
+                // QA S-01 / QA-A07: an ME input bus in a plinth socket on a small network (dev-only,
+                // rendertest.MeBusBench)
+                out.addAll(com.nateyburr.beyondthestars.rendertest.MeBusBench.run(eye, args));
+                return out;
+            case "damage":
+                // damage | repair: one core casing next to the controller out and back, as a player breaking and
+                // replacing it (the GT power switch and the star's restart after a repair, QA S-05)
+                out.add(damage(world, eye));
+                break;
+            case "repair":
+                out.add(repair(world));
+                break;
+            case "unload": {
+                // unload: queue every chunk of the Eye's T1-T3 footprint for unloading except the controller's (run
+                // /btskerr release first; a player nearby keeps them): a partly loaded footprint (QA-A11)
+                final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+                final int[] box = com.nateyburr.beyondthestars.machines.SLConsoleTest.bounds(
+                    eye.getExtendedFacing(),
+                    base.getXCoord(),
+                    base.getYCoord(),
+                    base.getZCoord(),
+                    MTEEyeOfHarmonyBTS.PIECE_CORE,
+                    MTEEyeOfHarmonyBTS.PIECE_BEAM,
+                    MTEEyeOfHarmonyBTS.PIECE_JET);
+                final int ccx = base.getXCoord() >> 4, ccz = base.getZCoord() >> 4;
+                int n = 0;
+                for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
+                    for (int cz = box[2] >> 4; cz <= box[5] >> 4; cz++) {
+                        if (cx == ccx && cz == ccz && !"all".equals(a5)) continue;
+                        ((net.minecraft.world.WorldServer) world).theChunkProviderServer
+                            .unloadChunksIfNotNearSpawn(cx, cz);
+                        n++;
+                    }
+                }
+                out.add(n + " chunk(s) queued to unload (all but the controller's)");
+                return out;
+            }
+            case "planet": {
+                // planet <key>: a planet's display block in the controller slot (a GT planet run, QA-A06)
+                final String key = a5.startsWith("planet:") ? args[5] : "planet:" + args[5];
+                final com.nateyburr.beyondthestars.machines.eye.EyeRecipe r = com.nateyburr.beyondthestars.machines.eye.EyeRecipeRegistry
+                    .byKey(key);
+                if (r == null) {
+                    out.add("Unknown planet " + key);
+                    return out;
+                }
+                eye.debugSetTarget(r.trigger.copy());
+                out.add("Target: " + r.name);
+                break;
+            }
+            case "hatchwrench": {
+                // hatchwrench: every Directive and Sensor hatch's item NBT read back into a fresh hatch of its kind,
+                // as a pick-up and placement does (QM-05)
+                for (com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective h : eye.directiveHatches()) {
+                    final net.minecraft.nbt.NBTTagCompound tag = new net.minecraft.nbt.NBTTagCompound();
+                    h.setItemNBT(tag);
+                    final com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective fresh = (com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective) h
+                        .newMetaEntity(h.getBaseMetaTileEntity());
+                    fresh.loadNBTData(tag);
+                    out.add("Directive: before " + h.settingsLine() + " | after a wrench " + fresh.settingsLine());
+                }
+                for (MTEHatchStellarFieldSensor h : eye.sensorHatches()) {
+                    final net.minecraft.nbt.NBTTagCompound tag = new net.minecraft.nbt.NBTTagCompound();
+                    h.setItemNBT(tag);
+                    out.add("Sensor item NBT: " + tag);
+                }
+                return out;
+            }
+            case "walk": {
+                // walk: GT's structure check now, whatever chunks are loaded (QA-A11: a walk across unloaded chunks)
+                final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+                if (base != null) eye.checkStructure(true, base);
+                out.add("Walked: formed " + eye.mMachine + ", structure T" + eye.structureTier());
+                break;
+            }
+            case "punch": {
+                // punch [owner]: a sneaking, empty-handed player punches the controller (the escrow return), by
+                // default someone who is not the owner (QA-A08)
+                final boolean asOwner = "owner".equals(a5);
+                final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+                final com.mojang.authlib.GameProfile who = asOwner && base.getOwnerUuid() != null
+                    ? new com.mojang.authlib.GameProfile(base.getOwnerUuid(), base.getOwnerName())
+                    : new com.mojang.authlib.GameProfile(
+                        UUID.nameUUIDFromBytes("BTS bench intruder".getBytes()),
+                        "BenchIntruder");
+                final net.minecraftforge.common.util.FakePlayer p = net.minecraftforge.common.util.FakePlayerFactory
+                    .get((net.minecraft.world.WorldServer) world, who);
+                p.setSneaking(true);
+                p.inventory.setInventorySlotContents(p.inventory.currentItem, null);
+                eye.onLeftclick(base, p);
+                int cores = 0;
+                for (ItemStack s : p.inventory.mainInventory)
+                    if (s != null && EyeStarRuntime.isCore(s.getItem())) cores += s.stackSize;
+                p.inventory.clearInventory(null, -1);
+                out.add(
+                    "Punched by " + who.getName()
+                        + (asOwner ? " (the owner)" : " (not the owner)")
+                        + ": "
+                        + cores
+                        + " core(s) handed out");
+                break;
             }
             case "directive":
                 // AUTOMATION PASS: Trims / Status / Transition Directive Hatches in three Sensor sockets
@@ -560,6 +673,34 @@ public final class EyeStarBench {
         out.add(
             hash == (l.hash & 0xFFFFFFFFL) ? "COMPARE PASS: the Eye's field equals the prototype's, second for second"
                 : "COMPARE DIFFERS (needs p = 1, upkeep r = 1, no failure, and the rig or no trims since 'lit')");
+    }
+
+    /** The core casing {@code damage} took out: {x, y, z, block, meta}; null when none is out. */
+    private static Object[] damaged;
+
+    /** Takes out the first plain block next to the controller (a core casing; never a tile), remembering it. */
+    private static String damage(World world, MTEEyeOfHarmonyBTS eye) {
+        if (damaged != null) return "A block is already out at " + damaged[0] + ", " + damaged[1] + ", " + damaged[2];
+        final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+        for (net.minecraftforge.common.util.ForgeDirection d : net.minecraftforge.common.util.ForgeDirection.VALID_DIRECTIONS) {
+            final int bx = base.getXCoord() + d.offsetX, by = base.getYCoord() + d.offsetY,
+                bz = base.getZCoord() + d.offsetZ;
+            final net.minecraft.block.Block b = world.getBlock(bx, by, bz);
+            if (b == null || b.isAir(world, bx, by, bz) || world.getTileEntity(bx, by, bz) != null) continue;
+            damaged = new Object[] { bx, by, bz, b, world.getBlockMetadata(bx, by, bz) };
+            world.setBlockToAir(bx, by, bz);
+            return "Took out " + net.minecraft.block.Block.blockRegistry
+                .getNameForObject(b) + " at " + bx + ", " + by + ", " + bz;
+        }
+        return "No plain block next to the controller to take out.";
+    }
+
+    private static String repair(World world) {
+        if (damaged == null) return "Nothing to repair.";
+        final int bx = (Integer) damaged[0], by = (Integer) damaged[1], bz = (Integer) damaged[2];
+        world.setBlock(bx, by, bz, (net.minecraft.block.Block) damaged[3], (Integer) damaged[4], 3);
+        damaged = null;
+        return "Put the block back at " + bx + ", " + by + ", " + bz;
     }
 
     /** GT's view of the controller: allowed to work, formed, maintenance, the last shutdown reason. */

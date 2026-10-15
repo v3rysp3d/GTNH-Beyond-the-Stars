@@ -271,6 +271,12 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     @Override
     protected void addStatusRows(BTSRows.Builder rows) {
+        // QA-A11: frozen while a footprint chunk is unloaded; S-05: switched off, and why
+        if (multiblock.isFrozen()) {
+            rows.note(BTSRows.ICON_BAD, BTSGuiKit.WARN, BTSText.lang("beyondthestars.gui.eye.frozen"));
+        }
+        final String off = multiblock.offReasonForGui();
+        if (!off.isEmpty()) rows.note(BTSRows.ICON_BAD, BTSGuiKit.WARN, BTSText.lit(off));
         final Badge b = badgeCode();
         switch (b) {
             case NOT_FORMED:
@@ -1015,11 +1021,13 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         }
         final StarDef want = want();
         final int n = want == null ? 0 : want.n();
-        if (n >= 1 && n <= 3) {
+        final StarDef lights = n >= 1 && n <= 4 ? rt.ignitableFor(want) : null;
+        if (lights == want && n >= 1 && n <= 3) {
             rows.section(BTSText.lang("beyondthestars.gui.eye.sec.light", want.name), "");
             rows.checks(rt.ignitionChecklist(want));
-        } else if (n == 4) {
-            final StarDef progenitor = rt.ignitableFor(want);
+        } else if (n >= 1 && n <= 4) {
+            // QA-A02: the chart one tier above the unlocked one (and T4's Neutron Star chart) relights the star below
+            final StarDef progenitor = lights;
             if (progenitor != null) {
                 rows.section(BTSText.lang("beyondthestars.gui.eye.sec.relight", progenitor.name), "");
                 rows.checks(rt.ignitionChecklist(progenitor));

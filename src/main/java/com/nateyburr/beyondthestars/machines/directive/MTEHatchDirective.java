@@ -94,11 +94,12 @@ public class MTEHatchDirective extends MTEHatch {
             "  cover set to Conditional, both on the tank that feeds the hatch. AE2: an export bus + redstone card.",
             "§bEye Trims§7 (the star's trims, wanted when the gauge is past ±w):",
             "  T1, T2: [1] Helium (P > +w) [2] Hydrogen (P < -w)",
-            "  T3: [1] Helium (P > +w or Θ < -w) [2] Hydrogen (P < -w) [4] Super Coolant (P or Θ > +w, a flash)",
+            "  T3: [1] Helium (P > +w or Θ < -w) [2] Hydrogen (P < -w) [4] Super Coolant (P or Θ > +w)",
+            "    A helium flash warned: [4] Coolant while Θ > -5 (pre-cool), [1] Helium only below Θ -35.",
             "  T4, T6: [1] Space (P > +w) [2] SpaceTime (P < -w) [4] Super Coolant (Θ > +w) [8] Tengam (Ω > +w)",
             "  T5: [1] DSSF (P or Θ > +w) [2] Raw Star Matter (Θ < -w) [4] Helium (P < -w)",
-            "§bEye Status§7: [1] buffers short [2] ignition charge wanted [4] event warned (T3 more Coolant,",
-            "  T6 Agent wanted) [8] alarm (Critical, Breach, Integrity < 50, or not formed)",
+            "§bEye Status§7: [1] buffers short [2] ignition charge wanted [4] event (T3 a flash's heat Θ > +20:",
+            "  more Coolant; T6 Agent wanted) [8] alarm (Critical, Breach, Integrity < 50, not formed, or off)",
             "  Magnetar Merger: [4] asks above Π +66; feed 1 unit/s (100 L/s) while Transition [2] is on.",
             "§bEye Transition§7: [1] ready: load the next chart [2] running [4] next core wanted [8] Tachyon wanted",
             "§bEye Field§7 (T7+): [1] P > +w: Space trim [2] P < -w: more bursts [4] W > +w: aim high [8] W < -w: low",
@@ -296,6 +297,11 @@ public class MTEHatchDirective extends MTEHatch {
     }
 
     /** One line for the GUI, the host's scanner and the bench. */
+    /** Bench: the settings alone ("set EYE_STATUS, output BIT_3, invert true, w 25"). */
+    public String settingsLine() {
+        return "set " + set.name() + ", output " + output.name() + ", invert " + invert + ", w " + window;
+    }
+
     public String statusLine() {
         if (!fresh()) {
             return set.label + ": no machine reporting (place it in an Eye n, a Kerr u or a Quasar d socket)";
@@ -363,6 +369,18 @@ public class MTEHatchDirective extends MTEHatch {
     @Override
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
+        writeSettings(aNBT);
+    }
+
+    /** QM-05: the settings travel with a wrenched hatch too (GT's own setItemNBT writes nothing). */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        writeSettings(aNBT);
+    }
+
+    /** The one writer of the settings, for the tile and the item (loadNBTData reads both). */
+    private void writeSettings(NBTTagCompound aNBT) {
         aNBT.setString("btsDirSet", set.name());
         aNBT.setInteger("btsDirOutput", output.ordinal());
         aNBT.setBoolean("btsDirInvert", invert);

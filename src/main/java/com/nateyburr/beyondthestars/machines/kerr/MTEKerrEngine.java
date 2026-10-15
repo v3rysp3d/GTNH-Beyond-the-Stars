@@ -718,7 +718,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         burstHost.second(receptors, key, "Kerr Ergosphere Engine", burstDemand(), 0);
     }
 
-    /** The hole's parallel for a module: {@code 8 x tier(module energy) x floor(sqrt(M))}. */
+    /**
+     * The hole's parallel for a module: {@code 8 x tier(module input) x floor(sqrt(M))}, where the tier is GT's of the
+     * module's total input V x A (as GT's Black Hole Compressor: a 2 A UIV hatch is tier 12, UMV; QA-A05).
+     */
     public static int parallelFor(long moduleMaxInputEu, double m) {
         final int base = PARALLEL_PER_TIER * Math.max(1, GTUtility.getTierExtended(moduleMaxInputEu));
         return base * Math.max(1, (int) Math.floor(Math.sqrt(Math.max(0, m))));
@@ -903,14 +906,46 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return 0;
     }
 
-    /** "Auto": a Seed in a bolt bus opens a closed hole; a Collapser closes an open one. */
+    /**
+     * "Auto": a Seed in a bolt bus opens a closed hole once it can be held (containment power and bolts, QA-A04); a
+     * Collapser closes an open one only while the setpoint asks for it, at {@link #SETPOINT_MIN} (QA-A03: with the
+     * questbook's Seed and Collapser in the same bolt bus the hole opened and was collapsed the next second, both
+     * spent). Redstone asks with a KERR_SETPOINT Directive Hatch at strength 1, OpenComputers with setSetpoint(2).
+     */
     private void useSeedOrCollapser() {
         if (holeOpen) {
-            if (takeFromBoltBuses(ItemList.Black_Hole_Closer.get(1L))) closeHole();
-        } else if (takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) {
+            if (setpoint <= SETPOINT_MIN && takeFromBoltBuses(ItemList.Black_Hole_Closer.get(1L))) closeHole();
+        } else if (openRefusal().isEmpty() && takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) {
             holeOpen = true;
             mass = OPEN_MASS;
         }
+    }
+
+    /** QA-A04: the bolt stock Open and Auto need before they burn a Seed (an 8 SM hole bleeds about 1 SM a second). */
+    public static final double OPEN_MIN_BOLTS_SM = 1.0;
+
+    /**
+     * QA-A04: why a Seed would not be held now ("" when it would): containment power (1 A UEV, in the hatches and
+     * stored) and at least {@link #OPEN_MIN_BOLTS_SM} of bolts. Without either the 8 SM hole evaporated in about 3 s
+     * and the Seed was lost.
+     */
+    public String openRefusal() {
+        if (!containmentReady()) return "no containment power (1 A UEV in the governor's energy hatches)";
+        if (boltStockSm < OPEN_MIN_BOLTS_SM) return "no bolts in the bolt buses (at least 1 SM, 64 Neutronium bolts)";
+        return "";
+    }
+
+    /** QA-A04: the energy hatches can give the containment draw now (their input and their stored EU). */
+    public boolean containmentReady() {
+        if (getMaxInputEu() < CONTAINMENT_EUT) return false;
+        long stored = 0;
+        for (gregtech.api.metatileentity.implementations.MTEHatch h : getExoticAndNormalEnergyHatchList()) {
+            if (h == null || !h.isValid()) continue;
+            stored += h.getBaseMetaTileEntity()
+                .getStoredEU();
+            if (stored >= CONTAINMENT_EUT) return true;
+        }
+        return false;
     }
 
     /** Takes one {@code wanted} out of the bolt buses; true if one was there. */
@@ -929,9 +964,12 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return false;
     }
 
-    /** GUI "Open hole": needs a formed KEE, a closed hole and a Seed in a bolt bus (consumes it). */
+    /**
+     * GUI "Open hole": needs a formed KEE, a closed hole, containment power, bolts (QA-A04) and a Seed in a bolt bus
+     * (consumes it).
+     */
     public boolean openHoleFromGui() {
-        if (!mMachine || holeOpen) return false;
+        if (!mMachine || holeOpen || !openRefusal().isEmpty()) return false;
         if (!takeFromBoltBuses(ItemList.Black_Hole_Opener.get(1L))) return false;
         holeOpen = true;
         mass = OPEN_MASS;
@@ -1330,7 +1368,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     /** Seconds until the hole evaporates with no bolts: {@code (M^3 - 8) / 9.6} ticks. */
     public long getEvapSeconds() {
         if (!holeOpen) return 0;
-        return (long) Math.max(0, (Math.pow(mass, 3) - Math.pow(MASS_FLOOR, 3)) / (3 * BLEED_K) / 20.0);
+        // QA-A31: the bleed is BLEED_K / M² × bleedFactor() a tick (a quasar link relieves it)
+        return (long) Math.max(
+            0,
+            (Math.pow(mass, 3) - Math.pow(MASS_FLOOR, 3)) / (3 * BLEED_K * Math.max(1e-9, bleedFactor())) / 20.0);
     }
 
     public int getSeeds() {
@@ -1683,7 +1724,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addInfo("  SpaceTime 1/4 SM, at most 4/8/16 a tick by the LOWEST injector rail (Mk I/II/III).")
             .addInfo("Containment: 8,388,608 EU/t (1 A UEV) while open. Without it the governor stops and")
             .addInfo("  the hole bleeds; below 2 SM it evaporates. The power switch does not stop the hole.")
-            .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4).")
+            .addInfo("Modules get parallel 8 x tier x floor(sqrt(M)) and speed x(3200/M)/50 (1 to 4); the tier is")
+            .addInfo("  that of the module's total input, V x A (a 2 A UIV hatch counts as UMV).")
             .addInfo("Optional BHC Utility Hatches on the cage emit redstone while the hole is open.")
             .addInfo("Quasar link (optional): a GRB Receptor Port in a utility socket. σ = bursts ÷ 0.1 Bu/t")
             .addInfo(

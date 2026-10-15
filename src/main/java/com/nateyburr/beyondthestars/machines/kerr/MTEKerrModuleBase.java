@@ -61,7 +61,7 @@ import gregtech.common.tileentities.machines.RecipeCheckReason;
  * before any KEE exists.
  *
  * <h2>The hole's bonus (B-8 numbers)</h2>
- * Parallel {@code 8 x tier(module energy) x floor(sqrt(M))}, speed {@code clamp((3200 / M) / 50, 1,
+ * Parallel {@code 8 x tier(module input, V x A) x floor(sqrt(M))}, speed {@code clamp((3200 / M) / 50, 1,
  * 4)}, both fixed when a recipe starts (GT's suppliers are read at recipe start), so a mass change
  * mid-recipe changes nothing. Modules cost the hole nothing (B-50).
  */
@@ -499,7 +499,7 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
         }
     }
 
-    /** "Hole bonus: parallel 352, speed x4.00". */
+    /** "Hole bonus: parallel 384, speed x4.00". */
     public static String bonusLine(Link link, int parallel, double speed) {
         if (link != Link.LINKED) return "§7Hole bonus: none while the hole is closed or unlinked";
         return String.format(Locale.ROOT, "§bHole bonus: parallel %,d, speed x%.2f", parallel, speed);

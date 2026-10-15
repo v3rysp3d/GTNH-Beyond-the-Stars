@@ -68,6 +68,7 @@ import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 
+import appeng.api.config.PowerMultiplier;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IItemList;
 import appeng.me.GridAccessException;
@@ -93,6 +94,8 @@ import gregtech.api.structure.error.StructureErrors;
 import gregtech.api.util.GTUtility;
 import gregtech.api.util.ItemEjectionHelper;
 import gregtech.api.util.MultiblockTooltipBuilder;
+import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.misc.GTStructureChannels;
 import gregtech.common.misc.WirelessNetworkManager;
@@ -593,6 +596,85 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         if (errors.isEmpty() && runtime.legacyPending()) {
             runtime.grandfather(legacyStructureTier(), legacyFootprintLoaded(aBaseMetaTileEntity));
         }
+        // QA-A11: the bands the footprint check covers: raised by every formed walk, lowered only by one that saw the
+        // whole footprint it covered loaded (a band taken down on purpose)
+        final int tier = structureTier();
+        if (footprintLoaded(aBaseMetaTileEntity)) footprintBands = Math.max(1, tier);
+        else footprintBands = Math.max(footprintBands, tier);
+    }
+
+    // ============================================================================ chunk freeze (QA-A11)
+
+    /**
+     * QA-A11 / R-8: the pieces (core first) whose chunks must all be loaded for the Eye to run: the most a formed walk
+     * has counted (tile NBT); 0 before any, then the unlocked tier stands in (the transitions needed those bands).
+     */
+    private int footprintBands;
+    /** The footprint's chunks were all loaded at the last field second (false: the Eye is frozen). */
+    private boolean footprintLoaded = true;
+    private int[] footprintBox;
+    private com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing footprintBoxFacing;
+    private int footprintBoxBands;
+    /** QA-A11 / QS-02: a periodic re-walk (ticks), as the KEE and the quasar make, while the footprint is loaded. */
+    private static final int RECHECK = 200;
+
+    private int footprintPieces() {
+        final int bands = footprintBands > 0 ? footprintBands : runtime.unlockedTier();
+        return Math.max(1, Math.min(PIECES.length, bands));
+    }
+
+    /**
+     * True when every chunk under the footprint's pieces is loaded (never loads one). StructureLib fails a cell in
+     * an unloaded chunk as a missing block, so a walk then is not to be believed, and the Eye freezes instead of
+     * putting its star out (R-8: "an unloaded chunk freezes it"), as the KEE and the quasar do.
+     */
+    private boolean footprintLoaded(IGregTechTileEntity base) {
+        if (base == null || base.getWorld() == null) return false;
+        final int bands = footprintPieces();
+        final com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing f = getExtendedFacing();
+        if (footprintBox == null || footprintBoxFacing != f || footprintBoxBands != bands) {
+            footprintBox = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                .bounds(f, base.getXCoord(), base.getYCoord(), base.getZCoord(), Arrays.copyOf(PIECES, bands));
+            footprintBoxFacing = f;
+            footprintBoxBands = bands;
+        }
+        final int[] b = footprintBox;
+        return base.getWorld()
+            .checkChunksExist(b[0], 0, b[2], b[3], 255, b[5]);
+    }
+
+    /** GT's per-check tile update, kept to real changes: the periodic re-walk must not resend the controller. */
+    private final com.nateyburr.beyondthestars.machines.QuietTileUpdate quietTileUpdate = new com.nateyburr.beyondthestars.machines.QuietTileUpdate();
+
+    @Override
+    protected void onStructureCheckFinished(IGregTechTileEntity aBaseMetaTileEntity) {
+        super.onStructureCheckFinished(quietTileUpdate.wrap(aBaseMetaTileEntity));
+        quietTileUpdate.after(this, aBaseMetaTileEntity);
+    }
+
+    /** QA-A11: frozen (a footprint chunk is not loaded): no drain, no field second; nothing is lost. GUI, scanner. */
+    public boolean isFrozen() {
+        return !footprintLoaded;
+    }
+
+    /**
+     * The field second's freeze gate (server): false while a footprint chunk is unloaded. When the chunks come back
+     * the Eye re-walks before its star moves again, so a walk made across unloaded chunks never puts it out; every
+     * {@link #RECHECK} ticks it re-walks anyway (edits far from the controller reach it, QS-02).
+     */
+    private boolean footprintGate(IGregTechTileEntity base, long aTick) {
+        if (mStartUpCheck >= 0) return true; // the runtime waits for GT's first walk by itself
+        final boolean loaded = footprintLoaded(base);
+        if (!loaded) {
+            footprintLoaded = false;
+            return false;
+        }
+        if (!footprintLoaded || aTick % RECHECK == 0) {
+            footprintLoaded = true;
+            checkStructure(true, base);
+            resumeIfRepaired(base);
+        }
+        return true;
     }
 
     /** "" per piece, so the status lines of a tile that has not been walked yet read "absent". */
@@ -1084,10 +1166,30 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     + " is running: the core stays in escrow until it ends.");
             return;
         }
+        if (!mayTakeEscrow(aBaseMetaTileEntity, aPlayer)) {
+            GTUtility.sendChatToPlayer(
+                aPlayer,
+                EnumChatFormatting.YELLOW + "Only the Eye's owner (or their team) can take the escrowed core back.");
+            return;
+        }
         final ItemStack core = runtime.takeEscrow();
         if (core == null) return;
         if (!aPlayer.inventory.addItemStackToInventory(core)) aPlayer.dropPlayerItemWithRandomChoice(core, false);
         GTUtility.sendChatToPlayer(aPlayer, "Escrow returned: " + core.getDisplayName() + ".");
+    }
+
+    /**
+     * QA-A08: the escrowed core goes back only to the Eye's owner, a player on the owner's team (the wireless
+     * network's leader is the same), or a creative-mode player. An Eye with no owner returns it to anyone.
+     */
+    private static boolean mayTakeEscrow(IGregTechTileEntity base, EntityPlayer player) {
+        final UUID owner = base.getOwnerUuid();
+        if (owner == null || player.capabilities.isCreativeMode) return true;
+        final UUID who = player.getUniqueID();
+        if (owner.equals(who)) return true;
+        final UUID a = gregtech.common.misc.spaceprojects.SpaceProjectManager.getLeader(owner);
+        final UUID b = gregtech.common.misc.spaceprojects.SpaceProjectManager.getLeader(who);
+        return a != null && a.equals(b);
     }
 
     /**
@@ -1244,7 +1346,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
-        if (aTick % DRAIN_INTERVAL == 0) {
+        resumeIfRepaired(aBaseMetaTileEntity);
+        if (aTick % DRAIN_INTERVAL == 0 && !footprintGate(aBaseMetaTileEntity, aTick)) {
+            // frozen: the hatches only hear that the Eye reports (their codes stay as they were)
+            publishDirectives();
+            aBaseMetaTileEntity.markDirty();
+        } else if (aTick % DRAIN_INTERVAL == 0) {
+            refreshSlotItems();
             if (mMachine) {
                 takeFromPlinthBuses();
                 drainSockets();
@@ -1396,6 +1504,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * does.
      */
     public void fieldSecond() {
+        refreshSlotItems();
         if (mMachine) {
             takeFromPlinthBuses();
             drainSockets();
@@ -1440,20 +1549,26 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         final boolean holdChart = runtime.transition() != null || runtime.state() == EyeStarRuntime.StarState.PENDING;
         for (MTEHatchInputBus bus : itemBuses) {
             if (!live(bus)) continue;
-            final boolean me = bus instanceof MTEHatchInputBusME;
+            // the next core: read and taken in one pass, so what goes into escrow is the item that left the bus
+            // (S-01; an ME input bus's stocked cores too, QA-A07)
+            if (core != null && runtime.escrow() == null && mayHold(bus, core)) {
+                final ItemStack one = takeFromBus(bus, st -> st.getItem() == core);
+                if (one != null) {
+                    final boolean[] taken = new boolean[1];
+                    runtime.offerCore(one, taken);
+                    if (taken[0]) {
+                        runtime.noteEvent(
+                            "automation: the " + one.getDisplayName() + " came from a plinth input bus into escrow");
+                    } else {
+                        returnToOutput(one); // never lost (an escrow filled the same second)
+                    }
+                }
+            }
+            // charts: plain buses only (an ME stocking bus would show its configured chart every second)
+            if (bus instanceof IRecipeProcessingAwareHatch) continue;
             for (int i = 0; i < bus.getSizeInventory(); i++) {
                 final ItemStack stack = bus.getStackInSlot(i);
-                if (stack == null || stack.stackSize <= 0) continue;
-                if (core != null && stack.getItem() == core && runtime.escrow() == null) {
-                    if (takeOne(bus, i, me) == null) continue;
-                    final boolean[] taken = new boolean[1];
-                    runtime.offerCore(new ItemStack(core, 1, stack.getItemDamage()), taken);
-                    runtime.noteEvent(
-                        "automation: the " + new ItemStack(core).getDisplayName()
-                            + " came from a plinth input bus into escrow");
-                    continue;
-                }
-                if (me || StarDef.byChart(stack) == null) continue;
+                if (stack == null || stack.stackSize <= 0 || StarDef.byChart(stack) == null) continue;
                 if (target != null && GTUtility.areStacksEqual(stack, target, true)) {
                     ejectDuplicate(bus, i, stack);
                     continue;
@@ -1465,24 +1580,55 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
     }
 
-    /** One item out of a bus slot (an ME input bus through its processing hooks); null if none came. */
-    private ItemStack takeOne(MTEHatchInputBus bus, int slot, boolean me) {
-        final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
-        if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
-        try {
-            final ItemStack stack = bus.getStackInSlot(slot);
-            if (stack == null || stack.stackSize <= 0) return null;
-            final ItemStack one = stack.copy();
-            one.stackSize = 1;
-            stack.stackSize--;
-            if (!aware && stack.stackSize <= 0) bus.getBaseMetaTileEntity()
-                .setInventorySlotContents(slot, null);
-            bus.getBaseMetaTileEntity()
-                .markDirty();
-            return one;
-        } finally {
-            if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(this);
+    /**
+     * Whether {@code bus} may hold {@code item} now, without opening a window: a plain bus always (it is read
+     * directly); an ME input bus when its manual slot holds it or one of its stocking slots is configured to it.
+     */
+    private static boolean mayHold(MTEHatchInputBus bus, Item item) {
+        if (!(bus instanceof MTEHatchInputBusME)) return true;
+        final MTEHatchInputBusME me = (MTEHatchInputBusME) bus;
+        final ItemStack manual = me.getBaseMetaTileEntity()
+            .getStackInSlot(me.getManualSlot());
+        if (manual != null && manual.getItem() == item && manual.stackSize > 0) return true;
+        for (int i = 0; i < MTEHatchInputBusME.SLOT_COUNT; i++) {
+            final ItemStack config = me.getSlotConfig(i);
+            if (config != null && config.getItem() == item) return true;
         }
+        return false;
+    }
+
+    /** An item the Eye took but could not use goes out through the ME output bus (or drops at the controller). */
+    private void returnToOutput(ItemStack stack) {
+        final ItemEjectionHelper items = new ItemEjectionHelper(this);
+        if (items.ejectStack(stack.copy()) >= stack.stackSize) {
+            items.commit();
+            return;
+        }
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base != null && base.getWorld() != null) {
+            base.getWorld()
+                .spawnEntityInWorld(
+                    new net.minecraft.entity.item.EntityItem(
+                        base.getWorld(),
+                        base.getXCoord() + 0.5,
+                        base.getYCoord() + 1.5,
+                        base.getZCoord() + 0.5,
+                        stack.copy()));
+        }
+    }
+
+    /** One item out of a plain bus slot (read outside a window, as the slot was found); null if none came. */
+    private static ItemStack takeOne(MTEHatchInputBus bus, int slot) {
+        final ItemStack stack = bus.getStackInSlot(slot);
+        if (stack == null || stack.stackSize <= 0) return null;
+        final ItemStack one = stack.copy();
+        one.stackSize = 1;
+        stack.stackSize--;
+        if (stack.stackSize <= 0) bus.getBaseMetaTileEntity()
+            .setInventorySlotContents(slot, null);
+        bus.getBaseMetaTileEntity()
+            .markDirty();
+        return one;
     }
 
     /** A bus chart equal to the target: the whole stack out through the ME output bus (or it waits for room). */
@@ -1508,7 +1654,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             if (items.ejectStack(old.copy()) < old.stackSize) return; // no room: try again next second
             items.commit();
         }
-        final ItemStack next = takeOne(bus, slot, false);
+        final ItemStack next = takeOne(bus, slot);
         if (next == null) return;
         mInventory[getControllerSlotIndex()] = next;
         markDirty();
@@ -1516,6 +1662,67 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             "automation: " + next.getDisplayName()
                 + " loaded from a plinth input bus"
                 + (old == null ? "" : "; " + old.getDisplayName() + " sent to the ME output bus"));
+    }
+
+    /** QA-A10: the slot bus's items, read once a field second ({@link #refreshSlotItems}); copies, never consumed. */
+    private List<ItemStack> slotItems = Collections.emptyList();
+
+    /**
+     * Once a field second, before the drain and the star: what the slot bus holds, through each ME input bus's
+     * processing window (its stocked slots are visible only inside one), copied for every reader of the second.
+     */
+    private void refreshSlotItems() {
+        final List<ItemStack> out = new ArrayList<>();
+        for (MTEHatchInputBus bus : slotBuses) {
+            if (!live(bus)) continue;
+            final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
+            if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
+            try {
+                final int n = bus instanceof MTEHatchInputBusME ? MTEHatchInputBusME.SLOT_COUNT
+                    : bus.getSizeInventory();
+                for (int i = 0; i < n; i++) {
+                    final ItemStack s = bus.getStackInSlot(i);
+                    if (s != null && s.getItem() != null && s.stackSize > 0) out.add(s.copy());
+                }
+            } finally {
+                if (aware) closeWindow((IRecipeProcessingAwareHatch) bus);
+            }
+        }
+        slotItems = out;
+    }
+
+    /**
+     * One item matching {@code what} out of a plinth input bus, read and taken in the same pass (S-01): a plain bus
+     * directly; a processing-aware bus (the ME input bus) inside ONE window, where its stocked slots come first and
+     * its circuit and manual slots after them. An item from a stocked slot counts only if the network really gave it
+     * up when the window closed; the manual slot is the bus's own inventory. Returns the item taken, or null.
+     */
+    private ItemStack takeFromBus(MTEHatchInputBus bus, java.util.function.Predicate<ItemStack> what) {
+        final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
+        if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
+        ItemStack one = null;
+        boolean stocked = false;
+        boolean delivered = true;
+        try {
+            for (int i = 0; i < bus.getSizeInventory(); i++) {
+                final ItemStack stack = bus.getStackInSlot(i);
+                if (stack == null || stack.stackSize <= 0 || !what.test(stack)) continue;
+                one = stack.copy();
+                one.stackSize = 1;
+                stack.stackSize--;
+                stocked = aware && !(bus instanceof MTEHatchInputBusME && i >= MTEHatchInputBusME.SLOT_COUNT);
+                if (!aware && stack.stackSize <= 0) bus.getBaseMetaTileEntity()
+                    .setInventorySlotContents(i, null);
+                break;
+            }
+        } finally {
+            if (aware) delivered = closeWindow((IRecipeProcessingAwareHatch) bus);
+        }
+        if (one == null) return null;
+        if (aware) bus.updateSlots();
+        bus.getBaseMetaTileEntity()
+            .markDirty();
+        return stocked && !delivered ? null : one;
     }
 
     /** Once a second (server): every live Directive Hatch gets this Eye's codes. */
@@ -1534,6 +1741,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * walk reached (a walk that stops partway reaches only some of them, B-72). A removed hatch drops out by live().
      */
     private List<MTEHatchDirective> publishedDirectives() {
+        if (!mMachine && formedDirectiveHatches.isEmpty() && directiveHatches.isEmpty()) {
+            // QA-A19: an Eye broken while unloaded (or reloaded unformed) has no walk that reached its hatches: look
+            // at its Directive sockets ('n' and 'd' in the core) so the "not formed" alarm still reaches them
+            return socketDirectives();
+        }
         if (mMachine || formedDirectiveHatches.isEmpty()) return directiveHatches;
         if (directiveHatches.isEmpty()) return formedDirectiveHatches;
         final List<MTEHatchDirective> all = new ArrayList<>(formedDirectiveHatches);
@@ -1541,6 +1753,34 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             if (!all.contains(hatch)) all.add(hatch);
         }
         return all;
+    }
+
+    /** The Directive Hatches standing in the core's 'n' and 'd' sockets now (loaded chunks only). Server state. */
+    private List<MTEHatchDirective> socketDirectives() {
+        final List<MTEHatchDirective> out = new ArrayList<>();
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return out;
+        for (char socket : new char[] { 'n', 'd' }) {
+            final int[][] rels;
+            try {
+                rels = BTSShapes.socketRels(PIECE_CORE, socket);
+            } catch (RuntimeException missing) {
+                continue;
+            }
+            for (int[] rel : rels) {
+                final int[] p = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                    .worldPos(getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+                if (!base.getWorld()
+                    .blockExists(p[0], p[1], p[2])) continue;
+                final net.minecraft.tileentity.TileEntity te = base.getWorld()
+                    .getTileEntity(p[0], p[1], p[2]);
+                if (te instanceof IGregTechTileEntity
+                    && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEHatchDirective) {
+                    out.add((MTEHatchDirective) ((IGregTechTileEntity) te).getMetaTileEntity());
+                }
+            }
+        }
+        return out;
     }
 
     @Override
@@ -1670,8 +1910,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     private void drain(MTEHatchInput hatch, Map<Fluid, Long> caps) {
         if (!live(hatch)) return;
+        if (hatch instanceof MTEHatchInputME) {
+            drainStocking((MTEHatchInputME) hatch, caps);
+            return;
+        }
         final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
+        // what came, credited only once the hatch's window has closed cleanly (QA-A01)
+        final Map<Fluid, Long> got = new LinkedHashMap<>();
         if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
+        boolean delivered = true;
         try {
             for (FluidStack stored : storedFluids(hatch)) {
                 if (stored == null || stored.amount <= 0 || !EyeRecipeRegistry.isInputFluid(stored.getFluid())) {
@@ -1679,16 +1926,166 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
                 final Long cap = caps.get(stored.getFluid());
                 // never more than the cap minus what is buffered (a buffer above its cap is only drawn down)
-                final long room = cap == null ? 0 : Math.min(BUFFER_CAP, cap) - buffer(stored.getFluid());
+                final long room = cap == null ? 0
+                    : Math.min(BUFFER_CAP, cap) - buffer(stored.getFluid()) - got.getOrDefault(stored.getFluid(), 0L);
                 if (room <= 0) continue;
                 final FluidStack want = stored.copy();
                 want.amount = (int) Math.min(stored.amount, room);
-                final FluidStack got = hatch.drain(ForgeDirection.UNKNOWN, want, true);
-                if (got != null && got.amount > 0) addBuffer(got.getFluid(), got.amount);
+                final FluidStack d = hatch.drain(ForgeDirection.UNKNOWN, want, true);
+                if (d != null && d.amount > 0) got.merge(d.getFluid(), (long) d.amount, Long::sum);
             }
         } finally {
-            if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(this);
+            if (aware) delivered = closeWindow((IRecipeProcessingAwareHatch) hatch);
         }
+        if (!delivered) return; // the hatch could not deliver what its window showed: nothing is credited
+        for (Map.Entry<Fluid, Long> e : got.entrySet()) addBuffer(e.getKey(), e.getValue());
+    }
+
+    /**
+     * QA-A01: an ME stocking input hatch is drained OUTSIDE a recipe-processing window. GT's own path then extracts
+     * from the network at once, paying AE2's power (1 AE per 1,000 L), and returns exactly what came; that, and only
+     * that, is credited (inside a window the hatch shows a free simulation, and a short real extraction afterwards
+     * left the difference duplicated in the buffer and switched the Eye off). Each pull is also kept small enough for
+     * a normal network: at most a twentieth of the cap a second ({@link #STOCKING_FILL_SECONDS}), and never below half
+     * the network's power store ({@link #stockingPowerBudget}), so filling the Eye never browns out the network.
+     */
+    private void drainStocking(MTEHatchInputME hatch, Map<Fluid, Long> caps) {
+        long budget = stockingPowerBudget(hatch);
+        // outside a window the hatch lists its configured fluids (1 L each), not their stock
+        for (FluidStack config : hatch.getStoredFluids()) {
+            if (budget <= 0) return;
+            if (config == null || !EyeRecipeRegistry.isInputFluid(config.getFluid())) continue;
+            final Long cap = caps.get(config.getFluid());
+            if (cap == null) continue;
+            final long capped = Math.min(BUFFER_CAP, cap);
+            final long room = capped - buffer(config.getFluid());
+            if (room <= 0) continue;
+            final long want = Math
+                .min(Math.min(room, Math.max(1, capped / STOCKING_FILL_SECONDS)), Math.min(budget, Integer.MAX_VALUE));
+            final FluidStack got = hatch
+                .drain(ForgeDirection.UNKNOWN, new FluidStack(config.getFluid(), (int) want), true);
+            if (got == null || got.amount <= 0) continue;
+            addBuffer(got.getFluid(), got.amount);
+            budget -= got.amount + 1000L; // AE2 rounds each extraction's power up to the next 1,000 L
+        }
+    }
+
+    /** QA-A01: an ME stocking hatch pulls at most its cap / this a second (a full fill takes 20 s). */
+    public static final long STOCKING_FILL_SECONDS = 20;
+
+    /**
+     * The litres the AE stored on the hatch's network above half its capacity pays for (AE2: 1 AE per 1,000 L at the
+     * configured power multiplier): the Eye never draws a network's store below half, so a fill paid from energy
+     * cells never browns the network out; a network with power coming in fills the Eye at that rate. 0 without a
+     * grid; no limit on a creative (infinite) store.
+     */
+    private static long stockingPowerBudget(MTEHatchInputME hatch) {
+        try {
+            final appeng.api.networking.energy.IEnergyGrid e = hatch.getProxy()
+                .getEnergy();
+            if (e.getHasInfiniteStore()) return Long.MAX_VALUE / 4;
+            final double spare = e.getStoredPower() - e.getMaxStoredPower() / 2;
+            if (spare <= 0) return 0;
+            final double litres = PowerMultiplier.CONFIG.divide(spare) * 1000;
+            return litres >= Long.MAX_VALUE / 4 ? Long.MAX_VALUE / 4 : (long) litres;
+        } catch (GridAccessException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * QA-A01: depth of the Eye's own recipe-processing windows on its hatches and buses. GT's stocking hatches call
+     * {@code controller.stopMachine(CRITICAL_NONE)} when the real extraction at the end of a window comes up short or
+     * the grid is gone; inside one of the Eye's windows no GT recipe runs, so that stop is ignored
+     * ({@link #stopMachine})
+     * and the window's caller credits nothing it did not get.
+     */
+    private int windowDepth;
+
+    /** Closes the Eye's window on {@code hatch}: true when its real extraction delivered what the window took. */
+    private boolean closeWindow(IRecipeProcessingAwareHatch hatch) {
+        windowDepth++;
+        try {
+            final CheckRecipeResult r = hatch.endRecipeProcessing(this);
+            return r == null || r.wasSuccessful();
+        } finally {
+            windowDepth--;
+        }
+    }
+
+    @Override
+    public void stopMachine(@Nonnull ShutDownReason reason) {
+        // QA-A01: a stocking hatch's or bus's short extraction inside the Eye's own window (the window's caller has
+        // already refused to credit it): no GT run to stop, and switching the Eye off would put its star out
+        if (windowDepth > 0) return;
+        // QS-03 / QA-A20: GT drops a planet run in flight (its inputs and EU were paid at its start): say so in the
+        // last-run line, and clear the run's lines so the GUI and scanner do not show it still running
+        if (runningKey != null && mMaxProgresstime > 0) {
+            final EyeRecipe lost = EyeRecipeRegistry.byKey(runningKey);
+            lastRun = (lost == null ? runningKey : lost.name) + ": LOST x"
+                + runningParallel
+                + " (the machine stopped: "
+                + reason.getKey()
+                + "; its inputs and EU were spent)";
+            BeyondTheStars.LOG.info("[BTS] Eye planet run {}", lastRun);
+        }
+        if (runningKey != null) {
+            runningKey = null;
+            runningParallel = 0;
+            runningSuccesses = 0;
+            runningYield = 1.0;
+        }
+        super.stopMachine(reason);
+        // S-05: GT switches a multiblock off when its structure breaks or every maintenance issue is open; the Eye
+        // switches itself back on once that is fixed (the star is out by R-8, and relights by itself)
+        final String id = reason.getKey();
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getKey()
+            .equals(id)
+            || ShutDownReasonRegistry.NO_REPAIR.getKey()
+                .equals(id)) {
+            autoOff = id;
+        }
+    }
+
+    /** S-05: why GT switched the Eye off itself (a shutdown reason id), "" when not. Tile NBT. */
+    private String autoOff = "";
+
+    /** S-05: every tick, after GT's own: the Eye GT switched off goes back on once formed and maintained again. */
+    private void resumeIfRepaired(IGregTechTileEntity base) {
+        if (autoOff.isEmpty()) return;
+        if (base.isAllowedToWork()) {
+            autoOff = ""; // switched on by hand meanwhile
+            return;
+        }
+        if (!mMachine) return;
+        final boolean maintenance = ShutDownReasonRegistry.NO_REPAIR.getKey()
+            .equals(autoOff);
+        if (maintenance && getRepairStatus() <= 0) return;
+        autoOff = "";
+        base.enableWorking();
+        runtime.noteEvent(
+            maintenance ? "switched back on: the maintenance is fixed"
+                : "switched back on: the structure is whole again");
+    }
+
+    /** S-05: why the Eye is switched off ("" while it may work). GUI (server side). */
+    public String offReasonForGui() {
+        return offReason();
+    }
+
+    /** S-05: why the Eye is switched off, for the GUI's and the scanner's wait line ("" while it may work). */
+    private String offReason() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.isAllowedToWork()) return "";
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getKey()
+            .equals(autoOff)) {
+            return "GT switched the Eye off when its structure broke: it switches back on once the structure is whole";
+        }
+        if (ShutDownReasonRegistry.NO_REPAIR.getKey()
+            .equals(autoOff)) {
+            return "GT switched the Eye off: every maintenance issue is open; it switches back on once they are fixed";
+        }
+        return "the Eye is switched off (soft mallet, a cover or the GUI's power button): switch it back on";
     }
 
     private static FluidStack[] storedFluids(MTEHatchInput hatch) {
@@ -1898,7 +2295,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 if (star.n() == 6) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_merger");
                 if (star.n() == 5) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
                 if (!star.tier.ignite) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_remnant");
-                if (gate != null) return gate;
+                // the next tier's chart on a dark Eye: the star below relights to run the transition (QA-A02)
+                if (gate != null && !towardNext) return gate;
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_dark");
         }
     }
@@ -2016,6 +2414,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         writeEyeState(aNBT);
         EyeNbt.writeStar(runtime, aNBT);
         centre.writeTile(aNBT);
+        if (!autoOff.isEmpty()) aNBT.setString("btsEyeAutoOff", autoOff);
+        if (footprintBands > 0) aNBT.setInteger("btsEyeFootprint", footprintBands);
+        if (lastRun != null && !lastRun.isEmpty()) aNBT.setString("btsEyeLastRun", lastRun); // QA-A21
         if (runningKey != null) {
             aNBT.setString("btsEyeRunKey", runningKey);
             aNBT.setLong("btsEyeRunParallel", runningParallel);
@@ -2028,7 +2429,26 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void setItemNBT(NBTTagCompound aNBT) {
         super.setItemNBT(aNBT);
         writeEyeState(aNBT);
-        final String fail = runtime.pickupFailureLine();
+        String fail = runtime.pickupFailureLine();
+        // QA-A13: a T5 batch in progress pays its fracture salvage as a structure break does: owed in the item and
+        // paid out once the Eye stands again (the runtime is not changed: a pick-up may be asked for more than once)
+        final long salvage = runtime.pickupSalvageLitres();
+        final Fluid bdm = EyeStarRuntime.bdmFluid();
+        if (salvage > 0 && bdm != null) {
+            final NBTTagCompound pay = aNBT.getCompoundTag("btsEyeLegacyPay");
+            pay.setLong(bdm.getName(), pay.getLong(bdm.getName()) + salvage);
+            aNBT.setTag("btsEyeLegacyPay", pay);
+            fail += "; " + fmt(salvage) + " L of Black Dwarf Matter salvaged (paid once the Eye is formed again)";
+        }
+        // QA-A22: a planet run in flight is lost with the pick-up (it is tile-only): say so
+        if (runningKey != null && mMaxProgresstime > 0) {
+            final EyeRecipe lost = EyeRecipeRegistry.byKey(runningKey);
+            fail = (fail.isEmpty() ? "" : fail + "; ") + "a planet run of "
+                + (lost == null ? runningKey : lost.name)
+                + " x"
+                + runningParallel
+                + " was lost with the pick-up";
+        }
         if (!fail.isEmpty()) aNBT.setString(EyeNbt.PICKUP_FAIL_KEY, fail);
         // a live star put out by the pick-up is a failure: logged like every other one (B-62 item 3, B-72)
         if (runtime.live()) BeyondTheStars.LOG.info("[BTS] Eye {}", fail);
@@ -2050,6 +2470,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
             }
         }
+        autoOff = aNBT.getString("btsEyeAutoOff");
+        footprintBands = aNBT.getInteger("btsEyeFootprint");
+        lastRun = aNBT.getString("btsEyeLastRun");
         runningKey = aNBT.hasKey("btsEyeRunKey") ? aNBT.getString("btsEyeRunKey") : null;
         runningParallel = aNBT.getLong("btsEyeRunParallel");
         runningSuccesses = aNBT.getLong("btsEyeRunSuccesses");
@@ -2116,6 +2539,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
 
         @Override
+        public String offReason() {
+            return MTEEyeOfHarmonyBTS.this.offReason();
+        }
+
+        @Override
         public int installedTier() {
             return MTEEyeOfHarmonyBTS.this.installedTier();
         }
@@ -2174,7 +2602,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return got;
         }
 
-        /** P4-77: an OpenComputers trim pulse's fluid, from the gas and stellar sockets (ME stocking included). */
+        /**
+         * P4-77: an OpenComputers trim pulse's fluid, from the gas and stellar sockets (ME stocking included). An ME
+         * stocking hatch is drained outside a window (its real, powered extraction, QA-A01); any other
+         * processing-aware hatch inside one, counted only when the window closes cleanly.
+         */
         @Override
         public long drainStock(Fluid fluid, long max) {
             if (fluid == null || max <= 0) return 0;
@@ -2183,52 +2615,49 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 for (MTEHatchInput hatch : list) {
                     if (got >= max) return got;
                     if (!live(hatch)) continue;
+                    if (hatch instanceof MTEHatchInputME) {
+                        final FluidStack d = hatch.drain(
+                            ForgeDirection.UNKNOWN,
+                            new FluidStack(fluid, (int) Math.min(Integer.MAX_VALUE, max - got)),
+                            true);
+                        if (d != null && d.amount > 0) got += d.amount;
+                        continue;
+                    }
                     final boolean aware = hatch instanceof IRecipeProcessingAwareHatch;
                     if (aware) ((IRecipeProcessingAwareHatch) hatch).startRecipeProcessing();
+                    long fromHatch = 0;
+                    boolean delivered = true;
                     try {
                         for (FluidStack stored : storedFluids(hatch)) {
-                            if (got >= max) break;
+                            if (got + fromHatch >= max) break;
                             if (stored == null || stored.amount <= 0 || stored.getFluid() != fluid) continue;
-                            final int want = (int) Math.min(stored.amount, max - got);
+                            final int want = (int) Math.min(stored.amount, max - got - fromHatch);
                             final FluidStack drained = hatch
                                 .drain(ForgeDirection.UNKNOWN, new FluidStack(fluid, want), true);
-                            if (drained != null && drained.amount > 0) got += drained.amount;
+                            if (drained != null && drained.amount > 0) fromHatch += drained.amount;
                         }
                     } finally {
-                        if (aware) ((IRecipeProcessingAwareHatch) hatch).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
+                        if (aware) delivered = closeWindow((IRecipeProcessingAwareHatch) hatch);
                     }
+                    if (delivered) got += fromHatch;
                 }
             }
             return got;
         }
 
-        /** R-1: a Stellar Ignition Charge from a plinth input bus (ME input buses through their shadow stacks). */
+        /**
+         * R-1: a Stellar Ignition Charge from a plinth input bus (ME input buses through their shadow stacks, read and
+         * taken inside one window; a stocked charge counts only if the network really gave it up). {@code simulate}
+         * opens no window: it is the read-only count (the GUI, the Directive Status bit 2 and OpenComputers ask it).
+         */
         @Override
         public boolean takeIgnitionCharge(boolean simulate) {
             final Item charge = SLItems.stellarIgnitionCharge;
             if (charge == null) return false;
+            if (simulate) return countIgnitionCharges() > 0;
             for (MTEHatchInputBus bus : itemBuses) {
                 if (!live(bus)) continue;
-                final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
-                if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
-                try {
-                    for (int i = 0; i < bus.getSizeInventory(); i++) {
-                        final ItemStack stack = bus.getStackInSlot(i);
-                        if (stack == null || stack.getItem() != charge || stack.stackSize <= 0) continue;
-                        if (!simulate) {
-                            stack.stackSize--;
-                            if (!aware && stack.stackSize <= 0) {
-                                bus.getBaseMetaTileEntity()
-                                    .setInventorySlotContents(i, null);
-                            }
-                            bus.getBaseMetaTileEntity()
-                                .markDirty();
-                        }
-                        return true;
-                    }
-                } finally {
-                    if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
-                }
+                if (takeFromBus(bus, st -> st.getItem() == charge) != null) return true;
             }
             return false;
         }
@@ -2371,31 +2800,25 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return edge;
         }
 
-        /** The slot bus's items in slot order (ME input buses: what they hold for the Eye now). Never consumed. */
+        /**
+         * The slot bus's items in slot order (ME input buses: what they hold for the Eye now). Never consumed. The
+         * list read in the last field second (QA-A10): the GUI, the scanner, OpenComputers and the Directive Hatches
+         * read it every tick, and opening an ME bus's processing window for each of them could switch the Eye off.
+         */
         @Override
         public List<ItemStack> slotBusItems() {
-            final List<ItemStack> out = new ArrayList<>();
-            for (MTEHatchInputBus bus : slotBuses) {
-                if (!live(bus)) continue;
-                final boolean aware = bus instanceof IRecipeProcessingAwareHatch;
-                if (aware) ((IRecipeProcessingAwareHatch) bus).startRecipeProcessing();
-                try {
-                    final int n = bus instanceof MTEHatchInputBusME ? MTEHatchInputBusME.SLOT_COUNT
-                        : bus.getSizeInventory();
-                    for (int i = 0; i < n; i++) {
-                        final ItemStack s = bus.getStackInSlot(i);
-                        if (s != null && s.getItem() != null && s.stackSize > 0) out.add(s);
-                    }
-                } finally {
-                    if (aware) ((IRecipeProcessingAwareHatch) bus).endRecipeProcessing(MTEEyeOfHarmonyBTS.this);
-                }
-            }
-            return out;
+            return Collections.unmodifiableList(slotItems);
         }
 
         @Override
         public double planetSeconds(EyeRecipe recipe) {
             return runTicks(recipe) / 20.0;
+        }
+
+        @Override
+        public long planetRunSecondsLeft() {
+            if (runningKey == null || mMaxProgresstime <= 0) return 0;
+            return Math.max(1, (mMaxProgresstime - mProgresstime) / 20);
         }
     }
 
@@ -2485,7 +2908,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + ", compression T"
                 + compressionTier()
                 + "; "
-                + bandStates());
+                + bandStates()
+                + (footprintLoaded ? "" : "; FROZEN (a chunk of the footprint is not loaded)"));
         final String gap = bandGap();
         if (!gap.isEmpty()) out.add(gap);
         out.add(
@@ -2637,7 +3061,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         final int tier = structureTier();
         for (int i = tier; i < PIECES.length; i++) {
             if (bandBuilt[i]) {
-                return "Bands are cumulative (D-49): the " + BAND_NAMES[i]
+                return "Bands count from the bottom up: the " + BAND_NAMES[i]
                     + " stands but does not count until the "
                     + BAND_NAMES[tier]
                     + " is built, so this Eye is structurally T"
@@ -2768,8 +3192,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addController("Plinth, front centre")
             .addCasingInfoExactly("Reinforced Spatial Structure Casing", bom(PIECE_CORE, 'U'), false)
             .addCasingInfoExactly("Reinforced Temporal Structure Casing", bom(PIECE_CORE, 'Q'), false)
-            .addCasingInfoExactly("Infinite SpaceTime Energy Boundary Casing", bomAll('J'), false)
-            .addCasingInfoExactly("Quantum Glass", bomAll('Z') + bom(PIECE_CORE, 'A'), false)
+            .addCasingInfoExactly("Infinite SpaceTime Energy Boundary Casing", bom(PIECE_CORE, 'J'), false)
+            .addCasingInfoExactly("Quantum Glass", bom(PIECE_CORE, 'Z') + bom(PIECE_CORE, 'A'), false)
             .addCasingInfoExactly(
                 "Spacetime Compression Field Generator (tier = Eye tier or higher)",
                 bom(PIECE_CORE, 'W'),

@@ -99,6 +99,11 @@ public final class EyeStarRuntime {
 
         boolean allowedToWork();
 
+        /** S-05: why the machine is switched off, shown as the wait reason ("" while it may work). */
+        default String offReason() {
+            return allowedToWork() ? "" : "the machine is switched off";
+        }
+
         /** {@code min(unlockedTier, structureTier, compressionTier)}. */
         int installedTier();
 
@@ -169,6 +174,14 @@ public final class EyeStarRuntime {
 
         /** P4: a planet run's length in Eye-seconds (its base time with the compression reward). */
         double planetSeconds(EyeRecipe recipe);
+
+        /**
+         * QA-A06: the seconds left of the GT planet run in progress (T1-T6 planets, a batch run), 0 when none: one Eye
+         * runs a planet or a live star, never both.
+         */
+        default long planetRunSecondsLeft() {
+            return 0;
+        }
     }
 
     /** The T4 HSM feed setpoint range and the default (today's rate, plan §6.1). */
@@ -259,7 +272,8 @@ public final class EyeStarRuntime {
     private FieldReadout last = FieldReadout.DARK;
     private StepResult lastOut;
     private double lastM = 1, lastFeed;
-    private int lastP = 1, lastLiveP = 1;
+    int lastP = 1;
+    private int lastLiveP = 1;
     private long lastTimePaid;
     private final Map<TrimDef.Kind, Long> lastTrims = new EnumMap<>(TrimDef.Kind.class);
     private String waitReason = "";
@@ -691,6 +705,7 @@ public final class EyeStarRuntime {
         seed = 0;
         cycR = 1;
         cycP = batchP = 0;
+        euShort = false;
         hsmOwed = prodCarry = tengam = 0;
         cycWorst = flashState = flashTail = 0;
         flashOk = false;
@@ -784,11 +799,13 @@ public final class EyeStarRuntime {
         if (!host.formed()) {
             if (live()) extinguish("the structure is incomplete");
             else idleOff();
+            waitReason = "the structure is incomplete";
             return;
         }
         if (!host.allowedToWork()) {
             if (live()) extinguish("the machine was disabled");
             else idleOff();
+            waitReason = host.offReason();
             return;
         }
         final StarDef want = wanted();
@@ -887,7 +904,13 @@ public final class EyeStarRuntime {
     private void darkSecond(StarDef want) {
         if (fs != null) StellarField.stepDark(fs);
         if (ledger != null) ledger.record(this, -1);
-        tryAutoStart(want);
+        final long planet = host.planetRunSecondsLeft();
+        if (planet > 0 && want != null) {
+            // QA-A06: a planet run is in progress: the star waits for it (one live star or one planet per Eye)
+            waitReason = "a planet run is in progress (" + planet + " s left): the star lights after it";
+        } else {
+            tryAutoStart(want);
+        }
         publish(FieldReadout.DARK);
     }
 
@@ -941,6 +964,7 @@ public final class EyeStarRuntime {
             lastTimePaid = paid;
             m = paid >= want ? mCap : 1 + DIAL_STEP * paid / perStep;
         }
+        retryCycleCharge(); // S-04: a cycle still owing its EU tries again
         in.m = m;
         in.q = StepInputs.qFor(host.stabilisationTier());
         in.r = cycR;
@@ -1100,6 +1124,9 @@ public final class EyeStarRuntime {
             return;
         }
         if (out.eventWarned) {
+            // QA-A37: at a high time dial a flare can be warned inside the previous one's 30 s tail: that one ends
+            // here and counts if it was ridden (it used to be dropped)
+            if (flashState == 2 && flashOk) countRidden(n);
             flashState = 1;
             flashOk = true;
         }
@@ -1109,13 +1136,15 @@ public final class EyeStarRuntime {
             flashState = 2;
             flashTail = FLASH_TAIL;
         } else if (flashState == 2 && --flashTail <= 0) {
-            if (flashOk) {
-                if (n == 3) milestones.flashes++;
-                else if (n == 6) milestones.flares++;
-                else milestones.mergers++;
-            }
+            if (flashOk) countRidden(n);
             flashState = 0;
         }
+    }
+
+    private void countRidden(int n) {
+        if (n == 3) milestones.flashes++;
+        else if (n == 6) milestones.flares++;
+        else milestones.mergers++;
     }
 
     // ===================================================================== P4: the galaxy tiers
@@ -1553,7 +1582,21 @@ public final class EyeStarRuntime {
             final EyeRecipe r = EyeRecipeRegistry.lookup(stack);
             if (r != null && r.isPlanet()) planets.add(r);
         }
-        if (galaxy.slots.length != max) galaxy.slots = java.util.Arrays.copyOf(galaxy.slots, max);
+        // QA-A09: each wanted planet keeps the run of the same planet it had (by key, in order), wherever it now
+        // stands in the bus; only a planet that is new gets a new run, and only a run whose planet left is abandoned
+        // (taking planet #1 out used to restart every run behind it, their inputs and EU spent)
+        final List<EyeGalaxy.PlanetRun> old = new ArrayList<>();
+        for (EyeGalaxy.PlanetRun r : galaxy.slots) if (r != null) old.add(r);
+        final EyeGalaxy.PlanetRun[] next = new EyeGalaxy.PlanetRun[max];
+        for (int i = 0; i < max && i < planets.size(); i++) {
+            for (int k = 0; k < old.size(); k++) {
+                if (old.get(k).key.equals(planets.get(i).key)) {
+                    next[i] = old.remove(k);
+                    break;
+                }
+            }
+        }
+        galaxy.slots = next;
         final int inst = host.installedTier();
         final double zf = GalaxyField.PLANET_ZONE_FACTOR[Math.max(0, Math.min(4, zone))];
         final StringBuilder done = new StringBuilder();
@@ -1564,8 +1607,8 @@ public final class EyeStarRuntime {
                 galaxy.slots[i] = null;
                 continue;
             }
-            if (run == null || !run.key.equals(want.key)) {
-                run = new EyeGalaxy.PlanetRun(want.key); // a changed slot abandons its run (its inputs are spent)
+            if (run == null) {
+                run = new EyeGalaxy.PlanetRun(want.key); // a new planet: a new run
                 galaxy.slots[i] = run;
             }
             if (run.paid <= 0 && !payPlanet(run, want, inst)) continue;
@@ -1741,16 +1784,63 @@ public final class EyeStarRuntime {
     // ========================================================================= cycles, ignition
 
     /**
-     * Debits the cycle's EU and takes its upkeep (plan §6.2). A failed debit makes r = 0; the fluids are still taken
-     * (upkeep is paid in full whatever the yield), and r is the worst delivered fraction. T6 also spends a cycle of
-     * the dwarf-matter reserve (topping it up from the buffers when low) and returns Tengam for the Agent. Resets the
-     * cycle's worst zone (T4 milestone).
+     * Debits the cycle's EU and takes its upkeep (plan §6.2); r is the worst delivered fraction. T6 also spends a
+     * cycle of the dwarf-matter reserve (topping it up from the buffers when low) and returns Tengam for the Agent.
+     * Resets the cycle's worst zone (T4 milestone).
+     * <p>
+     * S-04: a failed EU debit makes r = 0 and takes NO upkeep: the cycle waits for its EU ({@link #euShort}), and
+     * every second the debit is tried again ({@link #retryCycleCharge}). Once it goes through the upkeep is taken and
+     * the cycle runs on at the delivered r; before, one EU dip of the wireless network put an unattended Sol out
+     * about 39 s later with its upkeep spent.
      */
     void chargeCycle() {
         final int p = Math.max(1, parallel(star.n()));
-        double r = debit(
-            BigInteger.valueOf(star.euPerCycle)
-                .multiply(BigInteger.valueOf(p))) ? 1 : 0;
+        cycP = p;
+        lastP = p;
+        cycWorst = 0;
+        if (!debit(cycleEu(p))) {
+            euShort = true;
+            cycR = 0;
+            lastEvent = "the wireless network could not pay this cycle's " + sci(cycleEu(p))
+                + " EU: no upkeep taken, P sags; the Eye tries again every second";
+            host.markDirty();
+            return;
+        }
+        euShort = false;
+        cycR = takeUpkeep(p);
+        host.markDirty();
+    }
+
+    /** One cycle's EU at parallel p. */
+    private BigInteger cycleEu(int p) {
+        return BigInteger.valueOf(star.euPerCycle)
+            .multiply(BigInteger.valueOf(p));
+    }
+
+    /** S-04: the running cycle still owes its EU (the debit failed); its upkeep is not taken yet. Tile NBT. */
+    boolean euShort;
+
+    /**
+     * S-04: once a second while the cycle owes its EU: the debit again; when it goes through, the upkeep is taken and
+     * the rest of the cycle runs at the delivered r (the cycle's product counts from that r, not the 0 of the seconds
+     * it waited: those seconds only sagged P).
+     */
+    private void retryCycleCharge() {
+        if (!euShort || star == null) return;
+        final int p = Math.max(1, cycP);
+        if (!debit(cycleEu(p))) return;
+        euShort = false;
+        cycR = takeUpkeep(p);
+        if (fs != null && fs.cyc != null) fs.cyc.rMin = cycR;
+        lastEvent = "the cycle's EU was paid " + Math.round(fs == null || fs.cyc == null ? 0 : fs.cyc.eyeT)
+            + " s late: upkeep taken, r "
+            + f2(cycR);
+        host.markDirty();
+    }
+
+    /** Takes one cycle's upkeep at parallel p (plus the companions' and T6's dwarf matter); returns the cycle's r. */
+    private double takeUpkeep(int p) {
+        double r = 1;
         for (EyeRecipe.FluidAmount up : star.upkeep) {
             final long need = up.amount * p;
             final long got = Math.min(host.buffer(up.fluid), need);
@@ -1769,11 +1859,7 @@ public final class EyeStarRuntime {
             if (dwarfReserve >= 1) dwarfReserve -= 1;
             else r = 0; // starving: no dwarf matter left to hold it together
         }
-        cycR = r;
-        cycP = p;
-        lastP = p;
-        cycWorst = 0;
-        host.markDirty();
+        return r;
     }
 
     /** T6: one dwarf-matter top-up from the buffers if both fluids are there in full. */
@@ -1820,21 +1906,26 @@ public final class EyeStarRuntime {
             tryGalaxy(want);
             return;
         }
-        if (!want.tier.ignite) {
-            // T4 (D-49 review): once T4 is unlocked, a dark Eye holding the Neutron Star chart relights Arcturus by
-            // itself from a Stellar Ignition Charge, exactly as a T1-T3 star relights; Arcturus then goes PENDING
-            // and re-runs the Core Collapse (no core) once its fluids are buffered. So a lost neutron star, or one
-            // put out for a Deep Dark run, comes back with no hand on the controller slot.
-            final StarDef progenitor = StarDef.ofTier(n - 1);
-            if (n == 4 && unlockedTier >= 4 && progenitor != null && progenitor.tier.ignite) {
-                autoIgnite(progenitor, " (to re-run the Core Collapse for the neutron star)");
-                return;
-            }
+        // T4 (D-49 review): once T4 is unlocked, a dark Eye holding the Neutron Star chart relights Arcturus by itself
+        // from a Stellar Ignition Charge, exactly as a T1-T3 star relights; Arcturus then goes PENDING and re-runs the
+        // Core Collapse (no core) once its fluids are buffered. QA-A02: the same for the chart one tier above the
+        // unlocked one (Sirius A on T1, Arcturus on T2, the Neutron Star on T3): a Mass Infusion, Shell Ignition or
+        // first Core Collapse that failed or was aborted left the Eye dark for good with that chart in. The star below
+        // relights, burns PENDING and the transition begins again once its preconditions hold (the core stays in
+        // escrow).
+        final StarDef lights = ignitable(want);
+        if (lights == null) {
             waitReason = "the neutron star is born from a lit Arcturus by the Core Collapse (light Arcturus, then put the"
                 + " Neutron Star chart in while it burns; once T4 is unlocked the Eye relights Arcturus by itself)";
             return;
         }
-        autoIgnite(want, "");
+        autoIgnite(lights, lights == want ? "" : relightWhy(want));
+    }
+
+    /** Why a dark Eye lights the star below the chart's: " (to re-run the Core Collapse ...)", or a first run. */
+    private String relightWhy(StarDef want) {
+        if (want.n() == 4 && unlockedTier >= 4) return " (to re-run the Core Collapse for the neutron star)";
+        return " (the " + eventFor(want.n() - 1) + " toward " + want.name + " begins once it burns)";
     }
 
     /**
@@ -1856,8 +1947,9 @@ public final class EyeStarRuntime {
             return;
         }
         final int p = parallel(n);
+        final String to = why.isEmpty() ? "" : "; " + want.name + " relights" + why;
         if (!host.takeIgnitionCharge(true)) {
-            waitReason = "no Stellar Ignition Charge in a plinth input bus";
+            waitReason = "no Stellar Ignition Charge in a plinth input bus" + to;
             return;
         }
         for (Map.Entry<Fluid, Long> need : ignitionNeeds(want, p).entrySet()) {
@@ -1865,14 +1957,15 @@ public final class EyeStarRuntime {
                 waitReason = "the buffers need " + fmt(need.getValue())
                     + " L of "
                     + fluidName(need.getKey())
-                    + " (10 cycles of upkeep plus the seed cloud)";
+                    + " (10 cycles of upkeep plus the seed cloud)"
+                    + to;
                 return;
             }
         }
         final BigInteger eu10 = BigInteger.valueOf(want.euPerCycle)
             .multiply(BigInteger.valueOf((long) p * StarDef.IGNITION_CYCLES));
         if (networkEU().compareTo(eu10) < 0) {
-            waitReason = "the wireless network needs " + sci(eu10) + " EU (10 cycles)";
+            waitReason = "the wireless network needs " + sci(eu10) + " EU (10 cycles)" + to;
             return;
         }
         // ---- consume: one charge, the seed cloud, 10 cycles of EU
@@ -2140,7 +2233,8 @@ public final class EyeStarRuntime {
             sb.append("; the ")
                 .append(trans.type.title)
                 .append(" was ABORTED (its materials are lost")
-                .append(escrow != null ? ", the core stays in escrow)" : ")");
+                .append(escrow != null ? ", the core stays in escrow)" : ")")
+                .append(retryNote(trans));
         }
         final boolean batch = state == StarState.BATCH && fs != null && fs.batch != null;
         if (batch) {
@@ -2157,6 +2251,20 @@ public final class EyeStarRuntime {
         if (failure) recordFailure(lastEvent);
         else logEvent(lastEvent);
         goDark();
+    }
+
+    /**
+     * QA-A02: what happens next after a Mass Infusion, Shell Ignition or Core Collapse fails or is put out: with its
+     * chart still in, the Eye relights the star below from a Stellar Ignition Charge and the transition begins again.
+     */
+    private static String retryNote(EyeTransition tr) {
+        if (tr == null || tr.type.from < 1 || tr.type.from > 3) return "";
+        final StarDef from = StarDef.ofTier(tr.type.from);
+        return from == null ? ""
+            : "; with its chart still in, the Eye relights " + from.name
+                + " from a Stellar Ignition Charge and the "
+                + tr.type.title
+                + " begins again";
     }
 
     /**
@@ -2177,6 +2285,17 @@ public final class EyeStarRuntime {
         if (!live()) return lastFailure;
         return (star == null ? "star" : star.name) + " put out: the controller was picked up"
             + (trans != null ? "; the " + trans.type.title + " was ABORTED" : "");
+    }
+
+    /**
+     * QA-A13: the fracture salvage a pick-up mid T5 batch owes (25 % of the batch × the fraction done, whole litres),
+     * as {@link #salvage()} computes it; 0 without a batch. Changes nothing.
+     */
+    public long pickupSalvageLitres() {
+        if (state != StarState.BATCH || fs == null || fs.batch == null || star == null) return 0;
+        final int p = batchP > 0 ? batchP : Math.max(1, parallel(5));
+        return (long) Math
+            .floor(star.productBase() * p * FRACTURE_SALVAGE * Math.min(1, fs.batch.eyeT / StellarField.BATCH_SECONDS));
     }
 
     /** Item NBT only: the line {@link #pickupFailureLine} wrote, shown as the last event and failure once placed. */
@@ -2200,6 +2319,7 @@ public final class EyeStarRuntime {
         }
         cycR = 1;
         cycP = batchP = 0;
+        euShort = false;
         prodCarry = 0;
         hsmOwed = 0;
         flashState = 0;
@@ -2478,7 +2598,8 @@ public final class EyeStarRuntime {
         final EyeTransition tr = trans;
         lastEvent = (tr == null ? "transition" : tr.type.title) + " FAILED: "
             + reason
-            + (escrow != null ? "; the " + escrow.getDisplayName() + " stays in escrow" : "");
+            + (escrow != null ? "; the " + escrow.getDisplayName() + " stays in escrow" : "")
+            + retryNote(tr);
         if (ledger != null) ledger.fails++;
         recordFailure(lastEvent);
         goDark();
@@ -2995,7 +3116,7 @@ public final class EyeStarRuntime {
                 return t.trims()
                     .get(4).kind.displayName + " wanted / event warned";
             }
-            if (t.n == 3) return "Helium flash warned (more Super Coolant)";
+            if (t.n == 3) return "Helium flash heat, Θ > +20 (more Super Coolant)";
         }
         return set.bit(i);
     }
@@ -3059,15 +3180,20 @@ public final class EyeStarRuntime {
         return false;
     }
 
-    /** The star a dark Eye lights from a Stellar Ignition Charge for this chart (T4 relights Arcturus), or null. */
+    /**
+     * The star a dark Eye lights from a Stellar Ignition Charge for this chart, or null: a T1-T3 chart's own star once
+     * its tier is unlocked; for the chart one tier above the unlocked one (T2-T4) the star below it, which then runs
+     * the transition toward the chart (QA-A02); the Neutron Star chart on an Eye that has T4 relights Arcturus.
+     */
     private StarDef ignitable(StarDef want) {
         if (want == null) return null;
-        if (want.tier.ignite) return want;
-        if (want.n() == 4 && unlockedTier >= 4) {
-            final StarDef progenitor = StarDef.ofTier(3);
-            return progenitor != null && progenitor.tier.ignite ? progenitor : null;
+        final int n = want.n();
+        if (want.tier.ignite && n <= unlockedTier) return want;
+        if (n >= 2 && n <= 4 && (n == unlockedTier + 1 || (n == 4 && unlockedTier >= 4))) {
+            final StarDef progenitor = StarDef.ofTier(n - 1);
+            if (progenitor != null && progenitor.tier.ignite) return progenitor;
         }
-        return null;
+        return want.tier.ignite ? want : null;
     }
 
     /** Status bit 2: a dark Eye would light its chart's star now but no Stellar Ignition Charge is in a plinth bus. */
@@ -3086,9 +3212,13 @@ public final class EyeStarRuntime {
         return EyeTrimRule.extra(trimTable(), fs.prevE, fs.prevWarn, w);
     }
 
-    /** Status bit 4: the Eye is not formed, or the burning star is Critical or worse, or its Integrity is below 50. */
+    /**
+     * Status bit 4: the Eye is not formed or is switched off, or the burning star is Critical or worse, or its
+     * Integrity is below 50.
+     */
     public boolean alarm() {
         if (!host.formed()) return true;
+        if (!host.allowedToWork()) return true; // S-05: switched off (GT's stop, a soft mallet, a cover)
         if (!burning() || fs == null) return false;
         return (lastOut != null && lastOut.zone >= 3) || fs.I < 50;
     }
@@ -3280,7 +3410,8 @@ public final class EyeStarRuntime {
                 .append(' ');
         }
         legacyPay.clear();
-        lastEvent = sb.append("owed (a pre-D-49 run in flight, or a salvage made while unformed)")
+        lastEvent = sb
+            .append("owed (a T5 salvage made while unformed or picked up, or a run started on an older version)")
             .toString();
         com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", lastEvent);
         host.markDirty();

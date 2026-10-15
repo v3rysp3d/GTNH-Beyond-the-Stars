@@ -134,7 +134,8 @@ public final class KerrTestBench {
     private static List<String> stock(MTEKerrModuleBase<?> m, String[] args, int from) {
         final List<String> out = new ArrayList<>();
         final List<RecipeMap<?>> maps = new ArrayList<>(m.getAvailableRecipeMaps());
-        int mapIndex = 0;
+        // QA-A12: default to the module's GT map (index 1 on the compressor; DENSITY, index 0, needs Kerr T2)
+        int mapIndex = maps.size() > 1 ? 1 : 0;
         String pick = "longest";
         int copies = 2;
         if (from < args.length) mapIndex = Integer.parseInt(args[from]);
@@ -445,6 +446,67 @@ public final class KerrTestBench {
         world.setBlock(p[0], p[1], p[2], (Block) d[1], (Integer) d[2], 3);
         kee.checkStructure(true, base);
         return "repair: restored " + KerrKit.pos(p) + "; KEE " + (kee.mMachine ? "FORMED" : "STILL NOT FORMED");
+    }
+
+    // ============================================================================ seeds, bolts, power
+
+    /**
+     * {@code /btskerr items x y z <seeds> <collapsers> [bolts]}: empties the KEE's bolt buses, then puts that many
+     * Black
+     * Hole Seeds, Collapsers and Neutronium bolts in the first one (the quest reward in a bolt bus, QA-A03 / QA-A04).
+     */
+    public static String items(MTEKerrEngine kee, int seeds, int collapsers, int bolts) {
+        final List<MTEHatchInputBus> buses = kee.boltBuses();
+        MTEHatchInputBus first = null;
+        for (MTEHatchInputBus bus : buses) {
+            if (bus == null || !bus.isValid()) continue;
+            if (first == null) first = bus;
+            for (int i = 0; i < bus.getSizeInventory(); i++) bus.getBaseMetaTileEntity()
+                .setInventorySlotContents(i, null);
+        }
+        if (first == null) return "items: no bolt bus";
+        int slot = 0;
+        final IGregTechTileEntity inv = first.getBaseMetaTileEntity();
+        final ItemStack seed = gregtech.api.enums.ItemList.Black_Hole_Opener.get(1L);
+        final ItemStack closer = gregtech.api.enums.ItemList.Black_Hole_Closer.get(1L);
+        if (seeds > 0 && seed != null)
+            inv.setInventorySlotContents(slot++, gregtech.api.util.GTUtility.copyAmount(seeds, seed));
+        if (collapsers > 0 && closer != null)
+            inv.setInventorySlotContents(slot++, gregtech.api.util.GTUtility.copyAmount(collapsers, closer));
+        final ItemStack bolt = gregtech.api.util.GTOreDictUnificator
+            .get(gregtech.api.enums.OrePrefixes.bolt, gregtech.api.enums.Materials.Neutronium, 1L);
+        for (int left = bolts; left > 0 && bolt != null && slot < inv.getSizeInventory(); slot++) {
+            final int n = Math.min(64, left);
+            inv.setInventorySlotContents(slot, gregtech.api.util.GTUtility.copyAmount(n, bolt));
+            left -= n;
+        }
+        return "items: " + seeds
+            + " Seed(s), "
+            + collapsers
+            + " Collapser(s), "
+            + bolts
+            + " Neutronium bolt(s) in the first bolt bus";
+    }
+
+    /**
+     * {@code /btskerr power x y z on|off}: the KEE's creative energy hatches give their power again, or none (amperage
+     * 0,
+     * the stored EU emptied): containment power present or missing (QA-A04).
+     */
+    public static String power(MTEKerrEngine kee, boolean on) {
+        int n = 0;
+        for (gregtech.api.metatileentity.implementations.MTEHatch h : kee.getExoticAndNormalEnergyHatchList()) {
+            if (!(h instanceof MTEHatchEnergyDebug) || !h.isValid()) continue;
+            final MTEHatchEnergyDebug d = (MTEHatchEnergyDebug) h;
+            d.setAmperage(on ? 2 : 0);
+            if (!on) d.getBaseMetaTileEntity()
+                .decreaseStoredEnergyUnits(
+                    d.getBaseMetaTileEntity()
+                        .getStoredEU(),
+                    true);
+            n++;
+        }
+        return "power: " + n + " creative energy hatch(es) " + (on ? "on" : "off");
     }
 
     // ============================================================================ chunk tickets

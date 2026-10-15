@@ -62,6 +62,8 @@ public final class DirectiveRigSim {
     static final class Run {
 
         long fails, cycles, secs, mismatch;
+        /** T3: helium flashes completed (warning to 30 s after the hit) and ridden in Stable (the milestone's rule). */
+        long flashes, ridden;
         final long[] zones = new long[5];
         double ySum;
         long yN;
@@ -82,6 +84,8 @@ public final class DirectiveRigSim {
         final FieldSim.Proto S = new FieldSim.Proto(tier, c);
         final Run r = new Run();
         boolean begun = false;
+        int watch = 0, tail = 0;
+        boolean ok = false;
         for (long i = 0; i < secs; i++) {
             // Transition bit 1 (ready) -> the next chart goes in; bit 4 (Tachyon wanted) holds the valve open
             if (collapse && !begun && S.s.t >= c.beginAt && S.canBegin()) {
@@ -97,7 +101,29 @@ public final class DirectiveRigSim {
             final long failsBefore = S.L.fails;
             S.step();
             if (S.state == FieldSim.Proto.DARK) S.relight(); // Status bit 2: a charge goes in
-            if (S.L.fails > failsBefore) r.fails += S.L.fails - failsBefore;
+            if (S.L.fails > failsBefore) {
+                r.fails += S.L.fails - failsBefore;
+                watch = 0;
+            }
+            // the T3 milestone's ride watch (EyeStarRuntime.watchFlash): Stable or better from the warning until 30 s
+            // after the last hit second
+            if (tier == 3 && !collapse && S.state == FieldSim.Proto.LIT) {
+                if (S.s.prevWarn != 0 && watch == 0) {
+                    watch = 1;
+                    ok = true;
+                }
+                if (watch != 0) {
+                    if (S.zone > 1) ok = false;
+                    if (watch == 1 && S.s.ev != null && !S.s.ev.warned) {
+                        watch = 2;
+                        tail = 30;
+                    } else if (watch == 2 && --tail <= 0) {
+                        r.flashes++;
+                        if (ok) r.ridden++;
+                        watch = 0;
+                    }
+                }
+            }
         }
         r.cycles = S.L.cycles;
         System.arraycopy(S.L.zoneT, 0, r.zones, 0, 5);
@@ -240,13 +266,15 @@ public final class DirectiveRigSim {
             seeds,
             hours);
         for (int tier = 1; tier <= 6; tier++) {
-            long gf = 0, bf = 0, mis = 0, gz0 = 0, gz1 = 0, gs = 0, gc = 0;
+            long gf = 0, bf = 0, mis = 0, gz0 = 0, gz1 = 0, gs = 0, gc = 0, fl = 0, fr = 0;
             double gy = 0, by = 0;
             long gyn = 0, byn = 0;
             for (int seed = 1; seed <= seeds; seed++) {
                 final Run g = eye(tier, seed, secs, true, false);
                 final Run b = eye(tier, seed, secs, false, false);
                 gf += g.fails;
+                fl += g.flashes;
+                fr += g.ridden;
                 bf += b.fails;
                 mis += g.mismatch;
                 gz0 += g.zones[0];
@@ -258,7 +286,8 @@ public final class DirectiveRigSim {
                 by += b.ySum;
                 byn += b.yN;
             }
-            final boolean pass = gf <= bf;
+            // T3 (QA S-02): the gate rig rides at least 90 % of the helium flashes in Stable (the T3 -> T4 milestone)
+            final boolean pass = gf <= bf && (tier != 3 || fr * 10 >= fl * 9);
             ok &= pass;
             System.out.printf(
                 Locale.ROOT,
@@ -274,7 +303,8 @@ public final class DirectiveRigSim {
                 gc,
                 bf,
                 byn > 0 ? by / byn : 0,
-                tier == 1 || tier == 2 || tier == 4 ? ", seconds asking differently: " + mis : "");
+                tier == 1 || tier == 2 || tier == 4 ? ", seconds asking differently: " + mis
+                    : tier == 3 ? ", helium flashes ridden in Stable " + fr + "/" + fl : "");
         }
         int settled = 0, settledB = 0;
         for (int seed = 1; seed <= seeds; seed++) {
