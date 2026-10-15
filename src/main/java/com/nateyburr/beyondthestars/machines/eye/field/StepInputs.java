@@ -35,6 +35,16 @@ public final class StepInputs {
     /** Galaxy mode: companions running beside the galaxy (each adds +0.25 to the noise on P). */
     public int companions;
 
+    // ---- P5 (T9): the pellet beam and the flow's accept limit
+    /** The beam's level this second (0-15): the injector's Burst Control Hatch, a sensor wire or two Directive bits. */
+    public double beamLevel = 8;
+    /** GeV per pellet of the grade fired; the barrel's cap, pellets per second; the rate law's centre and gain. */
+    public double beamGeV, beamCap, beamCentre = 0.5, beamGain = 1;
+    /** False when the injector has no pellet to fire (n = 0). */
+    public boolean pelletsOk = true;
+    /** A Galactic Flow larger than this is declined (it streams past). Default: the hold rating. */
+    public int acceptMax = 12;
+
     /** Trim units drained this second, in drain order; each at most {@code cap · p}. */
     public final LinkedHashMap<TrimDef, Double> u = new LinkedHashMap<>();
 

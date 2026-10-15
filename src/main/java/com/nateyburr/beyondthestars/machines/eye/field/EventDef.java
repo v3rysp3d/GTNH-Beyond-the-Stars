@@ -30,7 +30,7 @@ public final class EventDef {
         this.everyMax = everyMax;
         this.warn = warn;
         this.dur = dur;
-        this.fx = new double[] { p, th, om, pi, 0, 0 };
+        this.fx = new double[] { p, th, om, pi, 0, 0, 0, 0 };
         this.signed = signed;
         this.flip = false;
     }

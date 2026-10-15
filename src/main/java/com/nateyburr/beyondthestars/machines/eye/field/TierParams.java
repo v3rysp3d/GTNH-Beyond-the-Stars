@@ -1,10 +1,12 @@
 package com.nateyburr.beyondthestars.machines.eye.field;
 
+import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.H;
 import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.L;
 import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.OM;
 import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.P;
 import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.PI;
 import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.TH;
+import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.V;
 import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.W;
 
 import java.util.ArrayList;
@@ -75,7 +77,26 @@ public enum TierParams {
         new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
     /** P4 planets mode at T8: 6 slots; the same light field at D = 0.25·D₈. */
     PLANETS8(8, "6 planets", new int[] { P }, 0.5, sig(0.5, 0, 0), gains6(-0.01, 0, 0), null, F.PLANETS, 0, 6,
-        new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) });
+        new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
+    /**
+     * P5 T9 the Great Attractor (galaxy mode, p5-t9-t10.md §2.2): the T8 field (P, W, Λ) plus V, the infall against the
+     * pellet beam; Galactic Flows instead of minor mergers and crossings. Product: Dark Matter 144 L × mean Y × r per
+     * cycle, plus 144 L per galaxy captured. Space is the only trim (the beam is V's actuator).
+     */
+    T9(9, "Great Attractor", new int[] { P, W, L, V }, 1, sig9(1, 1.5, 1.5, AttractorField.V_SIGMA),
+        gains9(-0.01, 0.02, 0.02, AttractorField.V_GAIN), null, F.GALAXY | F.ATTRACTOR, AttractorField.DM_CYCLE, 0,
+        new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
+    /** P5 planets mode at T9: 9 slots; the same light field at D = 0.25·D₉. */
+    PLANETS9(9, "9 planets", new int[] { P }, 0.5, sig(0.5, 0, 0), gains6(-0.01, 0, 0), null, F.PLANETS, 0, 9,
+        new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
+    /**
+     * P5 T10 the Universe (p5-t9-t10.md §6.4): P (bursts on the crown against D₁₀) and H (the expansion error against
+     * the Friedmann curve); one universe per 7,200 s batch ({@link UniverseField}). Trims: Space on P; Dark Matter
+     * (H −2, 4 L a unit) and Molten SpaceTime (H +2) on H.
+     */
+    T10(10, "The Universe", new int[] { P, H }, 1, sig10(1, UniverseField.H_SIGMA), gains10(-0.01, UniverseField.H_GAIN),
+        null, F.UNIVERSE, 0, 0, new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null),
+            trimH(TrimDef.Kind.DARK_MATTER, 10, -2, null), trimH(TrimDef.Kind.SPACETIME, 10, 2, null) });
 
     /** Tier flags (a nested holder: an enum's constant arguments cannot forward-reference its own statics). */
     static final class F {
@@ -91,6 +112,10 @@ public enum TierParams {
         static final int PLANETS = 64;
         /** P4 T8: the Ergomatter feed (Λ drift, the product) and the satellite crossing. */
         static final int ERGO = 128;
+        /** P5 T9: the Great Attractor's beam, flow and V. */
+        static final int ATTRACTOR = 256;
+        /** P5 T10: the universe batch and H. */
+        static final int UNIVERSE = 512;
     }
 
     /** Star tier 1..8. */
@@ -123,6 +148,10 @@ public enum TierParams {
     public final boolean ergoFeed;
     /** P4 planets mode: the number of planet slots (0 elsewhere). */
     public final int slots;
+    /** P5 T9: the Great Attractor (the beam, Galactic Flow, V; the Dark Matter product). */
+    public final boolean attractor;
+    /** P5 T10: the Universe (the universe batch, H). */
+    public final boolean universe;
     /**
      * Product per 60 s cycle at p = 1, before × mean Y × r (T4: 0, the product is 3.6864 × HSM fed; T5: per batch; T7:
      * also × min(β̄, 1.5); T8: 0, the product is 1.0 × Ergomatter fed; planets: none).
@@ -152,6 +181,8 @@ public enum TierParams {
         this.shield = (flags & F.SHIELD) != 0;
         this.galaxy = (flags & F.GALAXY) != 0;
         this.ergoFeed = (flags & F.ERGO) != 0;
+        this.attractor = (flags & F.ATTRACTOR) != 0;
+        this.universe = (flags & F.UNIVERSE) != 0;
         this.slots = slots;
         this.productBase = productBase;
         List<TrimDef> list = new ArrayList<>();
@@ -160,24 +191,47 @@ public enum TierParams {
     }
 
     private static double[] gains(double p, double th, double om, double pi) {
-        return new double[] { p, th, om, pi, 0, 0 };
+        return new double[] { p, th, om, pi, 0, 0, 0, 0 };
     }
 
     /** P4 gains on P, W, Λ (Θ, Ω, Π retired). */
     private static double[] gains6(double p, double w, double l) {
-        return new double[] { p, 0, 0, 0, w, l };
+        return new double[] { p, 0, 0, 0, w, l, 0, 0 };
     }
 
     /** P4 σ on P, W, Λ. */
     private static double[] sig(double p, double w, double l) {
-        return new double[] { p, 0, 0, 0, w, l };
+        return new double[] { p, 0, 0, 0, w, l, 0, 0 };
+    }
+
+    /** P5 T9 gains / σ on P, W, Λ, V. */
+    private static double[] gains9(double p, double w, double l, double v) {
+        return new double[] { p, 0, 0, 0, w, l, v, 0 };
+    }
+
+    private static double[] sig9(double p, double w, double l, double v) {
+        return new double[] { p, 0, 0, 0, w, l, v, 0 };
+    }
+
+    /** P5 T10 gains / σ on P, H. */
+    private static double[] gains10(double p, double h) {
+        return new double[] { p, 0, 0, 0, 0, 0, 0, h };
+    }
+
+    private static double[] sig10(double p, double h) {
+        return new double[] { p, 0, 0, 0, 0, 0, 0, h };
     }
 
     private static TrimDef trim(TrimDef.Kind kind, double cap, double p, double th, double om, double pi, String note) {
         return new TrimDef(kind, cap, p, th, om, pi, note);
     }
 
-    /** The tier with number {@code n} (1..8; galaxy mode for 7 and 8). */
+    /** P5 T10: a trim on P and H only. */
+    private static TrimDef trimH(TrimDef.Kind kind, double cap, double h, String note) {
+        return new TrimDef(kind, cap, new double[] { 0, 0, 0, 0, 0, 0, 0, h }, note);
+    }
+
+    /** The tier with number {@code n} (1..10; galaxy mode for 7, 8 and 9). */
     public static TierParams of(int n) {
         return of(n, false);
     }
@@ -186,13 +240,14 @@ public enum TierParams {
     public static TierParams of(int n, boolean planets) {
         if (planets && n == 7) return PLANETS7;
         if (planets && n == 8) return PLANETS8;
+        if (planets && n == 9) return PLANETS9;
         for (TierParams t : values()) if (t.n == n) return t;
         throw new IllegalArgumentException("no field tier " + n);
     }
 
     /** P4: true for the burst-driven tables (galaxy and planets mode, T7+). */
     public boolean burstDriven() {
-        return galaxy || slots > 0;
+        return galaxy || slots > 0 || universe;
     }
 
     /** True for planets mode. */
@@ -282,10 +337,15 @@ public enum TierParams {
      * (T8). 0 elsewhere and off the galaxy tiers.
      */
     public double burstTerm(int k, StepInputs in) {
-        if (!galaxy) return 0;
+        if (!galaxy || attractor) return 0;
         if (k == W) return GalaxyField.W_PER_GAMMA * (in.gLo - in.gHi);
         if (k == L && ergoFeed) return GalaxyField.L_PER_HALO * in.gHalo;
         return 0;
+    }
+
+    /** P5: the burst terms with the field state (the T9 beam on V reads the state's beam and V's ramp). */
+    public double burstTerm(int k, FieldState s, StepInputs in) {
+        return attractor ? AttractorField.burstTerm(k, s, in) : burstTerm(k, in);
     }
 
     /** Coupling c_k(x): T3's P gains +0.02·Θ; zero elsewhere. */
@@ -316,7 +376,21 @@ public enum TierParams {
                         d = (t.slots > 0 ? GalaxyField.P_PER_BETA_PLANETS : GalaxyField.P_PER_BETA) * (bMax - 1);
                     } else if (k == W) {
                         best = GalaxyField.W_PER_GAMMA * bMax;
-                        d = GalaxyField.W_DRIFT;
+                        // P5 T9: a group of 12's flow adds 0.5·A (A 3) to W's drift at its peak
+                        d = GalaxyField.W_DRIFT + (t.attractor ? 0.5 * 3 : 0);
+                    } else if (k == V) {
+                        // P5 T9: the standard beam (Superdense on Mk I, ρ_max 8) against 2·φ at a group of 12's peak
+                        best = AttractorField.V_BEAM * AttractorField.rhoMax(1, 3);
+                        d = AttractorField.V_GRAV * 4;
+                    } else if (k == H) {
+                        // P5 T10: the Dark Matter / SpaceTime trims against dark energy, Recombination and the dawn
+                        best = 0;
+                        for (TrimDef tr : t.trims) best = Math.max(best, tr.cap * Math.abs(tr.fx(H)));
+                        d = 0.4 + 1.2 + UniverseField.REC_H + UniverseField.DAWN_H;
+                    } else if (t.attractor) {
+                        // P5 T9: Λ = 1 + φ, 5 at a group of 12's peak
+                        best = Math.abs(GalaxyField.L_PER_HALO) * bMax;
+                        d = 1 + 4;
                     } else {
                         best = Math.abs(GalaxyField.L_PER_HALO) * bMax;
                         d = GalaxyField.L_PER_F8 * GalaxyField.F8_MAX;
