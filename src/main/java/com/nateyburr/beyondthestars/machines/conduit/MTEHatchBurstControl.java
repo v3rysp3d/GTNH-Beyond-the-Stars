@@ -36,9 +36,9 @@ import gregtech.api.render.TextureFactory;
  * Transition bit 1 is on; ignored otherwise.</li>
  * </ul>
  * The host calls {@link #poll} once a second with the modes it understands; a hatch whose mode its host does not use
- * adopts the host's first mode (as the Directive Hatch adopts its host's first set). Settings live in the tile (a
- * wrench
- * keeps them through GT's own NBT); the level and edge are live.
+ * adopts the host's first mode (as the Directive Hatch adopts its host's first set). The mode is saved with the tile
+ * and rides a wrenched item ({@link #setItemNBT}); the last level is saved with the tile only (QA-B05), the edge is
+ * live.
  */
 public class MTEHatchBurstControl extends MTEHatch {
 
@@ -290,6 +290,13 @@ public class MTEHatchBurstControl extends MTEHatch {
         super.saveNBTData(aNBT);
         aNBT.setString("btsBurstMode", mode.name());
         aNBT.setByte("btsBurstLevel", (byte) level);
+    }
+
+    /** QA-B16: a wrenched hatch keeps its mode (not its level: a placed hatch primes on its first tick). */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        aNBT.setString("btsBurstMode", mode.name());
     }
 
     @Override

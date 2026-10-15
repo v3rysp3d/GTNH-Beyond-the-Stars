@@ -56,7 +56,7 @@ public class CommandBTSQuasar extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsquasar [t1..t4] [l1..l4] [saturate] [seed] [force]  |  console: /btsquasar [t1..t4] [l1..l4] [saturate] <x> <y> <z> [facing] [force] [survival] [seed] | [check]"
-            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep|gui [info]> x y z  |  /btsquasar release"
+            + "  |  /btsquasar <status|seed [M] [a]|open|collapse|purge|mass M|feed f|gas H|He|RSM|b v|run s [fill]|trim g s|refill|redstone on|off|keep|gui [info]> x y z  |  /btsquasar release  |  /btsquasar mestock x y z <fluids> <L> <AE>|status|sockets <piece> <c>"
             + "  |  /btsquasar autorig x y z <s> [eye ex ey ez] [analog] [cut k] [mass M] [mk 1-4] [limit bu|off|std] | autorig off|status  |  /btsquasar ocloop x y z";
     }
 
@@ -137,6 +137,17 @@ public class CommandBTSQuasar extends CommandBase {
         }
         if (args.length > 0 && args[0].equalsIgnoreCase("release")) {
             SLConsoleTest.tell(sender, "Quasar bench: released " + KerrTestBench.release() + " chunk ticket(s)");
+            return;
+        }
+        if (args.length >= 5 && args[0].equalsIgnoreCase("mestock")) {
+            // dev bench (QA-B02/B03/B07): an ME stocking hatch on a normal AE network in a private socket
+            final World world = sender.getEntityWorld();
+            final int x = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]));
+            final int y = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]));
+            final int z = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]));
+            for (String line : com.nateyburr.beyondthestars.rendertest.MeStockBench
+                .run(world, x, y, z, java.util.Arrays.copyOfRange(args, 4, args.length)))
+                SLConsoleTest.tell(sender, line);
             return;
         }
         if (args.length >= 4 && BENCH.contains(args[0].toLowerCase(Locale.ROOT))) {
