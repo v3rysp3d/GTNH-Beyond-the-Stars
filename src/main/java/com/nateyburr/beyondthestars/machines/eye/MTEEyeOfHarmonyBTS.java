@@ -2104,7 +2104,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 if (star.n() == 6) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_merger");
                 if (star.n() == 5) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
                 if (!star.tier.ignite) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_remnant");
-                if (gate != null) return gate;
+                // the next tier's chart on a dark Eye: the star below relights to run the transition (QA-A02)
+                if (gate != null && !towardNext) return gate;
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_dark");
         }
     }

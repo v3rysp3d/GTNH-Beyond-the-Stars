@@ -1820,21 +1820,26 @@ public final class EyeStarRuntime {
             tryGalaxy(want);
             return;
         }
-        if (!want.tier.ignite) {
-            // T4 (D-49 review): once T4 is unlocked, a dark Eye holding the Neutron Star chart relights Arcturus by
-            // itself from a Stellar Ignition Charge, exactly as a T1-T3 star relights; Arcturus then goes PENDING
-            // and re-runs the Core Collapse (no core) once its fluids are buffered. So a lost neutron star, or one
-            // put out for a Deep Dark run, comes back with no hand on the controller slot.
-            final StarDef progenitor = StarDef.ofTier(n - 1);
-            if (n == 4 && unlockedTier >= 4 && progenitor != null && progenitor.tier.ignite) {
-                autoIgnite(progenitor, " (to re-run the Core Collapse for the neutron star)");
-                return;
-            }
+        // T4 (D-49 review): once T4 is unlocked, a dark Eye holding the Neutron Star chart relights Arcturus by itself
+        // from a Stellar Ignition Charge, exactly as a T1-T3 star relights; Arcturus then goes PENDING and re-runs the
+        // Core Collapse (no core) once its fluids are buffered. QA-A02: the same for the chart one tier above the
+        // unlocked one (Sirius A on T1, Arcturus on T2, the Neutron Star on T3): a Mass Infusion, Shell Ignition or
+        // first Core Collapse that failed or was aborted left the Eye dark for good with that chart in. The star below
+        // relights, burns PENDING and the transition begins again once its preconditions hold (the core stays in
+        // escrow).
+        final StarDef lights = ignitable(want);
+        if (lights == null) {
             waitReason = "the neutron star is born from a lit Arcturus by the Core Collapse (light Arcturus, then put the"
                 + " Neutron Star chart in while it burns; once T4 is unlocked the Eye relights Arcturus by itself)";
             return;
         }
-        autoIgnite(want, "");
+        autoIgnite(lights, lights == want ? "" : relightWhy(want));
+    }
+
+    /** Why a dark Eye lights the star below the chart's: " (to re-run the Core Collapse ...)", or a first run. */
+    private String relightWhy(StarDef want) {
+        if (want.n() == 4 && unlockedTier >= 4) return " (to re-run the Core Collapse for the neutron star)";
+        return " (the " + eventFor(want.n() - 1) + " toward " + want.name + " begins once it burns)";
     }
 
     /**
@@ -1856,8 +1861,9 @@ public final class EyeStarRuntime {
             return;
         }
         final int p = parallel(n);
+        final String to = why.isEmpty() ? "" : "; " + want.name + " relights" + why;
         if (!host.takeIgnitionCharge(true)) {
-            waitReason = "no Stellar Ignition Charge in a plinth input bus";
+            waitReason = "no Stellar Ignition Charge in a plinth input bus" + to;
             return;
         }
         for (Map.Entry<Fluid, Long> need : ignitionNeeds(want, p).entrySet()) {
@@ -1865,14 +1871,15 @@ public final class EyeStarRuntime {
                 waitReason = "the buffers need " + fmt(need.getValue())
                     + " L of "
                     + fluidName(need.getKey())
-                    + " (10 cycles of upkeep plus the seed cloud)";
+                    + " (10 cycles of upkeep plus the seed cloud)"
+                    + to;
                 return;
             }
         }
         final BigInteger eu10 = BigInteger.valueOf(want.euPerCycle)
             .multiply(BigInteger.valueOf((long) p * StarDef.IGNITION_CYCLES));
         if (networkEU().compareTo(eu10) < 0) {
-            waitReason = "the wireless network needs " + sci(eu10) + " EU (10 cycles)";
+            waitReason = "the wireless network needs " + sci(eu10) + " EU (10 cycles)" + to;
             return;
         }
         // ---- consume: one charge, the seed cloud, 10 cycles of EU
@@ -2140,7 +2147,8 @@ public final class EyeStarRuntime {
             sb.append("; the ")
                 .append(trans.type.title)
                 .append(" was ABORTED (its materials are lost")
-                .append(escrow != null ? ", the core stays in escrow)" : ")");
+                .append(escrow != null ? ", the core stays in escrow)" : ")")
+                .append(retryNote(trans));
         }
         final boolean batch = state == StarState.BATCH && fs != null && fs.batch != null;
         if (batch) {
@@ -2157,6 +2165,20 @@ public final class EyeStarRuntime {
         if (failure) recordFailure(lastEvent);
         else logEvent(lastEvent);
         goDark();
+    }
+
+    /**
+     * QA-A02: what happens next after a Mass Infusion, Shell Ignition or Core Collapse fails or is put out: with its
+     * chart still in, the Eye relights the star below from a Stellar Ignition Charge and the transition begins again.
+     */
+    private static String retryNote(EyeTransition tr) {
+        if (tr == null || tr.type.from < 1 || tr.type.from > 3) return "";
+        final StarDef from = StarDef.ofTier(tr.type.from);
+        return from == null ? ""
+            : "; with its chart still in, the Eye relights " + from.name
+                + " from a Stellar Ignition Charge and the "
+                + tr.type.title
+                + " begins again";
     }
 
     /**
@@ -2478,7 +2500,8 @@ public final class EyeStarRuntime {
         final EyeTransition tr = trans;
         lastEvent = (tr == null ? "transition" : tr.type.title) + " FAILED: "
             + reason
-            + (escrow != null ? "; the " + escrow.getDisplayName() + " stays in escrow" : "");
+            + (escrow != null ? "; the " + escrow.getDisplayName() + " stays in escrow" : "")
+            + retryNote(tr);
         if (ledger != null) ledger.fails++;
         recordFailure(lastEvent);
         goDark();
@@ -3059,15 +3082,20 @@ public final class EyeStarRuntime {
         return false;
     }
 
-    /** The star a dark Eye lights from a Stellar Ignition Charge for this chart (T4 relights Arcturus), or null. */
+    /**
+     * The star a dark Eye lights from a Stellar Ignition Charge for this chart, or null: a T1-T3 chart's own star once
+     * its tier is unlocked; for the chart one tier above the unlocked one (T2-T4) the star below it, which then runs
+     * the transition toward the chart (QA-A02); the Neutron Star chart on an Eye that has T4 relights Arcturus.
+     */
     private StarDef ignitable(StarDef want) {
         if (want == null) return null;
-        if (want.tier.ignite) return want;
-        if (want.n() == 4 && unlockedTier >= 4) {
-            final StarDef progenitor = StarDef.ofTier(3);
-            return progenitor != null && progenitor.tier.ignite ? progenitor : null;
+        final int n = want.n();
+        if (want.tier.ignite && n <= unlockedTier) return want;
+        if (n >= 2 && n <= 4 && (n == unlockedTier + 1 || (n == 4 && unlockedTier >= 4))) {
+            final StarDef progenitor = StarDef.ofTier(n - 1);
+            if (progenitor != null && progenitor.tier.ignite) return progenitor;
         }
-        return null;
+        return want.tier.ignite ? want : null;
     }
 
     /** Status bit 2: a dark Eye would light its chart's star now but no Stellar Ignition Charge is in a plinth bus. */
