@@ -798,6 +798,7 @@ public final class EyeStarRuntime {
         if (!host.formed()) {
             if (live()) extinguish("the structure is incomplete");
             else idleOff();
+            waitReason = "the structure is incomplete";
             return;
         }
         if (!host.allowedToWork()) {

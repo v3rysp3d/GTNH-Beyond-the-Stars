@@ -2025,7 +2025,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             lastRun = (lost == null ? runningKey : lost.name) + ": LOST x"
                 + runningParallel
                 + " (the machine stopped: "
-                + reason.getID()
+                + reason.getKey()
                 + "; its inputs and EU were spent)";
             BeyondTheStars.LOG.info("[BTS] Eye planet run {}", lastRun);
         }
@@ -2038,10 +2038,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         super.stopMachine(reason);
         // S-05: GT switches a multiblock off when its structure breaks or every maintenance issue is open; the Eye
         // switches itself back on once that is fixed (the star is out by R-8, and relights by itself)
-        final String id = reason.getID();
-        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+        final String id = reason.getKey();
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getKey()
             .equals(id)
-            || ShutDownReasonRegistry.NO_REPAIR.getID()
+            || ShutDownReasonRegistry.NO_REPAIR.getKey()
                 .equals(id)) {
             autoOff = id;
         }
@@ -2058,7 +2058,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return;
         }
         if (!mMachine) return;
-        final boolean maintenance = ShutDownReasonRegistry.NO_REPAIR.getID()
+        final boolean maintenance = ShutDownReasonRegistry.NO_REPAIR.getKey()
             .equals(autoOff);
         if (maintenance && getRepairStatus() <= 0) return;
         autoOff = "";
@@ -2077,11 +2077,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     private String offReason() {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
         if (base == null || base.isAllowedToWork()) return "";
-        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getKey()
             .equals(autoOff)) {
             return "GT switched the Eye off when its structure broke: it switches back on once the structure is whole";
         }
-        if (ShutDownReasonRegistry.NO_REPAIR.getID()
+        if (ShutDownReasonRegistry.NO_REPAIR.getKey()
             .equals(autoOff)) {
             return "GT switched the Eye off: every maintenance issue is open; it switches back on once they are fixed";
         }
