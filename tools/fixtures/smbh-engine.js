@@ -147,6 +147,8 @@ function horizonStep(Q,I,P,R){
     oEff=P.overdrive*co;
   }
   Q.oEff=oEff; R.oEff=oEff;
+  // QA-B09: the Growth segment draws only the litres that still reach the growth cap after the disc's own growth
+  if(grow>0){ const perL=GROWTH_K*(1-iscoEta(clamp(Q.a,0,0.998))); grow=Q.M>=P.growthCap?0:perL>0?Math.min(grow,(P.growthCap-Q.M)/perL):grow; }
   R.holdUpLitres=hold; R.growthLitres=grow;
   if(grow>0 && Q.M<P.growthCap){ const m0=Q.M; Q.M=Math.min(P.growthCap,Q.M+GROWTH_K*(1-iscoEta(clamp(Q.a,0,0.998)))*grow); R.grownMass=Q.M-m0; }
   if(P.lattice>0 && ch<1 && Q.M>P.safe){

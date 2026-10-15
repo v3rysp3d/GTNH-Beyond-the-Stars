@@ -673,6 +673,72 @@
    }
   },
   {
+   "name": "L1 top, a one-second dip at 100 s s1",
+   "spec": {
+    "secs": 300,
+    "seed": 1,
+    "qc": {
+     "M0": 65536,
+     "lattice": 1,
+     "intake": 5,
+     "setpoint": 65536
+    },
+    "events": [
+     {
+      "t": 100,
+      "qc": {
+       "intake": 3.9
+      }
+     },
+     {
+      "t": 101,
+      "qc": {
+       "intake": 5
+      }
+     }
+    ]
+   },
+   "expect": {
+    "M": 65536,
+    "a": 0.49657211904216175,
+    "E": 2.3411821813343794,
+    "Phi": 30.09422490061358,
+    "I": 100,
+    "open": true,
+    "reform": 0,
+    "oEff": 0,
+    "shed": false,
+    "L": {
+     "bu": 10209854.326825436,
+     "gas": 3932159883.38249,
+     "hold": 11795168677.78334,
+     "growth": 0,
+     "mhdcsm": 0,
+     "universium": 0,
+     "anchor": 0,
+     "shedS": 0,
+     "leakS": 1,
+     "anchorShortS": 0,
+     "leaked": 0.5830875482497504,
+     "grown": 0,
+     "maxM": 65536,
+     "minM": 65535.41691245175,
+     "xSum": 1196.9280740529834,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 8,
+     "zoneT": [
+      229,
+      71,
+      0,
+      0,
+      0
+     ]
+    },
+    "hash": 1401694684
+   }
+  },
+  {
    "name": "L1 top, the feed cut at 600 s s3",
    "spec": {
     "secs": 3600,
