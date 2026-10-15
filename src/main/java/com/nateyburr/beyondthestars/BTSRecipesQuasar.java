@@ -859,7 +859,8 @@ public final class BTSRecipesQuasar {
      * Frame's
      * 72 L of Molten SpaceTime as 2 SpaceTime foils (the Assembler takes one fluid); the Throat's "4 Superdense
      * Ergomatter cells" as 4,000 L of the fluid; L2-L4 on reachable matter instead of White Hole Matter, Universium
-     * and MHDCSM (D-51, below); L4's "Constrained Eternity Plates" (no such item in RC-2) as 8 Eternity + 8 MagMatter
+     * and MHDCSM (D-51, below), and, with {@code latticeNodesUseP5Matter} on (P5, Q-P5-9), L2 on Attractor Dark Matter
+     * and L3 on Universium again; L4's "Constrained Eternity Plates" (no such item in RC-2) as 8 Eternity + 8 MagMatter
      * plates, and its circuit as 16 any-MAX (no Endgame tier exists).
      * GT's
      * assembly line takes at least 4 item stacks, so L1 adds 2 dense Black Dwarf Matter plates and the Mk IV throat 16
@@ -907,32 +908,63 @@ public final class BTSRecipesQuasar {
         // consumes the node below and roughly doubles to triples the Superdense Ergomatter: per lattice of 48 nodes
         // L1 384,000 L, L2 768,000 L, L3 2,304,000 L, L4 6,912,000 L (Eye T8, or the Kerr refinery at 8 : 1).
 
-        // SL-Q31 Containment Node L2: an L1 node + 16,000 L Entangled Superdense Ergomatter + 4,608 L Entangled
-        // Magnetar Matter + 4 any-MAX circuits. Condensate Assembler, MAX.
-        BTSRecipeGuard.recipe(
-            "SL-Q31",
-            () -> assemble(
-                c4(BlockSLCasing4.NODE_L2, 1),
-                600 * SECONDS,
-                TierEU.RECIPE_MAX,
-                cond(ours(SLRealityFluids.entangledSuperdense, 16_000), ours(SLRealityFluids.entangledMagnetar, 4_608)),
-                s(c4(BlockSLCasing4.NODE_L1, 1), N6),
-                s(circuit(Materials.MAX, 4), N5)));
+        // P5 (p5-t9-t10.md §8.2, Q-P5-9, accepted 2026-10-16): with latticeNodesUseP5Matter on (the default), L2 goes
+        // back onto Attractor Dark Matter (Eye T9) and L3 onto Universium (Eye T10), rev 3's shape. L2 gates nothing
+        // (the Supermassive Link is met on L1) and L3's band is past the T10 gate. Off: D-51's recipes below. One
+        // recipe per node either way (NEI stays tidy). Built nodes are blocks and never change.
+        if (Config.latticeNodesUseP5Matter) {
+            // SL-Q31 Containment Node L2 (P5): an L1 node + 4,000 L Attractor Dark Matter, as 4,032 L of its
+            // condensate (the half-unit rule: 72 L) + 4 any-MAX circuits. Condensate Assembler, MAX. x48 = 193,536 L.
+            BTSRecipeGuard.recipe(
+                "SL-Q31",
+                () -> assemble(
+                    c4(BlockSLCasing4.NODE_L2, 1),
+                    600 * SECONDS,
+                    TierEU.RECIPE_MAX,
+                    cond(ours(SLRealityFluids.entangledDarkMatter, 4_032)),
+                    s(c4(BlockSLCasing4.NODE_L1, 1), N6),
+                    s(circuit(Materials.MAX, 4), N5)));
+            // SL-Q32 Containment Node L3 (P5): an L2 node + 2,304 L (16 ingots) Universium condensate + 4 any-MAX
+            // circuits. Condensate Assembler, MAX. Universium only from Eye T10 (D-51), so this is Endgame.
+            BTSRecipeGuard.recipe(
+                "SL-Q32",
+                () -> assemble(
+                    c4(BlockSLCasing4.NODE_L3, 1),
+                    900 * SECONDS,
+                    TierEU.RECIPE_MAX,
+                    cond(entangled(CondensateType.Universium, 16 * INGOTS)),
+                    s(c4(BlockSLCasing4.NODE_L2, 1), N6),
+                    s(circuit(Materials.MAX, 4), N6)));
+        } else {
+            // SL-Q31 Containment Node L2 (D-51): an L1 node + 16,000 L Entangled Superdense Ergomatter + 4,608 L
+            // Entangled Magnetar Matter + 4 any-MAX circuits. Condensate Assembler, MAX.
+            BTSRecipeGuard.recipe(
+                "SL-Q31",
+                () -> assemble(
+                    c4(BlockSLCasing4.NODE_L2, 1),
+                    600 * SECONDS,
+                    TierEU.RECIPE_MAX,
+                    cond(
+                        ours(SLRealityFluids.entangledSuperdense, 16_000),
+                        ours(SLRealityFluids.entangledMagnetar, 4_608)),
+                    s(c4(BlockSLCasing4.NODE_L1, 1), N6),
+                    s(circuit(Materials.MAX, 4), N5)));
 
-        // SL-Q32 Containment Node L3: an L2 node + 48,000 L Entangled Superdense Ergomatter + 9,216 L each of
-        // Entangled Magnetar and Black Dwarf Matter + 4 any-MAX circuits. Condensate Assembler, MAX.
-        BTSRecipeGuard.recipe(
-            "SL-Q32",
-            () -> assemble(
-                c4(BlockSLCasing4.NODE_L3, 1),
-                900 * SECONDS,
-                TierEU.RECIPE_MAX,
-                cond(
-                    ours(SLRealityFluids.entangledSuperdense, 48_000),
-                    ours(SLRealityFluids.entangledMagnetar, 9_216),
-                    ours(SLCondensates.entangledBlackDwarf, 9_216)),
-                s(c4(BlockSLCasing4.NODE_L2, 1), N6),
-                s(circuit(Materials.MAX, 4), N6)));
+            // SL-Q32 Containment Node L3 (D-51): an L2 node + 48,000 L Entangled Superdense Ergomatter + 9,216 L each
+            // of Entangled Magnetar and Black Dwarf Matter + 4 any-MAX circuits. Condensate Assembler, MAX.
+            BTSRecipeGuard.recipe(
+                "SL-Q32",
+                () -> assemble(
+                    c4(BlockSLCasing4.NODE_L3, 1),
+                    900 * SECONDS,
+                    TierEU.RECIPE_MAX,
+                    cond(
+                        ours(SLRealityFluids.entangledSuperdense, 48_000),
+                        ours(SLRealityFluids.entangledMagnetar, 9_216),
+                        ours(SLCondensates.entangledBlackDwarf, 9_216)),
+                    s(c4(BlockSLCasing4.NODE_L2, 1), N6),
+                    s(circuit(Materials.MAX, 4), N6)));
+        }
 
         // SL-Q33 Containment Node L4 (Constrained Eternity): an L3 node, 8 Eternity + 8 MagMatter plates, 144,000 L
         // Entangled Superdense Ergomatter, 18,432 L Entangled Magnetar Matter, 2,880 L Eternity condensate, 16 any-MAX
@@ -1110,11 +1142,11 @@ public final class BTSRecipesQuasar {
         return new FluidStack(made, litres);
     }
 
-    /** 144 for the molten-matter condensates (White / Black Dwarf, Magnetar, White Hole), 1,000 for the rest. */
+    /** 144 for the molten-matter condensates (White / Black Dwarf, Magnetar, Dark Matter), 1,000 for the rest. */
     private static int unitOf(Fluid condensate) {
         if (condensate == SLCondensates.entangledWhiteDwarf || condensate == SLCondensates.entangledBlackDwarf
             || condensate == SLRealityFluids.entangledMagnetar
-            || condensate == SLRealityFluids.entangledWhiteHole) {
+            || condensate == SLRealityFluids.entangledDarkMatter) {
             return 144;
         }
         return 1_000;
@@ -1143,6 +1175,7 @@ public final class BTSRecipesQuasar {
         else if (condensate == SLCondensates.entangledAgent) return SLFluids.antipolarizationAgent;
         else if (condensate == SLRealityFluids.entangledMagnetar) return SLFluids.magnetarMatter;
         else if (condensate == SLRealityFluids.entangledErgomatter) return SLQuasarFluids.ergomatter;
+        else if (condensate == SLRealityFluids.entangledDarkMatter) return SLRealityFluids.darkMatter;
         else return null;
         return stack == null ? null : stack.getFluid();
     }

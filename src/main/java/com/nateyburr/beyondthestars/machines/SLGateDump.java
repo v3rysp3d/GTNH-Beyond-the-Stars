@@ -18,9 +18,13 @@ import com.nateyburr.beyondthestars.BTSCircuitChecks;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
+import com.nateyburr.beyondthestars.blocks.BlockSLGlass;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
+import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
 import com.nateyburr.beyondthestars.items.SLCircuitItems;
+import com.nateyburr.beyondthestars.items.SLMaxItems;
+import com.nateyburr.beyondthestars.items.SLP5Items;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 
 import gregtech.api.enums.ItemList;
@@ -61,7 +65,7 @@ public final class SLGateDump {
     private static final Object[][] FIRST_MADE = { { "rawstarmatter", 1 }, { "boundlesscosmicsolder", 1 },
         { "primordialmatter", 1 }, { "excitedstellarplasma", 2 }, { "rawhyperdense", 3 },
         { "hyperdensestellarmixture", 3 }, { "whitedwarf", 4 }, { "blackdwarf", 5 }, { "magnetar", 6 },
-        { "ergomatter", 7 }, { "eternity", 7 }, { "whitehole", 9 }, { "universium", 10 }, { "mhdcsm", 10 },
+        { "ergomatter", 7 }, { "eternity", 7 }, { "darkmatter", 9 }, { "universium", 10 }, { "mhdcsm", 10 },
         { "magnetohydrodynamically", 10 },
         // Circuits v2 (circuits-v2.md §3.1): our circuit items carry the Eye tier of the newest matter inside them.
         { "stellarboule", 1 }, { "stellarwafer", 1 }, { "sidereal", 1 }, { "stellarsmd", 2 }, { "empyrean", 4 },
@@ -141,7 +145,7 @@ public final class SLGateDump {
                 }
             }
         }
-        final int p4Loops = p4(sender);
+        final int p4Loops = p4(sender) + p5(sender);
         final int circuitProblems = circuits(sender);
         final ItemStack bhc = ItemList.Machine_Multi_BlackHoleCompressor.get(1);
         final ItemStack kerr = BTSMachines.kerrEngine;
@@ -442,15 +446,22 @@ public final class SLGateDump {
                 + (com.nateyburr.beyondthestars.BTSGodforgeMagMatter.applied() ? "rewrote its Universium frames"
                     : "did not run")
                 + ")");
+        final int loops = judge(sender, gates, "P4");
+        SLConsoleTest.tell(sender, "== P4 gate audit done: " + loops + " part(s) break the gate rule ==");
+        return loops;
+    }
+
+    /** Judges each gate (see {@link #p4}) and prints one line per part; returns how many break the rule. */
+    private static int judge(ICommandSender sender, List<Gate> gates, String tag) {
         int loops = 0;
         for (Gate gate : gates) {
             if (gate.item == null && gate.fluid == null) {
-                SLConsoleTest.tell(sender, "P4 " + gate.label + ": not registered in this build (its MTE unit)");
+                SLConsoleTest.tell(sender, tag + " " + gate.label + ": not registered in this build (its MTE unit)");
                 continue;
             }
             final List<Rec> recs = gate.item != null ? makers(gate.item) : makers(gate.fluid);
             if (recs.isEmpty()) {
-                SLConsoleTest.tell(sender, "P4 " + gate.label + ": NO RECIPE");
+                SLConsoleTest.tell(sender, tag + " " + gate.label + ": NO RECIPE");
                 loops++;
                 continue;
             }
@@ -479,21 +490,143 @@ public final class SLGateDump {
                 notes.add(rec.where + (bad.isEmpty() ? " clean" : " needs " + String.join("; ", bad)));
                 if (bad.isEmpty() && verdict == null) verdict = rec.where;
             }
-            final String head = "P4 " + gate.label
+            final String head = tag + " "
+                + gate.label
                 + (gate.gate == 0 ? " (optional, reported only)" : " (gate Eye T" + gate.gate + ")");
             if (gate.gate == 0) {
                 SLConsoleTest.tell(sender, head + ": " + recs.size() + " recipe(s)");
                 for (Rec rec : recs) SLConsoleTest.tell(sender, "  in (" + rec.where + "): " + describe(rec));
             } else if (verdict != null) {
-                SLConsoleTest.tell(sender, head + ": CLEAN via " + verdict);
+                SLConsoleTest.tell(sender, head + ": CLEAN via " + verdict + " (" + recs.size() + " recipe(s))");
+                // P5 lists every card: several MAX parts have a pack recipe beside ours
+                if (!"P4".equals(tag)) {
+                    for (Rec rec : recs) SLConsoleTest.tell(sender, "  in (" + rec.where + "): " + describe(rec));
+                }
             } else {
                 loops++;
                 SLConsoleTest.tell(sender, head + ": LOOP - " + String.join(" | ", notes));
                 for (Rec rec : recs) SLConsoleTest.tell(sender, "  in (" + rec.where + "): " + describe(rec));
             }
         }
-        SLConsoleTest.tell(sender, "== P4 gate audit done: " + loops + " part(s) break the gate rule ==");
         return loops;
+    }
+
+    // ================================================================================== P5 (p5-t9-t10.md §7, §8)
+
+    /**
+     * The P5 gate audit: the T8 -> T9 parts (the pellets, barrels, the Attractor Seed Core and the T9 chart) may not
+     * need anything first made at T9 or later; the T9 -> T10 parts (the Universal Upgrade Core, the tenth compression
+     * tier, the Reality machines and the Homogeny T3 core) and every MAX part (D-47, D-51) nothing first made at T10.
+     * Reported only (gate 0): the L3 node (Endgame, Universium by design) and the pack's UXV components (to show which
+     * of them take Universium). Same judging as {@link #p4}: a part passes if one recipe is clean one level down.
+     * Returns how many parts break the rule.
+     */
+    private static int p5(ICommandSender sender) {
+        final List<Gate> gates = new ArrayList<>();
+        final int pre9 = 9, pre10 = 10;
+        gates.add(item("Gated Pellet (Magnetar)", SLP5Items.gatedPelletMagnetar, pre9));
+        gates.add(item("Gated Pellet (Ergomatter)", SLP5Items.gatedPelletErgomatter, pre9));
+        gates.add(item("Gated Pellet (Superdense)", SLP5Items.gatedPelletSuperdense, pre9));
+        gates.add(item("Injector Barrel Mk I", SLP5Items.injectorBarrelMk1, pre9));
+        gates.add(item("Injector Barrel Mk II", SLP5Items.injectorBarrelMk2, pre9));
+        gates.add(item("Injector Barrel Mk III", SLP5Items.injectorBarrelMk3, pre9));
+        gates.add(item("Attractor Seed Core (T8 -> T9)", SLP5Items.attractorSeedCore, pre9));
+        gates.add(item("Star Chart: Great Attractor (T9)", SLP5Items.starChartGreatAttractor, pre9));
+        gates.add(mte("Pellet Injector Hatch (28128)", 28128, pre9));
+        gates.add(item("Homogeny Tier III Core", SLMaxItems.homogenyTier3Core, pre10));
+        gates.add(new Gate("Reality Diffraction (28131)", BTSMachines.realityDiffraction, null, pre10));
+        gates.add(new Gate("Reality Refab (28132)", BTSMachines.realityRefab, null, pre10));
+        gates.add(item("Universal Upgrade Core (T9 -> T10)", SLMaxItems.universalUpgradeCore, pre10));
+        gates.add(item("Star Chart: The Observable Universe (T10)", SLMaxItems.starChartUniverse, pre10));
+        gates.add(
+            new Gate(
+                "Universal Compression Field Generator (tier 10)",
+                SLBlocks.casing4(BlockSLCasing4.UNIVERSAL_COMPRESSION, 1),
+                null,
+                pre10));
+        gates.add(
+            new Gate(
+                "Entanglement Medium",
+                null,
+                SLRealityFluids.entanglementMedium == null ? null
+                    : new FluidStack(SLRealityFluids.entanglementMedium, 1),
+                pre10));
+        gates.add(new Gate("Containment Node L2", SLBlocks.casing4(BlockSLCasing4.NODE_L2, 1), null, pre10));
+        // the MAX parts (D-47): before T10, so no Universium, MHDCSM or nanite above Black Dwarf (H-18)
+        gates.add(item("Attractor Dark Matter Plate", SLP5Items.attractorDarkMatterPlate, pre10));
+        gates.add(item("Attractor Dark Matter Dense Plate", SLP5Items.attractorDarkMatterDensePlate, pre10));
+        gates.add(
+            new Gate(
+                "Attractor Dark Matter Frame Box",
+                SLBlocks.casing4(BlockSLCasing4.DARK_MATTER_FRAME, 1),
+                null,
+                pre10));
+        gates.add(item("MAX Superconductor Wire", SLP5Items.superconductorWireMAX, pre10));
+        gates.add(
+            new Gate("Dark Matter Heating Coil", SLBlocks.casing4(BlockSLCasing4.DARK_MATTER_COIL, 1), null, pre10));
+        gates.add(
+            new Gate("Dark Matter Borosilicate Glass", SLBlocks.glass(BlockSLGlass.DARK_MATTER_MAX, 1), null, pre10));
+        gates.add(item("MAX Battery", SLP5Items.maxBattery, pre10));
+        final ItemList[] maxParts = { ItemList.Electric_Motor_MAX, ItemList.Electric_Pump_MAX,
+            ItemList.Conveyor_Module_MAX, ItemList.Electric_Piston_MAX, ItemList.Robot_Arm_MAX, ItemList.Emitter_MAX,
+            ItemList.Sensor_MAX, ItemList.Field_Generator_MAX, ItemList.Casing_MAXV, ItemList.Hull_MAXV,
+            ItemList.Wireless_Hatch_Energy_MAX };
+        for (ItemList part : maxParts) {
+            gates.add(new Gate(part.name(), part.hasBeenSet() ? part.get(1) : null, null, pre10));
+        }
+        gates.add(new Gate("Component Assembly Line Casing (MAX)", coalCasingMAX(), null, pre10));
+        gates.add(new Gate("MAX Energy Hatch", BTSMaxHatches.energyHatchMAX, null, pre10));
+        gates.add(new Gate("MAX Dynamo Hatch", BTSMaxHatches.dynamoHatchMAX, null, pre10));
+        gates.add(new Gate("MAX 4096A Laser Target Hatch", BTSMaxHatches.laserTargetMAX, null, pre10));
+        gates.add(new Gate("MAX 4096A Laser Source Hatch", BTSMaxHatches.laserSourceMAX, null, pre10));
+        // the UXV leftovers (ruling 19): before T7, so Magnetar Matter and the Agent only
+        gates.add(
+            new Gate("Magnetar-Reinforced Borosilicate Glass", SLBlocks.glass(BlockSLGlass.MAGNETAR_UXV, 1), null, 7));
+        gates.add(item("UXV Superconductor Wire", SLP5Items.superconductorWireUXV, 7));
+        gates.add(
+            new Gate(
+                "UXV 4096A Laser Target Hatch",
+                CustomItemList.eM_energyTunnel3_UXV.hasBeenSet() ? CustomItemList.eM_energyTunnel3_UXV.get(1) : null,
+                null,
+                7));
+        gates.add(
+            new Gate(
+                "UXV 4096A Laser Source Hatch",
+                CustomItemList.eM_dynamoTunnel3_UXV.hasBeenSet() ? CustomItemList.eM_dynamoTunnel3_UXV.get(1) : null,
+                null,
+                7));
+        // reported only
+        gates.add(new Gate("Containment Node L3 (Endgame)", SLBlocks.casing4(BlockSLCasing4.NODE_L3, 1), null, 0));
+        for (ItemList part : new ItemList[] { ItemList.Field_Generator_UXV, ItemList.Emitter_UXV,
+            ItemList.Electric_Pump_UXV, ItemList.Robot_Arm_UXV, ItemList.Casing_Coil_Eternal,
+            ItemList.Casing_Coil_Hypogen }) {
+            gates.add(new Gate("pack " + part.name(), part.hasBeenSet() ? part.get(1) : null, null, 0));
+        }
+        SLConsoleTest.tell(sender, "== P5 gate audit: " + gates.size() + " parts ==");
+        final int loops = judge(sender, gates, "P5");
+        SLConsoleTest.tell(sender, "== P5 gate audit done: " + loops + " part(s) break the gate rule ==");
+        return loops;
+    }
+
+    /** A GT machine by MTE id, or a Gate with no item if that id is not registered (another unit's machine). */
+    private static Gate mte(String label, int id, int gate) {
+        final gregtech.api.interfaces.metatileentity.IMetaTileEntity mte = id >= 0
+            && id < gregtech.api.GregTechAPI.METATILEENTITIES.length ? gregtech.api.GregTechAPI.METATILEENTITIES[id]
+                : null;
+        return new Gate(
+            label,
+            mte == null ? null : new ItemStack(gregtech.api.GregTechAPI.sBlockMachines, 1, id),
+            null,
+            gate);
+    }
+
+    /** GoodGenerator's MAX Component Assembly Line casing, or null. */
+    private static ItemStack coalCasingMAX() {
+        try {
+            return goodgenerator.util.ItemRefer.Compassline_Casing_MAX.get(1);
+        } catch (RuntimeException absent) {
+            return null;
+        }
     }
 
     private static Gate item(String label, Item item, int gate) {

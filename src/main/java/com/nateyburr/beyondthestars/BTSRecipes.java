@@ -21,6 +21,7 @@ package com.nateyburr.beyondthestars;
  *   BTSRecipesAutomation  automation the Directive Hatch (SL-A01)
  *   BTSRecipesReality     H/R       the Homogeny / Reality BEC recipes (SL-C01..C04, SL-H01..H20, SL-R01..R17)
  *   BTSRecipesQuasar      P4        the quasar / conduit / Eye T7-T8 recipes (SL-B16, SL-Q01..Q26)
+ *   BTSRecipesP5          P5        pellets, T9 parts, MAX parts, UXV leftovers (SL-F01..F09, SL-M01..M23, SL-V01..V04)
  *   BTSRecipesCircuits    circuits  Circuits v2: wafers, Stellar SMDs, boards, Sidereal / Empyrean / Omega (SL-X01..X32)
  * </pre>
  *
@@ -69,6 +70,9 @@ public final class BTSRecipes {
         // P4: the quasar, conduit, crowns, their blocks, the T7/T8 cores and charts (BTSRecipesQuasar, one
         // owner). After "reality": it uses that line's Entangled Ergomatter (SL-C02).
         BTSRecipeGuard.line("quasar", BTSRecipesQuasar::register);
+        // P5: the Gated Pellets, the T8 -> T9 parts, Attractor Dark Matter's solid forms, the MAX parts and the UXV
+        // leftovers (BTSRecipesP5, one owner). After "quasar" and "reality": it uses their condensate generators.
+        BTSRecipeGuard.line("p5", BTSRecipesP5::register);
         // Circuits v2 (circuits-v2.md §2): the wafer / SMD / board / circuit chain in stock GT machines and the
         // research Assembly Line (BTSRecipesCircuits, one owner).
         BTSRecipeGuard.line("circuits", BTSRecipesCircuits::register);
