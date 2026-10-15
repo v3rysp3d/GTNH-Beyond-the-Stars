@@ -136,7 +136,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         syncManager.registerServerSyncedAction("qPurge", packet -> m.requestPurge());
         // SMBH (smbh-v1.md §2.2, §3.2, §5.1): the Supermassive Lattice panel
         syncManager.syncValue("qLattice", new IntSyncValue(m::getLatticeInForce));
-        syncManager.syncValue("qSetpoint", new DoubleSyncValue(m::getMassCap, m::setMassSetpoint).allowC2S());
+        syncManager.syncValue("qSetpoint", new DoubleSyncValue(m::getGuiMassCap, m::setMassSetpoint).allowC2S());
         syncManager.syncValue("qSlideTop", new DoubleSyncValue(() -> sliderTop(m)));
         syncManager.syncValue("qOverdrive", new DoubleSyncValue(m::getOverdrive, m::setOverdrive).allowC2S());
         syncManager.syncValue("qUnbound", new BooleanSyncValue(m::isUnbound));
@@ -144,6 +144,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             "qCanUnbind",
             new BooleanSyncValue(() -> Config.smbhAllowUnbound && m.getLatticeInForce() == QuasarParams.LATTICE_MAX));
         syncManager.syncValue("qHoldHatch", new BooleanSyncValue(m::holdFromHatch));
+        syncManager.syncValue("qSetpointInForce", new DoubleSyncValue(m::getMassCap));
         syncManager.syncValue("qOdHatch", new BooleanSyncValue(m::overdriveFromHatch));
         syncManager.syncValue("qLatticeLine", new StringSyncValue(() -> latticeLine(m)));
         syncManager.syncValue("qOdLine", new StringSyncValue(() -> overdriveLine(m)));
@@ -1241,6 +1242,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
     private ModularPanel buildHorizonPanel(PanelSyncManager main, ModularPanel parent) {
         final IntSyncValue lattice = main.findSyncHandler("qLattice", IntSyncValue.class);
         final DoubleSyncValue setpoint = main.findSyncHandler("qSetpoint", DoubleSyncValue.class);
+        final DoubleSyncValue setpointInForce = main.findSyncHandler("qSetpointInForce", DoubleSyncValue.class);
         final DoubleSyncValue slideTop = main.findSyncHandler("qSlideTop", DoubleSyncValue.class);
         final DoubleSyncValue od = main.findSyncHandler("qOverdrive", DoubleSyncValue.class);
         final BooleanSyncValue unboundV = main.findSyncHandler("qUnbound", BooleanSyncValue.class);
@@ -1268,7 +1270,9 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             .child(
                 keyValue(
                     () -> tr(K + "panel.setpoint"),
-                    () -> holdHatch.getBoolValue() ? tr(K + "panel.hatch")
+                    // QA-B04: the setpoint in force, and who sets it
+                    () -> holdHatch.getBoolValue()
+                        ? MTEQuasarEngine.fmt(setpointInForce.getDoubleValue()) + " SM (" + tr(K + "panel.hatch") + ")"
                         : MTEQuasarEngine.fmt(setpoint.getDoubleValue()) + " SM",
                     w))
             .child(

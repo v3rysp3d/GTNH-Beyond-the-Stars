@@ -1001,22 +1001,24 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
 
     /**
      * SMBH (smbh-v1.md §6): the mass setpoint in use. A HOLD-mode Burst Control Hatch (the highest level) overrides
-     * the GUI's: 0 the safe limit .. 15 the band top, on a log scale (on an Unbound L4, the L4 safe limit .. two
-     * doublings past the L4 top). Without a lattice in force the setting is kept and unused.
+     * the GUI's with redstone 1 the safe limit .. 15 the band top, on a log scale (on an Unbound L4, the L4 safe
+     * limit .. two doublings past the L4 top). Redstone 0 leaves the GUI's setpoint alone, as a Directive control
+     * set does (QA-B04): an unwired hatch, a level emitter while the network boots or a source in an unloaded chunk
+     * never sheds the hole. Without a lattice in force the setting is kept and unused.
      */
     double massSetpointInUse() {
         final int s = hatchLevel(MTEHatchBurstControl.Mode.HOLD);
         final int L = getLatticeInForce();
-        if (s < 0 || L == 0) return massSetpoint;
+        if (s < 1 || L == 0) return massSetpoint;
         return holdSetpoint(L, unbound, s);
     }
 
-    /** A HOLD level 0-15 as a mass setpoint, SM (log-linear from the safe limit to the top it may reach). */
+    /** A HOLD level 1-15 as a mass setpoint, SM (log-linear from the safe limit to the top it may reach). */
     static double holdSetpoint(int L, boolean unbound, int s) {
         final double lo = QuasarParams.LATTICE_SAFE[L];
         final double hi = L == QuasarParams.LATTICE_MAX && unbound ? QuasarParams.LATTICE_TOP[L] * 4
             : QuasarParams.LATTICE_TOP[L];
-        return lo * Math.pow(hi / lo, Math.max(0, Math.min(15, s)) / 15.0);
+        return lo * Math.pow(hi / lo, (Math.max(1, Math.min(15, s)) - 1) / 14.0);
     }
 
     /** SMBH: the Overdrive level in use: an OVERDRIVE-mode hatch (s / 15, 5 % steps) overrides the GUI's. */
@@ -1026,9 +1028,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return Math.round(s / 15.0 / QuasarParams.OVERDRIVE_STEP) * QuasarParams.OVERDRIVE_STEP;
     }
 
-    /** True while a Burst Control Hatch in HOLD mode sets the mass setpoint. */
+    /** True while a Burst Control Hatch in HOLD mode sets the mass setpoint (redstone 1-15, a lattice in force). */
     public boolean holdFromHatch() {
-        return hatchLevel(MTEHatchBurstControl.Mode.HOLD) >= 0;
+        return hatchLevel(MTEHatchBurstControl.Mode.HOLD) >= 1 && getLatticeInForce() > 0;
     }
 
     /** True while a Burst Control Hatch in OVERDRIVE mode sets the Overdrive level. */
@@ -1063,8 +1065,10 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             case FIELD:
                 return String.format(Locale.ROOT, "b = %.2f", bSetting());
             case HOLD:
-                return getLatticeInForce() == 0 ? "no lattice in force: nothing to hold"
-                    : "mass setpoint " + fmt(getMassCap()) + " SM";
+                if (getLatticeInForce() == 0) return "no lattice in force: nothing to hold";
+                return "mass setpoint " + fmt(getMassCap())
+                    + " SM"
+                    + (holdFromHatch() ? "" : " (redstone 0: the GUI's setpoint)");
             case OVERDRIVE:
                 return getLatticeInForce() < QuasarParams.LATTICE_OVERDRIVE ? "Overdrive needs an L3 lattice"
                     : String.format(Locale.ROOT, "Overdrive %.0f %%", 100 * overdriveInUse());
@@ -1705,6 +1709,16 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     public double getMassCap() {
         // coils unknown (unformed, or loaded and not walked yet): read as MagMatter, as getStructureTop does
         final int coils = coilTier < 1 ? QuasarParams.LATTICE_COIL : coilTier;
+        // QA-B04: the setpoint in force (a Hold hatch's when one sets it), the one the engine holds the hole to
+        return QuasarParams.massSetpoint(coils, latticeTier, unbound, massSetpointInUse());
+    }
+
+    /**
+     * The GUI's own mass setpoint as it applies (the slider and number field): {@link #getMassCap} unless a Hold
+     * hatch overrides it.
+     */
+    public double getGuiMassCap() {
+        final int coils = coilTier < 1 ? QuasarParams.LATTICE_COIL : coilTier;
         return QuasarParams.massSetpoint(coils, latticeTier, unbound, massSetpoint);
     }
 
@@ -1790,6 +1804,14 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (L == 0) return "no lattice in force: nothing to shed";
         massSetpoint = 0;
         final double safe = QuasarParams.LATTICE_SAFE[L];
+        if (holdFromHatch()) {
+            lastEvent = "Shed requested: the GUI's setpoint is the safe limit, but a Hold hatch sets "
+                + fmt(getMassCap())
+                + " SM";
+            return "the GUI's setpoint is now the safe limit, but a Hold-mode Burst Control Hatch sets the setpoint ("
+                + fmt(getMassCap())
+                + " SM): lower its redstone to 0 or 1 to shed";
+        }
         if (q.M > safe * (1 + 1e-9)) {
             lastEvent = "Shed requested: down to the safe limit, " + fmt(safe) + " SM";
             return "shedding to the safe limit, " + fmt(safe)

@@ -50,7 +50,8 @@ public class MTEHatchBurstControl extends MTEHatch {
         SPLIT("Junction split", "share 1 = c + k (s/15 - 0.5) (Conduit Junction)"),
         BEGIN("Begin", "a rising edge begins the galaxy transition when ready (Eye of Harmony)"),
         // ---- SMBH (smbh-v1.md §6): a Quasar Engine with a Supermassive Lattice. Appended: NBT keeps the name.
-        HOLD("Hold", "the mass setpoint, safe limit (0) .. band top (15), log scale (Quasar Engine, lattice)"),
+        HOLD("Hold",
+            "the mass setpoint, safe limit (1) .. band top (15), log scale; 0 leaves the GUI's (Quasar Engine, lattice)"),
         OVERDRIVE("Overdrive", "Overdrive o = s / 15 in 5 % steps (Quasar Engine, L3 lattice)"),
         SHED("Shed", "a rising edge lowers the mass setpoint to the safe limit (Quasar Engine, lattice)");
 
@@ -116,8 +117,8 @@ public class MTEHatchBurstControl extends MTEHatch {
             "§bQuasar Engine§7 (the 4 cap-rim sockets):",
             "  Purge: a rising edge dumps the disc's flux early (refused below 20). Wire Disc bit 3 here.",
             "  Field b: b = 0.5 + (coil tier - 0.5) x s/15, instead of the GUI's slider.",
-            "  Hold (lattice): the mass setpoint from the safe limit (0) to the band top (15), on a log scale;",
-            "    on an Unbound L4, from 4,194,304 SM (0) to 268,435,456 SM (15, two doublings).",
+            "  Hold (lattice): the mass setpoint from the safe limit (1) to the band top (15), on a log scale;",
+            "    on an Unbound L4, from 4,194,304 SM (1) to 268,435,456 SM (15, two doublings). 0 leaves the GUI's.",
             "  Overdrive (L3 lattice): o = s/15 in 5 % steps. Shed: a rising edge sets the mass setpoint to the safe limit.",
             "§bConduit Junction§7: Junction split: share 1 = c + k x (s/15 - 0.5), clamped 0..1 (c, k in its GUI).",
             "§bEye of Harmony§7: Begin: a rising edge begins the galaxy transition when Transition bit 1 is on.",
