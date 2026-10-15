@@ -603,13 +603,15 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             final boolean linkToCome = (n == 6 || n == 7) && !star.tier.planets() && !rt.milestones().linkDone[n];
             final double tickAt = linkToCome ? (n == 6 ? GalaxyField.D7 : GalaxyField.demandT(8))
                 : driven ? demand : Double.NaN;
+            // P5: the bar's full scale follows the tier from T9 (D9 24, D10 96 Bu/t: the bar runs to 2 x the demand)
+            final double scale = n >= 9 ? Math.max(BURST_SCALE, 2 * demand) : BURST_SCALE;
             rows.bar(
                 BTSText.lang("beyondthestars.gui.eye.bursts"),
-                b.total() / BURST_SCALE,
+                b.total() / scale,
                 BTSText.lit(
                     (driven ? beta >= 1 ? "§a" : beta >= 0.8 ? "§e" : "§c" : "") + BTSFormat.f2(b.total()) + " Bu/t"),
                 Grad.MAGENTA,
-                Double.isNaN(tickAt) ? null : BTSGuiKit.tick(tickAt / BURST_SCALE, BTSGuiKit.TICK),
+                Double.isNaN(tickAt) ? null : BTSGuiKit.tick(tickAt / scale, BTSGuiKit.TICK),
                 driven ? BTSText.lang("beyondthestars.gui.eye.bursts.beta", BTSFormat.f2(beta)) : "",
                 BTSText.lang(
                     "beyondthestars.gui.eye.bursts.tip",
@@ -671,10 +673,122 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             }
         }
         supermassiveRow(rows, star);
+        p5Rows(rows, star);
         for (String ev : eventLines()) {
             rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, ev, BTSText.lang("beyondthestars.gui.eye.warn.tip"));
         }
         slotRows(rows, star);
+    }
+
+    /**
+     * P5 (p5-t9-t10.md §2, §3, §6): the Deep Link at T8 (while it is to come), the pellet beam, the stock, the Galactic
+     * Flow and the galaxies held at T9, the universe at T10. GT-style short values; the numbers in the tooltips.
+     */
+    private void p5Rows(BTSRows.Builder rows, StarDef star) {
+        final EyeStarRuntime rt = rt();
+        final com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor a = rt.attractor();
+        final com.nateyburr.beyondthestars.machines.eye.field.FieldState fs = rt.fieldState();
+        final int n = fs == null ? star.n() : fs.tier.n;
+        if (n == 8 && !star.tier.planets() && !rt.milestones().linkDone[8]) {
+            final com.nateyburr.beyondthestars.machines.quasar.engine.DeepLink d = a.deepLink();
+            rows.bar(
+                BTSText.lang("beyondthestars.gui.eye.p5.deeplink"),
+                d.link.streak / (double) EyeMilestones.LINK_NEED,
+                BTSText.lit(EyeMilestones.clock(d.link.streak)),
+                Grad.LAVENDER,
+                null,
+                BTSText.lang(
+                    "beyondthestars.gui.eye.p5.deeplink.tip0",
+                    BTSFormat.buEuShort(d.link.mean),
+                    BTSFormat.pct(d.link.frac),
+                    BTSFormat.f2(d.rho)),
+                BTSText.lang("beyondthestars.gui.eye.p5.deeplink.tip1"));
+        }
+        if (fs != null && (fs.tier.attractor || rt.transition() instanceof com.nateyburr.beyondthestars.machines.eye.star.Infall)) {
+            final double rho = fs.beam == null ? 0 : fs.beam.rho;
+            rows.bar(
+                BTSText.lang("beyondthestars.gui.eye.p5.beam"),
+                a.rhoMax() > 0 ? rho / a.rhoMax() : 0,
+                BTSText.lit(
+                    (rho >= 0.9 ? "§a" : rho >= 0.5 ? "§e" : "§c") + "ρ "
+                        + BTSFormat.f2(rho)
+                        + " · "
+                        + com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.gradeName(a.grade())),
+                Grad.MAGENTA,
+                a.rhoMax() > 0 ? BTSGuiKit.tick(1 / a.rhoMax(), BTSGuiKit.TICK) : null,
+                BTSText.lang(
+                    "beyondthestars.gui.eye.p5.beam.tip0",
+                    com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.gevText(a.grade()),
+                    BTSFormat.f2(a.rate()),
+                    BTSFormat.f2(a.rhoMax())),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.p5.beam.tip1",
+                    String.valueOf(a.holdRating()),
+                    String.valueOf(a.acceptLimit())),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.p5.beam.tip2",
+                    a.level() < 0 ? BTSText.key("beyondthestars.gui.eye.p5.beam.nolevel") : String.valueOf(a.level())),
+                BTSText.lang("beyondthestars.gui.eye.p5.beam.tip3"));
+            final double secs = a.stockSeconds();
+            rows.stat2(
+                BTSText.lang("beyondthestars.gui.eye.p5.pellets"),
+                BTSText.lit(
+                    (a.pelletsLow() ? "§e" : "") + BTSFormat.f2(a.stock())
+                        .replace(".00", "")
+                        + (Double.isInfinite(secs) ? "" : " (" + Math.round(secs) + " s)")),
+                BTSText.lang("beyondthestars.gui.eye.p5.galaxies"),
+                BTSText.lit(String.valueOf(rt.milestones().galaxies)),
+                BTSText.lang("beyondthestars.gui.eye.p5.pellets.tip"),
+                BTSText.lang("beyondthestars.gui.eye.p5.galaxies.tip"));
+            final com.nateyburr.beyondthestars.machines.eye.field.FieldState.Flow f = fs.flow;
+            final String flow = f == null ? BTSText.lang("beyondthestars.gui.eye.p5.flow.none")
+                : f.left > 0 ? BTSText.lang(
+                    "beyondthestars.gui.eye.p5.flow.surge",
+                    String.valueOf(f.size),
+                    String.valueOf(com.nateyburr.beyondthestars.machines.eye.field.AttractorField.FLOW_DUR - f.tau),
+                    String.valueOf(f.ok))
+                    : f.warned ? BTSText.lang(
+                        f.accepted ? "beyondthestars.gui.eye.p5.flow.warned" : "beyondthestars.gui.eye.p5.flow.declined",
+                        String.valueOf(f.size),
+                        BTSText.key(f.sign > 0 ? "beyondthestars.gui.eye.p5.side.high" : "beyondthestars.gui.eye.p5.side.low"),
+                        String.valueOf(Math.round(f.next - fs.t)))
+                        : BTSText.lang("beyondthestars.gui.eye.p5.flow.next", String.valueOf(Math.round(f.next - fs.t)));
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.eye.p5.flow"),
+                BTSText.lit(flow),
+                BTSText.lang("beyondthestars.gui.eye.p5.flow.tip0"),
+                a.lastFlow()
+                    .isEmpty() ? "" : BTSText.lang("beyondthestars.gui.eye.p5.flow.last", a.lastFlow()));
+        }
+        if (fs != null && fs.tier.universe && fs.uni != null
+            && !(rt.transition() instanceof com.nateyburr.beyondthestars.machines.eye.star.Inflation)) {
+            final com.nateyburr.beyondthestars.machines.eye.field.FieldState.Universe u = fs.uni;
+            rows.bar(
+                BTSText.lang("beyondthestars.gui.eye.p5.universe"),
+                u.t / (double) com.nateyburr.beyondthestars.machines.eye.field.UniverseField.BATCH,
+                BTSText.lit(EyeMilestones.clock(u.t)),
+                Grad.LAVENDER,
+                BTSGuiKit.tick(u.dawn / (double) com.nateyburr.beyondthestars.machines.eye.field.UniverseField.BATCH, BTSGuiKit.TICK),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.p5.universe.tip0",
+                    BTSText.key(
+                        "beyondthestars.gui.eye.p5.phase."
+                            + com.nateyburr.beyondthestars.machines.eye.field.UniverseField.phase(u))),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.p5.universe.tip1",
+                    EyeMilestones.clock(com.nateyburr.beyondthestars.machines.eye.field.UniverseField.REC_AT),
+                    EyeMilestones.clock(u.dawn),
+                    BTSText.key(u.dawnOk ? "beyondthestars.gui.eye.p5.dawn.ok" : "beyondthestars.gui.eye.p5.dawn.lost")),
+                BTSText.lang("beyondthestars.gui.eye.p5.universe.tip2", BTSFormat.f2(u.n > 0 ? u.ySum / u.n : 0)),
+                a.chargeOwed() > 0 ? BTSText.lang("beyondthestars.gui.eye.p5.universe.owed", String.valueOf(a.chargeOwed()))
+                    : "");
+            rows.stat2(
+                BTSText.lang("beyondthestars.gui.eye.p5.universes"),
+                BTSText.lit(String.valueOf(rt.milestones().universes)),
+                BTSText.lang("beyondthestars.gui.eye.p5.dawns"),
+                BTSText.lit(String.valueOf(rt.milestones().dawns)),
+                BTSText.lang("beyondthestars.gui.eye.p5.universes.tip"));
+        }
     }
 
     /**
