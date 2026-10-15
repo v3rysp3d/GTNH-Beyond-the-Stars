@@ -138,6 +138,21 @@ public final class BurstRouting {
     }
 
     /**
+     * QA-B06: the split of ONE stream against what is left of the Junction's out-1 limit this second ({@code budget}
+     * Bu/t, already net of the streams that crossed earlier in the second; +∞ with no limit). Out 3 first, then
+     * share₁ of the part of the rest that fits the budget; everything else goes to out 2. Returns {out1, out2, out3,
+     * the part of the rest charged to the budget}. Summed over a second's streams, out 1 is share₁ × min(limit, the
+     * total rest): the limit holds for the Junction, not per stream.
+     */
+    public static double[] splitWithin(double in, double share1, double p3, double budget) {
+        final double out3 = p3 * in;
+        final double rest = (1 - p3) * in;
+        final double charged = Math.min(rest, Math.max(0, budget));
+        final double out1 = share1 * charged;
+        return new double[] { out1, rest - out1, out3, charged };
+    }
+
+    /**
      * P4-88: the standard rig's out-1 limit on J1 (Eye : crown), Bu/t per parallel and per unit of the Eye's time
      * dial: 5 × D₇. J1's two-level P loop then swings the Eye between 0, 4.3 and 7.5 Bu/t (β 0 / 2.8 / 5 at T7) at
      * any quasar size, instead of between 0 and the whole stream; the T7 test fire puts 7.5 on the Eye (rail 1.9, halo
