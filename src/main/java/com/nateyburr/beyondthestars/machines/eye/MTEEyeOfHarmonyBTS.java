@@ -96,6 +96,7 @@ import gregtech.api.util.GTUtility;
 import gregtech.api.util.ItemEjectionHelper;
 import gregtech.api.util.MultiblockTooltipBuilder;
 import gregtech.api.util.shutdown.ShutDownReason;
+import gregtech.api.util.shutdown.ShutDownReasonRegistry;
 import gregtech.common.gui.modularui.multiblock.base.MTEMultiBlockBaseGui;
 import gregtech.common.misc.GTStructureChannels;
 import gregtech.common.misc.WirelessNetworkManager;
@@ -1267,6 +1268,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
+        resumeIfRepaired(aBaseMetaTileEntity);
         if (aTick % DRAIN_INTERVAL == 0) {
             refreshSlotItems();
             if (mMachine) {
@@ -1895,6 +1897,51 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         // already refused to credit it): no GT run to stop, and switching the Eye off would put its star out
         if (windowDepth > 0) return;
         super.stopMachine(reason);
+        // S-05: GT switches a multiblock off when its structure breaks or every maintenance issue is open; the Eye
+        // switches itself back on once that is fixed (the star is out by R-8, and relights by itself)
+        final String id = reason.getID();
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+            .equals(id)
+            || ShutDownReasonRegistry.NO_REPAIR.getID()
+                .equals(id)) {
+            autoOff = id;
+        }
+    }
+
+    /** S-05: why GT switched the Eye off itself (a shutdown reason id), "" when not. Tile NBT. */
+    private String autoOff = "";
+
+    /** S-05: every tick, after GT's own: the Eye GT switched off goes back on once formed and maintained again. */
+    private void resumeIfRepaired(IGregTechTileEntity base) {
+        if (autoOff.isEmpty()) return;
+        if (base.isAllowedToWork()) {
+            autoOff = ""; // switched on by hand meanwhile
+            return;
+        }
+        if (!mMachine) return;
+        final boolean maintenance = ShutDownReasonRegistry.NO_REPAIR.getID()
+            .equals(autoOff);
+        if (maintenance && getRepairStatus() <= 0) return;
+        autoOff = "";
+        base.enableWorking();
+        runtime.noteEvent(
+            maintenance ? "switched back on: the maintenance is fixed"
+                : "switched back on: the structure is whole again");
+    }
+
+    /** S-05: why the Eye is switched off, for the GUI's and the scanner's wait line ("" while it may work). */
+    private String offReason() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.isAllowedToWork()) return "";
+        if (ShutDownReasonRegistry.STRUCTURE_INCOMPLETE.getID()
+            .equals(autoOff)) {
+            return "GT switched the Eye off when its structure broke: it switches back on once the structure is whole";
+        }
+        if (ShutDownReasonRegistry.NO_REPAIR.getID()
+            .equals(autoOff)) {
+            return "GT switched the Eye off: every maintenance issue is open; it switches back on once they are fixed";
+        }
+        return "the Eye is switched off (soft mallet, a cover or the GUI's power button): switch it back on";
     }
 
     private static FluidStack[] storedFluids(MTEHatchInput hatch) {
@@ -2223,6 +2270,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         writeEyeState(aNBT);
         EyeNbt.writeStar(runtime, aNBT);
         centre.writeTile(aNBT);
+        if (!autoOff.isEmpty()) aNBT.setString("btsEyeAutoOff", autoOff);
         if (runningKey != null) {
             aNBT.setString("btsEyeRunKey", runningKey);
             aNBT.setLong("btsEyeRunParallel", runningParallel);
@@ -2257,6 +2305,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
             }
         }
+        autoOff = aNBT.getString("btsEyeAutoOff");
         runningKey = aNBT.hasKey("btsEyeRunKey") ? aNBT.getString("btsEyeRunKey") : null;
         runningParallel = aNBT.getLong("btsEyeRunParallel");
         runningSuccesses = aNBT.getLong("btsEyeRunSuccesses");
@@ -2320,6 +2369,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         public boolean allowedToWork() {
             final IGregTechTileEntity base = getBaseMetaTileEntity();
             return base != null && base.isAllowedToWork();
+        }
+
+        @Override
+        public String offReason() {
+            return MTEEyeOfHarmonyBTS.this.offReason();
         }
 
         @Override

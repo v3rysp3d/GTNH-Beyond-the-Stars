@@ -99,6 +99,11 @@ public final class EyeStarRuntime {
 
         boolean allowedToWork();
 
+        /** S-05: why the machine is switched off, shown as the wait reason ("" while it may work). */
+        default String offReason() {
+            return allowedToWork() ? "" : "the machine is switched off";
+        }
+
         /** {@code min(unlockedTier, structureTier, compressionTier)}. */
         int installedTier();
 
@@ -789,6 +794,7 @@ public final class EyeStarRuntime {
         if (!host.allowedToWork()) {
             if (live()) extinguish("the machine was disabled");
             else idleOff();
+            waitReason = host.offReason();
             return;
         }
         final StarDef want = wanted();
@@ -3114,9 +3120,13 @@ public final class EyeStarRuntime {
         return EyeTrimRule.extra(trimTable(), fs.prevE, fs.prevWarn, w);
     }
 
-    /** Status bit 4: the Eye is not formed, or the burning star is Critical or worse, or its Integrity is below 50. */
+    /**
+     * Status bit 4: the Eye is not formed or is switched off, or the burning star is Critical or worse, or its
+     * Integrity is below 50.
+     */
     public boolean alarm() {
         if (!host.formed()) return true;
+        if (!host.allowedToWork()) return true; // S-05: switched off (GT's stop, a soft mallet, a cover)
         if (!burning() || fs == null) return false;
         return (lastOut != null && lastOut.zone >= 3) || fs.I < 50;
     }
