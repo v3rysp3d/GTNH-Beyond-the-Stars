@@ -132,7 +132,7 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
         if (!open) return Badge.CLOSED;
         if (!multiblock.isPowerOk()) return Badge.NO_POWER;
         if (multiblock.getStability() < 0.999) return Badge.DRIFTING;
-        if (multiblock.getMass() < multiblock.getSetpoint() - 0.5) return Badge.GROWING;
+        if (multiblock.getMass() < multiblock.effectiveSetpoint() - 0.5) return Badge.GROWING;
         return Badge.OPEN;
     }
 
@@ -218,7 +218,8 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
     /** Mass, frac m / ceiling, the setpoint as the yellow tick; §f on the setpoint, §6 below it, §b above. */
     private void massRow(BTSRows.Builder rows) {
         final double m = multiblock.getMass();
-        final int sp = multiblock.getSetpoint();
+        // QA-A30: the setpoint the governor holds (a stored 768 is held at 512 while a quasar link is lost)
+        final int sp = multiblock.effectiveSetpoint();
         final int max = Math.max(1, multiblock.maxSetpoint());
         final String colour = Math.abs(m - sp) <= 0.5 ? "§f" : m < sp ? "§6" : "§b";
         rows.bar(
@@ -245,7 +246,7 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
     private void governorRow(BTSRows.Builder rows) {
         final double bpt = multiblock.getBoltsPerTick();
         final int cap = multiblock.boltCap();
-        final boolean below = multiblock.getMass() < multiblock.getSetpoint() - 1e-3;
+        final boolean below = multiblock.getMass() < multiblock.effectiveSetpoint() - 1e-3;
         final String colour = bpt <= 0 && below ? "§c" : "§f";
         rows.bar(
             BTSText.lang(K + "governor"),
@@ -304,6 +305,20 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
             BTSText.lit(MTEKerrEngine.fmt(bolts) + " / " + MTEKerrEngine.fmt(MTEKerrEngine.OPEN_MIN_BOLTS_SM) + " SM"),
             -1,
             BTSText.lang(K + "chk.bolts.tip"));
+        // QA-A36: an open hole with no module linked only costs power and bolts
+        int built = 0;
+        for (KerrSlot slot : KerrSlot.VALUES) {
+            if (!multiblock.slotStatus(slot)
+                .startsWith("NOT BUILT")) built++;
+        }
+        if (built == 0) {
+            c.add(
+                BTSChecklist.State.WARN,
+                BTSText.lang(K + "chk.nomodule"),
+                BTSText.lit("0 / 2"),
+                -1,
+                BTSText.lang(K + "chk.nomodule.tip"));
+        }
         rows.checks(c);
         rows.stat(
             BTSText.lang(K + "auto"),

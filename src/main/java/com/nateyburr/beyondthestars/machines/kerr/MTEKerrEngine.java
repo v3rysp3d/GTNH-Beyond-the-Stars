@@ -1368,7 +1368,10 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     /** Seconds until the hole evaporates with no bolts: {@code (M^3 - 8) / 9.6} ticks. */
     public long getEvapSeconds() {
         if (!holeOpen) return 0;
-        return (long) Math.max(0, (Math.pow(mass, 3) - Math.pow(MASS_FLOOR, 3)) / (3 * BLEED_K) / 20.0);
+        // QA-A31: the bleed is BLEED_K / M² × bleedFactor() a tick (a quasar link relieves it)
+        return (long) Math.max(
+            0,
+            (Math.pow(mass, 3) - Math.pow(MASS_FLOOR, 3)) / (3 * BLEED_K * Math.max(1e-9, bleedFactor())) / 20.0);
     }
 
     public int getSeeds() {
