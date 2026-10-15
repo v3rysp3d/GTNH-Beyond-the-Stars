@@ -47,6 +47,7 @@ import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
 import com.nateyburr.beyondthestars.items.SLMaxItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
+import com.nateyburr.beyondthestars.machines.OwnerGate;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.conduit.ReceptorHatchElement;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
@@ -686,6 +687,8 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
             || !aPlayer.isSneaking()
             || aPlayer.getHeldItem() != null
             || escrow == null) return;
+        // QA-B15: only the owner (or the owner's team) takes the escrowed core and cancels an install
+        if (!OwnerGate.check(aBaseMetaTileEntity, aPlayer, "take the escrowed core")) return;
         final ItemStack core = escrow;
         final boolean cancelled = installing;
         escrow = null;

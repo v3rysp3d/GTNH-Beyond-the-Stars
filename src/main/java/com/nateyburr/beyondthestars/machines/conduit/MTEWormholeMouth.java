@@ -18,6 +18,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.OwnerGate;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarGeometry;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstDocks;
@@ -200,6 +201,8 @@ public class MTEWormholeMouth extends MTEConduitElement<MTEWormholeMouth> implem
     private void useDataStick(EntityPlayer player, ItemStack stick) {
         final int[] mine = position();
         if (mine == null) return;
+        // QA-B15: only the owner (or the owner's team) re-pairs a mouth: a pairing redirects the stream it carries
+        if (!OwnerGate.check(getBaseMetaTileEntity(), player, "pair this Wormhole Mouth")) return;
         final NBTTagCompound tag = stick.hasTagCompound() ? stick.getTagCompound() : new NBTTagCompound();
         final int[] other = tag.getIntArray(STICK_TAG);
         if (other.length == 4 && !java.util.Arrays.equals(other, mine)) {
@@ -220,7 +223,11 @@ public class MTEWormholeMouth extends MTEConduitElement<MTEWormholeMouth> implem
                         + " is not there (or not loaded).");
                 return;
             }
+            if (!OwnerGate.check(o.getBaseMetaTileEntity(), player, "pair the Wormhole Mouth at " + label(other)))
+                return;
             pair(this, o);
+            // QA-B45: a pairing is saved even while a mouth is unformed (formed elements mark the chunk each second)
+            markDirtyBoth(this, o);
             tag.removeTag(STICK_TAG);
             stick.setTagCompound(tag);
             tell(player, EnumChatFormatting.GREEN + "Wormhole paired: " + label(mine) + " <-> " + label(other));
@@ -233,6 +240,13 @@ public class MTEWormholeMouth extends MTEConduitElement<MTEWormholeMouth> implem
             EnumChatFormatting.AQUA + "Data stick holds this Wormhole Mouth ("
                 + label(mine)
                 + "). Right-click the other mouth to pair.");
+    }
+
+    private static void markDirtyBoth(MTEWormholeMouth a, MTEWormholeMouth b) {
+        for (MTEWormholeMouth m : new MTEWormholeMouth[] { a, b }) {
+            final IGregTechTileEntity base = m.getBaseMetaTileEntity();
+            if (base != null) base.markDirty();
+        }
     }
 
     private static void tell(EntityPlayer player, String text) {
