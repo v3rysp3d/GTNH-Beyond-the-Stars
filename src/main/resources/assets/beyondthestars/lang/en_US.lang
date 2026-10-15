@@ -107,7 +107,7 @@ beyondthestars.structure.cascade.outputs=The Cascade Hall needs 2 Output Hatches
 # The one fatal error a plant built by 0.19.0 or earlier reports: its silo face is the retired
 # plumbing frontage, which conflicts with the point-of-use layout cell for cell. %s = the tier
 # measured off the standing walls.
-beyondthestars.structure.silo.standing=Tier %s Reactor Silo is standing but not formed: the first wrong cell is listed above. Built on 0.19.0 or older? Run /btsmigrate beside the controller.
+beyondthestars.structure.silo.standing=Tier %s Reactor Silo is standing but not formed: the first wrong cell is listed above. If this plant was built by a much older version of the mod, a server operator can run /btsmigrate beside the controller.
 beyondthestars.gui.throttle.tooltip=Rods N/24 set reactor power (24/24 = 100%). A Programmed Circuit in the controller overrides this field.
 beyondthestars.gui.throttle.milestone=Settings above 24/24 need the BURNUP milestones (T5 26/24, T6 28/24, T7 30/24) and the Upgrade Tree's rod nodes (Rod Seals, Deep Burn Profile, Overpower Licence: +2 each, up to 36/24). Until then the field clamps to what the plant has unlocked.
 beyondthestars.gui.rpmlimit.tooltip=The redline the turbine is held to. 12,000 RPM is the design limit and the default.
@@ -221,7 +221,7 @@ tile.beyondthestars.slCasing2.1.tooltip=Retired: since the Kerr redesign the ext
 gt.beyondthestars.kerrHole.name=Kerr Black Hole
 tile.beyondthestars.slCasing2.2.name=Harmonic Lining
 tile.beyondthestars.slCasing2.2.tooltip=The white inner face of the Kerr Ergosphere Engine (every arc and band; most of it in the T2 reinforcement),\nboth Kerr modules, the Homogeny and both Reality machines.\nMade in the Assembler (4 a craft), or 64 a craft in the Condensate Assembler.
-gt.beyondthestars.eyeStar.name=Eye of Harmony Star (render)
+gt.beyondthestars.eyeStar.name=Eye of Harmony Star
 item.beyondthestars.superradiantMirrorSegment.name=Superradiant Mirror Segment
 item.beyondthestars.stabiliserPylon.name=Stabiliser Pylon
 item.beyondthestars.kerrDensityUpgrade.name=Kerr Density Upgrade
@@ -299,7 +299,7 @@ beyondthestars.eohTier.8=Gallifreyan
 item.beyondthestars.starChartNeutronStar.name=Star Chart: Neutron Star (Arcturus Remnant)
 item.beyondthestars.starChartNeutronStar.tooltip=Eye of Harmony T4 target. Insert it while Arcturus burns to start the Core Collapse.\nFeeds on Hyperdense Stellar Mixture; makes White Dwarf Matter.\nCrafted in the Condensate Assembler (Bose-Einstein Condensate) with Entangled Hyperdense Stellar Mixture.
 item.beyondthestars.starChartSiriusB.tooltip=Eye of Harmony T5 target: cooling batches turn White Dwarf Matter into Black Dwarf Matter.\nCrafted in the Condensate Assembler (Bose-Einstein Condensate) with Entangled White Dwarf Matter.
-item.beyondthestars.starChartSiriusBCooled.tooltip=Obsolete since D-49: craft back into Star Chart: Sirius B (Assembler, programmed circuit 3).
+item.beyondthestars.starChartSiriusBCooled.tooltip=Obsolete: craft back into Star Chart: Sirius B (Assembler, programmed circuit 3).
 item.beyondthestars.starChartMagnetar.name=Star Chart: SGR 1806-20 (Magnetar)
 item.beyondthestars.starChartMagnetar.tooltip=Eye of Harmony T6 target: a White and Black Dwarf Matter merger spawns it.\nAntipolarization Agent is its constant feed and charges its flare shield; it makes Magnetar Matter.\nCrafted in the Condensate Assembler (Bose-Einstein Condensate) with Entangled Black Dwarf Matter and Entangled Antipolarization Agent.
 
@@ -333,7 +333,6 @@ GT5U.gui.text.recipe_result.beyondthestars.eye.star_igniting=The protostar is ig
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_pending=The next tier's chart is in: the star keeps burning while its transition waits
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_dark=The star is dark: it lights with a Stellar Ignition Charge in a plinth input bus, 10 cycles of upkeep in the buffers and 10 cycles of EU
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_remnant=The neutron star is born from a burning Arcturus by the Core Collapse: light Arcturus, then put this chart in
-GT5U.gui.text.recipe_result.beyondthestars.eye.star_unit5=The T5 and T6 stars are not in this build yet
 
 # D-49 unit 5: transitions, T5 cooling batches, T6 magnetar; the transition and field NEI pages
 GT5U.gui.text.recipe_result.beyondthestars.eye.star_transition=A transition is running: scan the controller for its phase (a wrench, soft mallet or another chart aborts it)
@@ -380,7 +379,11 @@ tile.beyondthestars.slCasing3.11.tooltip=Reality Diffraction: the red lens eithe
 item.beyondthestars.homogenyTier2Core.name=Homogeny Tier II Core
 item.beyondthestars.homogenyTier2Core.tooltip=The Homogeny T1 -> T2: build the middle stirring ring, mix 100,000 L of Excited Stellar Plasma Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n4 parallels; unlocks Degenerate Stellar Mixture.\nMade in the Condensate Assembler with Black Dwarf, White Dwarf and SpaceTime condensates (after Eye T5).
 item.beyondthestars.homogenyTier3Core.name=Homogeny Tier III Core
-item.beyondthestars.homogenyTier3Core.tooltip=The Homogeny T2 -> T3: build the tilted outer ring, mix 100,000 L of Degenerate Stellar Mixture,\nthen put this core in the controller and press Install (10 minutes, offline). Permanent.\n16 parallels; unlocks Entanglement Medium.\nMade in the Condensate Assembler with White Hole Matter (Eye T9), Superdense Ergomatter, Degenerate and Eternity condensates.\nEternity: the pack's Eternity line. Until this addon moves its loop onto Ergomatter it needs Universium (Eye T10), so this core waits for that change.
+item.beyondthestars.homogenyTier3Core.tooltip=The Homogeny T2 -> T3: build the tilted outer ring, mix 100,000 L of Degenerate Stellar Mixture,
+then put this core in the controller and press Install (10 minutes, offline). Permanent.
+16 parallels; unlocks Entanglement Medium.
+Made in the Condensate Assembler with White Hole Matter (Eye T9, coming later), Superdense Ergomatter, Degenerate and Eternity condensates.
+Its UXV Field Generators and Electric Pumps need Universium (Eye T10, coming later), so this core waits for those Eye tiers.
 item.beyondthestars.universalUpgradeCore.name=Universal Upgrade Core
 item.beyondthestars.universalUpgradeCore.tooltip=Eye of Harmony T9 -> T10.\nReassembled by Reality Refab from the six Entangled Regions.
 item.beyondthestars.starChartUniverse.name=Star Chart: The Observable Universe
@@ -417,7 +420,7 @@ tile.beyondthestars.slCasing2.4.tooltip=The Quasar Engine's disc coils (Transcen
 tile.beyondthestars.slCasing2.5.name=Disc Field Coil (Tier III)
 tile.beyondthestars.slCasing2.5.tooltip=The Quasar Engine's disc coils (SpaceTime). Every coil in one quasar is the same tier.\nTier III: b at most 3; the hole grows to at most 2,048 SM.\nCoil power: 2 A UXV x b squared. Made in the Condensate Assembler (32 a craft).
 tile.beyondthestars.slCasing2.6.name=Disc Field Coil (Tier IV)
-tile.beyondthestars.slCasing2.6.tooltip=The Quasar Engine's disc coils (MagMatter). Every coil in one quasar is the same tier.\nTier IV (optional): b at most 4; the hole grows to at most 4,096 SM.\nCoil power: 2 A UXV x b squared. Made in the Condensate Assembler (32 a craft).
+tile.beyondthestars.slCasing2.6.tooltip=The Quasar Engine's disc coils (MagMatter). Every coil in one quasar is the same tier.\nTier IV: b at most 4; the hole grows to at most 4,096 SM. Saturation and the Supermassive Lattice need these coils.\nCoil power: 2 A UXV x b squared. Made in the Condensate Assembler (32 a craft).
 tile.beyondthestars.slCasing2.7.name=Eddington Wall Casing
 tile.beyondthestars.slCasing2.7.tooltip=The Quasar Engine's walls and collars: they hold the disc at its Eddington limit.\nAlso in the conduit throats, the GRB Receptor Port and the Quasar Engine controller.\nMade in the Condensate Assembler (64 a craft).
 tile.beyondthestars.slCasing2.8.name=Rim Gas Injector
@@ -425,7 +428,7 @@ tile.beyondthestars.slCasing2.8.tooltip=The Quasar Engine's disc rim (gas in thr
 tile.beyondthestars.slCasing2.9.name=Jet Collimator Ring
 tile.beyondthestars.slCasing2.9.tooltip=Holds a gamma-ray burst stream on axis: the Quasar Engine's jet towers, the Burst Thermaliser Crowns\nand every conduit element (Wormhole Mouth, Conduit Mirror, Conduit Junction).\nMade in the Condensate Assembler (32 a craft).
 tile.beyondthestars.slCasing2.10.name=Burst Thermaliser Casing
-tile.beyondthestars.slCasing2.10.tooltip=The Burst Thermaliser Crown's core: turns bursts into heat, then EU to your wireless network (1 Bu/t = 10^13 EU/t:\na maxed 4,096 SM quasar's 9,796 Bu/t is 9.8e16 EU/t, 98 quadrillion). Made in the Condensate Assembler (64 a craft).
+tile.beyondthestars.slCasing2.10.tooltip=The Burst Thermaliser Crown's core: turns bursts into heat, then EU to your wireless network (1 Bu/t = 10^13 EU/t:\na well-run 4,096 SM quasar's 9,796 Bu/t is 9.8e16 EU/t, 98 quadrillion; a lattice quasar makes more). Made in the Condensate Assembler (64 a craft).
 tile.beyondthestars.slCasing2.11.name=Radiator Petal
 tile.beyondthestars.slCasing2.11.tooltip=The Burst Thermaliser Crown's petals: 643 / 1,428 / 2,803 / 4,599 make a Mk I / II / III / IV crown\n(32 / 512 / 8,192 / 524,288 Bu/t = 3.2e14 / 5.1e15 / 8.2e16 / 5.2e18 EU/t). Made in the Condensate Assembler (64 a craft).
 # items (SLQuasarItems)
@@ -446,7 +449,7 @@ item.beyondthestars.starChartTriangulum.tooltip=Eye of Harmony T7 target: the ma
 item.beyondthestars.starChartMilkyWay.name=Star Chart: Milky Way
 item.beyondthestars.starChartMilkyWay.tooltip=Eye of Harmony T8 target (required): the merged galaxy. Its central black hole, Sgr A*, is T9's.\nFeed Ergomatter 0-10 L/s; makes Superdense Ergomatter 1 : 1. Gauges P, W and Lambda: aim into the shard halo, catch the satellite crossing.\nPut it in the slot while Triangulum burns: once ready, Begin runs the Galactic Merger.\nPlanets mode: 6 planets from the slot bus instead.\nMade in the Condensate Assembler with Entangled Ergomatter.
 item.beyondthestars.gammaRayBurst.name=Gamma-Ray Burst (Bu/t)
-item.beyondthestars.gammaRayBurst.tooltip=Display only (NEI): a burst stream, in Bu/t. Never crafted or consumed.\nA Quasar Engine's two jets each carry half its stream; Wormhole Mouths, Mirrors and Junctions carry it losslessly;\na GRB Receptor Port takes it into a host (Eye T7/T8, Kerr, Homogeny, Reality Diffraction); a crown turns 1 Bu/t into 10^13 EU/t\n(a maxed 4,096 SM quasar: 9,796 Bu/t = 9.8e16 EU/t, 98 quadrillion).
+item.beyondthestars.gammaRayBurst.tooltip=Display only (NEI): a burst stream, in Bu/t. Never crafted or consumed.\nA Quasar Engine's two jets each carry half its stream; Wormhole Mouths, Mirrors and Junctions carry it losslessly;\na GRB Receptor Port takes it into a host (Eye T7/T8, Kerr, Homogeny, Reality Diffraction); a crown turns 1 Bu/t into 10^13 EU/t\n(a well-run 4,096 SM quasar: 9,796 Bu/t = 9.8e16 EU/t, 98 quadrillion; a lattice quasar makes more).
 # NEI display pages (QuasarRecipeMaps; these keys ARE the maps' unlocalized names)
 beyondthestars.recipe.quasar=Quasar Engine (accretion disc)
 beyondthestars.recipe.thermaliser=Burst Thermaliser Crown
@@ -462,12 +465,18 @@ tile.beyondthestars.slCasing4.0.name=Lattice Frame Casing
 tile.beyondthestars.slCasing4.0.tooltip=The Supermassive Lattice round a Quasar Engine: its equatorial band, two latitude rings, struts and ribs (8,436 a lattice).\nThe lattice unlocks at Saturation (4,096 SM on MagMatter coils, Stable, for 1 hour).\nAssembler (UXV), 4 a craft.
 tile.beyondthestars.slCasing4.1.name=Containment Node (L1, Superdense Ergomatter)
 tile.beyondthestars.slCasing4.1.tooltip=48 per Supermassive Lattice, all one tier. L1: the hole is held up to 16,384 SM by the lattice alone,\nand up to 65,536 SM (the Eye T9 -> T10 Supermassive Link) with hold-up gas (4x the Eddington feed at the top).\nPower past 4,096 SM: x2 at 16,384 SM, x4 at 65,536 (about 3.9 x 10^17 EU/t). Assembly line, 8,000 L Superdense Ergomatter.
-tile.beyondthestars.slCasing4.2.name=Containment Node (L2, White Hole Matter)
-tile.beyondthestars.slCasing4.2.tooltip=48 per Supermassive Lattice, all one tier. L2: safe limit 65,536 SM, top 262,144 SM (held by gas above the safe limit).\nMade from an L1 node in the Condensate Assembler with Entangled White Hole Matter (Eye T9).
-tile.beyondthestars.slCasing4.3.name=Containment Node (L3, Universium)
-tile.beyondthestars.slCasing4.3.tooltip=48 per Supermassive Lattice, all one tier. L3: safe limit 262,144 SM, top 4,194,304 SM, and Overdrive:\nup to x100 (about 9.8 x 10^18 EU/t) for a while, burning Molten MHDCSM and Molten Universium.\nMade from an L2 node in the Condensate Assembler with Entangled Universium.
+tile.beyondthestars.slCasing4.2.name=Containment Node (L2)
+tile.beyondthestars.slCasing4.2.tooltip=48 per Supermassive Lattice, all one tier. L2: safe limit 65,536 SM, top 262,144 SM (held by gas above the safe limit).
+Made from an L1 node in the Condensate Assembler with Entangled Superdense Ergomatter and Entangled Magnetar Matter.
+tile.beyondthestars.slCasing4.3.name=Containment Node (L3)
+tile.beyondthestars.slCasing4.3.tooltip=48 per Supermassive Lattice, all one tier. L3: safe limit 262,144 SM, top 4,194,304 SM, and Overdrive:
+up to x100 (about 9.8 x 10^18 EU/t) for a while, burning stellar mixtures.
+Made from an L2 node in the Condensate Assembler with Entangled Superdense Ergomatter, Magnetar Matter and Black Dwarf Matter.
 tile.beyondthestars.slCasing4.4.name=Containment Node (L4, Constrained Eternity)
-tile.beyondthestars.slCasing4.4.tooltip=48 per Supermassive Lattice, all one tier. L4: safe limit 4,194,304 SM, top 67,108,864 SM, and Unbind:\npast the top, every doubling halves the Overdrive upkeep for a Primordial Matter anchor. Nothing is ever destroyed.\nMade from an L3 node in the Condensate Assembler: Eternity and MHDCSM plates, Universium coat.
+tile.beyondthestars.slCasing4.4.tooltip=48 per Supermassive Lattice, all one tier. L4: safe limit 4,194,304 SM, top 67,108,864 SM, and Unbind:
+past the top, every doubling halves the Overdrive upkeep for a Primordial Matter anchor. Nothing is ever destroyed.
+Made from an L3 node in the Condensate Assembler: Eternity and MagMatter plates, Entangled Superdense Ergomatter,
+Entangled Magnetar Matter and Eternity condensate.
 tile.beyondthestars.slCasing4.5.name=Event Horizon Thermaliser Casing
 tile.beyondthestars.slCasing4.5.tooltip=The Mk IV (Event Horizon) Burst Thermaliser Crown's core: 852 a crown, cap 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion).\nAssembler (UXV), 4 a craft.
 item.beyondthestars.conduitThroatMk4.name=Conduit Throat Mk IV
@@ -844,7 +853,7 @@ beyondthestars.gui.reality.chk.storage=%s storage
 beyondthestars.gui.reality.chk.storages=%s storages
 beyondthestars.gui.reality.chk.network.tip=A BEC Hatch facing a BEC conduit reaches this network
 beyondthestars.gui.reality.chk.network.nostorage=No condensate storage on it: start a Containment Field on this network
-beyondthestars.gui.reality.chk.norecipe=SL-R03 is not registered
+beyondthestars.gui.reality.chk.norecipe=The Diffraction recipe did not load (its fluids are missing; see the server log)
 beyondthestars.gui.reality.region.0=I Hyperspace
 beyondthestars.gui.reality.region.1=II Subspace
 beyondthestars.gui.reality.region.2=III Forward Time
@@ -1088,12 +1097,12 @@ beyondthestars.gui.eye.chk.galaxystable=Triangulum lit (galaxy mode) and Stable
 beyondthestars.gui.eye.chk.railports=Rail ports (high / low)
 beyondthestars.gui.eye.chk.railports.tip=A GRB Receptor Port on each bank of the stability rail (rail-high and rail-low)
 beyondthestars.gui.eye.chk.weakquasar=Quasar peak
-beyondthestars.gui.eye.chk.smlink=Supermassive Link (P5)
-beyondthestars.gui.eye.chk.smlink.tip0=The Eye T9 -> T10 milestone (P5): a hole of at least 65,536 SM with a Supermassive Lattice, linked 30 min unbroken
+beyondthestars.gui.eye.chk.smlink=Supermassive Link
+beyondthestars.gui.eye.chk.smlink.tip0=The Eye T9 -> T10 milestone: a hole of at least 65,536 SM with a Supermassive Lattice, linked 30 min unbroken
 beyondthestars.gui.eye.chk.smlink.tip1=60 s mean on the ports: %s, needs %s
 beyondthestars.gui.eye.chk.smlink.tip2=Link source: %s
 beyondthestars.gui.eye.chk.smlink.tip3=Best streak %s. It resets when the link drops or the hole leaks under 65,536 SM.
-beyondthestars.gui.eye.chk.smlink.tip4=§7Data only until Eye T9 ships (P5): nothing gates on it yet.
+beyondthestars.gui.eye.chk.smlink.tip4=§7Data only until Eye T9 comes (a later update): nothing gates on it yet.
 beyondthestars.gui.eye.chk.weakquasar.tip0=For the collapse: the linked quasar's peak %s, needed %s
 beyondthestars.gui.eye.chk.weakquasar.tip1=The linked quasar's best: a purge at full flux, 3.5 x G0 x Y_q, all to the Eye. %s on the collapse second cancels the whole shock
 beyondthestars.gui.eye.chk.weakquasar.tip2=At this peak the shock would land at P +%s of +%s (above +100 the collapse fails: the magnetar and its charge are lost, the core stays in escrow)
@@ -1158,7 +1167,7 @@ beyondthestars.gui.quasar.right.tip=Disc Field Coils T%s: the field b reaches th
 beyondthestars.gui.quasar.right.tip2=Coil tiers 1-4: Infinity, Transcendent Metal, SpaceTime, MagMatter (caps 256 / 1,024 / 2,048 / 4,096 SM)
 beyondthestars.gui.quasar.notformed=Not formed: the disc is frozen (the hologram projector shows the quasar)
 beyondthestars.gui.quasar.frozen=Frozen: a chunk of the structure is unloaded
-beyondthestars.gui.quasar.frozen.tip=Nothing steps or publishes; every machine it feeds pauses (Q-8). Keep the whole quasar chunk-loaded.
+beyondthestars.gui.quasar.frozen.tip=Nothing steps or publishes; every machine it feeds pauses and keeps its state. Keep the whole quasar chunk-loaded.
 beyondthestars.gui.quasar.e.tip=E %s (%s), Stability %s: the Eddington balance, target 0
 beyondthestars.gui.quasar.e.tip2=Starved is negative, over-Eddington positive. Raise it with a feed-gas trim or f, lower it with Spatially Enlarged Fluid. Zones as the Eye: Resonant ±10, Stable ±40, Strained ±70, Critical ±100, then Breach (a blow-out).
 beyondthestars.gui.quasar.flux=Flux
@@ -1367,8 +1376,8 @@ beyondthestars.gui.quasar.panel.unbind.tip4=Click twice to Unbind. The config ke
 beyondthestars.gui.quasar.panel.hint.unbind=Click Unbind again: the setpoint may pass 67,108,864 SM.
 beyondthestars.gui.quasar.panel.hint.lattice=Put more gas in than f draws: it holds the mass over the safe limit, then grows the hole (up to 5x the Eddington feed).
 beyondthestars.gui.quasar.panel.hint.nolattice=Build the Supermassive Lattice round the quasar and reach Saturation (4,096 SM Stable for 1 hour on MagMatter coils).
-beyondthestars.gui.quasar.info.eu=§eEU/t §71 Bu/t = 10^13 EU/t once a crown turns it into power. A maxed 4,096 SM quasar's 9,796 Bu/t is 9.8e16 EU/t, 98 quadrillion (quadrillion = 10^15, quintillion = 10^18). Every Bu/t in this GUI shows its EU/t beside it.
-beyondthestars.gui.quasar.info.lattice=§eSUPERMASSIVE LATTICE §7An armillary cage round this quasar, its last upgrade (in place: the same hole). It counts after Saturation (4,096 SM Stable for 1 hour on MagMatter coils). Safe limit / top: L1 Superdense Ergomatter 16,384 / 65,536 SM, L2 White Hole Matter 65,536 / 262,144, L3 Universium 262,144 / 4,194,304, L4 Constrained Eternity 4,194,304 / 67,108,864.
+beyondthestars.gui.quasar.info.eu=§eEU/t §71 Bu/t = 10^13 EU/t once a crown turns it into power. A well-run 4,096 SM quasar's 9,796 Bu/t is 9.8e16 EU/t, 98 quadrillion (quadrillion = 10^15, quintillion = 10^18). Every Bu/t in this GUI shows its EU/t beside it.
+beyondthestars.gui.quasar.info.lattice=§eSUPERMASSIVE LATTICE §7An armillary cage round this quasar, its last upgrade (in place: the same hole). It counts after Saturation (4,096 SM Stable for 1 hour on MagMatter coils). Safe limit / top: L1 Superdense Ergomatter 16,384 / 65,536 SM, L2 65,536 / 262,144, L3 262,144 / 4,194,304, L4 Constrained Eternity 4,194,304 / 67,108,864.
 beyondthestars.gui.quasar.info.intake=§eINTAKE §7All the gas drawn in a second, up to 5x the Eddington feed: Disc (f, the only part that moves E), then Hold-up (3x x Eddington; holds the mass over the safe limit; short, the extra leaks back, halving each hour), then Growth (the rest). Power past 4,096 SM grows as the square root of mass: x2 (2.0e17 EU/t) at 16,384 SM, up to x31 (3.0e18 EU/t) at the L4 top.
 beyondthestars.gui.quasar.info.overdrive=§eOVERDRIVE §7L3 or better: output toward x100 (9.8e18 EU/t, about 10 quintillion) for 100,000 x o² L/s each of Molten MHDCSM and Molten Universium. Half Overdrive gives about 90 % of the gain. Running dry fades it over 1 s; nothing breaks.
 beyondthestars.gui.quasar.info.unbound=§eUNBOUND §7L4 and Unbind: the setpoint may pass 67,108,864 SM. Each doubling n halves the Overdrive upkeep, for a Primordial Matter anchor of 1,024 x 4^(n²) L/s (4,096 L/s at n 1). A short anchor sheds safely to what the supply pays for; nothing is ever destroyed.
@@ -1480,7 +1489,7 @@ beyondthestars.gui.crown.clipped.tip=Stack a second crown on top to take the ove
 beyondthestars.gui.crown.stack=Stack
 beyondthestars.gui.crown.port=Jet port
 beyondthestars.gui.crown.port.none=none docked
-beyondthestars.gui.crown.port.none.tip=The base centre must sit on a quasar's port cell (/btsconduit dock <quasar> prints the cells)
+beyondthestars.gui.crown.port.none.tip=The base centre must sit on a quasar's port cell: the cell just past the jet's cap, on the jet axis
 beyondthestars.gui.crown.receptor=Receptor
 beyondthestars.gui.crown.switch=The power switch does nothing here: a crown turns every stream it takes into EU
 beyondthestars.gui.crown.info.power=§ePOWER §7A crown turns 1 Bu/t into 10^13 EU/t, straight onto the owner's wireless network. Caps: Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 (5.1e15), Mk III 8,192 (8.2e16, 82 quadrillion), Mk IV 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion).
@@ -1514,7 +1523,7 @@ beyondthestars.gui.burst.edges=Rising edges: %s
 beyondthestars.gui.burst.edges.tip=Redstone going from 0 to above 0 since the hatch was placed (Purge and Begin act on these)
 beyondthestars.gui.receptor.nohost=in no machine
 beyondthestars.gui.receptor.host.tip=The machine that reads this port once a second; in no machine it only records
-beyondthestars.gui.receptor.paused=PAUSED (Q-8)
+beyondthestars.gui.receptor.paused=PAUSED (source quasar stopped)
 beyondthestars.gui.receptor.linked=LINKED
 beyondthestars.gui.receptor.notlinked=not linked
 beyondthestars.gui.receptor.last=%s
