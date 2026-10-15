@@ -84,7 +84,8 @@ import io.netty.buffer.ByteBuf;
  * <h2>The four traps</h2>
  * <ol>
  * <li>{@link #construct} reads only the trigger; the GUI reads synced values only.</li>
- * <li>Every setting is tile NBT ({@link #saveNBTData}); a wrench drops the throat like any controller slot.</li>
+ * <li>Every setting is tile NBT ({@link #saveNBTData}) and rides a wrenched item ({@link #setItemNBT}); a wrench
+ * drops the throat like any controller slot.</li>
  * <li>Fuel and Burst Control sockets are private ({@link ConduitHatchElement}); no plant-wide list.</li>
  * <li>Every socket chains its fallback casing.</li>
  * </ol>
@@ -481,17 +482,29 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     @Override
     protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {}
 
+    /**
+     * QA-B13: GT resets the active flag from mMaxProgresstime every tick, and this machine runs no recipe: the flag
+     * worked out once a second is set again every tick after GT's, so the ACTIVE overlay shows and clients are not
+     * sent two texture changes a second.
+     */
+    private boolean activeNow;
+
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
+        tickServer(aBaseMetaTileEntity, aTick);
+        aBaseMetaTileEntity.setActive(activeNow);
+    }
+
+    private void tickServer(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (aTick > 0 && aTick % RECHECK == 0) checkStructure(true, aBaseMetaTileEntity);
         if (aTick % 20 != 0) return;
         final World world = aBaseMetaTileEntity.getWorld();
         final long now = world.getTotalWorldTime();
         if (!mMachine) {
             ConduitNet.unregister(world, this);
-            aBaseMetaTileEntity.setActive(false);
+            activeNow = (false);
             if (aTick % 100 == 0) sendRenderDataToClient(this);
             return;
         }
@@ -500,7 +513,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         register(world);
         extraSecond(aBaseMetaTileEntity, now);
         book.prune(now);
-        aBaseMetaTileEntity.setActive(open && book.sum("pass|", now, FlowBook.SHOW) > 1e-9);
+        activeNow = (open && book.sum("pass|", now, FlowBook.SHOW) > 1e-9);
         sendRenderDataToClient(this);
     }
 
@@ -884,6 +897,20 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         litresSpaceTime = t.getLong("litresST");
         litresErgomatter = t.getLong("litresErgo");
         readElement(t);
+    }
+
+    /**
+     * QA-B16: a wrenched element keeps its settings on the item: the fuel mode and the subclass's (a Junction's mode,
+     * c,
+     * k, p3 and out-1 limit; a Mouth's partner). It re-opens after its usual 10 s of paid upkeep.
+     */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
+        final NBTTagCompound t = new NBTTagCompound();
+        t.setString("fuel", fuelMode.name());
+        writeElement(t);
+        aNBT.setTag("btsConduit", t);
     }
 
     /** Subclass settings into the element's tag. */

@@ -362,10 +362,22 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     protected void runMachine(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {}
 
+    /**
+     * QA-B13: GT resets the active flag from mMaxProgresstime every tick, and this machine runs no recipe: the flag
+     * worked out once a second is set again every tick after GT's, so the ACTIVE overlay shows and clients are not
+     * sent two texture changes a second.
+     */
+    private boolean activeNow;
+
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
+        tickServer(aBaseMetaTileEntity, aTick);
+        aBaseMetaTileEntity.setActive(activeNow);
+    }
+
+    private void tickServer(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (owner == null && aBaseMetaTileEntity.getOwnerUuid() != null) {
             owner = WirelessNetworkManager.processInitialSettings(aBaseMetaTileEntity);
         }
@@ -375,7 +387,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         final long now = world.getTotalWorldTime();
         if (!mMachine) {
             lastStream = lastUsed = lastOver = lastClipped = 0;
-            aBaseMetaTileEntity.setActive(false);
+            activeNow = (false);
             if (aTick % 100 == 0) sendRenderDataToClient(this);
             return;
         }
@@ -384,7 +396,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         second(now);
         aBaseMetaTileEntity.markDirty(); // the lifetime EU changes every second (P4-85)
         book.prune(now);
-        aBaseMetaTileEntity.setActive(lastUsed > 1e-9);
+        activeNow = (lastUsed > 1e-9);
         sendRenderDataToClient(this);
     }
 
@@ -679,6 +691,14 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
+        aNBT.setInteger("btsCrownLastMk", lastMk);
+        aNBT.setString("btsCrownLifetime", lifetimeEU.toString());
+    }
+
+    /** QA-B16: a wrenched crown keeps its lifetime EU and the Mk it last formed. */
+    @Override
+    public void setItemNBT(NBTTagCompound aNBT) {
+        super.setItemNBT(aNBT);
         aNBT.setInteger("btsCrownLastMk", lastMk);
         aNBT.setString("btsCrownLifetime", lifetimeEU.toString());
     }
