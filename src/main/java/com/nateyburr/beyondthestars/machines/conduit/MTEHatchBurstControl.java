@@ -101,6 +101,8 @@ public class MTEHatchBurstControl extends MTEHatch {
     private String host = "";
     private String hostLine = "";
     private long lastPoll = Long.MIN_VALUE / 2;
+    /** The modes the host accepted at its last poll (live; empty: no host). */
+    private Mode[] accepted = new Mode[0];
 
     public MTEHatchBurstControl(int aID, String aName, String aNameRegional) {
         super(aID, aName, aNameRegional, 11, 0, "Redstone in: purges, the coil field b, a Junction's split");
@@ -188,6 +190,7 @@ public class MTEHatchBurstControl extends MTEHatch {
         if (base != null) lastPoll = base.getTimer();
         host = hostName == null ? "" : hostName;
         hostLine = line == null ? "" : line;
+        this.accepted = accepted.clone();
         if (accepted.length > 0) {
             boolean ok = false;
             for (Mode m : accepted) ok |= m == mode;
@@ -219,9 +222,27 @@ public class MTEHatchBurstControl extends MTEHatch {
         return mode.ordinal();
     }
 
+    /**
+     * The GUI's mode button. QA-B21: with a host reading the hatch, the button steps over the modes that host does not
+     * use (in the direction clicked), so Hold, Overdrive and Shed are reachable on a quasar instead of snapping back
+     * to Purge from Split or Begin.
+     */
     public void setModeOrdinal(int o) {
-        mode = Mode.of(o);
+        Mode next = Mode.of(o);
+        if (fresh() && accepted.length > 0 && !accepts(next)) {
+            final int n = Mode.VALUES.length;
+            final int dir = Math.floorMod(next.ordinal() - mode.ordinal(), n) == n - 1 ? -1 : 1;
+            int i = next.ordinal();
+            for (int k = 0; k < n && !accepts(Mode.of(i)); k++) i = Math.floorMod(i + dir, n);
+            next = Mode.of(i);
+        }
+        mode = next;
         settingsChanged();
+    }
+
+    private boolean accepts(Mode m) {
+        for (Mode a : accepted) if (a == m) return true;
+        return false;
     }
 
     /**

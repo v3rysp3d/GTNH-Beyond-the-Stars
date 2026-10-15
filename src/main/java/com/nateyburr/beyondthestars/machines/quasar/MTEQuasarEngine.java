@@ -332,6 +332,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .addElement(
                 't',
                 buildHatchAdder(MTEQuasarEngine.class).atLeast(QuasarHatchElement.Trim)
+                    // QA-B34: the survival projector never fits an ME stocking hatch here (the walk refuses one)
+                    .hatchItemFilterAnd(t -> MTEQuasarEngine::notStockingHatch)
                     .casingIndex(shell)
                     .hint(2)
                     .buildAndChain(casing(Casings.BackgroundRadiationAbsorbentCasing)))
@@ -370,6 +372,14 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                         .hint(7)
                         .build()))
             .build();
+    }
+
+    /** False for an ME stocking input hatch's item (the trim sockets take plain input hatches only). */
+    static boolean notStockingHatch(ItemStack stack) {
+        if (stack == null || !(stack.getItem() instanceof gregtech.common.blocks.ItemMachines)) return true;
+        final int id = stack.getItemDamage();
+        return id < 0 || id >= gregtech.api.GregTechAPI.METATILEENTITIES.length
+            || !(gregtech.api.GregTechAPI.METATILEENTITIES[id] instanceof MTEHatchInputME);
     }
 
     private static IStructureElement<MTEQuasarEngine> casing(Casings casing) {
