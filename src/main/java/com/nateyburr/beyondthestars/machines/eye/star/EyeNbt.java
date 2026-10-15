@@ -115,6 +115,7 @@ public final class EyeNbt {
         s.setDouble("eyeT", fs.eyeT);
         s.setDouble("cycR", rt.cycR);
         s.setInteger("cycP", rt.cycP); // the parallel the cycle / batch paid for (D-49 review)
+        if (rt.euShort) s.setBoolean("euShort", true); // S-04: the cycle still owes its EU
         s.setInteger("batchP", rt.batchP);
         for (int k = 0; k < 4; k++) s.setDouble("prevE" + k, fs.prevE[k]);
         s.setByte("prevWarn", (byte) fs.prevWarn);
@@ -343,6 +344,7 @@ public final class EyeNbt {
         }
         rt.cycR = s.hasKey("cycR") ? s.getDouble("cycR") : 1;
         rt.cycP = s.getInteger("cycP"); // 0 (an older save): no cap until the next charge
+        rt.euShort = s.getBoolean("euShort");
         rt.batchP = s.getInteger("batchP");
         rt.tengam = s.getDouble("tengam");
         rt.hsmOwed = s.getDouble("hsmOwed");

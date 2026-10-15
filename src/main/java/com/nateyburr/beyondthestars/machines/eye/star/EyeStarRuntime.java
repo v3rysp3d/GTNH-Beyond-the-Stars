@@ -696,6 +696,7 @@ public final class EyeStarRuntime {
         seed = 0;
         cycR = 1;
         cycP = batchP = 0;
+        euShort = false;
         hsmOwed = prodCarry = tengam = 0;
         cycWorst = flashState = flashTail = 0;
         flashOk = false;
@@ -947,6 +948,7 @@ public final class EyeStarRuntime {
             lastTimePaid = paid;
             m = paid >= want ? mCap : 1 + DIAL_STEP * paid / perStep;
         }
+        retryCycleCharge(); // S-04: a cycle still owing its EU tries again
         in.m = m;
         in.q = StepInputs.qFor(host.stabilisationTier());
         in.r = cycR;
@@ -1747,16 +1749,62 @@ public final class EyeStarRuntime {
     // ========================================================================= cycles, ignition
 
     /**
-     * Debits the cycle's EU and takes its upkeep (plan §6.2). A failed debit makes r = 0; the fluids are still taken
-     * (upkeep is paid in full whatever the yield), and r is the worst delivered fraction. T6 also spends a cycle of
-     * the dwarf-matter reserve (topping it up from the buffers when low) and returns Tengam for the Agent. Resets the
-     * cycle's worst zone (T4 milestone).
+     * Debits the cycle's EU and takes its upkeep (plan §6.2); r is the worst delivered fraction. T6 also spends a
+     * cycle of the dwarf-matter reserve (topping it up from the buffers when low) and returns Tengam for the Agent.
+     * Resets the cycle's worst zone (T4 milestone).
+     * <p>
+     * S-04: a failed EU debit makes r = 0 and takes NO upkeep: the cycle waits for its EU ({@link #euShort}), and
+     * every second the debit is tried again ({@link #retryCycleCharge}). Once it goes through the upkeep is taken and
+     * the cycle runs on at the delivered r; before, one EU dip of the wireless network put an unattended Sol out
+     * about 39 s later with its upkeep spent.
      */
     void chargeCycle() {
         final int p = Math.max(1, parallel(star.n()));
-        double r = debit(
-            BigInteger.valueOf(star.euPerCycle)
-                .multiply(BigInteger.valueOf(p))) ? 1 : 0;
+        cycP = p;
+        lastP = p;
+        cycWorst = 0;
+        if (!debit(cycleEu(p))) {
+            euShort = true;
+            cycR = 0;
+            lastEvent = "the wireless network could not pay this cycle's " + sci(cycleEu(p))
+                + " EU: no upkeep taken, P sags; the Eye tries again every second";
+            host.markDirty();
+            return;
+        }
+        euShort = false;
+        cycR = takeUpkeep(p);
+        host.markDirty();
+    }
+
+    /** One cycle's EU at parallel p. */
+    private BigInteger cycleEu(int p) {
+        return BigInteger.valueOf(star.euPerCycle)
+            .multiply(BigInteger.valueOf(p));
+    }
+
+    /** S-04: the running cycle still owes its EU (the debit failed); its upkeep is not taken yet. Tile NBT. */
+    boolean euShort;
+
+    /**
+     * S-04: once a second while the cycle owes its EU: the debit again; when it goes through, the upkeep is taken and
+     * the rest of the cycle runs at the delivered r (the cycle's product counts from that r, not the 0 of the seconds
+     * it waited: those seconds only sagged P).
+     */
+    private void retryCycleCharge() {
+        if (!euShort || star == null) return;
+        final int p = Math.max(1, cycP);
+        if (!debit(cycleEu(p))) return;
+        euShort = false;
+        cycR = takeUpkeep(p);
+        if (fs != null && fs.cyc != null) fs.cyc.rMin = cycR;
+        lastEvent = "the cycle's EU was paid " + Math.round(fs == null || fs.cyc == null ? 0 : fs.cyc.eyeT)
+            + " s late: upkeep taken, r " + f2(cycR);
+        host.markDirty();
+    }
+
+    /** Takes one cycle's upkeep at parallel p (plus the companions' and T6's dwarf matter); returns the cycle's r. */
+    private double takeUpkeep(int p) {
+        double r = 1;
         for (EyeRecipe.FluidAmount up : star.upkeep) {
             final long need = up.amount * p;
             final long got = Math.min(host.buffer(up.fluid), need);
@@ -1775,11 +1823,7 @@ public final class EyeStarRuntime {
             if (dwarfReserve >= 1) dwarfReserve -= 1;
             else r = 0; // starving: no dwarf matter left to hold it together
         }
-        cycR = r;
-        cycP = p;
-        lastP = p;
-        cycWorst = 0;
-        host.markDirty();
+        return r;
     }
 
     /** T6: one dwarf-matter top-up from the buffers if both fluids are there in full. */
@@ -2228,6 +2272,7 @@ public final class EyeStarRuntime {
         }
         cycR = 1;
         cycP = batchP = 0;
+        euShort = false;
         prodCarry = 0;
         hsmOwed = 0;
         flashState = 0;
