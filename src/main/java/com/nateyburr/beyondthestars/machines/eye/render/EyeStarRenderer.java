@@ -31,6 +31,7 @@ import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
 import com.nateyburr.beyondthestars.client.render.RenderClock;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
+import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -188,7 +189,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             final double s = Math.sin(now * SWELL_RATE);
             radius *= 1f - pulse / 3f * (float) (0.5 + 0.5 * s);
             gamma *= 1f + pulse * (float) s;
-        } else if (pulse > 0) {
+        } else if (pulse > 0 && !steadyBody(star, kind)) {
             // wobble: two incommensurate sines, so an unstable star breathes rather than ticks
             radius *= 1f + pulse * (float) (0.6 * Math.sin(now * 0.31) + 0.4 * Math.sin(now * 0.87 + 1.3));
         }
@@ -265,6 +266,16 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             RenderQuality.glCheckEnd(star, glCheck, "the Eye's centre");
             GpuTimer.end();
         }
+    }
+
+    /**
+     * B-219: the neutron star and the magnetar keep a constant radius (a compact body does not breathe; at 1 to 2.8 Hz
+     * the wobble read as a bounce); their unrest shows as {@link EyeStarFx#flicker} instead. Only the overfed
+     * magnetar of the Magnetar Collapse, a transition, still throbs toward its collapse.
+     */
+    private static boolean steadyBody(TileEyeStar star, byte kind) {
+        return kind == EyeStarLook.NEUTRON
+            || (kind == EyeStarLook.MAGNETAR && star.getTransition() != EyeTransition.Type.MAGNETAR_COLLAPSE.from);
     }
 
     // ================================================================================ renders v2
@@ -760,6 +771,8 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         double cz, double dist, float radius, float r, float g, float b, float coreAlpha, double spin) {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
         final Tessellator t = Tessellator.instance;
+        // B-219: the steady compact objects' glow flickers faintly (the v2 look's flicker), never their size
+        final float flick = steadyBody(star, kind) ? EyeStarFx.flicker(now, star.getPulse()) : 1f;
 
         // the shells: back faces first, then front faces
         if (kind == EyeStarLook.MAGNETAR) {
@@ -791,7 +804,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
 
             // the corona (D6) and the neutron star's wider glow (D7): a ring from the limb outward, in the plane of
             // the limb, so the star hides none of it and it hides none of the star
-            final float corona = coronaAlpha(kind, star.getAux()) * coreAlpha;
+            final float corona = coronaAlpha(kind, star.getAux()) * coreAlpha * flick;
             if (corona > 0.003f) {
                 final double limbBack = radius * radius / dist; // the limb's plane, this far toward the camera
                 final double limb = radius * Math.sqrt(1 - (radius / dist) * (radius / dist));
@@ -816,7 +829,9 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
 
             // the glow: a disc through the object's centre that never reaches a block (round 3, E-5)
             final double glow = Math.min(CLEARANCE, Math.max(GLOW_MIN, GLOW_RADII * radius));
-            if (coreAlpha > 0.003f) FixedShapes.ring(t, cx, cy, cz, u, v, 0, glow, r, g, b, GLOW_ALPHA * coreAlpha);
+            if (coreAlpha > 0.003f) {
+                FixedShapes.ring(t, cx, cy, cz, u, v, 0, glow, r, g, b, GLOW_ALPHA * coreAlpha * flick);
+            }
 
             if ((kind == EyeStarLook.NEUTRON || kind == EyeStarLook.MAGNETAR) && coreAlpha > 0.003f) {
                 beams(t, cx, cy, cz, radius, r, g, b, BEAM_ALPHA * coreAlpha, spin);

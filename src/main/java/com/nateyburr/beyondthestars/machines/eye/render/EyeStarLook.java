@@ -38,7 +38,7 @@ public final class EyeStarLook {
     public static final byte STAR = 1;
     /** T1-T3 igniting: a dim red protostar swelling toward the star. */
     public static final byte PROTOSTAR = 2;
-    /** T4 neutron star: small, blue-white, spinning fast. */
+    /** T4 neutron star: small, blue-white, its beams sweeping round. */
     public static final byte NEUTRON = 3;
     /** T5 Sirius B batch: a white dwarf cooling to a black dwarf. */
     public static final byte DWARF = 4;
@@ -80,7 +80,10 @@ public final class EyeStarLook {
     public final float gamma;
     /** Degrees per tick of the layers' rotation (scaled per layer as the Forge of the Gods does). */
     public final float spin;
-    /** Radius wobble amplitude, a fraction of the radius (instability, flares). */
+    /**
+     * Unrest, a fraction of the radius (instability, flares): the stars' radius wobble; on the steady neutron star
+     * and magnetar (B-219) only a glow flicker of at most 4 %.
+     */
     public final float pulse;
     /**
      * Kind-specific 0..1 the renderer needs: {@link #DWARF} the cooling fraction (its shells fade out and a dark
@@ -313,6 +316,14 @@ public final class EyeStarLook {
     // flare shell's rim (the review's 0.9 still measured C597FF, lilac)
     private static final int MAGNETAR_RGB = 0x4A30FF;
     private static final float MAGNETAR_GAMMA = 0.7f;
+    /**
+     * Spins, degrees per tick (B-219). The compact objects turn slowly, so their beams sweep round like a lighthouse
+     * instead of wobbling: the neutron star once in 4.5 s (was 12, once in 1.5 s), the magnetar once in 7.5 s, SGR
+     * 1806-20's own period (was 8, once in 2.25 s). The overfed magnetar of the Magnetar Collapse spins up from
+     * {@link #MAGNETAR_SPIN} to {@link #OVERFED_SPIN}.
+     */
+    private static final float NEUTRON_SPIN = 4f;
+    public static final float MAGNETAR_SPIN = 2.4f, OVERFED_SPIN = 24f;
 
     /** What the centre shows now, or null for nothing (dark, IDLE, no star). Server state. */
     public static EyeStarLook of(EyeStarRuntime rt) {
@@ -445,7 +456,7 @@ public final class EyeStarLook {
             2.6f * (1f - 0.3f * c),
             MAGNETAR_RGB,
             MAGNETAR_GAMMA,
-            8f + 16f * c,
+            MAGNETAR_SPIN + (OVERFED_SPIN - MAGNETAR_SPIN) * c,
             0.05f + 0.25f * c + 0.25f * warn,
             Math.max(warn, c)).tier(6);
     }
@@ -516,7 +527,7 @@ public final class EyeStarLook {
                     2.2f,
                     NEUTRON_RGB,
                     NEUTRON_GAMMA,
-                    12f,
+                    NEUTRON_SPIN,
                     0.03f + 0.08f * unrest + 0.05f * warn);
             case 5:
                 return dwarf(0);
@@ -524,13 +535,13 @@ public final class EyeStarLook {
             case 8:
                 return galaxy(n, unrest, warn);
             default:
-                // the magnetar's flares: a warning makes it throb and brightens its flare shell (aux)
+                // the magnetar's flares: a warning brightens its flare shell (aux) and its glow flickers more
                 return new EyeStarLook(
                     MAGNETAR,
                     2.6f,
                     MAGNETAR_RGB,
                     MAGNETAR_GAMMA,
-                    8f,
+                    MAGNETAR_SPIN,
                     0.05f + 0.08f * unrest + 0.25f * warn,
                     warn);
         }

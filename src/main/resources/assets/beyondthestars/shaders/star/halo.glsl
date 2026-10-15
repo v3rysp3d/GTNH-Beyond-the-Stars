@@ -111,7 +111,9 @@ vec3 stBeam(vec3 rd, vec3 C, float tHit, vec3 a, float r0, vec4 bm, vec3 core, v
     float fall = pow(1.0 - along, 1.6) * smoothstep(0.0, 0.04, along);
     // looking down the beam the light piles up along the line of sight
     float los = min(1.0 / max(sqrt(den), 0.18), 4.0);
-    float flash = 1.0 + 6.0 * pow(max(pointing, 0.0), 8.0);
+    // a beam swinging toward the camera brightens smoothly, a lighthouse sweep (B-219: was 1 + 6 p^8, a sharp blink
+    // on every turn)
+    float flash = 1.0 + 2.0 * pow(max(pointing, 0.0), 6.0);
     return (edge * prof + core * coreP * 1.6) * fall * los * flash * bm.x;
 }
 

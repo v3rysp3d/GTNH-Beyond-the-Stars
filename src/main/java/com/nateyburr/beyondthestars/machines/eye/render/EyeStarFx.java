@@ -238,7 +238,8 @@ final class EyeStarFx {
     private static final float[] R_STAR = { 9, 9, 11, 15 };
 
     /**
-     * The look of {@code tile} this frame. {@code radius} is the drawn radius (eased, wobbled), {@code now} world
+     * The look of {@code tile} this frame. {@code radius} is the drawn radius (eased; wobbled but for the steady
+     * neutron star and magnetar), {@code now} world
      * ticks with the partial tick, {@code time} the shader clock (s), {@code detail} 0..3 (the LOD's octaves).
      */
     static void compute(Look L, TileEyeStar tile, byte kind, float radius, double now, float time, int detail) {
@@ -390,6 +391,24 @@ final class EyeStarFx {
             default:
                 break;
         }
+        // B-219: the steady compact objects keep their size; the unrest shows as a faint glow flicker instead
+        if (kind == EyeStarLook.NEUTRON || kind == EyeStarLook.MAGNETAR) {
+            final float f = flicker(now, pulse);
+            L.glow[0] *= f;
+            L.surf2[2] *= f;
+        }
+    }
+
+    /**
+     * B-219: the only life left in the steady neutron star's and magnetar's light, a factor about 1. Three
+     * incommensurate sines (periods about 2.8, 1.1 and 0.6 s, none a multiple of another), so the flicker never
+     * settles into a beat; its amplitude is 0.4 x the look's pulse, at most 4 % (1.2 % on a calm neutron star).
+     * {@code now} world ticks.
+     */
+    static float flicker(double now, float pulse) {
+        final double a = Math.min(0.04, 0.4 * pulse);
+        return (float) (1 + a
+            * (0.5 * Math.sin(now * 0.113) + 0.3 * Math.sin(now * 0.293 + 1.7) + 0.2 * Math.sin(now * 0.519 + 4.1)));
     }
 
     /**
@@ -481,9 +500,10 @@ final class EyeStarFx {
 
     private static void magnetarLook(Look L, TileEyeStar tile, float R, float aux, double now, float time, float mx,
         float my, float mz, int ev, float warnF, float hitAge, int trans, float transP) {
-        // EyeStarLook: aux is the warning (0 / 1); the overfed magnetar spins up from 8 to 24 degrees a tick
+        // EyeStarLook: aux is the warning (0 / 1); the overfed magnetar spins up from 2.4 to 24 degrees a tick
         final boolean warn = aux >= 0.99f;
-        final float overfed = clamp01((tile.getSpin() - 8f) / 16f);
+        final float overfed = clamp01(
+            (tile.getSpin() - EyeStarLook.MAGNETAR_SPIN) / (EyeStarLook.OVERFED_SPIN - EyeStarLook.MAGNETAR_SPIN));
         final double fa = tile.flareAge(now);
         final float flare = fa >= 0 && fa < 40 ? (float) (fa / 40) : -1f;
         final float warnLevel = warn ? Math.max(warnF, 0.35f) : 0f;

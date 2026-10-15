@@ -7831,6 +7831,42 @@ since a T10 breach only ends the universe).
   T4". A Galactic Merger re-run after a T7 relight across a restart: "running for 320 s", then COMPLETE in 1,920 s and
   the Milky Way lit. A relit universe across a restart: still lit, its age carried on.
 
+### B-219 The pulsar render's bounce removed [render, community feedback]
+
+Feedback on a clip of the Eye's T4 neutron star: the render's bounce looked unnatural, and a slower spin would be
+fine (real pulsars can be slow). Three things made the idle neutron star and magnetar bounce:
+- **The radius wobble** (`EyeStarRenderer.renderTileEntityAt`, every quality tier): `radius *= 1 + pulse x (0.6
+  sin(0.31 now) + 0.4 sin(0.87 now + 1.3))`, `now` in ticks, so about 1 Hz and 2.8 Hz. The pulse
+  (`EyeStarLook.litRaw`) is 0.03 + 0.08 unrest + 0.05 warn on the neutron star and 0.05 + 0.08 unrest + 0.25 warn
+  on the magnetar: a 10 % peak-to-peak swing at 75 % stability, 60 % or more on a magnetar flare warning. The v2 look
+  (`u_Star.x` of all three programs, the field lines' size `u_Lines.z`) and the fixed look scale with it.
+- **The fast spin** (`EyeStarLook` spin, degrees a tick: neutron star 12, magnetar 8). It turns the magnetic axis
+  (`u_Mag.xyz`, 20 degrees off the spin axis), so the whole field-line cage and both beams rocked through 40 degrees
+  every 1.5 s (neutron star) or 2.25 s (magnetar).
+- **The beam flash** (`star/halo.glsl`, `stBeam`): `1 + 6 pointing^8`, a sevenfold blink each time a beam crossed
+  the line of sight.
+
+Now:
+- The neutron star and the magnetar keep a constant radius (`EyeStarRenderer.steadyBody`). Their unrest shows only
+  as a glow flicker, `EyeStarFx.flicker`: `1 + a (0.5 sin(0.113 now) + 0.3 sin(0.293 now + 1.7) + 0.2 sin(0.519 now
+  + 4.1))` with `a = min(0.04, 0.4 pulse)`. The three periods (2.8, 1.1 and 0.6 s) are incommensurate, so there is
+  no beat. It scales the glow (`u_Glow.x`) and the photosphere's exposure (`u_Surf2.z`), and on the fixed look the
+  glow disc and corona alphas. That is 1.2 % on a calm neutron star and at most 4 %.
+- Slow spins: the neutron star turns at 4 degrees a tick (once in 4.5 s), the magnetar at 2.4 (once in 7.5 s, SGR
+  1806-20's own period). The beams now sweep round like a lighthouse.
+- The beam flash is `1 + 2 pointing^6`: a smooth brightening, up to 3x, as a beam swings toward the camera.
+- Unchanged: every event and transition visual. That covers the Core Collapse swell's throb and the bounce's
+  proto-neutron star and shock shell, the glitch, the magnetar's flares, its warning (the magnetosphere pulse and the
+  fixed look's shell edges) and the giant flare. The overfed magnetar of the Magnetar Collapse still throbs toward
+  its collapse and still spins up to 24 degrees a tick; it now starts that spin-up from 2.4.
+- T1-T3 stars keep their wobble, which is 2 % at full stability.
+
+**Check.** glslang: bts_star, bts_starhalo and bts_starlines pass in both profiles (120 and 330) and as GLSL ES 3.00.
+`compileJava` passes. A headless WebGL preview runs the master and branch shaders with the Java per-frame uniforms
+ported line for line (75 % stability, 8 s). The neutron star's radius swing went from 9.9 % to 0 % and its frame
+brightness swing from 9.7 % to 2.3 %. The magnetar's radius swing went from 13.9 % to 0 %; its brightness now changes
+only with its flares.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
