@@ -139,37 +139,9 @@ public final class CosmosInput {
 
     /**
      * This frame's input for {@code tile} at world tick {@code now} (with the partial tick): the harness's
-     * {@link #debug} look, else the tile's synced P5 snapshot. The tile's transition channel always wins.
-     * <p>
-     * Until p5-eye's {@code EyeP5Look} lands on this branch the tile has no snapshot, so a lit T9 / T10 draws the quiet
-     * look (no beam, no flow, a mid-life universe). The wiring, against the P5 render interface, is:
-     *
-     * <pre>
-     * final EyeP5Look p = tile.getP5();
-     * if (p != null) {
-     *     facing = p.facing; // render side needs: the controller's facing
-     *     grade = p.beamGrade;
-     *     rho = p.beamRho;
-     *     rhoMax = p.beamRhoMax;
-     *     phi = p.phi;
-     *     flowState = p.flowState;
-     *     flowSide = p.flowSide;
-     *     flowSize = p.flowSize;
-     *     flowSeed = p.flowAt;
-     *     flowIn = tile.flowIn(now);
-     *     flowHeld = p.flowHeld;
-     *     captureAge = p.captureAt == 0 ? Double.NaN : (now - p.captureAt) / 20.0;
-     *     captureN = p.captureN;
-     *     galaxies = p.galaxies;
-     *     vRamp = p.vRamp;
-     *     uniAge = tile.universeAge(now);
-     *     phase = p.phase;
-     *     recIn = tile.recombinationIn(now);
-     *     dawnIn = tile.dawnIn(now);
-     *     h = p.H;
-     *     endAge = tile.endAge(now);
-     * }
-     * </pre>
+     * {@link #debug} look, else the tile's synced P5 snapshot ({@link TileEyeStar#getP5()}, p5-eye's
+     * {@link EyeP5Look}). The tile's transition channel always wins. With no snapshot (nothing synced yet) a lit
+     * T9 / T10 draws the quiet look (no beam, no flow, a mid-life universe).
      */
     public CosmosInput fill(TileEyeStar tile, double now) {
         final CosmosInput forced = debug;
@@ -177,6 +149,31 @@ public final class CosmosInput {
             copy(forced);
         } else {
             reset();
+            final EyeP5Look p = tile.getP5();
+            if (p != null) {
+                facing = p.facing;
+                grade = p.beamGrade;
+                rho = p.beamRho;
+                rhoMax = p.beamRhoMax;
+                phi = p.phi;
+                flowState = p.flowState;
+                flowSide = p.flowSide;
+                flowSize = p.flowSize;
+                flowSeed = p.flowAt;
+                flowIn = tile.flowIn(now);
+                flowHeld = p.flowHeld;
+                captureAge = p.captureAt == 0 ? Double.NaN : (now - p.captureAt) / 20.0;
+                captureN = p.captureN;
+                galaxies = p.galaxies;
+                vRamp = p.vRamp;
+                v = p.V;
+                uniAge = tile.universeAge(now);
+                phase = p.phase;
+                recIn = tile.recombinationIn(now);
+                dawnIn = tile.dawnIn(now);
+                h = p.H;
+                endAge = tile.endAge(now);
+            }
         }
         trans = tile.getTransition();
         transP = tile.getTransitionProgress();

@@ -10413,3 +10413,7 @@ time, Angelica and shaderpacks. The checklist for that run is kept with the prev
 
 **Suggestion.** Accept the looks as previewed; merge p5-eye's snapshot first, then paste the `CosmosInput.fill` glue
 and run the checklist.
+
+**Merged (p5-integrate).** The glue is in `CosmosInput.fill`: every `EyeP5Look` field listed in the interface, plus
+`facing` and the V gauge (`v`, the halo's tint). `EyeStarLook.P5_RADIUS = 70` sets the two kinds' render box. The
+in-game checklist is still to run.
