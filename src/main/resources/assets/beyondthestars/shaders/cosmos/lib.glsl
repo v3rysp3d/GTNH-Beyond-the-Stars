@@ -9,6 +9,8 @@
 
 // A filament's length, blocks: from the core out to well past the rail (88).
 #define CO_FIL_LEN 200.0
+// A galaxy sprite is drawn this many times its stored size (the size field stops at 8 blocks).
+#define CO_GALAXY_SCALE 3.2
 // Where a streaming galaxy is captured: this far along its filament (about 15 blocks from the core).
 #define CO_CAPTURE_U 0.07
 

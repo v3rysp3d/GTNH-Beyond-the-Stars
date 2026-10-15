@@ -16,7 +16,8 @@ uniform vec3 u_Eye;
 uniform vec3 u_Centre;
 // x radius (blocks), y alpha (darkening), z nebula strength, w time (s)
 uniform vec4 u_Sky;
-// x the Einstein radius b_E (blocks; 0: no lensing), y the ring's glow, z star density 0..1, w nebula octaves
+// x the Einstein radius b_E (blocks), y the ring's glow, z star density 0..1 (negative: the stars are not lensed,
+// renderBackgroundLensing off; the ring still glows), w nebula octaves
 uniform vec4 u_Lens;
 
 // One cell's star at the source direction src (cells of 1 / 150 rad), with a footprint of fw cells per pixel.
@@ -24,7 +25,7 @@ vec3 coStar(vec3 src, float fw) {
     vec3 sp = src * 150.0;
     vec3 cell = floor(sp);
     float h = btsHash13(cell);
-    float thr = 1.0 - 0.075 * u_Lens.z;
+    float thr = 1.0 - 0.075 * abs(u_Lens.z);
     if (h <= thr) return vec3(0.0);
     vec3 off = vec3(btsHash13(cell + 1.3), btsHash13(cell + 2.7), btsHash13(cell + 5.1)) - 0.5;
     vec3 lp = fract(sp) - 0.5 - off * 0.6;
@@ -47,7 +48,7 @@ vec4 coSky(vec3 n, vec3 pos) {
     float disc = 1.0 - smoothstep(0.5 * R, 0.97 * R, b);
     float bE = u_Lens.x;
     vec3 src = d;
-    if (bE > 0.0) {
+    if (bE > 0.0 && u_Lens.z > 0.0) {
         float k = 1.0 - bE * bE / max(b * b, 0.01);
         src = normalize(L + q * k);
     }

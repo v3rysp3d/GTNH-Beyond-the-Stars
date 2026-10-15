@@ -36,6 +36,7 @@ import com.nateyburr.beyondthestars.client.render.GpuTimer;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
 import com.nateyburr.beyondthestars.client.render.ShaderpackProbe;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitRender;
+import com.nateyburr.beyondthestars.machines.eye.render.CosmosInput;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.homogeny.HomogenyRender;
 import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
@@ -509,6 +510,9 @@ public final class RenderTestClient {
         TileEyeStar.debugEventIn = eye ? c.clientLook[0] : Double.NaN;
         TileEyeStar.debugPrevKind = eye ? (int) c.clientLook[1] : -1;
         TileEyeStar.debugCrossingIn = eye && c.clientLook.length == 3 ? c.clientLook[2] : Double.NaN;
+        // P5: the Great Attractor's / the Universe's render input (null: the tile's own)
+        CosmosInput.debug = CosmosLooks.forCase(c.name);
+        CosmosInput.debugNoLensing = CosmosLooks.noLensing(c.name);
         // renders v2: the client-side look overrides (null / -1: the live synced look)
         final boolean kerr = c.site == RenderTest.Site.KERR_T1 || c.site == RenderTest.Site.KERR_T2;
         TileKerrHole.debugStability = kerr && c.clientLook != null ? c.clientLook[0] : -1f;
@@ -691,6 +695,8 @@ public final class RenderTestClient {
         TileEyeStar.debugEventIn = Double.NaN;
         TileEyeStar.debugPrevKind = -1;
         TileEyeStar.debugCrossingIn = Double.NaN;
+        CosmosInput.debug = null;
+        CosmosInput.debugNoLensing = false;
         phase = Phase.DONE;
         skipExitConfirmation();
         mc.shutdown();

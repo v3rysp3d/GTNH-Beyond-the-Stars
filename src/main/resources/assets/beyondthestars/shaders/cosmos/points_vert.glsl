@@ -58,7 +58,8 @@ vec3 coPlace(vec3 P, vec2 uv, out vec4 col, out float sizeB, out float kind, out
     vec3 e2;
     if (group > 3.5) {
         // ---- the Universe's web: from scattered matter onto the filaments as it ages; torn out or crushed at the end
-        vec3 scatter = (coHash3(seed) - 0.5) * 32.0 * (1.0 - u_CoWeb.x);
+        float loose = 1.0 - u_CoWeb.x;
+        vec3 scatter = (coHash3(seed) - 0.5) * 32.0 * loose * loose;
         vec3 pos = (P + scatter) * u_CoWeb.w;
         float node = group > 4.5 ? 1.0 : 0.0;
         float shown = 0.3 + 0.7 * u_CoWeb.x;
@@ -111,6 +112,7 @@ vec3 coPlace(vec3 P, vec2 uv, out vec4 col, out float sizeB, out float kind, out
             pos = coSpiral(start, seed, (p - 0.88) / 0.12, a);
         }
         kind = fract(seed * 13.1) < 0.6 ? 1.0 : 2.0;
+        sizeB *= CO_GALAXY_SCALE;
         float ang = seed * BTS_TAU + t * BTS_TAU * floor((fract(seed * 3.3) - 0.5) * 80.0) / CO_HOUR;
         rot = vec2(cos(ang), sin(ang));
         ell = P.z;
@@ -125,7 +127,7 @@ vec3 coPlace(vec3 P, vec2 uv, out vec4 col, out float sizeB, out float kind, out
         float node = seed * BTS_TAU;
         vec3 n1 = vec3(cos(node), 0.0, sin(node));
         vec3 n2 = cos(P.y) * vec3(-sin(node), 0.0, cos(node)) + vec3(0.0, sin(P.y), 0.0);
-        float turns = max(1.0, floor(515.0 / pow(r / 7.0, 1.5)));
+        float turns = max(1.0, floor(515.0 / pow(r / 10.0, 1.5)));
         float ang = P.z + t * BTS_TAU * turns / CO_HOUR * (fract(seed * 9.1) < 0.5 ? -1.0 : 1.0);
         vec3 pos = r * (cos(ang) * n1 + sin(ang) * n2);
         float v = u_CoHalo.y;
@@ -159,6 +161,7 @@ vec3 coPlace(vec3 P, vec2 uv, out vec4 col, out float sizeB, out float kind, out
         pos = coSpiral(start, seed, clamp((CO_CAPTURE_U - uc) / 0.05, 0.0, 1.0), a);
     }
     kind = fract(seed * 13.1) < 0.6 ? 1.0 : 2.0;
+    sizeB *= CO_GALAXY_SCALE;
     float ang = seed * BTS_TAU + t * BTS_TAU * 229.0 / CO_HOUR;
     rot = vec2(cos(ang), sin(ang));
     ell = 0.45 + 0.4 * fract(seed * 2.9);

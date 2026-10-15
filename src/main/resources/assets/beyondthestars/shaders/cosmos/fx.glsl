@@ -18,7 +18,7 @@ vec4 coFxShade(vec3 mp, vec4 info) {
         vec3 n = normalize(info.xyz);
         vec3 v = normalize(mp - u_Cam);
         float nv = abs(dot(n, v));
-        float rim = pow(1.0 - nv, 3.0);
+        float rim = pow(1.0 - nv, 2.5);
         return vec4(u_FxB.rgb * rim * u_FxA.y, 1.0);
     }
     if (u_FxMode < 1.5) {
@@ -44,19 +44,25 @@ vec4 coFxShade(vec3 mp, vec4 info) {
         // the map turns slowly in its plane
         float ca = cos(time * BTS_TAU * 17.0 / CO_HOUR);
         float sa = sin(time * BTS_TAU * 17.0 / CO_HOUR);
-        vec2 q = vec2(ca * e.x - sa * e.y, sa * e.x + ca * e.y) * 9.0;
-        int oct = int(u_FxB.w + 0.5);
-        float big = btsFbm2(u_Noise, q + vec2(31.0, 7.0), oct);
-        float small = btsNoise2(u_Noise, q * 3.1 + vec2(3.0, 91.0));
-        float aniso = (big - 0.5) * 2.6 + (small - 0.5) * 0.7;
-        vec3 cmb = coCmb(clamp(aniso, -1.0, 1.0));
-        // a bright limb: the last-scattering surface seen edge-on at its rim
-        cmb *= 0.85 + 0.35 * btsSmooth01((r - 0.75) / 0.2);
-        // before Recombination: an opaque glowing plasma, boiling slowly
-        float bw = time * BTS_TAU * 3.0 / CO_HOUR;
-        float boil = btsFbm2(u_Noise, q * 0.6 + 8.0 * vec2(cos(bw), sin(bw)) + vec2(0.0, 13.0), 2);
-        vec3 plasma = vec3(1.0, 0.55, 0.22) * (0.55 + 0.6 * boil) * u_FxC.w;
+        vec2 q = vec2(ca * e.x - sa * e.y, sa * e.x + ca * e.y) * 6.0;
         float reveal = u_FxB.y;
+        vec3 cmb = vec3(0.0);
+        if (reveal > 0.001) {
+            int oct = int(u_FxB.w + 0.5);
+            float big = btsFbm2(u_Noise, q + vec2(31.0, 7.0), oct);
+            float small = btsNoise2(u_Noise, q * 3.1 + vec2(3.0, 91.0));
+            float aniso = (big - 0.5) * 4.6 + (small - 0.5) * 0.9;
+            cmb = coCmb(clamp(aniso, -1.0, 1.0));
+            // a bright limb: the last-scattering surface seen edge-on at its rim
+            cmb *= 0.85 + 0.35 * btsSmooth01((r - 0.75) / 0.2);
+        }
+        // before Recombination: an opaque glowing plasma, boiling slowly
+        vec3 plasma = vec3(0.0);
+        if (reveal < 0.999) {
+            float bw = time * BTS_TAU * 3.0 / CO_HOUR;
+            float boil = btsFbm2(u_Noise, q * 0.6 + 8.0 * vec2(cos(bw), sin(bw)) + vec2(0.0, 13.0), 2);
+            plasma = vec3(1.0, 0.55, 0.22) * (0.55 + 0.6 * boil) * u_FxC.w;
+        }
         vec3 c = mix(plasma, cmb * (1.0 + u_FxB.z), reveal);
         float a = u_FxB.x * edge * hole;
         if (u_FxC.x > 0.5) {

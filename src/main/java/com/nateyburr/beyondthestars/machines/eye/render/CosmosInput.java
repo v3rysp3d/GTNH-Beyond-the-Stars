@@ -32,6 +32,8 @@ public final class CosmosInput {
      * tile's snapshot, so a still catches a flow, a capture or the Cosmic Dawn at a fixed point. Null in play.
      */
     public static volatile CosmosInput debug;
+    /** Dev-only render QA: the stars unlensed for this case (as {@code renderBackgroundLensing=false}). */
+    public static volatile boolean debugNoLensing;
 
     // ------------------------------------------------------------------ both
     /** The controller's horizontal facing (ForgeDirection ordinal 2..5), -1 unknown (drawn as north). */
