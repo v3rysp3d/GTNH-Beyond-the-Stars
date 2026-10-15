@@ -382,7 +382,7 @@ public class CommandBTSConduit extends CommandBase {
     private int coord(ICommandSender sender, String arg, int axis) {
         final double base = axis == 0 ? sender.getPlayerCoordinates().posX
             : axis == 1 ? sender.getPlayerCoordinates().posY : sender.getPlayerCoordinates().posZ;
-        return (int) func_110666_a(sender, base, arg);
+        return (int) Math.floor(func_110666_a(sender, base, arg));
     }
 
     private static <T> T mte(World world, int x, int y, int z, Class<T> type) {

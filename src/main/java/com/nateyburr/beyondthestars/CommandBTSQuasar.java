@@ -286,9 +286,9 @@ public class CommandBTSQuasar extends CommandBase {
     private void bench(ICommandSender sender, String[] args) {
         final World world = sender.getEntityWorld();
         if (world == null || world.isRemote) return;
-        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
-        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
-        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        final int x = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]));
+        final int y = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]));
+        final int z = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]));
         final String verb = args[0].toLowerCase(Locale.ROOT);
         if (verb.equals("keep")) {
             // load the controller's chunk first, so its facing (and so the footprint) is known; the box includes the
@@ -415,9 +415,9 @@ public class CommandBTSQuasar extends CommandBase {
     private void automation(ICommandSender sender, String[] args) {
         final World world = sender.getEntityWorld();
         if (world == null || world.isRemote) return;
-        final int x = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]);
-        final int y = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]);
-        final int z = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]);
+        final int x = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[1]));
+        final int y = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[2]));
+        final int z = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[3]));
         world.getChunkFromBlockCoords(x, z);
         final MTEQuasarEngine q = QuasarKit.quasarAt(world, x, y, z);
         if (q == null) {
@@ -448,9 +448,9 @@ public class CommandBTSQuasar extends CommandBase {
             else if (a.equals("cut") && i + 1 < args.length) cut = Long.parseLong(args[++i]);
             else if (a.equals("mass") && i + 1 < args.length) mass = Double.parseDouble(args[++i]);
             else if (a.equals("eye") && i + 3 < args.length) {
-                final int ex = (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[++i]);
-                final int ey = (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[++i]);
-                final int ez = (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[++i]);
+                final int ex = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[++i]));
+                final int ey = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[++i]));
+                final int ez = (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[++i]));
                 world.getChunkFromBlockCoords(ex, ez);
                 final net.minecraft.tileentity.TileEntity te = world.getTileEntity(ex, ey, ez);
                 if (te instanceof IGregTechTileEntity && ((IGregTechTileEntity) te)

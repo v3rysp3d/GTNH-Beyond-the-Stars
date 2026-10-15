@@ -288,8 +288,8 @@ public class CommandBTSSmbh extends CommandBase {
     private static int[] coords(ICommandSender sender, String[] args, int from) {
         if (args.length < from + 3) return null;
         for (int i = from; i < from + 3; i++) if (!SLConsoleTest.isCoord(args[i])) return null;
-        return new int[] { (int) func_110666_a(sender, sender.getPlayerCoordinates().posX, args[from]),
-            (int) func_110666_a(sender, sender.getPlayerCoordinates().posY, args[from + 1]),
-            (int) func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[from + 2]) };
+        return new int[] { (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posX, args[from])),
+            (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posY, args[from + 1])),
+            (int) Math.floor(func_110666_a(sender, sender.getPlayerCoordinates().posZ, args[from + 2])) };
     }
 }
