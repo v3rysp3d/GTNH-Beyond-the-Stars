@@ -289,7 +289,7 @@ final class RecServer {
      * {@code feed <place> gas|all|noanchor|off}: a stand-in for a base's gas supply (set up by script; say so in the
      * caption). Once a game second (every 20 ticks of world time, so it keeps up under the time warp) the Quasar
      * Engine at the place gets its gas hatches refilled with its selected gas ({@code gas}); with {@code all} also what
-     * {@code /btssmbh fill} does (the Molten MHDCSM, Molten Universium and Primordial Matter trims to capacity and the
+     * {@code /btssmbh fill} does (the two Overdrive fluids and Primordial Matter trims to capacity and the
      * feed buffer full); {@code noanchor} is {@code all} without the Primordial Matter (it is drained in the same
      * tick, so the machine never sees it: the anchor is cut). Nothing else of the machine is touched: it draws what
      * it needs through its own code.

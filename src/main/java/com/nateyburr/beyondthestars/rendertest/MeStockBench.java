@@ -37,7 +37,7 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * DEV-ONLY bench for the private-socket ME reads and drains (QA-B02, B03, B07): {@code /btsquasar mestock x y z
  * <fluids> <litres> <ae>} on the console turns the input hatch AT x y z (a quasar gas socket, a conduit fuel socket, a
  * Region Anchor socket) into an ME stocking input hatch configured to {@code fluids} (comma list: registry names or
- * gas, mhdcsm, universium, primordial, space, spacetime, ergomatter), on a NORMAL (not creative) AE2 network built
+ * he, h, espm, hsm, primordial, space, spacetime, ergomatter), on a NORMAL (not creative) AE2 network built
  * straight out from the hatch's face: an ME controller, an ME drive with one fluid cell per fluid holding
  * {@code litres} each, and an energy cell charged with {@code ae} AE. {@code /btsquasar mestock x y z status} prints
  * the network's stock of every configured fluid, its stored AE, and what {@link PrivateHatchFluids} reads. Loaded only
@@ -100,10 +100,10 @@ public final class MeStockBench {
             case "h":
             case "hydrogen":
                 return MTEQuasarEngine.gasFluid(com.nateyburr.beyondthestars.machines.quasar.engine.QuasarGas.H);
-            case "mhdcsm":
-                return MTEQuasarEngine.mhdcsmFluid();
-            case "universium":
-                return MTEQuasarEngine.universiumFluid();
+            case "espm":
+                return MTEQuasarEngine.espmFluid();
+            case "hsm":
+                return MTEQuasarEngine.hsmFluid();
             case "primordial":
                 return MTEQuasarEngine.primordialFluid();
             case "space":

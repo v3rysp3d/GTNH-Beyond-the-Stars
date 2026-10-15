@@ -1282,13 +1282,13 @@ beyondthestars.gui.quasar.info.jets=§eJETS §7G0 = λ a² b² (M/64)² Bu/t, ha
 beyondthestars.gui.quasar.info.burst=§eBURST CONTROL §7A Burst Control Hatch on a cap rim reads redstone: Purge mode purges on a rising edge, Field b mode sets b = 0.5 + (tier - 0.5) x s/15. The standard rig: Directive Hatch (Disc set) bit 3 AND NOT the Eye's Transition bit 4 into it.
 beyondthestars.gui.quasar.info.auto=§eAUTOMATE §7A Stellar Field Sensor Hatch reads E, flux, λ, a, M, Bu/t and more; a Directive Hatch's Disc set gives the trims and the purge as bits. OpenComputers: bts_quasar. Keep the quasar chunk-loaded: an unloaded chunk freezes it and pauses every machine it feeds.
 beyondthestars.gui.quasar.right.lattice=T%s, L%s
-beyondthestars.gui.quasar.right.tip3=Supermassive Lattice L%s (%s): safe limit %s, band top %s SM
+beyondthestars.gui.quasar.right.tip3=Supermassive Lattice %s: safe limit %s, band top %s SM
 beyondthestars.gui.quasar.output=Output
 beyondthestars.gui.quasar.output.tip=Output multiplier x%s: x1 is a maxed 4,096 SM quasar (9.8e16 EU/t). Square root past 4,096 SM, toward x31; Overdrive toward x100
 beyondthestars.gui.quasar.bursts.tip=The stream, both jets: %s
 beyondthestars.gui.quasar.bursts.tip2=1 Bu/t = 10^13 EU/t once a crown turns it into power (quadrillion = 10^15, quintillion = 10^18).
 beyondthestars.gui.quasar.sec.lattice=Lattice
-beyondthestars.gui.quasar.sec.lattice.v=L%s %s
+beyondthestars.gui.quasar.sec.lattice.v=%s
 beyondthestars.gui.quasar.chk.saturation=Saturation
 beyondthestars.gui.quasar.chk.saturation.first=Reach Saturation first
 beyondthestars.gui.quasar.chk.saturation.tip=Saturation: 4,096 SM on MagMatter coils with |E| at most 40 (Stable or better) for 1 hour unbroken. Then the Supermassive Lattice counts.
@@ -1334,7 +1334,7 @@ beyondthestars.gui.quasar.shedding=Shedding to %s SM, %s left
 beyondthestars.gui.quasar.shedding.tip=Why: %s. A shed takes 2 %% of the mass a second; the crowns make nothing while it lasts.
 beyondthestars.gui.quasar.lat.notyet=An L%s lattice stands: reach Saturation first (4,096 SM Stable for 1 hour)
 beyondthestars.gui.quasar.lat.none=No Supermassive Lattice in force
-beyondthestars.gui.quasar.lat.line=L%s %s: safe limit %s, top %s SM
+beyondthestars.gui.quasar.lat.line=%s: safe limit %s, top %s SM
 beyondthestars.gui.quasar.lat.holdhatch=The mass setpoint is set by a Burst Control Hatch (Hold mode)
 beyondthestars.gui.quasar.shed.v=Shedding to %s SM
 beyondthestars.gui.quasar.mass.tip.lattice=Mass %s SM; setpoint %s (aqua tick), safe limit %s (yellow tick), band top %s
@@ -1482,7 +1482,7 @@ beyondthestars.gui.crown.clipped.tip=Stack a second crown on top to take the ove
 beyondthestars.gui.crown.stack=Stack
 beyondthestars.gui.crown.port=Jet port
 beyondthestars.gui.crown.port.none=none docked
-beyondthestars.gui.crown.port.none.tip=The base centre must sit on a quasar's port cell (a portable scanner on the Quasar Engine prints both cells and where the crown controller goes)
+beyondthestars.gui.crown.port.none.tip=The base centre must sit on a quasar's port cell: the cell just past the jet's cap, on the jet axis
 beyondthestars.gui.crown.receptor=Receptor
 beyondthestars.gui.crown.switch=The power switch does nothing here: a crown turns every stream it takes into EU
 beyondthestars.gui.crown.info.power=§ePOWER §7A crown turns 1 Bu/t into 10^13 EU/t, straight onto the owner's wireless network. Caps: Mk I 32 Bu/t (3.2e14 EU/t), Mk II 512 (5.1e15), Mk III 8,192 (8.2e16, 82 quadrillion), Mk IV 524,288 Bu/t (5.2e18 EU/t, 5.2 quintillion).

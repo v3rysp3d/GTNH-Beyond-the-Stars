@@ -133,13 +133,22 @@ public final class QuasarParams {
 
     /** The reference mass: the MagMatter coil cap, where X = 1 (×1 = today's maxed quasar). */
     public static final double M_REF = 4096;
-    /** Lattice tiers L1-L4 (index 0 = no lattice): the node material, the safe limit and the band top, SM (§2.1). */
-    public static final String[] LATTICE_NAME = { "", "Superdense Ergomatter", "White Hole Matter", "Universium",
-        "Constrained Eternity" };
+    /**
+     * Lattice tiers L1-L4 (index 0 = no lattice): a name where the tier has one (D-51: the L1-L3 nodes are no longer
+     * one material each), the safe limit and the band top, SM (§2.1).
+     */
+    public static final String[] LATTICE_NAME = { "", "", "", "", "Constrained Eternity" };
     public static final double[] LATTICE_SAFE = { 0, 16384, 65536, 262144, 4194304 };
+
+    /** "L3", or "L4 Constrained Eternity": a lattice tier as players read it. */
+    public static String latticeLabel(int l) {
+        final int i = Math.max(0, Math.min(LATTICE_NAME.length - 1, l));
+        return "L" + i + (LATTICE_NAME[i].isEmpty() ? "" : " " + LATTICE_NAME[i]);
+    }
+
     public static final double[] LATTICE_TOP = { 0, 65536, 262144, 4194304, 67108864 };
     public static final int LATTICE_MAX = 4;
-    /** Overdrive needs this lattice tier or higher (it burns Universium, §3.2). */
+    /** Overdrive needs this lattice tier or higher (§3.2). */
     public static final int LATTICE_OVERDRIVE = 3;
     /** A lattice counts only on MagMatter coils (the Saturation milestone is held on them, §1.2). */
     public static final int LATTICE_COIL = 4;
@@ -149,7 +158,11 @@ public final class QuasarParams {
     public static final double INTAKE_CAP = 5, HOLDUP_K = 3;
     /** Without hold-up the over-limit part halves on a log scale every this many seconds (§2.3 leak). */
     public static final double LEAK_HALF_LIFE = 3600;
-    /** Overdrive upkeep per second, each of Molten MHDCSM and Molten Universium: 100,000 · o² · 2^(−n) L (§3.2). */
+    /**
+     * Overdrive upkeep per second, each of Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture (D-51):
+     * 100,000
+     * · o² · 2^(−n) L (§3.2).
+     */
     public static final double OVERDRIVE_UPKEEP = 1e5;
     /** raw = Xm · (1 + 7·o); X = 1 + 99·tanh((raw − 1)/99) past 1, so X never passes ×100 (§3.1). */
     public static final double OVERDRIVE_GAIN = 7, X_CEIL = 100, XM_CEIL = 32;
@@ -265,7 +278,7 @@ public final class QuasarParams {
         return M > top ? StrictMath.log(M / top) / LN2 : 0;
     }
 
-    /** Overdrive upkeep, L/s of EACH of Molten MHDCSM and Molten Universium: 100,000 · o² · 2^(−n) (§3.2). */
+    /** Overdrive upkeep, L/s of EACH of the two Overdrive fluids (D-51): 100,000 · o² · 2^(−n) (§3.2). */
     public static double overdriveUpkeep(double o, double n) {
         return OVERDRIVE_UPKEEP * o * o * powE(2, -n);
     }

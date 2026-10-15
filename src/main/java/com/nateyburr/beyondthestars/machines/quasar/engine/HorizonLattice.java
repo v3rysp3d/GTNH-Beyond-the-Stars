@@ -24,7 +24,7 @@ package com.nateyburr.beyondthestars.machines.quasar.engine;
  *     mass at 67,108,864·2^n' (n' = what it pays for): growth (the disc's too) stops there, a bigger hole sheds to it
  * Shed: target = min(setpoint, structure top, anchor cap); M ← max(target, 0.98·M); the stream is 0 (no power,
  *     no Overdrive burnt, no hold-up or growth drawn)
- * else Overdrive (L3+, disc lit): need 100,000·o²·2^(−n) L/s each; c_o = min(MHDCSM, Universium on hand)/need;
+ * else Overdrive (L3+, disc lit): need 100,000·o²·2^(−n) L/s each; c_o = min(ESPM, HSM on hand)/need;
  *     o_eff(next second) = o·c_o
  * and the leak: ln(M/safe) ← ln(M/safe)·2^(−(1 − c_h)/3,600), never below safe
  * </pre>

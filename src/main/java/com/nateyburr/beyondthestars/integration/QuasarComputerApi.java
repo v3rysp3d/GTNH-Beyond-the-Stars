@@ -200,8 +200,8 @@ public final class QuasarComputerApi {
         out.put("available", m.getLatticeInForce() >= QuasarParams.LATTICE_OVERDRIVE);
         out.put("upkeepEach", r.overdriveNeed);
         out.put("coverage", r.overdriveCoverage);
-        out.put("mhdcsm", r.mhdcsmLitres);
-        out.put("universium", r.universiumLitres);
+        out.put("espm", r.mhdcsmLitres);
+        out.put("hsm", r.universiumLitres);
         out.put("oEff", r.oEff);
         out.put("outputX", r.outputX);
         out.put("bursts", m.state().G);

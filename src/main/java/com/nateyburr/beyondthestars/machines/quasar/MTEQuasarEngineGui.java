@@ -164,7 +164,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         return QuasarParams.LATTICE_TOP[L];
     }
 
-    /** The panel's lattice line: "L3 Universium: safe 262,144, top 4,194,304 SM" (or what is missing). */
+    /** The panel's lattice line: "L3: safe 262,144, top 4,194,304 SM" (or what is missing). */
     static String latticeLine(MTEQuasarEngine m) {
         final int L = m.getLatticeInForce();
         if (L == 0) {
@@ -173,8 +173,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         }
         return tr(
             K + "lat.line",
-            L,
-            QuasarParams.LATTICE_NAME[L],
+            QuasarParams.latticeLabel(L),
             MTEQuasarEngine.fmt(QuasarParams.LATTICE_SAFE[L]),
             MTEQuasarEngine.fmt(QuasarParams.LATTICE_TOP[L]));
     }
@@ -325,8 +324,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
             out.add(
                 BTSText.lang(
                     K + "right.tip3",
-                    L,
-                    QuasarParams.LATTICE_NAME[L],
+                    QuasarParams.latticeLabel(L),
                     MTEQuasarEngine.fmt(QuasarParams.LATTICE_SAFE[L]),
                     MTEQuasarEngine.fmt(QuasarParams.LATTICE_TOP[L])));
         }
@@ -458,7 +456,7 @@ public class MTEQuasarEngineGui extends BTSControllerGui<MTEQuasarEngine> {
         }
         rows.section(
             BTSText.lang(K + "sec.lattice"),
-            L > 0 ? BTSText.lang(K + "sec.lattice.v", L, QuasarParams.LATTICE_NAME[L]) : "");
+            L > 0 ? BTSText.lang(K + "sec.lattice.v", QuasarParams.latticeLabel(L)) : "");
         if (!m.isSaturated()) {
             final int sec = m.getSaturationSeconds();
             final boolean built = m.getLatticeBuilt() > 0;

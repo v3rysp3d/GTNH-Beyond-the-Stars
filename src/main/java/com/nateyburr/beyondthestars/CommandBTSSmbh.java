@@ -27,7 +27,7 @@ import com.nateyburr.beyondthestars.machines.quasar.SmbhBench;
  * upkeep hatch filled and a Mk IV crown on each jet port; without coordinates, in front of the player.</li>
  * <li>{@code mass <M> [x y z]}: the hole's mass, clamped to what the structure holds (§10.3); the mass setpoint
  * follows it.</li>
- * <li>{@code fill [x y z]}: the gas, MHDCSM, Universium and Primordial Matter hatches to capacity.</li>
+ * <li>{@code fill [x y z]}: the gas, the two Overdrive fluids and Primordial Matter hatches to capacity.</li>
  * <li>{@code drain anchor [x y z]}: the Primordial Matter hatches emptied (the anchor is cut).</li>
  * <li>{@code saturate on|off [x y z]}, {@code unbind on|off [x y z]}, {@code damage [x y z]} (one lattice frame
  * block removed, then a re-walk), {@code status [x y z]}.</li>

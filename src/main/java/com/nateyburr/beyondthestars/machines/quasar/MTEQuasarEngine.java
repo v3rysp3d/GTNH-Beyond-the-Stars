@@ -52,6 +52,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
+import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
@@ -481,10 +482,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                 + " SM hole: the quasar is frozen until MagMatter (T4) coils are back";
             errors.add(StructureErrors.of("beyondthestars.structure.quasar.lattice.coils"));
         } else if (whole) {
-            latticeNote = "Lattice L" + latticeBuilt
-                + " ("
-                + QuasarParams.LATTICE_NAME[latticeBuilt]
-                + ")"
+            latticeNote = "Lattice " + QuasarParams.latticeLabel(latticeBuilt)
                 + (!saturated ? ": NOT in force, reach Saturation first"
                     : coilTier < QuasarParams.LATTICE_COIL ? ": NOT in force, it needs MagMatter (T4) coils"
                         : ": in force");
@@ -687,8 +685,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (aTick > 0 && aTick % RECHECK == 0 && chunksLoaded) checkStructure(true, aBaseMetaTileEntity);
         final boolean frozen = isFrozen();
         if (!frozen && running()) {
-            // coil power, every tick (GT's power switch does not stop the hole: Collapse does)
-            final long eut = (long) Math.ceil(QuasarParams.coilEUt(effectiveB()));
+            // coil power, every tick while the hole is open (GT's power switch does not stop the hole: Collapse does);
+            // a re-forming disc is dark and its re-form needs only the feed, so it draws none (QA-B18)
+            final long eut = q.hole == QuasarState.Hole.OPEN ? (long) Math.ceil(QuasarParams.coilEUt(effectiveB())) : 0;
             if (eut > 0 && !drainEnergyInput(eut)) secondPowerOk = false;
             // the Accretion Buffer between seconds (§4.2): per-tick draws while the hatches give
             // (plain hatches only: an ME stocking hatch is pulled once a second, QA-B50)
@@ -736,7 +735,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return isFrozen();
     }
 
-    /** The hole is open or re-forming: the disc steps and the coils draw power. */
+    /** The hole is open or re-forming: the disc steps (the coils draw power only while it is open, QA-B18). */
     private boolean running() {
         return q.hole == QuasarState.Hole.OPEN || q.hole == QuasarState.Hole.REFORM;
     }
@@ -797,8 +796,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     + Math.max(0, onHand - plan.holdUpNeed - reserve);
             }
             if (plan.overdriveNeed > 0) {
-                in.mhdcsmAvailable = prepay(mhdcsmFluid(), plan.overdriveNeed, true);
-                in.universiumAvailable = prepay(universiumFluid(), plan.overdriveNeed, true);
+                in.mhdcsmAvailable = prepay(espmFluid(), plan.overdriveNeed, true);
+                in.universiumAvailable = prepay(hsmFluid(), plan.overdriveNeed, true);
             }
             // trims: what the plain trim hatches hold, in whole units, at most 10 each
             final double gasUnitL = QuasarParams.gasTrimUnitLitres(q.M);
@@ -820,8 +819,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             HorizonLattice.step(q, in, plan, r);
             final double intake = r.holdUpLitres + r.growthLitres;
             if (intake > 0) takeBuffer(gasFluid(gas), (long) Math.ceil(intake));
-            if (r.mhdcsmLitres > 0) spendCredit(mhdcsmFluid(), r.mhdcsmLitres);
-            if (r.universiumLitres > 0) spendCredit(universiumFluid(), r.universiumLitres);
+            if (r.mhdcsmLitres > 0) spendCredit(espmFluid(), r.mhdcsmLitres);
+            if (r.universiumLitres > 0) spendCredit(hsmFluid(), r.universiumLitres);
             if (r.anchorLitres > 0) spendCredit(primordialFluid(), r.anchorLitres);
             if (r.gasTrimLitres > 0) {
                 final long need = (long) Math.ceil(r.gasTrimLitres);
@@ -940,10 +939,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (saturationStreak >= SATURATION_SECONDS) {
             saturated = true;
             latticeTier = latticeBuilt;
-            if (latticeBuilt > 0) latticeNote = "Lattice L" + latticeBuilt
-                + " ("
-                + QuasarParams.LATTICE_NAME[latticeBuilt]
-                + "): in force";
+            if (latticeBuilt > 0) latticeNote = "Lattice " + QuasarParams.latticeLabel(latticeBuilt) + ": in force";
             lastEvent = "Milestone: Saturation (4,096 SM held Stable for 1 h): the Supermassive Lattice unlocks";
         }
     }
@@ -1111,15 +1107,16 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return s == null ? null : s.getFluid();
     }
 
-    /** SMBH Overdrive (§3.2): Molten MHDCSM and Molten Universium; the Unbound anchor (§5.2): Primordial Matter. */
-    public static Fluid mhdcsmFluid() {
-        final FluidStack s = Materials.MHDCSM.getMolten(1L);
-        return s == null ? null : s.getFluid();
+    /**
+     * SMBH Overdrive (§3.2, D-51): Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture, 100,000·o²·2^(−n)
+     * L/s of each (Universium stays an Eye T10 product); the Unbound anchor (§5.2): Primordial Matter.
+     */
+    public static Fluid espmFluid() {
+        return SLFluids.excitedStellarPlasma;
     }
 
-    public static Fluid universiumFluid() {
-        final FluidStack s = Materials.Universium.getMolten(1L);
-        return s == null ? null : s.getFluid();
+    public static Fluid hsmFluid() {
+        return SLFluids.hyperdenseStellarMixture;
     }
 
     public static Fluid primordialFluid() {
@@ -1909,7 +1906,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     }
 
     public long getCoilEUt() {
-        return running() && !isFrozen() ? (long) Math.ceil(QuasarParams.coilEUt(effectiveB())) : 0;
+        return q.hole == QuasarState.Hole.OPEN && !isFrozen() ? (long) Math.ceil(QuasarParams.coilEUt(effectiveB()))
+            : 0;
     }
 
     public long getEruptions() {
@@ -2072,7 +2070,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     out.add(
                         String.format(
                             Locale.ROOT,
-                            "Overdrive %.0f %%%s: %s L/s each of Molten MHDCSM and Molten Universium, %.0f %% paid",
+                            "Overdrive %.0f %%%s: %s L/s each of Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture, %.0f %% paid",
                             100 * overdriveInUse(),
                             q.shed ? " (idle while shedding)" : "",
                             fmt(r.overdriveNeed),
@@ -2497,7 +2495,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .addInfo("  feed gas, 1,000 x M/64 L a unit: E +2; Spatially Enlarged Fluid, 100 x M/64 L: E -2.")
             .addInfo("Coils (one tier everywhere) cap b and the mass: T1 256, T2 1,024, T3 2,048, T4 4,096 SM.")
             .addInfo("Coil power: 2 A UXV x b^2 from the energy sockets. Short power: b = 0, jets stop.")
-            .addInfo("Blow-out (Breach, or Integrity 0): the disc re-forms over 300 s at f 0.3 or more.")
+            .addInfo(
+                "Blow-out (Breach, or Integrity 0): the disc re-forms over 300 s at f 0.3 or more (no coil power).")
             .addSeparator()
             .addInfo("Jets: dock a Burst Thermaliser Crown or a Wormhole Mouth on each cap's port (above the")
             .addInfo("  top cap, below the bottom one). An empty port vents its bursts.")
@@ -2508,8 +2507,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .addSeparator()
             .addInfo("Supermassive Lattice (the last upgrade, in place): an armillary cage round this quasar. It")
             .addInfo("  unlocks at Saturation: 4,096 SM on MagMatter coils, |E| <= 40, for 1 hour unbroken.")
-            .addInfo("  48 Containment Nodes, all one tier, set the safe limit / top: L1 Superdense Ergomatter")
-            .addInfo("  16,384 / 65,536 SM, L2 White Hole Matter 65,536 / 262,144, L3 Universium 262,144 /")
+            .addInfo("  48 Containment Nodes, all one tier, set the safe limit / top: L1")
+            .addInfo("  16,384 / 65,536 SM, L2 65,536 / 262,144, L3 262,144 /")
             .addInfo("  4,194,304 (Overdrive), L4 Constrained Eternity 4,194,304 / 67,108,864 (Unbind).")
             .addInfo("  Past 4,096 SM power grows as the square root of mass: x2 (2.0e17 EU/t) at 16,384 SM,")
             .addInfo("  x7.9 (7.7e17) at 262,144, x31 (3.0e18 EU/t, 3 quintillion) at the L4 top.")
@@ -2519,7 +2518,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             .addInfo("  below the safe limit. The Accretion Buffer holds 60 s of Disc + Hold-up.")
             .addInfo("  Mass setpoint (GUI, OC, Burst Control 'Hold'): growth stops there; lower it to shed (2 %/s,")
             .addInfo("  no power meanwhile). Overdrive (L3+): up to x100 (9.8e18 EU/t) for 100,000 x o^2 L/s each")
-            .addInfo("  of Molten MHDCSM and Molten Universium (trim or gas sockets). Unbind (L4): each doubling")
+            .addInfo("  of Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture (trim or gas sockets).")
+            .addInfo("  Unbind (L4): each doubling")
             .addInfo("  past 67,108,864 SM halves that upkeep, for 1,024 x 4^(n^2) L/s of Primordial Matter.")
             .addInfo("  Automation: Directive 'Horizon' set, Sensor channels, OpenComputers (setMassSetpoint, ...).")
             .addInfo("  A broken lattice under a hole over 4,096 SM freezes the quasar until it is repaired.")
