@@ -126,7 +126,9 @@ public final class GalaxyField {
         return tier >= 10 ? 0 : Math.max(0, Math.min(3, tier - 6));
     }
 
-    /** The highest tier a companion of an Eye of tier N may be: stars (k ≤ 6) at T7/T8; at T9 also the galaxies 7, 8. */
+    /**
+     * The highest tier a companion of an Eye of tier N may be: stars (k ≤ 6) at T7/T8; at T9 also the galaxies 7, 8.
+     */
     public static int maxCompanionTier(int tier) {
         return tier >= 9 ? 8 : 6;
     }

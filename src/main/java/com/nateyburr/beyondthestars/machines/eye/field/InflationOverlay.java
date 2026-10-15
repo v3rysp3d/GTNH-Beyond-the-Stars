@@ -100,7 +100,8 @@ public final class InflationOverlay implements Overlay {
     }
 
     /**
-     * The soft fail: the Great Attractor relit at T9 (galaxy mode) with every gauge 0 and Integrity 50; the flow and the
+     * The soft fail: the Great Attractor relit at T9 (galaxy mode) with every gauge 0 and Integrity 50; the flow and
+     * the
      * universe in hand are kept (as the prototype). The charge is spent; the core stays in escrow.
      */
     static void softFail(FieldState s, StepInputs in, StepResult out) {

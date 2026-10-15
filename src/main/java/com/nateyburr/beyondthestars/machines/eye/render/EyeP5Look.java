@@ -64,8 +64,8 @@ public final class EyeP5Look {
     private EyeP5Look(byte beamGrade, float beamRho, float beamRhoMax, float beamGeV, float phi, byte flowState,
         byte flowSide, byte flowSize, long flowAt, float flowHeld, long captureAt, byte captureN, int galaxies,
         float vRamp, float V, long uniStartAt, float uniAge, boolean paused, byte phase, long recAt, long dawnAt,
-        boolean dawnOk, float H, long endAt, int universes, byte infPhase, byte facing, float flowIn,
-        float captureAgo, float uniAgeIn, float recIn, float dawnIn, float endAgo) {
+        boolean dawnOk, float H, long endAt, int universes, byte infPhase, byte facing, float flowIn, float captureAgo,
+        float uniAgeIn, float recIn, float dawnIn, float endAgo) {
         this.beamGrade = beamGrade;
         this.beamRho = beamRho;
         this.beamRhoMax = beamRhoMax;

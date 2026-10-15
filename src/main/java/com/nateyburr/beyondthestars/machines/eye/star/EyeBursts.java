@@ -80,7 +80,8 @@ public final class EyeBursts {
             halo,
             haloPorts,
             collarPorts + crownPorts == 0 ? ""
-                : String.format(Locale.ROOT, ", collar %.2f (%d), crown %.2f (%d)", collar, collarPorts, crown, crownPorts),
+                : String
+                    .format(Locale.ROOT, ", collar %.2f (%d), crown %.2f (%d)", collar, collarPorts, crown, crownPorts),
             source.isEmpty() ? (total() > 1e-9 ? ", not linked" : "") : ", linked to " + source);
     }
 }

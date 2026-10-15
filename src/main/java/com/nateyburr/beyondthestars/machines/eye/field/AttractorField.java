@@ -16,7 +16,8 @@ import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.W;
  * <li><b>Galactic Flow.</b> Every 1,200-2,400 s a group of 3-12 galaxies is warned 180 s ahead with its side and size;
  * accepted if its size is at most the accept limit, else it streams past. An accepted group surges for 240 s:
  * {@code A = 0.25·n·sin²(πτ/240)·q}, φ = 1 + A. Held Stable or better for all 240 s, all n are captured
- * (+144 L of Dark Matter each); else ⌊n × the fraction⌋. Afterwards the rail's precession sense takes the flow's side.</li>
+ * (+144 L of Dark Matter each); else ⌊n × the fraction⌋. Afterwards the rail's precession sense takes the flow's
+ * side.</li>
  * <li><b>The drift.</b> P = 3·(β − 1) + 0.5·A, W = 1.5·s + 0.5·k·A, Λ = 1 + φ, V = 2·φ (× the Infall's ramp).</li>
  * </ul>
  * RNG draws (prototype order): one {@code uni} when the flow timer is first needed (inside the drift, before the gauge
@@ -209,7 +210,8 @@ public final class AttractorField {
     }
 
     /**
-     * Prototype {@code flowPost} (per second, after the transition): a surge counts its Stable-or-better seconds; at its
+     * Prototype {@code flowPost} (per second, after the transition): a surge counts its Stable-or-better seconds; at
+     * its
      * end the captured galaxies and their Dark Matter are reported, the precession takes the flow's side (not after the
      * forced flow) and the next group is scheduled (one draw).
      */

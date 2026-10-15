@@ -55,8 +55,7 @@ public final class UniverseField {
 
     /** A countdown (Recombination or Cosmic Dawn ahead) is running at the universe's age. */
     public static boolean countdown(FieldState.Universe u) {
-        return u != null
-            && ((u.t > REC_AT - REC_WARN && u.t < REC_AT) || (u.t > u.dawn - DAWN_WARN && u.t < u.dawn));
+        return u != null && ((u.t > REC_AT - REC_WARN && u.t < REC_AT) || (u.t > u.dawn - DAWN_WARN && u.t < u.dawn));
     }
 
     /**

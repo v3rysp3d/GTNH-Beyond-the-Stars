@@ -378,12 +378,14 @@ public final class EyeKit {
                 if (t instanceof IGregTechTileEntity
                     && ((IGregTechTileEntity) t).getMetaTileEntity() instanceof MTEHatchPelletInjector) {
                     final IGregTechTileEntity ib = (IGregTechTileEntity) t;
-                    if (com.nateyburr.beyondthestars.items.SLP5Items.injectorBarrelMk1 != null) ib.setInventorySlotContents(
-                        0,
-                        new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.injectorBarrelMk1, 1, 0));
-                    if (com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense != null) ib.setInventorySlotContents(
-                        1,
-                        new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense, 64, 0));
+                    if (com.nateyburr.beyondthestars.items.SLP5Items.injectorBarrelMk1 != null)
+                        ib.setInventorySlotContents(
+                            0,
+                            new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.injectorBarrelMk1, 1, 0));
+                    if (com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense != null)
+                        ib.setInventorySlotContents(
+                            1,
+                            new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense, 64, 0));
                 }
             }
             if (i.length > 1 && fitStack(world, alignment, x, y, z, i[1], BTSMachines.burstControlHatch)) {
@@ -663,7 +665,8 @@ public final class EyeKit {
                         com.nateyburr.beyondthestars.blocks.SLBlocks.slCasing4,
                         MTEEyeOfHarmonyBTS.UNIVERSAL_COMPRESSION_META,
                         2);
-                    else world.setBlock(p[0], p[1], p[2], TTCasingsContainer.SpacetimeCompressionFieldGenerators, meta, 2);
+                    else world
+                        .setBlock(p[0], p[1], p[2], TTCasingsContainer.SpacetimeCompressionFieldGenerators, meta, 2);
                     n++;
                     if (!all) {
                         eye.checkStructure(true, base);

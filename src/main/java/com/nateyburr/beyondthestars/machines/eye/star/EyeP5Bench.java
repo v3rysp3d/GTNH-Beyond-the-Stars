@@ -24,7 +24,8 @@ import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
  * <li>{@code pellets <mag|erg|sup> [n] [mk <1-3>]}: n pellets (default 64) into the first Pellet Injector Hatch, and a
  * barrel of that Mk;</li>
  * <li>{@code refill <mag|erg|sup|off>}: keep the injector stocked every field second (a player's ME interface);</li>
- * <li>{@code accept <0-12|auto>}: the flow accept limit; {@code beam <c|auto> [k]}: the injector's centre and gain;</li>
+ * <li>{@code accept <0-12|auto>}: the flow accept limit; {@code beam <c|auto> [k]}: the injector's centre and
+ * gain;</li>
  * <li>{@code deeplink [reset]}: the Deep Link's window and streak; {@code flow <n> [low|high]}: warn a group of n now
  * (180 s ahead), as the next Galactic Flow;</li>
  * <li>{@code uni}: the universe's age, events and charge.</li>
@@ -162,8 +163,10 @@ public final class EyeP5Bench {
 
     private static MTEHatchPelletInjector firstInjector(MTEEyeOfHarmonyBTS eye) {
         for (MTEHatchPelletInjector inj : eye.injectorHatches()) {
-            if (inj != null && inj.getBaseMetaTileEntity() != null && inj.getBaseMetaTileEntity()
-                .isServerSide()) return inj;
+            if (inj != null && inj.getBaseMetaTileEntity() != null
+                && inj.getBaseMetaTileEntity()
+                    .isServerSide())
+                return inj;
         }
         return null;
     }
@@ -226,14 +229,15 @@ public final class EyeP5Bench {
                     fs.I,
                     fs.zone,
                     f == null ? "none"
-                        : f.left > 0 ? String.format(
-                            Locale.ROOT,
-                            "SURGING %d of %d (tau %d, %d s Stable, side %s)",
-                            f.size,
-                            f.size,
-                            f.tau,
-                            f.ok,
-                            f.sign > 0 ? "high" : "low")
+                        : f.left > 0
+                            ? String.format(
+                                Locale.ROOT,
+                                "SURGING %d of %d (tau %d, %d s Stable, side %s)",
+                                f.size,
+                                f.size,
+                                f.tau,
+                                f.ok,
+                                f.sign > 0 ? "high" : "low")
                             : f.warned ? String.format(
                                 Locale.ROOT,
                                 "WARNED %d galaxies, side %s, %s, arrives in %.0f s",

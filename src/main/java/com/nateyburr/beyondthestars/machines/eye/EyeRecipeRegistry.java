@@ -26,15 +26,15 @@ import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
+import com.nateyburr.beyondthestars.machines.eye.field.AttractorField;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
-import com.nateyburr.beyondthestars.machines.eye.field.AttractorField;
 import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
-import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
 import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
+import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeMilestones;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
@@ -996,7 +996,8 @@ public final class EyeRecipeRegistry {
     /**
      * P5 star pages (p5-t9-t10.md §9.4, recipe.eye9 / recipe.flow / recipe.eye10): T9 per 60 s cycle (the Superdense
      * pellets of a steady beam in, Dark Matter 144 L out; the beam's rate law and hold-rating table), the Galactic Flow
-     * (one page per group size from 3 to 12: the galaxies captured and their Dark Matter), and T10 per universe (the Dark
+     * (one page per group size from 3 to 12: the galaxies captured and their Dark Matter), and T10 per universe (the
+     * Dark
      * Matter charge in, Universium 9,216 L out; the curve and its events).
      */
     private static void displayP5(StarDef def) {

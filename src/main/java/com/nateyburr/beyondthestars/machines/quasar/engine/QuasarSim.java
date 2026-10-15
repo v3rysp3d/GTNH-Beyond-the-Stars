@@ -81,7 +81,9 @@ public final class QuasarSim {
         public boolean unlocked9, unlocked10, coreIN, coreINF, bufIN, bufINF;
         /** Pellet grade 1 Magnetar / 2 Ergomatter / 3 Superdense; Injector Barrel Mk 1-3. */
         public int grade = 3, inj = 1;
-        /** The injector's centre: auto (ρ = 1 at V = 0) or {@link #bc}; its gain; the analog window; the fixed level. */
+        /**
+         * The injector's centre: auto (ρ = 1 at V = 0) or {@link #bc}; its gain; the analog window; the fixed level.
+         */
         public boolean bcAuto = true;
         public double bc = 0.125, bk = 1, bwin = 30, bman = 8;
         /** The beam wired to V (analog, or two Directive bits); pellets in stock; the pre-fire rule. */

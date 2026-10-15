@@ -126,9 +126,8 @@ public final class EyeGalaxyBench {
     }
 
     /** P5: as above, with the collar and crown groups. */
-    public static void scripted(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, double collar,
-        double crown, boolean linked, String source, boolean paused, double phi, double b, double stream,
-        double limit) {
+    public static void scripted(MTEEyeOfHarmonyBTS eye, double hi, double lo, double halo, double collar, double crown,
+        boolean linked, String source, boolean paused, double phi, double b, double stream, double limit) {
         final EyeStarRuntime rt = eye.starRuntime();
         final EyeBursts e = feed(eye, hi, lo, halo, collar, crown, linked);
         e.limit = limit > 0 ? limit : Double.POSITIVE_INFINITY; // P4-88: J1's out-1 limit, as a receptor reads it
@@ -386,7 +385,8 @@ public final class EyeGalaxyBench {
         final double sh1 = test8 ? 1 : BurstRouting.share(0.5, 2, s1);
         // P4-88: J1's out 1 is a share of at most its limit (BurstRouting.split); the rest goes to the crown
         final double eyeAll = BurstRouting.split(sIn, sh1, 0, limit)[0];
-        final double collar = test9 ? eyeAll * com.nateyburr.beyondthestars.machines.quasar.engine.DeepLink.TEST_FIRE_SHARE
+        final double collar = test9
+            ? eyeAll * com.nateyburr.beyondthestars.machines.quasar.engine.DeepLink.TEST_FIRE_SHARE
             : 0;
         // P5 T10 (and Inflation once inflated): every burst lands on the crown's 12 ports
         if (rt.fs != null && rt.fs.tier.universe) {

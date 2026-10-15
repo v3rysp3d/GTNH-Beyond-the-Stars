@@ -33,8 +33,8 @@ public final class StellarField {
     /** The D-49 and P4 gauges (the T1-T8 golden tests hash and list these six). */
     public static final int GAUGES_P4 = 6;
     public static final String[] GAUGE_SYM = { "P", "Θ", "Ω", "Π", "W", "Λ", "V", "H" };
-    public static final String[] GAUGE_NAME = { "Pressure", "Core heat", "Spin", "Polarity", "Rail warp",
-        "Tidal shear", "Infall", "Expansion" };
+    public static final String[] GAUGE_NAME = { "Pressure", "Core heat", "Spin", "Polarity", "Rail warp", "Tidal shear",
+        "Infall", "Expansion" };
     public static final String[] ZONE_NAME = { "Resonant", "Stable", "Strained", "Critical", "Breach" };
     static final double[] ZONE_Y = { 1.25, 1.0, 0.5, 0, 0 };
     static final double[] ZONE_DI = { 1, 0.2, -0.5, -2, 0 };

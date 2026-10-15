@@ -826,8 +826,7 @@ public final class EyeStarRuntime {
         if (galaxyTransition()) return "A " + trans.type.title + " is already running.";
         if (state != StarState.PENDING || star == null || star.n() < 6 || star.n() > 9) {
             return "Nothing to begin: put the next chart in the controller slot while the "
-                + (star == null || star.n() <= 6 ? "magnetar"
-                    : star.n() <= 8 ? "galaxy" : "Great Attractor")
+                + (star == null || star.n() <= 6 ? "magnetar" : star.n() <= 8 ? "galaxy" : "Great Attractor")
                 + " burns.";
         }
         final List<String> miss = missing(star.n());
@@ -1234,8 +1233,7 @@ public final class EyeStarRuntime {
         if (trans instanceof Inflation) return ((Inflation) trans).demand();
         // P5: a galaxy companion (T9 only) weighs 2 in the demand (Q-P5-7)
         if (T.n >= 9) {
-            return GalaxyField
-                .demand(T.n, T.planets(), T.galaxy ? GalaxyField.companionWeight(galaxy.companions) : 0);
+            return GalaxyField.demand(T.n, T.planets(), T.galaxy ? GalaxyField.companionWeight(galaxy.companions) : 0);
         }
         if (T.n >= 7) return GalaxyField.demand(T.n, T.planets(), T.galaxy ? galaxy.companions.length : 0);
         return GalaxyField.D7;
@@ -1400,7 +1398,8 @@ public final class EyeStarRuntime {
         }
     }
 
-    // ===================================================================== P5: T9 the Great Attractor, T10 the Universe
+    // ===================================================================== P5: T9 the Great Attractor, T10 the
+    // Universe
 
     /**
      * P5: the pellet beam's inputs this second (p5-t9-t10.md §3.3): the injector's barrel and stock, the grade (locked,
@@ -1511,7 +1510,9 @@ public final class EyeStarRuntime {
         }
     }
 
-    /** P5: a lit second's T9 / T10 events: flows, captured galaxies, universes, the dawn, the first universe's charge. */
+    /**
+     * P5: a lit second's T9 / T10 events: flows, captured galaxies, universes, the dawn, the first universe's charge.
+     */
     private void p5AfterStep(StepResult out, int p) {
         final EyeAttractor a = attractor;
         if (out.flowWarned) {
@@ -1546,7 +1547,8 @@ public final class EyeStarRuntime {
             a.captureT = fs.t;
             a.captureN = (int) out.flowCaptured;
             a.lastFlow = out.flowHeld
-                ? String.format(Locale.ROOT, "held in full: %d galaxies captured, +%,.0f L Dark Matter", out.flowSize, dm)
+                ? String
+                    .format(Locale.ROOT, "held in full: %d galaxies captured, +%,.0f L Dark Matter", out.flowSize, dm)
                 : String.format(
                     Locale.ROOT,
                     "partly held (%.0f %% Stable): %.0f of %d captured, +%,.0f L Dark Matter",
@@ -1565,7 +1567,8 @@ public final class EyeStarRuntime {
             logEvent(lastEvent);
         }
         if (out.recombinationWarned) lastEvent = "Recombination in 60 s: H drifts +0.15/s for 300 s, P drops for 5 s";
-        if (out.recombination) lastEvent = "Recombination: the universe turns transparent (the CMB appears on the crown)";
+        if (out.recombination)
+            lastEvent = "Recombination: the universe turns transparent (the CMB appears on the crown)";
         if (out.dawnWarned) lastEvent = "Cosmic Dawn in 120 s: the first stars ignite across the crown's twelve spikes";
         if (out.dawnHit) lastEvent = "COSMIC DAWN: the starburst floods the crown (P kicked, H +0.3/s for 300 s);"
             + " stay Stable for the +12.5 % Universium";
@@ -1741,9 +1744,8 @@ public final class EyeStarRuntime {
         for (ItemStack stack : host.slotBusItems()) {
             if (out.size() >= max) break;
             final StarDef d = StarDef.byChart(stack);
-            if (d == null || d.n() > GalaxyField.maxCompanionTier(T.n)
-                || d.n() > unlockedTier
-                || out.contains(d.n())) continue;
+            if (d == null || d.n() > GalaxyField.maxCompanionTier(T.n) || d.n() > unlockedTier || out.contains(d.n()))
+                continue;
             out.add(d.n());
         }
         final int[] a = new int[out.size()];
@@ -2718,11 +2720,11 @@ public final class EyeStarRuntime {
                 out.add(
                     from == 6 ? "the magnetar lit"
                         : from == 7 ? "Triangulum lit in galaxy mode"
-                            : from == 8 ? "the Milky Way lit in galaxy mode" : "the Great Attractor lit in galaxy mode");
+                            : from == 8 ? "the Milky Way lit in galaxy mode"
+                                : "the Great Attractor lit in galaxy mode");
             } else if (lastOut == null || lastOut.zone > 1) {
                 out.add(
-                    "the " + (from == 6 ? "magnetar" : from <= 8 ? "galaxy" : "Great Attractor")
-                        + " Stable or better");
+                    "the " + (from == 6 ? "magnetar" : from <= 8 ? "galaxy" : "Great Attractor") + " Stable or better");
             }
             if (from == 6 && (host.receptorPorts(0) < 1 || host.receptorPorts(1) < 1)) {
                 out.add("a GRB Receptor Port on each bank of the stability rail (rail-high and rail-low)");
@@ -2809,7 +2811,8 @@ public final class EyeStarRuntime {
     /** P5: the beam's hold rating The Infall needs (the forced flow is a group of 6, §2.8). */
     public static final int INFALL_HOLD_RATING = 6;
     /** P5: The Infall's charge per parallel (Superdense Ergomatter) and Inflation's (Attractor Dark Matter). */
-    public static final long INFALL_SDE = Math.round(com.nateyburr.beyondthestars.machines.eye.field.InfallOverlay.CHARGE_BUFFER),
+    public static final long INFALL_SDE = Math
+        .round(com.nateyburr.beyondthestars.machines.eye.field.InfallOverlay.CHARGE_BUFFER),
         INFLATION_DM = Math.round(com.nateyburr.beyondthestars.machines.eye.field.InflationOverlay.CHARGE_BUFFER);
 
     /**

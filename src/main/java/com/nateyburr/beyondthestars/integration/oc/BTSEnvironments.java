@@ -241,7 +241,8 @@ public final class BTSEnvironments {
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeFlow(e) };
         }
 
-        @Callback(doc = "function(n:number):number -- the flow accept limit 0-12 (negative: the hold rating); returns it")
+        @Callback(
+            doc = "function(n:number):number -- the flow accept limit 0-12 (negative: the hold rating); returns it")
         public Object[] setAcceptLimit(Context c, Arguments a) {
             if (limited("setAcceptLimit")) return RATE_LIMITED;
             final MTEEyeOfHarmonyBTS e = eye();

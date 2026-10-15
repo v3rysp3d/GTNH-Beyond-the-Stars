@@ -94,9 +94,10 @@ public enum TierParams {
      * the Friedmann curve); one universe per 7,200 s batch ({@link UniverseField}). Trims: Space on P; Dark Matter
      * (H −2, 4 L a unit) and Molten SpaceTime (H +2) on H.
      */
-    T10(10, "The Universe", new int[] { P, H }, 1, sig10(1, UniverseField.H_SIGMA), gains10(-0.01, UniverseField.H_GAIN),
-        null, F.UNIVERSE, 0, 0, new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null),
-            trimH(TrimDef.Kind.DARK_MATTER, 10, -2, null), trimH(TrimDef.Kind.SPACETIME, 10, 2, null) });
+    T10(10, "The Universe", new int[] { P, H }, 1, sig10(1, UniverseField.H_SIGMA),
+        gains10(-0.01, UniverseField.H_GAIN), null, F.UNIVERSE, 0, 0,
+        new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null), trimH(TrimDef.Kind.DARK_MATTER, 10, -2, null),
+            trimH(TrimDef.Kind.SPACETIME, 10, 2, null) });
 
     /** Tier flags (a nested holder: an enum's constant arguments cannot forward-reference its own statics). */
     static final class F {

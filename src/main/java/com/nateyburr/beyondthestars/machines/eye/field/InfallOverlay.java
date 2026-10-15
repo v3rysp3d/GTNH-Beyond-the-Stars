@@ -10,7 +10,8 @@ import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.V;
  * appears at 0 and its drift ramps in over 600 s; the T8 feed stops; the charge drains at 10 L/s of Superdense
  * Ergomatter ({@link StepResult#infallCharge}); the demand ramps 6 → 24 Bu/t over 1,800 s ({@link #demand}).</li>
  * <li>A forced, accepted Galactic Flow of 6, warned at 1,020 s, arrives at 1,200 s (only that flow runs).</li>
- * <li>Settle: from 1,500 s, once the forced flow has ended, Stable or better for 120 consecutive seconds; past 2,100 s it
+ * <li>Settle: from 1,500 s, once the forced flow has ended, Stable or better for 120 consecutive seconds; past 2,100 s
+ * it
  * fails.</li>
  * </ol>
  * On success the Great Attractor lights ({@link StellarField#light}, the first flow scheduled). On failure (Q-P5-5, the
@@ -35,7 +36,8 @@ public final class InfallOverlay implements Overlay {
     private InfallOverlay() {}
 
     /**
-     * Prototype {@code beginInfall}: the tier becomes T9 (galaxy mode), V at 0, the forced flow, the beam kept (the Deep
+     * Prototype {@code beginInfall}: the tier becomes T9 (galaxy mode), V at 0, the forced flow, the beam kept (the
+     * Deep
      * Link's test fire may have spooled it). No draws, no light (the cycle in progress carries on).
      */
     public static InfallOverlay begin(FieldState s) {

@@ -63,7 +63,8 @@ public interface Overlay {
 
     /**
      * P5: the drift with the second's result (what {@link StellarField#step} calls). The T9 Attractor fires its beam
-     * and runs its flow inside the drift (the prototype's order), and the T10 Universe runs its clock there; both report
+     * and runs its flow inside the drift (the prototype's order), and the T10 Universe runs its clock there; both
+     * report
      * into {@code out}. Everything else uses {@link #drift(TierParams, FieldState, StepInputs)}. The Infall and
      * Inflation override this one.
      */
@@ -77,7 +78,8 @@ public interface Overlay {
     default void onFlowEnded() {}
 
     /**
-     * P5: a Breach or Integrity 0 this second, before the clock moves (the prototype's {@code fail} wrapper). The Infall
+     * P5: a Breach or Integrity 0 this second, before the clock moves (the prototype's {@code fail} wrapper). The
+     * Infall
      * and Inflation recover here (the soft rule, Q-P5-5) and set {@link StepResult#recovered}; the default does
      * nothing (the runtime runs its own failure rule).
      */

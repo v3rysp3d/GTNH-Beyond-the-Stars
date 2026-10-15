@@ -14,7 +14,6 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor;
 import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 
 import gregtech.api.interfaces.ITexture;
-import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchInputBus;
 
@@ -58,15 +57,12 @@ public class MTEHatchPelletInjector extends MTEHatchInputBus {
         return BTSTip.withDetails(
             new String[] { "Fires pellets into the Great Attractor. Higher-GeV pellets hold bigger flows.",
                 "Goes on the top collar of the Eye's T9 collimator stack.",
-                "Rate cap by barrel: Mk I " + BTSTip.num(4)
-                    + ", Mk II "
-                    + BTSTip.num(8)
-                    + ", Mk III "
-                    + BTSTip.num(16)
-                    + " pellets/s.",
+                "Rate cap by barrel: Mk I " + BTSTip
+                    .num(4) + ", Mk II " + BTSTip.num(8) + ", Mk III " + BTSTip.num(16) + " pellets/s.",
                 "Ignored below Eye T9 except for the Deep Link test fire.",
                 BTSTip.hint("Screwdriver: lock the grade fired.") },
-            BTSTip.heading("Pellets") + ": Magnetar " + BTSTip.num("1.25 EeV")
+            BTSTip.heading("Pellets") + ": Magnetar "
+                + BTSTip.num("1.25 EeV")
                 + ", Ergomatter "
                 + BTSTip.num("5 EeV")
                 + ", Superdense "
@@ -182,9 +178,7 @@ public class MTEHatchPelletInjector extends MTEHatchInputBus {
                 .append(n);
         }
         sb.append(lockedGrade > 0 ? ", locked to " + EyeAttractor.gradeName(lockedGrade) : ", highest grade first");
-        sb.append(
-            centreAuto ? ", centre auto"
-                : String.format(Locale.ROOT, ", centre %.3f", centre));
+        sb.append(centreAuto ? ", centre auto" : String.format(Locale.ROOT, ", centre %.3f", centre));
         sb.append(String.format(Locale.ROOT, ", gain %.2f", gain));
         return sb.toString();
     }

@@ -2,11 +2,11 @@ package com.nateyburr.beyondthestars.machines.eye.render;
 
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
+import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
 import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
 import com.nateyburr.beyondthestars.machines.eye.star.CoreCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
-import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
 import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
 import com.nateyburr.beyondthestars.machines.eye.star.Infall;
 import com.nateyburr.beyondthestars.machines.eye.star.Inflation;

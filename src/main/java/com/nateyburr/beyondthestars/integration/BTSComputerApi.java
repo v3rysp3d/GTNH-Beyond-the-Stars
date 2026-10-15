@@ -316,8 +316,9 @@ public final class BTSComputerApi {
 
     /** P5 {@code bts_eye.setGrade(name)}: "magnetar", "ergomatter", "superdense" or "auto"; returns it. */
     public static String eyeSetGrade(MTEEyeOfHarmonyBTS eye, String name) {
-        final String n = name == null ? "" : name.trim()
-            .toLowerCase(java.util.Locale.ROOT);
+        final String n = name == null ? ""
+            : name.trim()
+                .toLowerCase(java.util.Locale.ROOT);
         final int g = n.startsWith("mag") ? 1 : n.startsWith("erg") ? 2 : n.startsWith("sup") ? 3 : 0;
         for (com.nateyburr.beyondthestars.machines.eye.MTEHatchPelletInjector i : eye.injectorHatches()) {
             if (i != null) i.setLockedGrade(g);
