@@ -1381,7 +1381,7 @@ beyondthestars.gui.quasar.info.lattice=§eSUPERMASSIVE LATTICE §7An armillary c
 beyondthestars.gui.quasar.info.intake=§eINTAKE §7All the gas drawn in a second, up to 5x the Eddington feed: Disc (f, the only part that moves E), then Hold-up (3x x Eddington; holds the mass over the safe limit; short, the extra leaks back, halving each hour), then Growth (the rest). Power past 4,096 SM grows as the square root of mass: x2 (2.0e17 EU/t) at 16,384 SM, up to x31 (3.0e18 EU/t) at the L4 top.
 beyondthestars.gui.quasar.info.overdrive=§eOVERDRIVE §7L3 or better: output toward x100 (9.8e18 EU/t, about 10 quintillion) for 100,000 x o² L/s each of Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture. Half Overdrive gives about 55 % of the full gain at 262,144 SM and about 86 % at the L4 top. Running dry fades it over 1 s; nothing breaks.
 beyondthestars.gui.quasar.info.unbound=§eUNBOUND §7L4 and Unbind: the setpoint may pass 67,108,864 SM. Each doubling n halves the Overdrive upkeep, for a Primordial Matter anchor of 1,024 x 4^(n²) L/s (4,096 L/s at n 1). A short anchor sheds safely to what the supply pays for; nothing is ever destroyed.
-beyondthestars.gui.quasar.info.horizon=§eAUTOMATE THE LATTICE §7Directive Horizon set: [1] hold-up short [2] buffer under 30 s [4] anchor short [8] Overdrive upkeep short. Burst Control Hatch modes: Hold (the setpoint, safe limit 0 .. top 15), Overdrive (o = s/15), Shed (a rising edge). Sensor channels for every number here. OpenComputers bts_quasar: getBand, getIntake, getHoldUp, getBuffer, getOverdrive, getAnchor, getHorizon, setMassSetpoint, setOverdrive, setUnbound, shed.
+beyondthestars.gui.quasar.info.horizon=§eAUTOMATE THE LATTICE §7Directive Horizon set: [1] hold-up short [2] buffer under 30 s [4] anchor short [8] Overdrive upkeep short. Burst Control Hatch modes: Hold (the setpoint, safe limit 1 .. top 15; 0 keeps the GUI's), Overdrive (o = s/15), Shed (a rising edge). Sensor channels for every number here. OpenComputers bts_quasar: getBand, getIntake, getHoldUp, getBuffer, getOverdrive, getAnchor, getHorizon, setMassSetpoint, setOverdrive, setUnbound, shed.
 beyondthestars.gui.conduit.opening=paying %s / %s s
 beyondthestars.gui.conduit.paired=Paired
 beyondthestars.gui.conduit.notpaired=Not paired
@@ -1508,7 +1508,7 @@ beyondthestars.gui.burst.help.purge=A rising edge purges the disc's flux (Quasar
 beyondthestars.gui.burst.help.field=b = 0.5 + (tier - 0.5) x s / 15 (Quasar Engine)
 beyondthestars.gui.burst.help.split=Share 1 = c + k (s/15 - 0.5) (Conduit Junction)
 beyondthestars.gui.burst.help.begin=A rising edge begins the galaxy transition when ready (Eye of Harmony)
-beyondthestars.gui.burst.help.hold=The mass setpoint, safe limit (0) .. band top (15), log scale (Quasar Engine with a lattice)
+beyondthestars.gui.burst.help.hold=The mass setpoint, safe limit (1) .. band top (15), log scale; 0 leaves the GUI's setpoint (Quasar Engine with a lattice)
 beyondthestars.gui.burst.help.overdrive=Overdrive o = s / 15 in 5 % steps (Quasar Engine, L3 lattice)
 beyondthestars.gui.burst.help.shed=A rising edge sets the mass setpoint to the safe limit (Quasar Engine with a lattice)
 beyondthestars.gui.burst.nohost=no machine
