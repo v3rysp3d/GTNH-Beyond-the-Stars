@@ -280,6 +280,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         // the biggest crown that stands wins; a failed try reports only for the Mk last formed (its errors are the
         // ones the player is fixing)
         mk = 0;
+        List<StructureError> asked = null;
         for (int t = MK_MAX; t >= 1; t--) {
             clearHatches();
             resetWalk();
@@ -291,7 +292,14 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
                 if (askedMk <= t) askedMk = 0;
                 return;
             }
-            if (t == (askedMk > 0 ? askedMk : lastMk)) errors.addAll(trial);
+            if (t == askedMk) asked = trial;
+            if (t == lastMk) errors.addAll(trial);
+        }
+        // QA-B38 (QK-04): nothing stands (an upgrade has replaced a cell of the old Mk): list the cells of the Mk the
+        // projector is building, not the old Mk's
+        if (asked != null && askedMk != lastMk) {
+            errors.clear();
+            errors.addAll(asked);
         }
         clearHatches();
         resetWalk();
@@ -452,7 +460,8 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     /** One crown second: jets + the receptor + a lower crown's overflow; EU to wireless; overflow up the stack. */
     private void second(long now) {
         final BurstReading r = remote.second(receptors, crownKey(), "Burst Thermaliser Crown Mk " + roman(mk), 0, 0);
-        lastRemote = r.paused ? 0 : r.total;
+        // QA-B45: a crown has nothing to freeze: what arrived is power, even while another source is paused
+        lastRemote = r.total;
         lastJets = book.sum("jet|", now, FlowBook.SHOW);
         lastOverIn = book.sum("over|", now, FlowBook.SHOW);
         final double s = lastJets + lastRemote + lastOverIn;
