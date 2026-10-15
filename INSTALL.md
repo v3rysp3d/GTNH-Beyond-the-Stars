@@ -64,9 +64,17 @@ With the default config the mod changes some of the pack's own content. Each cha
   into our chapters) and the emptied Endgame Goals chapter is hidden. Completed quests stay completed; four edited pack
   quests restart their tasks once. Set `questbookAutoInstall=false` to install the book only when an operator runs
   `/btsquests install`.
-- **Universium** comes with Eye T10, which is not in this build. Nothing you can build today needs it; the pack's own
-  Universium line (MHDCSM, the Stargate) waits for Eye T10 behind "Coming later" quests. With
-  `replaceTecTechEyeOfHarmony=false`, TecTech's Eye of Harmony still makes Universium as the pack ships it.
+- **Universium** comes only from our Eye T10 (the Universe). Nothing before T10 needs it; the pack's own Universium
+  line (MHDCSM, the Stargate) opens in The Endgame chapter once T10 runs. With `replaceTecTechEyeOfHarmony=false`,
+  TecTech's Eye of Harmony still makes Universium as the pack ships it.
+- **MAX parts** (no switch): the eight MAX components, the MAX machine casing and hull, the MAX wireless energy hatch
+  and the Component Assembly Line's MAX casing get recipes on Attractor Dark Matter (Eye T9); RC-2 had none. The pack's
+  UXV 4096A laser hatches get a second recipe on Magnetar Matter. New MTE ids 28133, 28134, 28136 and 28137 (the wired
+  MAX energy, dynamo and laser hatches).
+- **Supermassive Lattice nodes** (`latticeNodesUseP5Matter=true`): the L2 node is made from Attractor Dark Matter and
+  the L3 node from Universium. Set it to `false` to keep the older L2 / L3 recipes; nodes already built stay.
+- **Retired fluids:** the placeholder fluids `btswhiteholematter` and `btsentangledwhitehole` are gone (no recipe ever
+  made them). A tank that held one loses it.
 
 ## Removing the mod
 

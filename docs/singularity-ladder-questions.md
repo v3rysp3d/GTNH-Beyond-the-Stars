@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-168, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-168, P5 content's B-200..B-216, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -54,6 +54,10 @@ Most important first. "Recommended" is what we would build if nothing else is de
 | 29 | Under Angelica, a Reality Diffraction / Refab render can stay invisible until the controller block has been on screen once | Accept for now; the real fix is a small render tile at each machine's render centre (R-05's alternative, a structure change) | R-16 |
 | 30 | ~~SMBH: with `replaceTecTechEyeOfHarmony` on, MagMatter waits for our Eye T10 (the Godforge EE upgrade takes 2 Universium frames), but Saturation needs MagMatter coils and the T9 -> T10 Supermassive Link needs a lattice: a loop~~ | **Settled**: "Cheaper Godforge upgrade"; SL-Q36 as built (8 Black Dwarf Matter frames in place of 2 Universium ones, under the same flag) | B-153, B-157 |
 | 31 | SMBH: a broken lattice block under a hole over 4,096 SM unforms the quasar (frozen, nothing lost) instead of shedding the hole to the coil cap | Keep: a mis-click must not cost days of growth; taking a lattice down means lowering the setpoint to 4,096 SM first | B-154 |
+| 32 | P5: the wired MAX energy / dynamo hatches and the MAX 4,096 A laser hatches do not exist in RC-2; built on spare ids 28133 / 28134 / 28136 / 28137 | Keep these four ids (frozen once a world holds one) | B-204 |
+| 33 | P5: the Dark Matter Heating Coil cannot sit above Eternal (GT's coil levels end at MAX, 13,501 K) | Keep it as the T9-matter MAX coil at Eternal's heat; a hotter tier needs a mixin | B-206 |
+| 34 | P5: the quests the Eye would tick (The Deep Link, The Infall, Inflation, the flow / universe counts) are checkboxes | Keep for the first P5 playtest; a quest bridge from the Eye's milestones later | B-211 |
+| 35 | P5: two full MAX Batteries in one GT battery buffer overflow its capacity readout (2^63 - 1 EU each) | Lower to 2^59 EU each if the playtest shows a misreading | B-208 |
 
 ## 2. Settled
 
@@ -7355,6 +7359,222 @@ least), so the disc runs on for about a minute after the supply stops". Regenera
 **Suggestion.** Keep the 60 s buffer for every quasar: one rule for every quasar, and a ME supply that hiccups does not
 blow the disc out. Alternative: 10 s x 1.5 without a lattice, 60 s with one.
 
+
+### B-200 P5 content: White Hole Matter retired for Attractor Dark Matter [p5-content]
+
+**Context.** D-52 replaced White Hole Matter with Dark Matter as Eye T9's product; Q-P5-1 (accepted 2026-10-16) named
+the material "Attractor Dark Matter" because AmunRa already has a "Dark Matter" block and a "Dark Matter Shard" in RC-2.
+Before P5, `SLRealityFluids` registered `btswhiteholematter` and `btsentangledwhitehole` as placeholders that no
+recipe made.
+
+**Built.** `SLRealityFluids.darkMatter` (`btsdarkmatter`, "Attractor Dark Matter", a liquid) and
+`SLRealityFluids.entangledDarkMatter` (`btsentangleddarkmatter`, "Entangled Attractor Dark Matter", the 144 L
+condensate) replace them in SL-C04, SL-H20, SL-H21, SL-R01, SL-R02, SL-R03 (anchor VI, 288 L) and the gate log. The
+placeholder fields and both old fluids are gone; `SLRealityFluids.isPlaceholder` stays (its set is empty). Regions V and
+VI are "Visible Mass" and "Dark Mass" (display names and the Diffraction GUI; the registry names are unchanged).
+
+**No missing-mapping handler.** The two old fluids have no item, block or cell form, so Forge has nothing to remap; a
+tank that somehow held one loses it on load. No survival recipe ever made them.
+
+**Suggestion.** Keep. Alternative: register the two old names as hidden aliases for one release.
+
+### B-201 Attractor Dark Matter is addon items, not a GT material [p5-content]
+
+**Context.** The spec lists "Attractor Dark Matter (fluid + GT material/plates/dense plates/frame)". A GT `Materials`
+entry cannot be added by an addon in GT5u 5.09.54; a BartWorks Werkstoff would add ores, dusts, ingots, tool heads and
+a material id for a fluid only an Eye makes.
+
+**Built.** The plate and the dense plate are `SLP5Items` items; the frame box is `slCasing4:9` (the id plan's "or a GT
+frame via the material" alternative not taken). Recipes: SL-M01 Fluid Solidifier (144 L, plate mould), SL-M02 Bender (9
+plates, circuit 9), SL-M03 Assembler (2 plates, circuit 4). No ore name is registered for them.
+
+**Suggestion.** Keep. Alternative: a Werkstoff with only the plate / dense plate / frame prefixes enabled.
+
+### B-202 The UXV and MAX Superconductor Wires are crafting parts [p5-content]
+
+**Context.** RC-2's superconductors stop at UMV (`Materials.SuperconductorUMV`). A working cable needs a GT cable MTE
+and a material per tier.
+
+**Built.** `superconductorWireUXV` (SL-V01, Alloy Blast Smelter UXV: 16 UMV wire + 576 L Magnetar Matter + 2,000 L
+Agent + 64,000 L Super Coolant) and `superconductorWireMAX` (SL-M04, Alloy Blast Smelter MAX: 2 Attractor Dark Matter
+plates + 16 UXV wire + 576 L + 64,000 L Super Coolant) are items used in the MAX hatches, components, coil, battery and
+the UXV laser hatches. The spec's "4 Magnetar Matter plates" are 576 L of the fluid: Magnetar Matter has no plate.
+Their tooltips say they do not carry power. The spec named the Mega Alloy Blast Smelter; both recipes are on GT's Alloy
+Blast Smelter map, which the Mega one runs.
+
+**Suggestion.** Keep. Alternative: real cables (two MTE ids and a GT material each).
+
+### B-203 The two P5 glasses live in a new block, slGlass [p5-content]
+
+**Context.** The id plan put Dark Matter Borosilicate Glass at `slCasing4:8`. `slCasing4` is an opaque metal block, so a
+glass there would render solid.
+
+**Built.** `BlockSLGlass` (`slGlass`, see-through, render pass 1): meta 0 Magnetar-Reinforced Borosilicate Glass (GT
+glass tier 13, UXV), meta 1 Dark Matter Borosilicate Glass (tier 14, MAX), registered with `GlassTier.addCustomGlass`
+at init as non-main glasses (GT's holograms keep their own glass). `slCasing4:8` is a hole. The Magnetar glass takes
+BartWorks' UMV-tier glass (Transcendentally Reinforced Borosilicate) as its "Reinforced Glass" (SL-V02, 4 + 144 L
+Magnetar Matter), the Dark Matter glass 4 Magnetar glass + 1 plate (SL-M05).
+
+**Suggestion.** Keep.
+
+### B-204 MAX wired energy, dynamo and laser hatches on four spare ids (open) [p5-content]
+
+**Context.** §7.2 prices MAX energy / dynamo hatches and MAX 4,096 A laser source / target hatches. RC-2 has none of
+them (only `WIRELESS_HATCH_ENERGY_MAX`, 286, and the MAX 4/16/64 A wireless hatches; read off `MetaTileEntityIDs`). The
+spec's id plan kept 28133-28134 and 28136-28139 spare.
+
+**Built.** `BTSMaxHatches`: GT's own `MTEHatchEnergy` / `MTEHatchDynamo` at tier 14 on base+33 / base+34 (28133 MAX
+Energy Hatch, 28134 MAX Dynamo Hatch) and TecTech's `MTEHatchEnergyTunnel` / `MTEHatchDynamoTunnel` at tier 14, 4,096 A
+on base+36 / base+37 (28136 / 28137). base+35 stays reserved. Recipes SL-M19, SL-M20, SL-M22, SL-M23. The generator now
+reads `BTSMaxHatches` for MTE ids.
+
+**Open.** These ids are frozen once a world holds the hatches. Confirm 28133 / 28134 / 28136 / 28137, or name others.
+
+**Suggestion.** Keep these four. Alternative: drop the wired MAX hatches and use the wireless ones only.
+
+### B-205 The T9 -> T10 parts take UMV parts: the B-72 rule [p5-content]
+
+**Context.** The P5 gate audit (`/btseye gates`) reads RC-2's live recipes: the UXV Field Generator, Emitter, Electric
+Pump and Robot Arm need molten Universium and MHDCSM (Eye T10). The Homogeny Tier III Core, both Reality controllers,
+the Universal Upgrade Core and the new Universal Compression Field Generator stand before T10, so as built they could
+not be made before the tier they unlock. The MAX parts' "4 of the UXV part" hits the same wall (D-51: nothing before T10
+takes Universium).
+
+**Built.** Two UMV parts for each UXV one, as B-72 does everywhere before T10: SL-H20 Field Generator / Pump UXV 64 ->
+UMV 128; SL-R01 Field Generator / Emitter UXV 32 -> UMV 64; SL-R02 Robot Arm UXV 32 -> UMV 64, Field Generator UXV 16 ->
+UMV 32; SL-R04 Field Generator UXV 64 -> UMV 128, Emitter UXV 32 -> UMV 64; SL-R06 Field Generator UMV 32; every MAX
+component 8 of its UMV part; the CoAL MAX casing 2 UMV casings; the UXV laser hatches 2 UMV hatches and 32 UMV sensors /
+emitters. UXV circuits stay (RC-2 makes them before T10). The audit: 51 P5 parts, 0 break the gate rule.
+
+**Suggestion.** Keep until a UXV-parts design takes Universium out of RC-2's UXV components.
+
+### B-206 The Dark Matter Heating Coil cannot sit above Eternal (open) [p5-content]
+
+**Context.** §7.2: "The Dark Matter Heating Coil sits above Eternal (14,001 K)". GT's `HeatingCoilLevel` enum ends at
+MAX, which is Eternal (13,501 K = 1 + 900 x 15), and every multi reads coil heat from that enum.
+
+**Built.** `slCasing4:7` implements `IHeatingCoil` and reports `HeatingCoilLevel.MAX`: a working coil at Eternal's
+heat. Its recipe (SL-M06, Assembly Line, 2 a craft) is §7.2's bill: 2 frame boxes, 4 MAX wire, 2 plates, 72 L, 1,152 L
+all in. GT's coil structure element accepts any `IHeatingCoil` block in survival; the hologram places GT's coils only.
+The tooltip says all of this.
+
+**Open.** A real tier above Eternal needs a mixin into every multi's heat read (or a GT change).
+
+**Suggestion.** Keep it as the T9-matter MAX coil (Eternal coils need an Eternal Singularity). Alternative: drop it.
+
+### B-207 The MAX components: Component Assembly Line, MAX casing tier, 16 a batch [p5-content]
+
+**Built.** SL-M10..M17 on GoodGenerator's Component Assembly Line map, `COAL_CASING_TIER` 14 (the MAX casing,
+`Compassline_Casing_MAX`, whose recipe SL-M18 is new), 16 a batch, RECIPE_MAX, 20 min. Each part: 8 of its UMV part
+(B-205), 2 MAX wire, 1 MAX circuit and Attractor Dark Matter up to §7.2's all-in figure (motor, pump, conveyor, piston,
+robot arm 2,304 L; emitter, sensor 3,456 L; field generator 4,608 L). RC-2 had no recipe for any of the eight.
+The MAX Machine Casing / Hull are `Casing_MAXV` / `Hull_MAXV` (11234): RC-2's `Casing_MAX` / `Hull_MAX` are the old
+UHV-tier names (8 Neutronium plates). SL-M08 casing 8 plates + 1,152 L; SL-M09 hull = casing + 2 UMV superconductor
+cables + Radox Polymer (no more Dark Matter than its casing).
+
+**Suggestion.** Keep.
+
+### B-208 MAX power and the battery as built [p5-content]
+
+**Built.** All on the Assembly Line around a MAX hull, research items a player can hold before T10: SL-M19 MAX Energy
+Hatch and SL-M20 MAX Dynamo Hatch (9,216 L all in each), SL-M21 MAX Wireless Energy Hatch (RC-2's 286, 9,216 L; RC-2
+has no MAX wireless dynamo hatch to price), SL-M22 / M23 MAX 4,096 A laser target / source (18,432 L each), SL-M07 MAX
+Battery (16 dense plates + 32 MAX wire + a MAX Field Generator + 9,792 L = 36,864 L). The battery is an IC2 electric
+item (`ItemMaxBattery`) at tier 14, 2^63 - 1 EU, transfer limit one MAX amp.
+
+**Open.** GT's battery buffers add their batteries' capacities as a `long`: two full MAX Batteries in one buffer
+overflow its displayed capacity. A capacity of 2^63 - 1 is the spec's number; 2^59 per battery would let a 4x4 buffer
+hold sixteen.
+
+**Suggestion.** Lower the capacity to 2^59 EU if the playtest shows a buffer misreading.
+
+### B-209 The UXV leftovers as built [p5-content]
+
+**Built.** SL-V01 UXV Superconductor Wire (B-202), SL-V02 Magnetar-Reinforced Borosilicate Glass (B-203), SL-V03 / V04
+the pack's UXV 4,096 A Laser Target / Source Hatches (15158 / 15258): 2 UMV energy / dynamo hatches, 32 UMV sensors /
+emitters, 8 UXV circuits, 16 UXV wire, 2,304 L Magnetar Matter, 32,000 L Agent. The pack's own recipe for them stays
+in NEI: it needs UXV parts (Universium), so it is the post-T10 route. The `uxvParts` flag is on; quest 48153 now asks
+for the 4,096 A pair.
+
+**Suggestion.** Keep the pack's recipe beside ours. Alternative: remove it at load-complete.
+
+### B-210 P5's T8 -> T9 parts and what the Eye unit reads [p5-content]
+
+**Built.** `SLP5Items`: the three Gated Pellets (SL-F01..F03 on the Kerr DENSITY map, 16 a craft, 30 s UXV), Injector
+Barrels Mk I-III (SL-F04 / F05 Condensate Assembler, SL-F06 Assembly Line on 16,000 L Superdense Ergomatter), the
+Attractor Seed Core (SL-F07, the spec's bill), Star Chart: Great Attractor (SL-F08, gated on Superdense Ergomatter),
+plus helpers for the Eye unit: `pelletGrade`, `pelletGeV` (1.25e9 / 5e9 / 2e10 GeV), `barrelTier`, `barrelRate` (4 / 8
+/ 16). SL-F09, the Pellet Injector Hatch (MTE 28128, Assembler UMV), registers only once that MTE exists; on this
+branch it waits (one log line), as P4's machine recipes did.
+
+**Suggestion.** The Eye unit uses these names (sent to the integrator on 2026-10-16).
+
+### B-211 Quests the Eye would tick are checkboxes (open) [p5-content]
+
+**Context.** §9.1 has six quests "ticked by the Eye" (The Deep Link, Out of the Zone of Avoidance, Inflation) or by a
+count (Holding the Flow, Twenty EeV, Laniakea, A Wider Pull, Keep It Flat, Cosmic Dawn, Last Light). No machine in the
+addon completes a quest today.
+
+**Built.** Each is a checkbox whose DONE WHEN names what the Eye's panel shows. 48182 (Eye T9) is a checkbox too;
+48183 asks for 1,000 L of Attractor Dark Matter, 48188 for 144 L of Universium, the rest retrieve the item.
+
+**Open.** A small BetterQuesting bridge call from `EyeMilestones` could complete them.
+
+**Suggestion.** Keep checkboxes for the first P5 playtest; build the bridge with the Eye unit if the owner wants it.
+
+### B-212 The Homogeny T3 link milestone is a quest task only [p5-content]
+
+**Context.** Q-P5-10 (accepted): P4's "the Tier III Core installs only after 1 h of the T2 Homogeny at sigma >= 1" is a
+questbook milestone, not an install condition.
+
+**Built.** Quest 48184 has two tasks: a checkbox for the hour at sigma >= 1 and the Tier III Core. The machine's install
+rule is unchanged (100,000 L of Degenerate Stellar Mixture mixed).
+
+**Suggestion.** Keep.
+
+### B-213 The lattice flag latticeNodesUseP5Matter [p5-content]
+
+**Built.** `Config.latticeNodesUseP5Matter` (default true): SL-Q31 L2 = an L1 node + 4,032 L Entangled Attractor Dark
+Matter (the spec's 4,000 L on the condensate's 72 L half-unit) + 4 any-MAX circuits; SL-Q32 L3 = an L2 node + 2,304 L
+(16 ingots) Universium condensate + 4 any-MAX circuits. False registers D-51's recipes instead; one recipe per node
+either way. L4 and Overdrive are unchanged (F-P5-6). The L2 / L3 tooltips and quests 48199 ("Dark Matter Lattice") and
+48221 say both; 48221 now also needs Eye T10.
+
+**Suggestion.** Keep.
+
+### B-214 Questbook: the MAX chapter goes live [p5-content]
+
+**Built.** `eyeT9T10`, `realityRefab`, `maxParts` and `uxvParts` are on (`bec` stays off: P5 does not ask for it). Every
+planned checkbox of the MAX chapter is a real quest; no placeholder is left (`BTSQuestIds.PLACEHOLDER_QUESTS` is empty,
+and the generator writes an empty array). New quests 48200-48211. Layout changes: 48181 moved under 48180 and the T8 ->
+T9 chain (48181 -> 48200 -> 48201 -> 48202 -> 48203 -> 48182) replaces 48181's direct line to 48182; 48187 needs E37
+only and 48208 needs 48186 and 48187; 48188 needs 48208 and 48198. The selftest's "tbd shipping" case now puts a `tbd`
+task on a shipped quest (no placeholder is left to flip). `gen-singularity --check` and `--selftest` are green, no
+layout errors; `/btsquests verify` resolves every P5 name (187 / 189; the two missing are the dev run's lack of
+Eternal Singularity, as before).
+
+**Suggestion.** Keep.
+
+### B-215 P5 content test (headless dev server, port 25781) [p5-content]
+
+**Run.** `runServer` (RC-2 dependencies), world `p5test`, console only, no client.
+- Boot: "Recipe registration complete: 408 registered, 0 skipped" (372 before P5); "P5 recipes: 1 wait for their
+  machine" (SL-F09, MTE 28128 is the Eye unit's); "H/R gate: ... every Homogeny/Reality recipe is reachable".
+- `/btsrecipes circuits`: every section PASS (35 assembly-line circuit slots, none takes only the placeholder).
+- `/btsrecipes dump`: 543 entries, group "Great Attractor / MAX" 35, guard 452 registered / 0 skipped, nothing
+  registered without a live recipe.
+- `/btseye gates`: compression generators 0 loops, P4 audit 0, P5 audit 51 parts, 0 break the gate rule.
+- `/btsquests verify`: 187 / 189 resolved (the 2 are Eternal Singularity items, absent from the dev run).
+- `/btstooltips`: every P5 item and block, with its [LSHIFT] lines.
+
+### B-216 Smaller P5 content choices [p5-content]
+
+- Fluids have no tooltip in GT's fluid display; the spec's Attractor Dark Matter line sits on the plate's tooltip and
+  in quest 48183.
+- Star Chart: Great Attractor is made in the content unit (SL-F08) like the T7 / T8 charts.
+- The Universal Compression Field Generator is `slCasing4:6`; the Eye unit puts it in the compression slots.
+- `/btseye gates` prints each P5 part's `modid:name:meta` (the questbook's task form).
+- `/btstooltips` also writes the `.tooltip.shift` lines.
 
 ## Where the old question numbers went
 

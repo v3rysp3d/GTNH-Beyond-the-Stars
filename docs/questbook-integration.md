@@ -785,6 +785,12 @@ planned note follows each one.
 
 ### 2.4 Tier 14 - MAX (new chapter of ours, line 47992)
 
+> **P5 (2026-10-16, D-52 / D-53).** Eye T9 is the Great Attractor and its product is **Attractor Dark Matter**: every
+> "White Hole" below reads Dark Matter (the coil and glass are "Dark Matter Heating Coil" and "Dark Matter Borosilicate
+> Glass", the L2 quest is "Dark Matter Lattice"). The flags `eyeT9T10`, `realityRefab`, `maxParts` and `uxvParts` are
+> on, 48200-48211 are added, and the live texts are in `questbook/singularity.json` (B-214 in
+> [singularity-ladder-questions.md](singularity-ladder-questions.md)). The table below is the original plan.
+
 - **Chapter:** "Tier 14 - MAX".
 - **Chapter description:** "The last voltage tier. MAX parts are built from Eye T9's White Hole Matter; Eye T10 makes
   Universium, which opens The Endgame."
