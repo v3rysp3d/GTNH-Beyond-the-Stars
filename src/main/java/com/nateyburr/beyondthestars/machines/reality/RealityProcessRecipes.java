@@ -9,6 +9,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.nateyburr.beyondthestars.BTSRecipeGuard;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing3;
+import com.nateyburr.beyondthestars.blocks.BlockSLCasing4;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.fluids.SLFluids;
 import com.nateyburr.beyondthestars.fluids.SLRealityFluids;
@@ -21,6 +22,7 @@ import gregtech.api.enums.Materials;
 import gregtech.api.enums.NaniteTier;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.enums.TierEU;
+import tectech.thing.CustomItemList;
 
 /**
  * HOMOGENY + REALITY MACHINES (H/R unit 2): the PROCESS recipes of the three machines' own maps (design repo
@@ -34,9 +36,12 @@ import gregtech.api.enums.TierEU;
  * from here.</li>
  * <li>SL-R04 / R05: Reality Refab, RC-2 Condensate Assembler style: one nanite tier per item slot (all at or below
  * Black Dwarf, H-17), the six regions as condensates.</li>
+ * <li>SL-R06 (P5, p5-t9-t10.md §5.2): the Universal Compression Field Generator, the tenth compression tier, from a
+ * consumed Gallifreyan generator and the six regions.</li>
  * </ul>
- * Recipes whose fluids are later phases' (White Hole Matter, Superdense Ergomatter) register against the
- * placeholder fluids {@link SLRealityFluids} provides (H-24): present in NEI, unreachable until an Eye makes them.
+ * P5: Attractor Dark Matter (Eye T9) replaces White Hole Matter in SL-H21 and in anchor VI. The Refab parts are needed
+ * before Eye T10, so RC-2's UXV Field Generators and Emitters (Universium) are taken as twice as many UMV ones (the
+ * B-72 rule, question B-205).
  */
 public final class RealityProcessRecipes {
 
@@ -76,7 +81,7 @@ public final class RealityProcessRecipes {
             "SL-H21",
             () -> GTValues.RA.stdBuilder()
                 .fluidInputs(
-                    BTSRecipeGuard.fluid(SLRealityFluids.whiteHoleMatter, 144),
+                    BTSRecipeGuard.fluid(SLRealityFluids.darkMatter, 144),
                     BTSRecipeGuard.fluid(SLRealityFluids.superdenseErgomatter, 500),
                     BTSRecipeGuard.fluid(SLRealityFluids.degenerateStellarMixture, 1_000))
                 .fluidOutputs(BTSRecipeGuard.fluid(SLRealityFluids.entanglementMedium, 1_000))
@@ -95,7 +100,7 @@ public final class RealityProcessRecipes {
             BTSRecipeGuard.nn(Materials.Time.getMolten(1_440L), "molten Time"),
             BTSRecipeGuard.nn(Materials.Eternity.getMolten(144L), "molten Eternity"),
             BTSRecipeGuard.fluid(SLRealityFluids.superdenseErgomatter, 500),
-            BTSRecipeGuard.fluid(SLRealityFluids.whiteHoleMatter, 288) };
+            BTSRecipeGuard.fluid(SLRealityFluids.darkMatter, 288) };
     }
 
     private static void diffraction() {
@@ -135,16 +140,18 @@ public final class RealityProcessRecipes {
 
     private static void refab() {
         // SL-R04 Universal Upgrade Core (Eye T9 -> T10, D-43). Doc: 4 x RECIPE_MAX; a GT recipe's EU/t is an int,
-        // so it is registered at 1 x RECIPE_MAX (question B-77 item 8).
+        // so it is registered at 1 x RECIPE_MAX (question B-77 item 8). B-205: Field Generator UXV 64 -> UMV 128 and
+        // Emitter UXV 32 -> UMV 64 (the core is the T10 gate, so nothing in it may need Universium).
         BTSRecipeGuard.recipe(
             "SL-R04",
             () -> GTValues.RA.stdBuilder()
                 .itemInputs(
                     BTSRecipeGuard.nn(SLBlocks.casing3(BlockSLCasing3.ETERNITY_SHELL, 64), "Eternity Shell Casing"),
                     crystal(16),
-                    BTSRecipeGuard.nn(ItemList.Field_Generator_UXV.get(64L), "Field Generator UXV"),
+                    BTSRecipeGuard.nn(ItemList.Field_Generator_UMV.get(64L), "Field Generator UMV"),
+                    BTSRecipeGuard.nn(ItemList.Field_Generator_UMV.get(64L), "Field Generator UMV"),
                     BTSRecipeGuard.req(OrePrefixes.circuit, Materials.UXV, 64L),
-                    BTSRecipeGuard.nn(ItemList.Emitter_UXV.get(32L), "Emitter UXV"),
+                    BTSRecipeGuard.nn(ItemList.Emitter_UMV.get(64L), "Emitter UMV"),
                     BTSRecipeGuard.nn(ItemList.MetaMaterial_ResonanceChamber3.get(16L), "Resonance Chamber III"),
                     BTSRecipeGuard.nn(ItemList.MetaMaterial_SensorArray3.get(8L), "Sensor Array III"),
                     BTSRecipeGuard.stack(SLItems.stabiliserPylon, 6))
@@ -153,8 +160,8 @@ public final class RealityProcessRecipes {
                 .metadata(
                     NANITE_TIERS,
                     new NaniteTier[] { NaniteTier.WhiteDwarf, NaniteTier.BlackDwarf, NaniteTier.WhiteDwarf,
-                        NaniteTier.SixPhasedCopper, NaniteTier.SixPhasedCopper, NaniteTier.BlackDwarf,
-                        NaniteTier.BlackDwarf, NaniteTier.Transcendent })
+                        NaniteTier.WhiteDwarf, NaniteTier.SixPhasedCopper, NaniteTier.SixPhasedCopper,
+                        NaniteTier.BlackDwarf, NaniteTier.BlackDwarf, NaniteTier.Transcendent })
                 .duration(7_200 * SECONDS)
                 .eut(TierEU.RECIPE_MAX)
                 .addTo(RealityRecipeMaps.REFAB));
@@ -174,6 +181,32 @@ public final class RealityProcessRecipes {
                     new NaniteTier[] { NaniteTier.Carbon, NaniteTier.Transcendent, NaniteTier.BlackDwarf,
                         NaniteTier.BlackDwarf })
                 .duration(120 * SECONDS)
+                .eut(TierEU.RECIPE_MAX)
+                .addTo(RealityRecipeMaps.REFAB));
+        // SL-R06 Universal Compression Field Generator (P5, p5-t9-t10.md §5.2, Q-P5-12): the tenth compression tier,
+        // which TecTech does not have. The Gallifreyan generator it upgrades is consumed. B-205: Field Generator UXV
+        // 16 -> UMV 32. 1,800 s of nanite-time at MAX; four Diffraction runs' worth of each region.
+        BTSRecipeGuard.recipe(
+            "SL-R06",
+            () -> GTValues.RA.stdBuilder()
+                .itemInputs(
+                    BTSRecipeGuard.nn(
+                        CustomItemList.SpacetimeCompressionFieldGeneratorTier8.hasBeenSet()
+                            ? CustomItemList.SpacetimeCompressionFieldGeneratorTier8.get(1L)
+                            : null,
+                        "Gallifreyan Spacetime Compression Field Generator"),
+                    BTSRecipeGuard.nn(SLBlocks.casing3(BlockSLCasing3.ETERNITY_SHELL, 16), "Eternity Shell Casing"),
+                    crystal(4),
+                    BTSRecipeGuard.nn(ItemList.Field_Generator_UMV.get(32L), "Field Generator UMV"),
+                    BTSRecipeGuard.nn(ItemList.MetaMaterial_ResonanceChamber3.get(4L), "Resonance Chamber III"),
+                    BTSRecipeGuard.req(OrePrefixes.circuit, Materials.MAX, 4L))
+                .fluidInputs(regions(4_000))
+                .itemOutputs(SLBlocks.casing4(BlockSLCasing4.UNIVERSAL_COMPRESSION, 1))
+                .metadata(
+                    NANITE_TIERS,
+                    new NaniteTier[] { NaniteTier.BlackDwarf, NaniteTier.WhiteDwarf, NaniteTier.BlackDwarf,
+                        NaniteTier.WhiteDwarf, NaniteTier.BlackDwarf, NaniteTier.SixPhasedCopper })
+                .duration(1_800 * SECONDS)
                 .eut(TierEU.RECIPE_MAX)
                 .addTo(RealityRecipeMaps.REFAB));
     }
