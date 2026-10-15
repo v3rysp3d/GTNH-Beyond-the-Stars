@@ -641,6 +641,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         for (int k = 0; k < 6; k++) aNBT.setLong("btsDiffPend" + k, pending[k]);
         aNBT.setLong("btsDiffRuns", runs);
         aNBT.setString("btsDiffNote", lastNote);
+        burstHost.save(aNBT, "btsDiffLink");
     }
 
     /**
@@ -662,6 +663,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         for (int k = 0; k < 6; k++) pending[k] = aNBT.getLong("btsDiffPend" + k);
         runs = aNBT.getLong("btsDiffRuns");
         lastNote = aNBT.getString("btsDiffNote");
+        burstHost.load(aNBT, "btsDiffLink");
     }
 
     // ================================================================================ tooltip

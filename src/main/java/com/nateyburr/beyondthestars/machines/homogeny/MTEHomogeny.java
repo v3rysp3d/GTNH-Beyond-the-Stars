@@ -1041,6 +1041,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
         aNBT.setLong("btsHomPendEspm", pendingEspm);
         aNBT.setLong("btsHomPendDeg", pendingDegenerate);
         aNBT.setString("btsHomNote", lastNote);
+        burstHost.save(aNBT, "btsHomLink");
     }
 
     @Override
@@ -1060,6 +1061,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
         installing = aNBT.getBoolean("btsHomInstalling");
         installTicks = aNBT.getInteger("btsHomInstallTicks");
         pendingEspm = aNBT.getLong("btsHomPendEspm");
+        burstHost.load(aNBT, "btsHomLink");
         pendingDegenerate = aNBT.getLong("btsHomPendDeg");
         runNeedsLink = false;
         if (mOutputFluids != null) {
