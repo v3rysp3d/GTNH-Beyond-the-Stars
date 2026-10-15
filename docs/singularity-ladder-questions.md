@@ -10350,3 +10350,66 @@ views, the SMBH `hero` pose, a 19-entry quasar debug look (the six fields and th
 Unbind and mass setpoint.
 
 **Suggestion.** None needed. The Unbound/Overdrive film (smbh-v1.md §10.4) uses this look.
+
+### R-20 The Eye's T9 and T10 renders: the Great Attractor and the Universe [P5 §2.1, §6.2, §9.5, render kit]
+
+**What was built** (branch `p5-render`, `machines/eye/render/CosmosFx`, `CosmosInput`, GLSL `shaders/cosmos/`; the
+approved mockup `designs/p5-prototype.html` is the target look). Three new programs, each with its `#version 120` and
+`#version 330 core` variant:
+
+- `bts_cosky`: the Attractor's backdrop, the far side of a radius-46 sphere round the core. Each fragment's ray passes
+  the core at impact parameter b and reads the star field and a faint nebula at the point-lens source position
+  `s = q (1 - b_E^2 / b^2)` (b_E = 20.4 blocks), so the stars show their stretched outer image and faint inner image
+  and those near the line of sight merge into an Einstein ring; the ring also glows. `renderBackgroundLensing` off:
+  the stars unlensed, the ring's glow kept.
+- `bts_copts`: static point buffers moved in the vertex shader. T9: six cosmic-web filaments of 2,000 dust points
+  (three from the rail's high side rising, three from its low side falling, 200 blocks long, S-bent), 600 streaming
+  galaxies (spiral and elliptical sprites; how many stream follows phi; they speed up as they fall and spiral into the
+  halo at 15 blocks), 600 halo dots (as many as the galaxies held, log scale, full at Laniakea's 100,000) and the
+  Galactic Flow's group (gold on its filament through the warning, falling in through the surge, swinging past when
+  declined, spiralling into the halo after a capture; the filament glows gold). T10: the web, 20,000 points on 90
+  nodes and their three nearest neighbours, scattered early and gathered by mid-life, lit blue-white by the first
+  stars after the Cosmic Dawn.
+- `bts_cofx`: the dark core (an opaque black sphere, 17 blocks across, with a faint rim; it hides what passes behind
+  it), the twelve Cosmic Dawn rays in one draw (from the spikes' tips, fired 0.45 s apart round the crown, then the
+  starburst's decay; the 120 s warning runs a glint round them), the last-scattering surface in the crown's tilted
+  plane (a turning CMB map on the mockup's palette; a boiling plasma before Recombination; a 25 s brightening at it;
+  the surface grows with the universe's age; Big Rip tears it, Big Crunch crushes it white, last light fades it) and
+  glow rings (the collars' glass channels pulsing down the stack with the beam, the crown's inner edge).
+- The pellet beam (colour by grade: Magnetar violet, Ergomatter cyan, Superdense white; width, brightness and knots
+  by rho) and the T10 jet are the kit's `bts_beam`.
+
+**Transitions.** The Infall: the filaments, galaxies and lens come up with V's ramp. Inflation: the crown's inner edge
+glows over the unfolding (still the Attractor), then the universe inflates from almost nothing and turns transparent
+at 600 s.
+
+**Coupling.** p5-eye owns the synced data (`EyeP5Look`, the P5 render interface). The render reads it through one
+client class, `CosmosInput` (plain numbers, seconds from now); `CosmosInput.fill` is the only method that touches the
+tile, and its glue for `EyeP5Look` is written out in its javadoc and in the interface's "Render side needs". Until that
+lands, a real T9 / T10 draws the quiet look. Asked of p5-eye: `facing` in the snapshot (the crown's tilt and the
+filaments' sides follow the controller) and `radius = 70` for the two kinds (the render tile's box). The bands'
+numbers come from the structure manifest (`machines.eye.crown`, `jet9`), voxel.js's numbers as the fallback.
+
+**Budget and LOD.** Draws: the Attractor 5 (core in pass 0; backdrop, points, collar rings, beam), the Universe 6
+(core in pass 0; jet, surface, web, crown glow, rays), inside the Eye's 6. L0 every point, 2 nebula and 4 CMB
+octaves; L1 half the points; L2 15 %, no flow highlight; L3 a glow sprite and the core. Ranked by 60 blocks round the
+centre (the Attractor) or 85 round the crown. Low quality: a fixed look of a few hundred quads (black core, ring glow,
+40 dots per filament, the beam; or a two-tone disc and the rays). No allocation per frame; every motion turns a whole
+number of times an hour (the shader clock's wrap never shows). Estimate, not measured: under the Eye's 0.13 ms (dev
+rig), the points cheaper than the T8's 20,000 stars and the surface's fragments about the galaxy disc's cost.
+`renderParticles` off leaves out the streaming galaxies.
+
+**Checked without a client.** Every program of the kit (126 stages and links, the three new ones included) compiles
+and links in Khronos glslang as GLSL 1.20 and 3.30 core, from the sources expanded as `GlslSourcePack` does; the new
+programs and `bts_beam` also as GLSL ES 3.00. A WebGL2 preview runs that same source, the same point buffers
+(`java.util.Random` ported bit for bit), the same noise texture and the same look code, shot in headless Edge and
+compared with the mockup's renders, then tuned (core and ring to the mockup's proportions, galaxy sprites to its size,
+the CMB's contrast, the web forming by mid-life; the glows and rays moved clear of the solid blocks). `gradlew build`
+passes; a headless server boots with no error from the addon. The harness gains sites `EYE_T9` / `EYE_T10` and 21
+forced looks (`-Dbts.rendertest.only=eye_t9,eye_t10`, views `cosmos`, `crownview`, `34`, `close`, `hero`).
+
+**Not verified.** Anything in a game window: depth against the real blocks and glass, the passes, LOD walking, GPU
+time, Angelica and shaderpacks. The checklist for that run is kept with the preview (`p5/render-ingame-checklist.md`).
+
+**Suggestion.** Accept the looks as previewed; merge p5-eye's snapshot first, then paste the `CosmosInput.fill` glue
+and run the checklist.
