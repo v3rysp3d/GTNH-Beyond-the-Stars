@@ -45,6 +45,9 @@ public class CommonProxy {
     }
 
     public void init(FMLInitializationEvent event) {
+        // The projector channel that switches the optional hatch sockets on (BTSStructures.optionalHatch).
+        com.nateyburr.beyondthestars.machines.BTSStructures.registerChannels();
+
         // AUTOMATION PASS: OpenComputers components, only with OpenComputers present (soft dependency).
         if (Loader.isModLoaded("OpenComputers")) {
             com.nateyburr.beyondthestars.integration.oc.BTSOpenComputers.register();
@@ -108,6 +111,8 @@ public class CommonProxy {
         event.registerServerCommand(new CommandBTSBuild());
         event.registerServerCommand(new CommandBTSMigrate());
         event.registerServerCommand(new CommandBTSClock());
+        event.registerServerCommand(new CommandBTSAutoplace());
+        event.registerServerCommand(new CommandBTSTooltips());
         event.registerServerCommand(new CommandBTSSupply());
         event.registerServerCommand(new CommandBTSSafety());
         event.registerServerCommand(new CommandBTSQuests());
