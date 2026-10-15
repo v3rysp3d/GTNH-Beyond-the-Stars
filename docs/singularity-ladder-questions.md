@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-177, P5 content's B-200..B-216, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -272,7 +272,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-177, B-200..B-216
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-216
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -7498,6 +7498,32 @@ generator in every compression cell), re-projection and damage-repair checks cle
 - **GUI as text** (`/btseye star … gui`): the T9 rows (V beside P / W / Λ, the bursts bar against D9, EU/t under it,
   the Supermassive Link check, the pellet beam, pellets with seconds of fire, galaxies held, the flow line).
   `/btstooltips`: the Eye's T9 / T10 lines and parts, the Pellet Injector's and the Burst Control Hatch's new lines.
+
+### B-178 Merge: P5 (p5-content, p5-eye, p5-render) into master [master, merge + test]
+
+**Merge.** In that order on `p5-integrate`. Conflicts: `items/SLP5Items.java` (p5-content's kept, p5-eye's compile
+shim and `P5MergeShim` with its `CommonProxy` call removed, B-176), the two Singularity Ladder docs (both sides kept,
+B-169..B-177 before B-200..B-216, header ranges fixed) and the questbook overlay's source line (regenerated). p5-render
+merged clean. Glue: `CosmosInput.fill` reads the synced `EyeP5Look` (facing, V and every field of the interface; R-20).
+The Eye's tenth compression meta now reads `BlockSLCasing4.UNIVERSAL_COMPRESSION` instead of repeating 6. Spotless
+reformatted 22 p5-eye files (layout only). The prototype carries the B-169 fixes; the P5 golden is unchanged.
+
+**Checks.** `gradlew build`; goldens fieldsim 78 / 78 (Java), quasar up to date, smbh 31 / 31 (Java), p5 46 / 46 (Java);
+`gen-singularity --check` (209 files) and `--selftest`; `export-structures --check`. Headless dev server, port 25811,
+world p5int, two boots, no client: 409 recipes registered, 0 skipped (408 + SL-F09, the Pellet Injector Hatch, now
+that 28128 exists; the dump lists it, Assembler UMV); `/btsrecipes circuits` every section PASS; dump 547 entries, guard
+453 / 0 skipped, none registered without a live recipe; `/btseye gates` P4 audit 0, P5 audit 51 parts, 0 break the
+rule; `/btsquests verify` 187 / 189 (the two Eternal Singularity items, absent from the dev run).
+
+**Smoke.** `/btseye t10 0 10 0 north gen 9 fill force`: FORMED, compression T10 (the Universal generator), repair
+checks clean. T8 Milky Way, Attractor Seed Core in escrow: the Deep Link held, The Infall complete in 1,619 s (its
+forced flow of 6 held), T9 for 2 h with 0 failures and every flow held in full (6 and 9). T9 -> T10 (bench milestones,
+Universal Upgrade Core): Inflation complete in 719 s. The universe stopped at age 3,480 s; after the restart age 3,480,
+Cosmic Dawn still at 4,654 and mean Y 1.204 carried on, and the universe ran to its last light: +12,270 L Universium,
+Cosmic Dawn caught. No client class loaded on the server (no side errors; server classes hold no reference to
+`CosmosInput`, `CosmosFx` or `EyeStarRenderer`).
+
+**Not verified.** Anything in a game window (the render checklist of R-20).
 
 ### B-200 P5 content: White Hole Matter retired for Attractor Dark Matter [p5-content]
 
