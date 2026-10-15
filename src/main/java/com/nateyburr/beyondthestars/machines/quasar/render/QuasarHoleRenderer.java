@@ -316,7 +316,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         final int farDir = cy < 0 ? -1 : 1;
         // SMBH: fatter with mass, white-violet in Overdrive, the held flare of a shed
         jet.overdrive = od;
-        jet.width = 1f + 0.9f * sm;
+        jet.width = (1f + 0.9f * sm) * (shed ? 1.5f : 1f); // QA-B12: the held flare is fatter than the jet it replaces
         jet.shed = shed ? 1f : 0f;
         jet.supermassive = sm;
 
@@ -667,7 +667,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     private static void drawShedShell(double cx, double cy, double cz, double rs, float phase, float time,
         int cullFace) {
         final float radius = (float) (rs * 3 + 26 * (1 - Math.exp(-phase * SHED_PERIOD / 0.6)));
-        final float intensity = 0.22f * (1f - smooth(phase));
+        final float intensity = 0.3f * (1f - smooth(phase));
         if (intensity <= 0.005f) return;
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(cullFace);
@@ -686,8 +686,8 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
             // QA-B12: a shed's glare is bigger and pulses with each giant knot leaving the base (what reads at range)
             double size = 1.0 + rs * 1.1;
             if (shedPhase >= 0) {
-                pulse *= 1.4f + 1.1f * (float) Math.exp(-shedPhase * SHED_PERIOD / 0.35);
-                size *= 1.6;
+                pulse *= 1.6f + 1.4f * (float) Math.exp(-shedPhase * SHED_PERIOD / 0.35);
+                size *= 2.2;
             }
             GlowSprite.draw(cx, cy + dir * z0, cz, size, 0.80f, 0.90f, 1.0f, 0.6f * bright * pulse, 0.16f, 0.4f);
         }
