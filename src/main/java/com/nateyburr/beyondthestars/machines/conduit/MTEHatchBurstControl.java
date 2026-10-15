@@ -88,8 +88,13 @@ public class MTEHatchBurstControl extends MTEHatch {
     // ---- saved
     private Mode mode = Mode.PURGE;
 
-    // ---- live
+    // ---- saved with the tile (QA-B05): the last level, so a signal already on before a save or chunk unload is not
+    // a rising edge when it loads again
     private int level;
+    /** False until the first tick after placement or a load that found no saved level: that tick only primes. */
+    private boolean primed;
+
+    // ---- live
     private boolean edge;
     /** Rising edges seen since placement (GUI only). */
     private int edges;
@@ -132,11 +137,18 @@ public class MTEHatchBurstControl extends MTEHatch {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
         final int s = Math.max(0, Math.min(15, aBaseMetaTileEntity.getStrongestRedstone()));
-        if (level == 0 && s > 0) {
+        // QA-B05: a rising edge is a real 0 -> 1+ change of the input. The first tick of a freshly placed hatch only
+        // reads the level; after a load the saved level is the "before", so a signal held through a restart or a
+        // chunk unload never fires a Shed, Purge or Begin again.
+        if (primed && level == 0 && s > 0) {
             edge = true;
             edges++;
         }
-        level = s;
+        primed = true;
+        if (s != level) {
+            level = s;
+            aBaseMetaTileEntity.markDirty(); // the chunk must save the new "before" level
+        }
         aBaseMetaTileEntity.setActive(s > 0);
     }
 
@@ -157,6 +169,7 @@ public class MTEHatchBurstControl extends MTEHatch {
             edges++;
         }
         level = v;
+        primed = true;
     }
 
     /** True once per rising edge since the last call (the host consumes it once a second). */
@@ -276,6 +289,7 @@ public class MTEHatchBurstControl extends MTEHatch {
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         aNBT.setString("btsBurstMode", mode.name());
+        aNBT.setByte("btsBurstLevel", (byte) level);
     }
 
     @Override
@@ -283,6 +297,10 @@ public class MTEHatchBurstControl extends MTEHatch {
         super.loadNBTData(aNBT);
         final Mode m = Mode.parse(aNBT.getString("btsBurstMode"));
         if (m != null) mode = m;
+        if (aNBT.hasKey("btsBurstLevel")) {
+            level = Math.max(0, Math.min(15, aNBT.getByte("btsBurstLevel")));
+            primed = true;
+        }
     }
 
     @Override
