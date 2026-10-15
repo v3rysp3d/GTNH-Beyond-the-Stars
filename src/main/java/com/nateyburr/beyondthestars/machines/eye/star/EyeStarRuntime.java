@@ -272,7 +272,8 @@ public final class EyeStarRuntime {
     private FieldReadout last = FieldReadout.DARK;
     private StepResult lastOut;
     private double lastM = 1, lastFeed;
-    private int lastP = 1, lastLiveP = 1;
+    int lastP = 1;
+    private int lastLiveP = 1;
     private long lastTimePaid;
     private final Map<TrimDef.Kind, Long> lastTrims = new EnumMap<>(TrimDef.Kind.class);
     private String waitReason = "";
@@ -1123,6 +1124,9 @@ public final class EyeStarRuntime {
             return;
         }
         if (out.eventWarned) {
+            // QA-A37: at a high time dial a flare can be warned inside the previous one's 30 s tail: that one ends
+            // here and counts if it was ridden (it used to be dropped)
+            if (flashState == 2 && flashOk) countRidden(n);
             flashState = 1;
             flashOk = true;
         }
@@ -1132,13 +1136,15 @@ public final class EyeStarRuntime {
             flashState = 2;
             flashTail = FLASH_TAIL;
         } else if (flashState == 2 && --flashTail <= 0) {
-            if (flashOk) {
-                if (n == 3) milestones.flashes++;
-                else if (n == 6) milestones.flares++;
-                else milestones.mergers++;
-            }
+            if (flashOk) countRidden(n);
             flashState = 0;
         }
+    }
+
+    private void countRidden(int n) {
+        if (n == 3) milestones.flashes++;
+        else if (n == 6) milestones.flares++;
+        else milestones.mergers++;
     }
 
     // ===================================================================== P4: the galaxy tiers

@@ -3192,8 +3192,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addController("Plinth, front centre")
             .addCasingInfoExactly("Reinforced Spatial Structure Casing", bom(PIECE_CORE, 'U'), false)
             .addCasingInfoExactly("Reinforced Temporal Structure Casing", bom(PIECE_CORE, 'Q'), false)
-            .addCasingInfoExactly("Infinite SpaceTime Energy Boundary Casing", bomAll('J'), false)
-            .addCasingInfoExactly("Quantum Glass", bomAll('Z') + bom(PIECE_CORE, 'A'), false)
+            .addCasingInfoExactly("Infinite SpaceTime Energy Boundary Casing", bom(PIECE_CORE, 'J'), false)
+            .addCasingInfoExactly("Quantum Glass", bom(PIECE_CORE, 'Z') + bom(PIECE_CORE, 'A'), false)
             .addCasingInfoExactly(
                 "Spacetime Compression Field Generator (tier = Eye tier or higher)",
                 bom(PIECE_CORE, 'W'),

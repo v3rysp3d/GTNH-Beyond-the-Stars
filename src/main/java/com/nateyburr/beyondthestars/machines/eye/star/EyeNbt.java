@@ -345,6 +345,7 @@ public final class EyeNbt {
         rt.cycR = s.hasKey("cycR") ? s.getDouble("cycR") : 1;
         rt.cycP = s.getInteger("cycP"); // 0 (an older save): no cap until the next charge
         rt.euShort = s.getBoolean("euShort");
+        if (rt.cycP > 0) rt.lastP = rt.cycP; // S-14: the scanner's parallel right after a load
         rt.batchP = s.getInteger("batchP");
         rt.tengam = s.getDouble("tengam");
         rt.hsmOwed = s.getDouble("hsmOwed");
