@@ -327,7 +327,8 @@ public final class EyeStarBench {
                 for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
                     for (int cz = box[2] >> 4; cz <= box[5] >> 4; cz++) {
                         if (cx == ccx && cz == ccz) continue;
-                        ((net.minecraft.world.WorldServer) world).theChunkProviderServer.unloadChunksIfNotNearSpawn(cx, cz);
+                        ((net.minecraft.world.WorldServer) world).theChunkProviderServer
+                            .unloadChunksIfNotNearSpawn(cx, cz);
                         n++;
                     }
                 }

@@ -174,6 +174,14 @@ public final class EyeStarRuntime {
 
         /** P4: a planet run's length in Eye-seconds (its base time with the compression reward). */
         double planetSeconds(EyeRecipe recipe);
+
+        /**
+         * QA-A06: the seconds left of the GT planet run in progress (T1-T6 planets, a batch run), 0 when none: one Eye
+         * runs a planet or a live star, never both.
+         */
+        default long planetRunSecondsLeft() {
+            return 0;
+        }
     }
 
     /** The T4 HSM feed setpoint range and the default (today's rate, plan §6.1). */
@@ -894,7 +902,13 @@ public final class EyeStarRuntime {
     private void darkSecond(StarDef want) {
         if (fs != null) StellarField.stepDark(fs);
         if (ledger != null) ledger.record(this, -1);
-        tryAutoStart(want);
+        final long planet = host.planetRunSecondsLeft();
+        if (planet > 0 && want != null) {
+            // QA-A06: a planet run is in progress: the star waits for it (one live star or one planet per Eye)
+            waitReason = "a planet run is in progress (" + planet + " s left): the star lights after it";
+        } else {
+            tryAutoStart(want);
+        }
         publish(FieldReadout.DARK);
     }
 
@@ -1561,7 +1575,21 @@ public final class EyeStarRuntime {
             final EyeRecipe r = EyeRecipeRegistry.lookup(stack);
             if (r != null && r.isPlanet()) planets.add(r);
         }
-        if (galaxy.slots.length != max) galaxy.slots = java.util.Arrays.copyOf(galaxy.slots, max);
+        // QA-A09: each wanted planet keeps the run of the same planet it had (by key, in order), wherever it now
+        // stands in the bus; only a planet that is new gets a new run, and only a run whose planet left is abandoned
+        // (taking planet #1 out used to restart every run behind it, their inputs and EU spent)
+        final List<EyeGalaxy.PlanetRun> old = new ArrayList<>();
+        for (EyeGalaxy.PlanetRun r : galaxy.slots) if (r != null) old.add(r);
+        final EyeGalaxy.PlanetRun[] next = new EyeGalaxy.PlanetRun[max];
+        for (int i = 0; i < max && i < planets.size(); i++) {
+            for (int k = 0; k < old.size(); k++) {
+                if (old.get(k).key.equals(planets.get(i).key)) {
+                    next[i] = old.remove(k);
+                    break;
+                }
+            }
+        }
+        galaxy.slots = next;
         final int inst = host.installedTier();
         final double zf = GalaxyField.PLANET_ZONE_FACTOR[Math.max(0, Math.min(4, zone))];
         final StringBuilder done = new StringBuilder();
@@ -1572,8 +1600,8 @@ public final class EyeStarRuntime {
                 galaxy.slots[i] = null;
                 continue;
             }
-            if (run == null || !run.key.equals(want.key)) {
-                run = new EyeGalaxy.PlanetRun(want.key); // a changed slot abandons its run (its inputs are spent)
+            if (run == null) {
+                run = new EyeGalaxy.PlanetRun(want.key); // a new planet: a new run
                 galaxy.slots[i] = run;
             }
             if (run.paid <= 0 && !payPlanet(run, want, inst)) continue;
@@ -1798,7 +1826,8 @@ public final class EyeStarRuntime {
         cycR = takeUpkeep(p);
         if (fs != null && fs.cyc != null) fs.cyc.rMin = cycR;
         lastEvent = "the cycle's EU was paid " + Math.round(fs == null || fs.cyc == null ? 0 : fs.cyc.eyeT)
-            + " s late: upkeep taken, r " + f2(cycR);
+            + " s late: upkeep taken, r "
+            + f2(cycR);
         host.markDirty();
     }
 
@@ -2249,6 +2278,17 @@ public final class EyeStarRuntime {
         if (!live()) return lastFailure;
         return (star == null ? "star" : star.name) + " put out: the controller was picked up"
             + (trans != null ? "; the " + trans.type.title + " was ABORTED" : "");
+    }
+
+    /**
+     * QA-A13: the fracture salvage a pick-up mid T5 batch owes (25 % of the batch × the fraction done, whole litres),
+     * as {@link #salvage()} computes it; 0 without a batch. Changes nothing.
+     */
+    public long pickupSalvageLitres() {
+        if (state != StarState.BATCH || fs == null || fs.batch == null || star == null) return 0;
+        final int p = batchP > 0 ? batchP : Math.max(1, parallel(5));
+        return (long) Math
+            .floor(star.productBase() * p * FRACTURE_SALVAGE * Math.min(1, fs.batch.eyeT / StellarField.BATCH_SECONDS));
     }
 
     /** Item NBT only: the line {@link #pickupFailureLine} wrote, shown as the last event and failure once placed. */

@@ -68,7 +68,6 @@ import com.nateyburr.beyondthestars.machines.gui.BTSText;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 
-import appeng.api.config.Actionable;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IItemList;
@@ -1742,6 +1741,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * walk reached (a walk that stops partway reaches only some of them, B-72). A removed hatch drops out by live().
      */
     private List<MTEHatchDirective> publishedDirectives() {
+        if (!mMachine && formedDirectiveHatches.isEmpty() && directiveHatches.isEmpty()) {
+            // QA-A19: an Eye broken while unloaded (or reloaded unformed) has no walk that reached its hatches: look
+            // at its Directive sockets ('n' and 'd' in the core) so the "not formed" alarm still reaches them
+            return socketDirectives();
+        }
         if (mMachine || formedDirectiveHatches.isEmpty()) return directiveHatches;
         if (directiveHatches.isEmpty()) return formedDirectiveHatches;
         final List<MTEHatchDirective> all = new ArrayList<>(formedDirectiveHatches);
@@ -1749,6 +1753,34 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             if (!all.contains(hatch)) all.add(hatch);
         }
         return all;
+    }
+
+    /** The Directive Hatches standing in the core's 'n' and 'd' sockets now (loaded chunks only). Server state. */
+    private List<MTEHatchDirective> socketDirectives() {
+        final List<MTEHatchDirective> out = new ArrayList<>();
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return out;
+        for (char socket : new char[] { 'n', 'd' }) {
+            final int[][] rels;
+            try {
+                rels = BTSShapes.socketRels(PIECE_CORE, socket);
+            } catch (RuntimeException missing) {
+                continue;
+            }
+            for (int[] rel : rels) {
+                final int[] p = com.nateyburr.beyondthestars.machines.SLConsoleTest
+                    .worldPos(getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+                if (!base.getWorld()
+                    .blockExists(p[0], p[1], p[2])) continue;
+                final net.minecraft.tileentity.TileEntity te = base.getWorld()
+                    .getTileEntity(p[0], p[1], p[2]);
+                if (te instanceof IGregTechTileEntity
+                    && ((IGregTechTileEntity) te).getMetaTileEntity() instanceof MTEHatchDirective) {
+                    out.add((MTEHatchDirective) ((IGregTechTileEntity) te).getMetaTileEntity());
+                }
+            }
+        }
+        return out;
     }
 
     @Override
@@ -1914,8 +1946,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * from the network at once, paying AE2's power (1 AE per 1,000 L), and returns exactly what came; that, and only
      * that, is credited (inside a window the hatch shows a free simulation, and a short real extraction afterwards
      * left the difference duplicated in the buffer and switched the Eye off). Each pull is also kept small enough for
-     * a normal network: at most a twentieth of the cap a second ({@link #STOCKING_FILL_SECONDS}), and never more
-     * than half the AE the network holds, so filling the Eye never browns out the network it shares.
+     * a normal network: at most a twentieth of the cap a second ({@link #STOCKING_FILL_SECONDS}), and never below half
+     * the network's power store ({@link #stockingPowerBudget}), so filling the Eye never browns out the network.
      */
     private void drainStocking(MTEHatchInputME hatch, Map<Fluid, Long> caps) {
         long budget = stockingPowerBudget(hatch);
@@ -1941,13 +1973,20 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** QA-A01: an ME stocking hatch pulls at most its cap / this a second (a full fill takes 20 s). */
     public static final long STOCKING_FILL_SECONDS = 20;
 
-    /** The litres half the AE stored on the hatch's network pays for (AE2: 1 AE per 1,000 L); 0 without a grid. */
+    /**
+     * The litres the AE stored on the hatch's network above half its capacity pays for (AE2: 1 AE per 1,000 L at the
+     * configured power multiplier): the Eye never draws a network's store below half, so a fill paid from energy
+     * cells never browns the network out; a network with power coming in fills the Eye at that rate. 0 without a
+     * grid; no limit on a creative (infinite) store.
+     */
     private static long stockingPowerBudget(MTEHatchInputME hatch) {
         try {
-            final double stored = hatch.getProxy()
-                .getEnergy()
-                .extractAEPower(1e15, Actionable.SIMULATE, PowerMultiplier.CONFIG);
-            final double litres = stored / 2 * 1000;
+            final appeng.api.networking.energy.IEnergyGrid e = hatch.getProxy()
+                .getEnergy();
+            if (e.getHasInfiniteStore()) return Long.MAX_VALUE / 4;
+            final double spare = e.getStoredPower() - e.getMaxStoredPower() / 2;
+            if (spare <= 0) return 0;
+            final double litres = PowerMultiplier.CONFIG.divide(spare) * 1000;
             return litres >= Long.MAX_VALUE / 4 ? Long.MAX_VALUE / 4 : (long) litres;
         } catch (GridAccessException e) {
             return 0;
@@ -1979,6 +2018,23 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         // QA-A01: a stocking hatch's or bus's short extraction inside the Eye's own window (the window's caller has
         // already refused to credit it): no GT run to stop, and switching the Eye off would put its star out
         if (windowDepth > 0) return;
+        // QS-03 / QA-A20: GT drops a planet run in flight (its inputs and EU were paid at its start): say so in the
+        // last-run line, and clear the run's lines so the GUI and scanner do not show it still running
+        if (runningKey != null && mMaxProgresstime > 0) {
+            final EyeRecipe lost = EyeRecipeRegistry.byKey(runningKey);
+            lastRun = (lost == null ? runningKey : lost.name) + ": LOST x"
+                + runningParallel
+                + " (the machine stopped: "
+                + reason.getID()
+                + "; its inputs and EU were spent)";
+            BeyondTheStars.LOG.info("[BTS] Eye planet run {}", lastRun);
+        }
+        if (runningKey != null) {
+            runningKey = null;
+            runningParallel = 0;
+            runningSuccesses = 0;
+            runningYield = 1.0;
+        }
         super.stopMachine(reason);
         // S-05: GT switches a multiblock off when its structure breaks or every maintenance issue is open; the Eye
         // switches itself back on once that is fixed (the star is out by R-8, and relights by itself)
@@ -2360,6 +2416,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         centre.writeTile(aNBT);
         if (!autoOff.isEmpty()) aNBT.setString("btsEyeAutoOff", autoOff);
         if (footprintBands > 0) aNBT.setInteger("btsEyeFootprint", footprintBands);
+        if (lastRun != null && !lastRun.isEmpty()) aNBT.setString("btsEyeLastRun", lastRun); // QA-A21
         if (runningKey != null) {
             aNBT.setString("btsEyeRunKey", runningKey);
             aNBT.setLong("btsEyeRunParallel", runningParallel);
@@ -2372,7 +2429,26 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     public void setItemNBT(NBTTagCompound aNBT) {
         super.setItemNBT(aNBT);
         writeEyeState(aNBT);
-        final String fail = runtime.pickupFailureLine();
+        String fail = runtime.pickupFailureLine();
+        // QA-A13: a T5 batch in progress pays its fracture salvage as a structure break does: owed in the item and
+        // paid out once the Eye stands again (the runtime is not changed: a pick-up may be asked for more than once)
+        final long salvage = runtime.pickupSalvageLitres();
+        final Fluid bdm = EyeStarRuntime.bdmFluid();
+        if (salvage > 0 && bdm != null) {
+            final NBTTagCompound pay = aNBT.getCompoundTag("btsEyeLegacyPay");
+            pay.setLong(bdm.getName(), pay.getLong(bdm.getName()) + salvage);
+            aNBT.setTag("btsEyeLegacyPay", pay);
+            fail += "; " + fmt(salvage) + " L of Black Dwarf Matter salvaged (paid once the Eye is formed again)";
+        }
+        // QA-A22: a planet run in flight is lost with the pick-up (it is tile-only): say so
+        if (runningKey != null && mMaxProgresstime > 0) {
+            final EyeRecipe lost = EyeRecipeRegistry.byKey(runningKey);
+            fail = (fail.isEmpty() ? "" : fail + "; ") + "a planet run of "
+                + (lost == null ? runningKey : lost.name)
+                + " x"
+                + runningParallel
+                + " was lost with the pick-up";
+        }
         if (!fail.isEmpty()) aNBT.setString(EyeNbt.PICKUP_FAIL_KEY, fail);
         // a live star put out by the pick-up is a failure: logged like every other one (B-62 item 3, B-72)
         if (runtime.live()) BeyondTheStars.LOG.info("[BTS] Eye {}", fail);
@@ -2396,6 +2472,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         autoOff = aNBT.getString("btsEyeAutoOff");
         footprintBands = aNBT.getInteger("btsEyeFootprint");
+        lastRun = aNBT.getString("btsEyeLastRun");
         runningKey = aNBT.hasKey("btsEyeRunKey") ? aNBT.getString("btsEyeRunKey") : null;
         runningParallel = aNBT.getLong("btsEyeRunParallel");
         runningSuccesses = aNBT.getLong("btsEyeRunSuccesses");
@@ -2736,6 +2813,12 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         @Override
         public double planetSeconds(EyeRecipe recipe) {
             return runTicks(recipe) / 20.0;
+        }
+
+        @Override
+        public long planetRunSecondsLeft() {
+            if (runningKey == null || mMaxProgresstime <= 0) return 0;
+            return Math.max(1, (mMaxProgresstime - mProgresstime) / 20);
         }
     }
 
