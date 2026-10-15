@@ -35,11 +35,12 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const os = require('os');
 
 const REPO = path.resolve(__dirname, '..');
 const QB = path.join(REPO, 'questbook');
-const DEFAULT_PACK =
-    require('path').join(require('os').homedir(), 'AppData/Roaming/PrismLauncher/instances/rc - 2 TO THE STARS/.minecraft/config/betterquesting/DefaultQuests');
+const DEFAULT_PACK = path.join(os.homedir(),
+    'AppData/Roaming/PrismLauncher/instances/rc - 2 TO THE STARS/.minecraft/config/betterquesting/DefaultQuests');
 const OVERLAY_REL = 'src/main/resources/assets/beyondthestars/questbook/overlay.json';
 const IDS_JAVA_REL = 'src/main/java/com/nateyburr/beyondthestars/BTSQuestIds.java';
 const PLANT_LINE_LOW = 47990;

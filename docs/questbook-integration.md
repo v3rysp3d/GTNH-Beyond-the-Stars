@@ -8,7 +8,7 @@ JSON are written yet; section 6 splits the work between the next units.
 - *"make sure everything the player needs to find out the system is either in the questbook or in the tooltip"*:
   every quest below teaches its system. It says what the system is, how to build it, how to run and automate it, and
   the key numbers, and it points to the tooltip and GUI for the rest. Nothing is left only in docs.
-- *"While the blocks we dont have arent in then just add a tickbox quest but the pack's own book may be reworked freely"*: content that is not built yet gets a **checkbox placeholder** that holds its real id and real tasks. The
+- *Blocks that are not in yet get a tickbox quest, and the pack's own book may be reworked freely*: content that is not built yet gets a **checkbox placeholder** that holds its real id and real tasks. The
   generator turns it into a real quest when its feature flag flips (§4.3). The pack's own quests are moved, rewritten
   and re-gated freely (§3). Player progress is preserved (§4.6).
 - *"nice and very tidy designs"*: every chapter is laid out on a 24-unit grid. The main chain runs along one centre
