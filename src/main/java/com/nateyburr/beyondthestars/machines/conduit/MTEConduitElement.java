@@ -853,7 +853,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     }
 
     static String roman(int mk) {
-        return mk == 1 ? "I" : mk == 2 ? "II" : mk == 3 ? "III" : String.valueOf(mk);
+        return mk == 1 ? "I" : mk == 2 ? "II" : mk == 3 ? "III" : mk == 4 ? "IV" : String.valueOf(mk);
     }
 
     @Override

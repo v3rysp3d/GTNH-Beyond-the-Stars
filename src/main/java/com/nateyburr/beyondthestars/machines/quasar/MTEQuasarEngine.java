@@ -897,6 +897,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         }
         if (r.purgeRefused) lastEvent = "Purge refused: flux under 20";
         if (r.blowOut) {
+            q.purgeLatch = false; // QA-B33
             blowOuts++;
             lastEvent = "Disc blow-out: " + r.blowOutReason;
             flash(TileQuasarHole.EV_BLOWOUT);
@@ -1062,7 +1063,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                 MTEHatchBurstControl.Mode.OVERDRIVE,
                 MTEHatchBurstControl.Mode.SHED);
             final boolean edge = h.consumeRisingEdge();
-            if (edge && mode == MTEHatchBurstControl.Mode.PURGE && running()) q.requestPurge();
+            // QA-B33: a purge is latched only on a lit disc (one latched during a re-form fired late, refused)
+            if (edge && mode == MTEHatchBurstControl.Mode.PURGE && q.hole == QuasarState.Hole.OPEN) q.requestPurge();
             if (edge && mode == MTEHatchBurstControl.Mode.SHED) shedToSafe();
         }
     }
@@ -1669,7 +1671,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
 
     public void setPurgeAt(double v) {
         if (!Double.isFinite(v)) return;
-        purgeAt = Math.max(0, Math.min(100, v));
+        // QA-B22: a purge under flux 20 is refused, so a setpoint of 1-19 would hold Disc bit 3 high and stop the rig
+        final double c = Math.max(0, Math.min(100, v));
+        purgeAt = c <= 0 ? 0 : Math.max(QuasarParams.PURGE_MIN, c);
     }
 
     public boolean isRenderEnabled() {
@@ -2008,7 +2012,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     trimGasUnits,
                     trimSpaceUnits));
             out.add(
-                "Bursts: " + buEu(q.G)
+                "Bursts: " + (isFrozen() ? "none, the quasar is frozen (last " + buEu(q.G) + ")" : buEu(q.G))
                     + (q.M > QuasarParams.M_REF || q.oEff > 0
                         ? String.format(Locale.ROOT, ", output x%.2f", last.outputX)
                         : ""));
@@ -2091,6 +2095,11 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         }
         for (JetPort port : JetPort.VALUES) {
             final int i = port.ordinal();
+            // QA-B37: a frozen quasar sends nothing; last second's figures are not a stream
+            if (isFrozen()) {
+                out.add(port.label + " jet: frozen, nothing sent");
+                continue;
+            }
             out.add(
                 port.label + " jet: "
                     + buEu(jetBu[i])
