@@ -16,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The pack's superconductors stop at UMV. This UXV one will be drawn from Magnetar Matter, with Antipolarization Agent wherever it is needed before Eye T7. It belongs to the new UXV parts, which will take Universium out of UXV recipes.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "The pack's superconductors stop at UMV. The §9UXV Superconductor Wire§r is drawn from Magnetar Matter: Alloy Blast Smelter at UXV, 16 UMV Superconductor Wire + 576 L Magnetar Matter + 2,000 L Antipolarization Agent + 64,000 L Super Coolant → 16 (about 31 min of one T6).\n\nIt is a crafting part, not a cable: it builds the UXV laser hatches and the MAX Superconductor Wire.\n\n§2§lDONE §lWHEN§r you hold 16 wire.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 2089,
+        "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "gregtech:gt.blockmachines"
+        "id:8": "beyondthestars:superconductorWireUXV"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nUXV Superconductor§r",
+      "name:8": "§4§l§nUXV Superconductor",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +59,22 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 16,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:superconductorWireUXV"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
     }
   }
 }

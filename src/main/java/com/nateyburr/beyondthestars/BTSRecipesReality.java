@@ -55,8 +55,9 @@ import tectech.thing.block.BlockQuantumGlass;
  * condensate) for the five addon condensates they use. Controllers too: ruling 16 overrides the BEC proposal's R4
  * for these three machines (H-19).
  * <ul>
- * <li><b>SL-C01..C04</b>: Entangled Degenerate Stellar Mixture, Ergomatter, Superdense Ergomatter, White Hole
- * Matter. <b>SL-B16</b> (Entangled Magnetar Matter) gets no generator recipe: ruling 19a moved the Homogeny Tier II
+ * <li><b>SL-C01..C04</b>: Entangled Degenerate Stellar Mixture, Ergomatter, Superdense Ergomatter, Attractor Dark
+ * Matter (P5). <b>SL-B16</b> (Entangled Magnetar Matter) gets no generator recipe: ruling 19a moved the Homogeny Tier
+ * II
  * Core, its only consumer, from Magnetar Matter to Black Dwarf Matter, and an orphan condensate in NEI suggests a use
  * that does not exist (BEC Q-B6). P4 owns it now: {@link BTSRecipesQuasar} adds the generator for its T7 cores and
  * chart.</li>
@@ -72,9 +73,14 @@ import tectech.thing.block.BlockQuantumGlass;
  * <b>Gate audit.</b> Nothing here needs a product first made at a later Eye tier than the thing it builds, with one
  * open exception: Eternity (SL-H20, SL-R02, anchor IV of SL-R03 and so SL-R04/R05) is pre-T10 only once D-48's
  * Eternity-on-Ergomatter swap is built ({@link #ETERNITY_BEFORE_T10}, question B-80). Recipes
- * whose fluids belong to later phases (Ergomatter and Superdense Ergomatter, P4; White Hole Matter, P5) are
- * registered against the placeholder fluids {@link SLRealityFluids} provides, so they are visible in NEI, and
- * {@link #gateLog} prints one line per recipe (process recipes included) that cannot be run until an Eye makes them.
+ * whose fluids belong to later phases (Ergomatter and Superdense Ergomatter, P4; Attractor Dark Matter, P5) all have
+ * an owner now; {@link #gateLog} still prints one line per recipe (process recipes included) that a placeholder
+ * fluid would leave unreachable, and reports none.
+ * <p>
+ * <b>P5 (p5-t9-t10.md §4, §5; D-52, D-53).</b> Attractor Dark Matter replaces White Hole Matter in SL-C04, SL-H20,
+ * SL-R01 and SL-R02. These parts now stand before Eye T10 (the T9 -> T10 gate), so the B-72 rule applies to them as
+ * it does to every pre-T10 part: RC-2's UXV Field Generator, Electric Pump, Emitter and Robot Arm take Universium,
+ * so each takes two UMV parts instead (question B-205).
  * <p>
  * Every item set is unique (the Condensate Assembler finds a recipe by its items only). Condensate amounts keep GT's
  * half-unit rule (multiples of 72 L for the 144 L metals, 500 L for the 1,000 L fluids), checked by {@link #cond}.
@@ -100,7 +106,7 @@ public final class BTSRecipesReality {
     private static Fluid degenerate;
     private static Fluid ergomatter;
     private static Fluid superdense;
-    private static Fluid whiteHole;
+    private static Fluid darkMatter;
 
     private static int gated;
 
@@ -118,7 +124,7 @@ public final class BTSRecipesReality {
 
     public static void register() {
         UNITS.clear();
-        starMatter = whiteDwarf = blackDwarf = degenerate = ergomatter = superdense = whiteHole = null;
+        starMatter = whiteDwarf = blackDwarf = degenerate = ergomatter = superdense = darkMatter = null;
         gated = 0;
 
         condensates();
@@ -169,11 +175,11 @@ public final class BTSRecipesReality {
                 4 * TierEU.RECIPE_UXV));
         BTSRecipeGuard.recipe(
             "SL-C04",
-            () -> whiteHole = generator(
+            () -> darkMatter = generator(
                 "SL-C04",
-                SLRealityFluids.entangledWhiteHole,
+                SLRealityFluids.entangledDarkMatter,
                 144,
-                BTSRecipeGuard.fluid(SLRealityFluids.whiteHoleMatter, 144),
+                BTSRecipeGuard.fluid(SLRealityFluids.darkMatter, 144),
                 180 * SECONDS,
                 TierEU.RECIPE_MAX));
         // SL-B16 Entangled Magnetar Matter: no generator here (ruling 19a took Magnetar Matter out of the Homogeny
@@ -356,8 +362,9 @@ public final class BTSRecipesReality {
     // ============================================================ Homogeny T3 core + Eternity Shell (S6 / S9)
 
     private static void homogenyT3() {
-        // SL-H20 Homogeny Tier III Core. Gate: White Hole Matter (Eye T9, P5): unreachable until P5. Its Eternity is
-        // a loop on the way to T10 until D-48's Eternity-on-Ergomatter swap is built (ETERNITY_BEFORE_T10).
+        // SL-H20 Homogeny Tier III Core. Gate: Attractor Dark Matter (Eye T9, P5), 64 ingots: about 0.75 h of one T9.
+        // Its Eternity is pre-T10 through D-48's Eternity-on-Ergomatter swap (ETERNITY_BEFORE_T10). B-205: the UXV
+        // Field Generators and Pumps as twice as many UMV ones (the core is needed before T10).
         BTSRecipeGuard.recipe(
             "SL-H20",
             () -> assemble(
@@ -365,14 +372,14 @@ public final class BTSRecipesReality {
                 6_000 * SECONDS,
                 TierEU.RECIPE_MAX,
                 cond(
-                    cond(whiteHole, 64 * INGOTS),
+                    cond(darkMatter, 64 * INGOTS),
                     cond(superdense, 32_000),
                     cond(degenerate, 64_000),
                     gt(CondensateType.Eternity, 64 * INGOTS)),
                 s(c3(BlockSLCasing3.ETERNITY_SHELL, 64), N6),
                 s(c3(BlockSLCasing3.REGION_CRYSTAL, 8), N7),
-                s(item(ItemList.Field_Generator_UXV, 64), N6),
-                s(item(ItemList.Electric_Pump_UXV, 64), N5),
+                s(item(ItemList.Field_Generator_UMV, 128), N6),
+                s(item(ItemList.Electric_Pump_UMV, 128), N5),
                 s(circuit(Materials.UXV, 64), N5),
                 s(SLBlocks.casing(BlockSLCasing.GALACTIC_SHELL, 64), N3),
                 s(item(ItemList.MetaMaterial_ResonanceChamber3, 8), N7),
@@ -505,7 +512,8 @@ public final class BTSRecipesReality {
     // ============================================================= the Reality controllers (MAX, stage S9)
 
     private static void realityControllers() {
-        // SL-R01 Reality Diffraction. Gate: White Hole Matter (Eye T9, P5).
+        // SL-R01 Reality Diffraction. Gate: Attractor Dark Matter (Eye T9, P5), 256 ingots. B-205: UMV x2 for the
+        // card's UXV Field Generators and Emitters.
         BTSRecipeGuard.recipe(
             "SL-R01",
             () -> assemble(
@@ -514,22 +522,23 @@ public final class BTSRecipesReality {
                 7_200 * SECONDS,
                 TierEU.RECIPE_MAX,
                 cond(
-                    cond(whiteHole, 256 * INGOTS),
+                    cond(darkMatter, 256 * INGOTS),
                     cond(superdense, 64_000),
                     cond(degenerate, 64_000),
                     gt(CondensateType.SpaceTime, 4_096 * INGOTS)),
                 s(c3(BlockSLCasing3.REGION_CRYSTAL, 6), N7),
                 s(c3(BlockSLCasing3.PHASE_RING, 32), N6),
                 s(c3(BlockSLCasing3.REGION_DECK_BAND, 32), N6),
-                s(item(ItemList.Field_Generator_UXV, 32), N6),
-                s(item(ItemList.Emitter_UXV, 32), N5),
+                s(item(ItemList.Field_Generator_UMV, 64), N6),
+                s(item(ItemList.Emitter_UMV, 64), N5),
                 s(circuit(Materials.UXV, 64), N5),
                 s(item(ItemList.CoherencePreservingPlasmaConduit, 16), N5),
                 s(item(ItemList.CondensateTransformativeCoil, 8), N5),
                 s(item(ItemList.MetaMaterial_SensorArray3, 4), N7),
                 s(item(ItemList.MetaMaterial_ResonanceChamber3, 4), N7)));
 
-        // SL-R02 Reality Refab. Gate: White Hole Matter (Eye T9, P5); Eternity as SL-H20 (ETERNITY_BEFORE_T10).
+        // SL-R02 Reality Refab. Gate: Attractor Dark Matter (Eye T9, P5); Eternity as SL-H20 (ETERNITY_BEFORE_T10).
+        // B-205: UMV x2 for the card's UXV Robot Arms and Field Generators.
         BTSRecipeGuard.recipe(
             "SL-R02",
             () -> assemble(
@@ -538,15 +547,15 @@ public final class BTSRecipesReality {
                 7_200 * SECONDS,
                 TierEU.RECIPE_MAX,
                 cond(
-                    cond(whiteHole, 256 * INGOTS),
+                    cond(darkMatter, 256 * INGOTS),
                     gt(CondensateType.Eternity, 128 * INGOTS),
                     cond(degenerate, 64_000),
                     gt(CondensateType.SpaceTime, 4_096 * INGOTS)),
                 s(c3(BlockSLCasing3.REGION_CRYSTAL, 8), N7),
                 s(c3(BlockSLCasing3.REASSEMBLY_HULL, 32), N6),
                 s(c3(BlockSLCasing3.REASSEMBLY_CLAW, 24), N6),
-                s(item(ItemList.Robot_Arm_UXV, 32), N5),
-                s(item(ItemList.Field_Generator_UXV, 16), N6),
+                s(item(ItemList.Robot_Arm_UMV, 64), N5),
+                s(item(ItemList.Field_Generator_UMV, 32), N6),
                 s(circuit(Materials.UXV, 64), N5),
                 s(item(ItemList.CondensateGuidanceCoil, 16), N5),
                 s(item(ItemList.ElectromagneticallyIsolatedCasing, 16), N4),
@@ -563,26 +572,27 @@ public final class BTSRecipesReality {
     private static void gateLog() {
         final Fluid erg = SLRealityFluids.ergomatter;
         final Fluid sup = SLRealityFluids.superdenseErgomatter;
-        final Fluid whm = SLRealityFluids.whiteHoleMatter;
+        final Fluid dm = SLRealityFluids.darkMatter;
         // Region Crystal needs Ergomatter + Superdense; anything holding one inherits that.
         gate("SL-C02 Entangled Ergomatter", erg);
         gate("SL-C03 Entangled Superdense Ergomatter", sup);
-        gate("SL-C04 Entangled White Hole Matter", whm);
+        gate("SL-C04 Entangled Attractor Dark Matter", dm);
         gate("SL-R11 Region Crystal (Diffraction blades, Refab receivers, Homogeny T3 tail)", erg, sup);
         gate("SL-R13 Phase Ring Casing", erg);
         gate("SL-R16 Reassembly Claw", sup);
         gate("SL-R17 Region Anchor Casing (via Region Crystal)", erg, sup);
-        gate("SL-H20 Homogeny Tier III Core (Eternity 64 ing)", true, whm, sup, erg);
-        gate("SL-R01 Reality Diffraction", whm, sup, erg);
-        gate("SL-R02 Reality Refab (Eternity 128 ing)", true, whm, sup, erg);
+        gate("SL-H20 Homogeny Tier III Core (Eternity 64 ing)", true, dm, sup, erg);
+        gate("SL-R01 Reality Diffraction", dm, sup, erg);
+        gate("SL-R02 Reality Refab (Eternity 128 ing)", true, dm, sup, erg);
         // The machines' own maps (RealityProcessRecipes, line reality-process).
-        gate("SL-H21 Entanglement Medium (Homogeny T3)", whm, sup);
-        gate("SL-R03 Diffraction (medium, anchors V/VI, anchor IV molten Eternity)", true, whm, sup);
-        gate("SL-R04 Universal Upgrade Core (Refab, from the six regions incl. Region IV)", true, whm, sup);
-        gate("SL-R05 Star Chart: The Observable Universe (Refab, from the six regions)", true, whm, sup);
+        gate("SL-H21 Entanglement Medium (Homogeny T3)", dm, sup);
+        gate("SL-R03 Diffraction (medium, anchors V/VI, anchor IV molten Eternity)", true, dm, sup);
+        gate("SL-R04 Universal Upgrade Core (Refab, from the six regions incl. Region IV)", true, dm, sup);
+        gate("SL-R05 Star Chart: The Observable Universe (Refab, from the six regions)", true, dm, sup);
+        gate("SL-R06 Universal Compression Field Generator (Refab, from the six regions)", true, dm, sup);
         if (gated == 0) {
             BeyondTheStars.LOG.info(
-                "[BTS] H/R gate: Ergomatter, Superdense Ergomatter and White Hole Matter all have an owner and "
+                "[BTS] H/R gate: Ergomatter, Superdense Ergomatter and Attractor Dark Matter all have an owner and "
                     + "Eternity is made before Eye T10; every Homogeny/Reality recipe is reachable.");
         } else {
             BeyondTheStars.LOG.info(
@@ -606,7 +616,7 @@ public final class BTSRecipesReality {
             if (!SLRealityFluids.isPlaceholder(fluid)) continue;
             if (fluid == SLRealityFluids.ergomatter) missing.add("Ergomatter (Eye T7, P4)");
             else if (fluid == SLRealityFluids.superdenseErgomatter) missing.add("Superdense Ergomatter (Eye T8, P4)");
-            else if (fluid == SLRealityFluids.whiteHoleMatter) missing.add("White Hole Matter (Eye T9, P5)");
+            else if (fluid == SLRealityFluids.darkMatter) missing.add("Attractor Dark Matter (Eye T9, P5)");
             else missing.add(fluid.getName());
         }
         if (missing.isEmpty()) return;

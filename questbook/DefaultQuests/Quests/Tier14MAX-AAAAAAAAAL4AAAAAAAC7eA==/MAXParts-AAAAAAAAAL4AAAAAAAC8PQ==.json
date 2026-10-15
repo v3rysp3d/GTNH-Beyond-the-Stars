@@ -16,8 +16,8 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Every MAX part will be built from §9White Hole Matter§r, so MAX parts arrive before Eye T10. The four quests below group them: components and casings, power, materials, and the battery.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "Every MAX part is built from §9Attractor Dark Matter§r, so MAX parts arrive before Eye T10, and none of them needs Universium. A full MAX power room with its parts costs about 32 hours of one T9 (two Eyes: 16).\n\nWhere a MAX card names a UXV component, it takes §9two UMV ones§r instead: the pack's UXV components need Universium.\n\nThe four quests below group them: components and casings, power, materials, and the battery.\n\n§2§lDONE §lWHEN§r you tick the box.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -28,7 +28,7 @@
       "isMain:1": 1,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nMAX Parts§r",
+      "name:8": "§4§l§nMAX Parts",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,

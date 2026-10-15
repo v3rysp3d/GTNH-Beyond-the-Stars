@@ -88,13 +88,13 @@ Each rung produces the matter, or the stability, that the next one needs. Quests
 | UXV | **Eye T7: Triangulum** | Ergomatter | Conduit upkeep; Eternity; Eye T8 |
 | UXV | **Eye T8: the Milky Way** | Superdense Ergomatter | Supermassive Lattice L1; Homogeny T3 |
 | UXV / MAX | **Supermassive Lattice** L1 to L4 on the Quasar Engine, Overdrive and Unbound | Holes past 4,096 solar masses, far larger bursts | Endgame power; the Eye T9 to T10 link |
-| MAX (coming later) | Eye T9 (Sgr A\*), Homogeny T3, Reality Diffraction, Reality Refab, Eye T10 | White Hole Matter, Entanglement Medium, the Universal Upgrade Core, Universium | The Endgame chapter (MHDCSM line, the crafted Stargate) |
+| MAX | **Eye T9: the Great Attractor**, fed a beam of Gated Pellets | Attractor Dark Matter | Every MAX part; Homogeny T3; Reality machines; the L2 lattice |
+| MAX | The Homogeny T3, Reality Diffraction, Reality Refab | Entanglement Medium, the six Entangled Regions, the Universal Upgrade Core, the tenth compression tier | Eye T10 |
+| MAX | **Eye T10: the Universe** | Universium (the only source) | The Endgame chapter (MHDCSM line, the crafted Stargate); the L3 lattice |
 
-Everything above the "coming later" row runs in survival. The last row's machines and recipes are already registered
-(you will see them in NEI) but cannot be reached until Eye T9 and T10 are built. Universium stays an Eye T10 product,
-so nothing above that row needs it: the lattice nodes, Overdrive and the parts that used to take Universium, MHDCSM
-or White Hole Matter are made from Superdense Ergomatter, Magnetar Matter, the dwarf matters and the stellar
-mixtures instead.
+Universium is an Eye T10 product and only that, so nothing before T10 needs it: the MAX parts are made from Attractor
+Dark Matter, and where a recipe before T10 names one of RC-2's UXV components (which take Universium) it takes two UMV
+ones instead. With `replaceTecTechEyeOfHarmony=false`, TecTech's own Eye still makes Universium.
 
 ## Units used in this README
 
@@ -286,9 +286,19 @@ fresh 64 SM hole never is; a settled quasar of about 136 SM or more is).
 
 #### Eye T9 and T10
 
-Coming later. Eye T9 (Sgr A\*) will make White Hole Matter; T10 is the Universe and the sole Universium source. The
-T9 to T10 milestone, the **Supermassive Link** (96 Bu/t = 9.6 x 10^14 EU/t for 30 min from a lattice quasar of at
-least 65,536 SM), is already tracked and saved on your Eye, so the time you put in now counts.
+- **T9, the Great Attractor:** the hidden mass at the heart of Laniakea. A beam of **Gated Pellets** fired down the T9
+  collimator stack by the **Pellet Injector Hatch** holds the infall (gauge V). Galactic Flows of 3 to 12 galaxies come
+  down the filaments; hold one and every galaxy in it is captured. Output: **Attractor Dark Matter**, 144 L a cycle plus
+  144 L a captured galaxy (about 12,300 L/h on the standard rig). The T8 to T9 core is the **Attractor Seed Core**.
+- **T10, the Universe:** one universe per 7,200 s batch, kept on its Friedmann curve (gauge H) with Dark Matter and
+  SpaceTime trims. Output: **Universium**, 9,216 L a universe (about 6,200 L/h), the only source. The T9 to T10 core
+  is the **Universal Upgrade Core** from Reality Refab, and every compression slot needs the tenth tier, the
+  **Universal Compression Field Generator**. The milestone is the **Supermassive Link** (96 Bu/t = 9.6 x 10^14 EU/t for
+  30 min from a lattice quasar of at least 65,536 SM).
+- **Gated Pellets** (Kerr Compressor Module, 16 a craft): Magnetar (1.25 EeV) from Magnetar Matter, Degenerate Stellar
+  Mixture and Casimir Plates; Ergomatter (5 EeV) from 4 Magnetar pellets and Ergomatter; Superdense (20 EeV) from 4
+  Ergomatter pellets and Superdense Ergomatter. The injector's **Injector Barrel** Mk I / II / III fires 4 / 8 / 16 a
+  second.
 
 ![The T6 magnetar and its field lines](docs/images/eye-magnetar.jpg)
 
@@ -300,7 +310,7 @@ A UMV mega-mixer (MTE 28130) that blends stellar fluids in a glass vortex column
 |---|---|---|---|---|
 | T1 | UMV | 1 | 69 x 70 x 73 (17,783 blocks) | 100,000 L Raw Star Matter to 1,000 L ESPM (240 s) |
 | T2 | UXV | 4 | 103 x 70 x 113 (+10,815) | 72 L White Dwarf Matter + 72 L Black Dwarf Matter + 1,000 L ESPM to 1,000 L **Degenerate Stellar Mixture** (60 s) |
-| T3 | MAX | 16 | 145 x 70 x 130 (+13,002) | 144 L White Hole Matter + 500 L Superdense Ergomatter + 1,000 L Degenerate to 1,000 L **Entanglement Medium** (120 s), needs a quasar link at σ ≥ 1 |
+| T3 | MAX | 16 | 145 x 70 x 130 (+13,002) | 144 L Attractor Dark Matter + 500 L Superdense Ergomatter + 1,000 L Degenerate to 1,000 L **Entanglement Medium** (120 s), needs a quasar link at σ ≥ 1 |
 
 - T1 is deliberately 10x worse per litre than Eye T2: it is a way in, not a replacement for Sirius A.
 - **Upgrading:** build the next ring, mix 100,000 L of the current tier's product over the machine's life, right-click
@@ -309,7 +319,8 @@ A UMV mega-mixer (MTE 28130) that blends stellar fluids in a glass vortex column
 - **Quasar link (T2+):** up to 3 GRB Receptor Ports on the T2 ring. Demand is 1.5 Bu/t (1.5 x 10^13 EU/t) at T2 and
   6 Bu/t (6 x 10^13 EU/t) at T3. Speed x (1 + 0.5 x min(σ, 1)), so up to 6x the T1 rate at T2 and 24x at T3.
 - No maintenance hatch. Void protection, batch mode and recipe locking are supported.
-- Homogeny T3 needs White Hole Matter (Eye T9), so it is registered but out of reach on this build.
+- The Homogeny Tier III Core takes 9,216 L of Entangled Attractor Dark Matter (Eye T9). The questbook asks for an hour
+  of the T2 Homogeny on a quasar link at σ ≥ 1 before you install it; the machine does not check that.
 
 ![Inside the Homogeny's vortex column](docs/images/homogeny.jpg)
 
@@ -436,13 +447,16 @@ hole open at 4,096 SM or more, and E within ±40 for 3,600 s unbroken. Saturatio
 | Lattice | Containment Nodes | Safe limit | Band top |
 |---|---|---|---|
 | L1 | Superdense Ergomatter | 16,384 SM | 65,536 SM |
-| L2 | Superdense Ergomatter + Magnetar Matter | 65,536 SM | 262,144 SM |
-| L3 | Superdense Ergomatter + Magnetar and Black Dwarf Matter | 262,144 SM | 4,194,304 SM |
+| L2 | Attractor Dark Matter (Eye T9) | 65,536 SM | 262,144 SM |
+| L3 | Universium (Eye T10) | 262,144 SM | 4,194,304 SM |
 | L4 | Constrained Eternity (Superdense Ergomatter, Magnetar Matter, Eternity, MagMatter) | 4,194,304 SM | 67,108,864 SM |
 
 Each node is made from the tier below in the Condensate Assembler (L1 on the Assembly Line). Per node: L1 8,000 L
-Superdense Ergomatter and 2,304 L Magnetar Matter; L2 16,000 L and 4,608 L (entangled); L3 48,000 L, 9,216 L and
-9,216 L Black Dwarf Matter; L4 144,000 L, 18,432 L, 2,880 L Eternity and 8 Eternity + 8 MagMatter plates. Break the
+Superdense Ergomatter and 2,304 L Magnetar Matter; L2 4,032 L Entangled Attractor Dark Matter; L3 2,304 L Entangled
+Universium; L4 144,000 L Superdense Ergomatter, 18,432 L Magnetar Matter, 2,880 L Eternity (entangled) and 8 Eternity
++ 8 MagMatter plates; L2 to L4 add 4 to 16 any-MAX circuits. With `latticeNodesUseP5Matter=false` L2 and L3 keep the
+older recipes (L2 16,000 L Superdense Ergomatter and 4,608 L Magnetar Matter; L3 48,000 L, 9,216 L and 9,216 L Black
+Dwarf Matter, all entangled), which need no Eye T9 or T10. Nodes already built stay whatever the flag says. Break the
 48 old nodes before you place the next tier: the projector does not replace them.
 
 All 48 nodes must be one tier. An incomplete lattice under a hole above 4,096 SM unforms the quasar and freezes it;
@@ -473,15 +487,45 @@ The lattice has no running cost of its own: you pay in hold-up gas, Overdrive fl
 
 ### Reality Diffraction and Reality Refab
 
-Two MAX machines that work on TecTech's BEC network. Both are built and form; their recipes need White Hole Matter
-(Eye T9), so in survival they wait for the next part of the ladder.
+Two MAX machines that work on TecTech's BEC network. Their controllers take 36,864 L of Entangled Attractor Dark
+Matter each (Eye T9).
 
 | Machine | MTE id | Size | What it does |
 |---|---|---|---|
-| Reality Diffraction | 28131 | 103 x 101 x 85 (53,005 blocks) | Splits 4,000 L Entanglement Medium into six **Entangled Regions** (1,000 L each), one per region socket that holds its anchor fluid (Space, SpaceTime, Time, Eternity, Superdense Ergomatter, White Hole Matter). An unanchored region yields nothing. 120 s at MAX. Outputs go into the BEC network through a BEC Hatch; anything the network can't take waits in the controller, never voided |
-| Reality Refab | 28132 | 104 x 139 x 83 (65,187 blocks) | Reassembles the six regions into the **Universal Upgrade Core** (the Eye's T9 to T10 core) and **Star Chart: The Observable Universe**. It borrows nanites from the nearest running Condensate Assembler within 64 blocks (none consumed) and draws the regions from its own BEC network in step with progress: a short region pauses the craft instead of failing it |
+| Reality Diffraction | 28131 | 103 x 101 x 85 (53,005 blocks) | Splits 4,000 L Entanglement Medium into six **Entangled Regions** (1,000 L each), one per region socket that holds its anchor fluid (Space, SpaceTime, Time, Eternity, Superdense Ergomatter, Attractor Dark Matter). Regions V and VI are Visible Mass and Dark Mass. An unanchored region yields nothing. 120 s at MAX. Outputs go into the BEC network through a BEC Hatch; anything the network can't take waits in the controller, never voided |
+| Reality Refab | 28132 | 104 x 139 x 83 (65,187 blocks) | Reassembles the six regions into the **Universal Upgrade Core** (the Eye's T9 to T10 core), the **Universal Compression Field Generator** (the tenth compression tier, from a Gallifreyan generator) and **Star Chart: The Observable Universe**. It borrows nanites from the nearest running Condensate Assembler within 64 blocks (none consumed) and draws the regions from its own BEC network in step with progress: a short region pauses the craft instead of failing it |
 
 ![Reality Diffraction's lenses and region fans](docs/images/reality-diffraction.jpg)
+
+### MAX parts and the UXV leftovers
+
+Every MAX part is built from **Attractor Dark Matter** (Eye T9), so MAX parts arrive before Eye T10 and none of them
+needs Universium. Dark Matter "all in" counts the plates (144 L), dense plates (1,296 L), frame boxes (288 L), MAX
+wire (54 L each) and the MAX hull (2,304 L) inside a part.
+
+| Part | Machine | Attractor Dark Matter, all in |
+|---|---|---|
+| Attractor Dark Matter Plate / Dense Plate / Frame Box | Fluid Solidifier / Bender / Assembler | 144 L / 1,296 L / 288 L |
+| MAX Superconductor Wire x16 (a crafting part) | (Mega) Alloy Blast Smelter | 864 L, + 16 UXV wire and 64,000 L Super Coolant |
+| Electric Motor, Pump, Conveyor, Piston, Robot Arm (MAX) | Component Assembly Line, MAX casing tier, 16 a batch | 2,304 L each, + 8 of the UMV part |
+| Emitter, Sensor (MAX) | Component Assembly Line | 3,456 L each |
+| Field Generator (MAX) | Component Assembly Line | 4,608 L |
+| Component Assembly Line Casing (MAX) | Assembly Line | 4,608 L |
+| MAX Machine Casing / Hull | Assembler | 2,304 L |
+| MAX Energy / Dynamo Hatch (MTE 28133 / 28134) | Assembly Line | 9,216 L each |
+| MAX Wireless Energy Hatch | Assembly Line | 9,216 L |
+| MAX 4096A Laser Target / Source Hatch (MTE 28136 / 28137) | Assembly Line | 18,432 L each |
+| Dark Matter Heating Coil x2 (GT coil level MAX, 13,501 K) | Assembly Line | 1,152 L |
+| Dark Matter Borosilicate Glass x4 (glass tier MAX) | Alloy Blast Smelter | 144 L |
+| MAX Battery (2^63 - 1 EU) | Assembly Line | 36,864 L |
+
+One Eye T9 makes about 12,300 L an hour: a MAX power room with 64 components and 256 coils is about 32 hours of it.
+
+**UXV leftovers** (before Eye T7, so Magnetar Matter and the Antipolarization Agent only): Magnetar-Reinforced
+Borosilicate Glass (glass tier UXV; 4 of BartWorks' UMV glass + 144 L Magnetar Matter), the UXV Superconductor Wire
+(16 UMV wire + 576 L Magnetar Matter + 2,000 L Agent + Super Coolant; a crafting part) and the pack's UXV 4096A Laser
+Target / Source Hatches (2 UMV hatches, 32 UMV sensors or emitters, 2,304 L Magnetar Matter, 32,000 L Agent). The
+pack's own recipe for those laser hatches stays beside ours; it needs UXV parts, so it is the route after T10.
 
 ---
 
@@ -520,14 +564,15 @@ matter, so the BEC line you already built carries on being useful.
 
 - **New condensates** (Condensate Generator, 1 : 1): Entangled Raw Star Matter, Excited Stellar Plasma, Hyperdense
   Stellar Mixture, White Dwarf Matter, Black Dwarf Matter, Antipolarization Agent, Magnetar Matter, Degenerate Stellar
-  Mixture, Ergomatter, Superdense Ergomatter and White Hole Matter. If GT already condenses a fluid, we use GT's.
+  Mixture, Ergomatter, Superdense Ergomatter and Attractor Dark Matter. If GT already condenses a fluid, we use GT's.
 - **Condensate Assembler recipes** for the Stabiliser Pylon, every star chart, the Stellar Field Sensor Hatch, the Eye's
   transition cores, the Kerr Density Upgrade, the band casings, the Homogeny and Reality blocks, the quasar's coils
   and casings, the conduit throats, and the lattice nodes.
 - TecTech's Reinforced Spatial and Temporal Structure Casing recipes make 32 per craft instead of 4.
 - Some cores and blocks take twice as many **UMV** parts instead of UXV parts (the T4 to T5 and T5 to T6 cores, the
-  Homogeny Tier II Core, the lattice's L1 node, the Region Crystal, Phase Ring, Reassembly Claw and Region Anchor), because
-  RC-2's UXV parts need Universium, which only Eye T10 will make.
+  Homogeny Tier II and III Cores, the lattice's L1 node, the Region Crystal, Phase Ring, Reassembly Claw and Region
+  Anchor, both Reality controllers, the Universal Upgrade Core, the tenth compression tier and every MAX part), because
+  RC-2's UXV parts need Universium, which only Eye T10 makes.
 
 ## Field-generator upgrade path
 
@@ -555,11 +600,14 @@ says.
 | Degenerate Stellar Mixture | Homogeny T2 | Homogeny T3, Reality machines |
 | Entanglement Medium | Homogeny T3 | Reality Diffraction |
 | Entangled Region I-VI | Reality Diffraction | Reality Refab |
-| White Hole Matter | Eye T9 (coming later) | Registered now as a placeholder |
+| Attractor Dark Matter | Eye T9 (the Great Attractor) | Every MAX part, Homogeny T3, Entanglement Medium, anchor VI, the Reality controllers, the L2 lattice, Eye T10's charge and trims |
+| Universium (GT's material) | Eye T10 (the only source) | The pack's MHDCSM line and Endgame, the L3 lattice |
 
-Our blocks are four casing families (`slCasing`, `slCasing2`, `slCasing3`, `slCasing4`): mirror, rail, coil and plate
-casings for the Kerr; band casings for the Eye; coils, walls and injectors for the quasar; Homogeny and Reality blocks;
-and the lattice frame, nodes and Event Horizon Thermaliser Casing. Every one of them says in its tooltip which
+Our blocks are four casing families (`slCasing`, `slCasing2`, `slCasing3`, `slCasing4`) and one glass (`slGlass`):
+mirror, rail, coil and plate casings for the Kerr; band casings for the Eye; coils, walls and injectors for the quasar;
+Homogeny and Reality blocks; the lattice frame, nodes and Event Horizon Thermaliser Casing; the Universal Compression
+Field Generator, the Dark Matter Heating Coil and the Attractor Dark Matter Frame Box; the Magnetar-Reinforced (UXV)
+and Dark Matter (MAX) Borosilicate Glass. Every one of them says in its tooltip which
 machine uses it and where it is made.
 
 ---
@@ -810,6 +858,7 @@ start; your values are kept. A stale `interimBlackDwarfAtEyeT4` key from older b
 | `stockSpecialCircuitEnergyFactor` | `2.5` | 1.0-5.0 | The raise's time (and so EU) factor |
 | `stockSpecialCircuitMaterialFactor` | `2.0` | 1.0-4.0 | The raise's item and fluid factor (rounded up) |
 | `smbhAllowUnbound` | `true` | | Allow Unbind on an L4 Supermassive Lattice. Off hides the button, refuses OpenComputers' `setUnbound(true)` and sheds an Unbound hole back to 67,108,864 SM |
+| `latticeNodesUseP5Matter` | `true` | | Containment Node L2 on Attractor Dark Matter (Eye T9) and L3 on Universium (Eye T10). Off: the older L2 / L3 recipes on Superdense Ergomatter, Magnetar and Black Dwarf Matter. L4 and Overdrive are the same either way; built nodes stay |
 | `eyeRenderCentre` | `true` | | Draw the Eye's star or galaxy. Off on a server: no Eye places its render block |
 | `renderKerrHole` | `true` | | Draw the Kerr's black hole |
 | `renderQuasar` | `true` | | Draw the quasar's hole, disc and jets |
@@ -885,13 +934,12 @@ The full argument lists are in each command's usage line (type the command with 
 
 **Not reachable in survival yet (registered, visible in NEI, testable with bench commands):**
 
-- Eye T9 and T10, White Hole Matter, the Homogeny T3, and every Reality Diffraction / Refab run. The Universal Upgrade
-  Core and Star Chart: The Observable Universe have no use until Eye T10 exists.
-- Universium and everything made from it in the pack (MHDCSM, the pack's UXV Field Generator, Sensor and Emitter, the
-  Stargate line): Universium comes with Eye T10. With `replaceTecTechEyeOfHarmony=false` TecTech's Eye still makes it.
 - The UXV parts redesign. Until it lands, our recipes take twice as many UMV parts (see
-  [BEC integration](#bec-condensate-assembler-integration)). Nothing of ours outside the "coming later" row needs the
-  pack's UXV parts.
+  [BEC integration](#bec-condensate-assembler-integration)). Nothing of ours before Eye T10 needs the pack's UXV
+  components.
+- The Dark Matter Heating Coil works at GT's MAX coil level (13,501 K, the same as Eternal): GT's coil levels end
+  there. The multiblock hologram places GT's own coils, so place these by hand.
+- The quests the Eye would tick (The Deep Link, The Infall, Inflation and the flow and universe counts) are checkboxes.
 
 **Renders (client only):**
 

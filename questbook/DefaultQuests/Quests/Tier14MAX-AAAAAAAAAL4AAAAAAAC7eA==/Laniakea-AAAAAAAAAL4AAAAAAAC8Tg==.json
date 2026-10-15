@@ -1,8 +1,8 @@
 {
   "preRequisites:9": {
     "0:10": {
-      "questIDHigh:4": -8966491619356291672,
-      "questIDLow:4": -7941726137436471809
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48204
     }
   },
   "properties:10": {
@@ -16,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Gallifreyan is TecTech's last Spacetime Compression Field Generator. The gate is 1 : 1, so Eye T10 needs a new, tenth tier.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "Hold§9 1,000 galaxies§r, about 14 hours of a T9: +1 a cycle at mean Y ≥ 1, +n for each group captured. The counter is never lost on a failure.\n\nLaniakea, \"immeasurable heaven\", holds about 100,000.\n\n§2§lDONE §lWHEN§r the Eye's panel shows 1,000 galaxies held (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 8,
+        "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "tectech:gt.spacetime_compression_field_generator"
+        "id:8": "beyondthestars:starChartGreatAttractor"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nThe Tenth Compression Tier§r",
+      "name:8": "§4§l§nLaniakea",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -55,7 +55,7 @@
     }
   },
   "questIDHigh:4": 190,
-  "questIDLow:4": 48187,
+  "questIDLow:4": 48206,
   "rewards:9": {},
   "tasks:9": {
     "0:10": {

@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "fb5f1fed93f0eb2a4aeddeac559f45fb3fc46d52",
+  "bundleVersion": "83ceb2b2efb723e965ba860e1b3c286e0e727b9f",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "9bcbee3 playtest-1",
+    "srcHead": "feda3a3 p5-content",
     "manifestSha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1"
   },
   "features": {
@@ -19,10 +19,10 @@
     "conduit": true,
     "crown": true,
     "eyeT7T8": true,
-    "uxvParts": false,
-    "eyeT9T10": false,
-    "realityRefab": false,
-    "maxParts": false,
+    "uxvParts": true,
+    "eyeT9T10": true,
+    "realityRefab": true,
+    "maxParts": true,
     "eternityOnErgomatter": true,
     "uxvSwap": false,
     "astralArrayOnEye": false,
@@ -389,7 +389,7 @@
           "betterquesting:10": {
             "bg_image:8": "",
             "bg_size:3": 256,
-            "desc:8": "The last voltage tier. Here: the Supermassive Lattice's L2 tier, the Supermassive Link and the pack's own MAX quests. Coming later: Eye T9 and its §9White Hole Matter§r, the MAX parts built from it, and Eye T10, which makes §9Universium§r and opens the pack's Universium line in §1The Endgame§r.",
+            "desc:8": "The last voltage tier. Eye T9 holds the §9Great Attractor§r on a beam of pellets and makes §9Attractor Dark Matter§r; every MAX part is built from it. The Homogeny T3 and the two Reality machines make the §9Universal Upgrade Core§r, and Eye T10 runs §9the Universe§r: the only Universium, which opens §1The Endgame§r.",
             "icon:10": {
               "Count:3": 1,
               "Damage:2": 11234,
@@ -417,7 +417,7 @@
           "questIDLow:4": 48181,
           "sizeX:3": 24,
           "sizeY:3": 24,
-          "x:3": 108,
+          "x:3": 60,
           "y:3": 264
         },
         {
@@ -563,6 +563,102 @@
           "sizeY:3": 24,
           "x:3": 528,
           "y:3": 336
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48200,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 60,
+          "y:3": 312
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48201,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 108,
+          "y:3": 312
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48202,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 108,
+          "y:3": 264
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48203,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 120,
+          "y:3": 216
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48204,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 240,
+          "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48205,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 288,
+          "y:3": 144
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48206,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 288,
+          "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48207,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 240,
+          "y:3": 204
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48208,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 528,
+          "y:3": 108
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48209,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 672,
+          "y:3": 264
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48210,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 672,
+          "y:3": 96
+        },
+        {
+          "questIDHigh:4": 190,
+          "questIDLow:4": 48211,
+          "sizeX:3": 24,
+          "sizeY:3": 24,
+          "x:3": 672,
+          "y:3": 336
         }
       ]
     },
@@ -576,7 +672,7 @@
           "betterquesting:10": {
             "bg_image:8": "",
             "bg_size:3": 256,
-            "desc:8": "The Supermassive Lattice's last tiers: L3, L4, Overdrive and Unbound. Then, coming later with Eye T10: Universium, the pack's MHDCSM line and the crafted Stargate.",
+            "desc:8": "Eye T10's Universium opens this tab: the pack's MHDCSM line, Constrained Eternity and Resplendent parts, the crafted Stargate and the Astral Array. The Supermassive Lattice's last tiers sit here too: L3 (on Universium), L4, Overdrive and Unbound.",
             "icon:10": {
               "Count:3": 1,
               "Damage:2": 11139,
@@ -7434,10 +7530,7 @@
     {
       "low": 48151,
       "key": "magnetar_glass",
-      "placeholder": true,
-      "needs": [
-        "uxvParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -7456,19 +7549,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The UXV glass tier for multiblocks that check their glass, made with Magnetar Matter. It belongs to the new UXV parts, which will take Universium out of UXV recipes.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The §9UXV glass tier§r for multiblocks that check their glass. Alloy Blast Smelter at UXV: 4 Transcendentally Reinforced Borosilicate Glass + 144 L Magnetar Matter → 4 blocks, 36 L each (a 48-glass multi is about 1.5 h of one T6).\n\n§2§lDONE §lWHEN§r you hold 4 blocks.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
               "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "tectech:tile.quantumGlass"
+              "id:8": "beyondthestars:slGlass"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nMagnetar-Reinforced Borosilicate Glass§r",
+            "name:8": "§4§l§nMagnetar-Reinforced Borosilicate Glass",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -7499,8 +7592,22 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 4,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slGlass"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -7508,10 +7615,7 @@
     {
       "low": 48152,
       "key": "uxv_superconductor",
-      "placeholder": true,
-      "needs": [
-        "uxvParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -7530,19 +7634,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The pack's superconductors stop at UMV. This UXV one will be drawn from Magnetar Matter, with Antipolarization Agent wherever it is needed before Eye T7. It belongs to the new UXV parts, which will take Universium out of UXV recipes.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The pack's superconductors stop at UMV. The §9UXV Superconductor Wire§r is drawn from Magnetar Matter: Alloy Blast Smelter at UXV, 16 UMV Superconductor Wire + 576 L Magnetar Matter + 2,000 L Antipolarization Agent + 64,000 L Super Coolant → 16 (about 31 min of one T6).\n\nIt is a crafting part, not a cable: it builds the UXV laser hatches and the MAX Superconductor Wire.\n\n§2§lDONE §lWHEN§r you hold 16 wire.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 2089,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "beyondthestars:superconductorWireUXV"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nUXV Superconductor§r",
+            "name:8": "§4§l§nUXV Superconductor",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -7573,8 +7677,22 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 16,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:superconductorWireUXV"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -7582,11 +7700,7 @@
     {
       "low": 48153,
       "key": "uxv_laser_hatches",
-      "placeholder": true,
-      "needs": [
-        "uxvLaserIds",
-        "uxvParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -7605,19 +7719,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The pack's UXV laser source and target hatches carry more power than any energy hatch. They are built from the pack's UXV parts, which need Universium, so they come with Eye T10 (coming later).\n\n[note]On a Kerr module the tier of the total input (voltage × amps) sets the parallels: a 256A UXV laser counts as tier 17, so 8 × 17 × floor(sqrt M).[/note]\n\n§2§lDONE §lWHEN§r you hold a 256A UXV Laser Source Hatch and its Target Hatch.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The pack's§9 4096A UXV laser hatches§r carry more power than any energy hatch. The pack's own recipe needs UXV parts (Universium, Eye T10), so this one does not (Assembly Line, UXV):\n- Target: 2 UMV Energy Hatches, 32 UMV Sensors, 8 UXV circuits, 16 UXV Superconductor Wire;\n- Source: 2 UMV Dynamo Hatches, 32 UMV Emitters, the same circuits and wire;\n- each with 2,304 L Magnetar Matter and 32,000 L Antipolarization Agent (about 2 h of one T6).\n\n[note]On a Kerr module the tier of the total input (voltage × amps) sets the parallels: a 4096A UXV laser counts as tier 19.[/note]\n\n§2§lDONE §lWHEN§r you hold a 4096A UXV Laser Target Hatch and its Source Hatch.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 15238,
+              "Damage:2": 15158,
               "OreDict:8": "",
               "id:8": "gregtech:gt.blockmachines"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nUXV Laser Hatches§r",
+            "name:8": "§4§l§nUXV Laser Hatches",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -7648,8 +7762,28 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 15158,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 15258,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -9924,7 +10058,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The last voltage tier. The Supermassive Lattice's L2 tier and the pack's own MAX quests work now. Eye T9, White Hole Matter, the MAX parts, the Reality machines and Eye T10 are §9coming in a later update§r: their quests are checkboxes until then.\n\n§5§lTHE §lPLAN§r\n- Eye T9 makes §9White Hole Matter§r, and every MAX part is built from it, so MAX parts arrive before T10.\n- The Homogeny T3 and the two Reality machines make the §9Universal Upgrade Core§r.\n- §9Eye T10§r makes Universium, and Universium opens the pack's Universium line in §1The Endgame§r.\n\n§2§lDONE §lWHEN§r you tick the box: this one is the chapter's introduction.",
+            "desc:8": "The last voltage tier. Here: §9Eye T9, the Great Attractor§r, its §9Attractor Dark Matter§r, the MAX parts built from it, the Homogeny T3, the two Reality machines and, last, §9Eye T10: the Universe§r. The Supermassive Lattice's L2 tier and the pack's own MAX quests sit here too.\n\n§5§lTHE §lPLAN§r\n- §9Gated Pellets§r from T6, T7 and T8 matter feed the T9 beam.\n- Eye T9 makes §9Attractor Dark Matter§r, and every MAX part is built from it, so MAX parts arrive before T10.\n- The Homogeny T3 and the two Reality machines make the §9Universal Upgrade Core§r and the tenth compression tier.\n- §9Eye T10§r makes Universium, the only source of it, and Universium opens §1The Endgame§r.\n\n§2§lDONE §lWHEN§r you tick the box: this one is the chapter's introduction.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -9975,10 +10109,7 @@
     {
       "low": 48181,
       "key": "t9_pellets",
-      "placeholder": true,
-      "needs": [
-        "eyeT9T10"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10005,19 +10136,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Pellets made from T6, T7 and T8 matter (Magnetar Matter, Ergomatter and Superdense Ergomatter, with the Homogeny's Degenerate Stellar Mixture), fired as a higher-GeV beam that powers and stabilises Eye T9.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "T9 is powered and held by a §9beam of pellets§r fired down the collimator stack. Three grades, each pressed on the §9Kerr Compressor Module§r (Kerr T2, 30 s at UXV, 16 a craft) from the grade below:\n- §9Magnetar§r, 1.25 EeV: 72 L Magnetar Matter, 1,000 L Degenerate Stellar Mixture, 2 Casimir Plates. A primer, too weak to hold a flow alone.\n- §9Ergomatter§r, 5 EeV: 4 Magnetar pellets + 1,000 L Ergomatter.\n- §9Superdense§r, 20 EeV: 4 Ergomatter pellets + 144 L Superdense Ergomatter. The working fuel.\n\n1 EeV is 10 to the 9 GeV. The top grade carries T6, T7 and T8 matter at once: one pellet holds 9 L Superdense, 15.6 L Ergomatter and 0.28 L Magnetar Matter. A standard T9 fires about§9 2,000 an hour§r: 0.9 of a T8, 0.73 of a T7 and 0.5 of a T6 in upkeep.\n\nEvery grade stays under the §9GZK limit§r (50 EeV), where real cosmic rays start losing energy to the microwave background. The top grade sits at 40 % of it.\n\n§5§lAUTOMATE§r Patterns on the Kerr Compressor: Magnetar → Ergomatter → Superdense, and a level emitter on the Superdense pellets.\n\n§2§lDONE §lWHEN§r you hold 64 Superdense pellets.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 32419,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.metaitem.01"
+              "id:8": "beyondthestars:gatedPelletSuperdense"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nT9 Pellets§r",
+            "name:8": "§4§l§nGated Pellets",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10048,8 +10179,22 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 64,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:gatedPelletSuperdense"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10057,10 +10202,7 @@
     {
       "low": 48182,
       "key": "eye_t9",
-      "placeholder": true,
-      "needs": [
-        "eyeT9T10"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10068,12 +10210,12 @@
             "questIDLow:4": 48180
           },
           "1:10": {
-            "questIDHigh:4": 190,
-            "questIDLow:4": 48181
-          },
-          "2:10": {
             "questIDHigh:4": -8966491619356291672,
             "questIDLow:4": -7941726137436471809
+          },
+          "2:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48203
           }
         },
         "properties:10": {
@@ -10087,19 +10229,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Sgr A*, the supermassive black hole at a galaxy's heart, with tidal disruption events to catch. Output: §9White Hole Matter§r. A planets mode will run 9 planets at once.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The §9Great Attractor§r: the hidden mass at the heart of Laniakea, 100,000 galaxies. The Milky Way falls toward it at 600 km/s. It hides behind our own galaxy's plane, so it was found from how galaxies move, not seen. Most of it is dark matter.\n\n§5§lTHE §lFIELD§r T9 keeps the T8 field (P, W, Λ) and adds §9V, the infall§r: drift 2 × the flow, a runaway gain, and one actuator, the §9pellet beam§r (−2 × ρ, where ρ is the beam power over 1e10 GeV/s). Positive V: galaxies fall faster than you can catch them. Negative: the beam pushes the flow back up the filaments. The beam spools over 20 s, so steer it, do not slam it. Demand§9 24 Bu/t§r (2.4e14 EU/t).\n\n§5§lTHE §lBEAM§r The §9Pellet Injector Hatch§r fires n = cap × clamp(c + k (s/15 - 0.5), 0, 1) pellets a second; cap is the barrel's (4 / 8 / 16). Hold rating = floor(4 × (cap × GeV / 1e10 - 2)), 0 to 12: the largest flow the beam can hold. Superdense on a Mk I: rating 12.\n\n§5§lGALACTIC §lFLOW§r Every 20 to 40 min a group of 3 to 12 galaxies comes down a filament, warned an exact 180 s ahead with its side and size. A group no bigger than the accept limit (default: the hold rating) is accepted: for 240 s it pushes V, Λ, W and P at once. Held Stable throughout: every galaxy is captured, §9+144 L Attractor Dark Matter each§r. A bigger group streams past; nothing is lost.\n\n§5§lOUTPUT§r Attractor Dark Matter§9 144 L a cycle§r × Y × r, plus the flows: about 12,300 L an hour on the standard rig, which needs a§9 300 SM quasar§r. Planets mode runs 9 planets; T9 runs 3 companions, and a companion may be a galaxy (Triangulum, the Milky Way).\n\n§5§lSTANDARD §lRIG§r The T8 rig unchanged (J1 on P, J2 on the aim, J3 on the halo, the Space valve) plus the Flow Directive set's bits 1 and 2 to the injector's Burst Control Hatch (15 / 8 / 0). A breach drops the Attractor; galaxies held, tiers and cores are never lost. Rerun The Infall from a lit Milky Way.\n\n§2§lDONE §lWHEN§r your Eye runs T9 (tick the box).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 28115,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "beyondthestars:starChartGreatAttractor"
             },
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nEye T9: White Hole§r",
+            "name:8": "§4§l§nEye T9: The Great Attractor",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10139,10 +10281,7 @@
     {
       "low": 48183,
       "key": "white_hole_matter",
-      "placeholder": true,
-      "needs": [
-        "eyeT9T10"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10161,19 +10300,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Eye T9's harvest, and what every MAX part will be built from.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "Eye T9's harvest, stripped from the halos of the galaxies the Great Attractor captures. It builds every MAX part (see §cMAX Parts§r), Entanglement Medium, Reality Diffraction's sixth anchor and the L2 lattice.\n\nSolid forms: the §9plate§r (Fluid Solidifier, 144 L), the §9dense plate§r (Bender, 9 plates) and the §9frame box§r (Assembler, 2 plates). In the Condensate Assembler it is the §9Entangled§r condensate (Condensate Generator, 144 L to 144 L at MAX).\n\nThe name says where it comes from: another mod in the pack already has a block called plain Dark Matter.\n\n§2§lDONE §lWHEN§r you have 1,000 L of Attractor Dark Matter.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 11585,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.metaitem.01"
+              "id:8": "beyondthestars:attractorDarkMatterPlate"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nWhite Hole Matter§r",
+            "name:8": "§4§l§nAttractor Dark Matter",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10204,8 +10343,18 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "requiredFluids:9": {
+              "0:10": {
+                "Amount:3": 1000,
+                "FluidName:8": "btsdarkmatter"
+              }
+            },
+            "taskID:8": "bq_standard:fluid"
           }
         }
       }
@@ -10213,11 +10362,7 @@
     {
       "low": 48184,
       "key": "homogeny_t3",
-      "placeholder": true,
-      "needs": [
-        "homogeny",
-        "eyeT9T10"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10240,19 +10385,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The Homogeny's third tier: a tilted outer ring and its tail. It will mix at§9 16 parallels§r (about one MAX amp) and add the last mix, §9Entanglement Medium§r: White Hole Matter + Superdense Ergomatter + Degenerate Stellar Mixture. Reality Diffraction splits it.\n\nEntanglement Medium needs a quasar link at σ ≥ 1; without it the run waits (see §cA Quasar-Held Vortex§r).\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The Homogeny's third tier: a tilted outer ring and its tail. It mixes at§9 16 parallels§r (about one MAX amp) and adds the last mix, §9Entanglement Medium§r: 144 L Attractor Dark Matter + 500 L Superdense Ergomatter + 1,000 L Degenerate Stellar Mixture → 1,000 L, 120 s. Reality Diffraction splits it.\n\n§5§lTHE §lCORE§r The §9Homogeny Tier III Core§r (Condensate Assembler, MAX): 9,216 L Entangled Attractor Dark Matter (about 0.75 h of one T9), Superdense Ergomatter, Degenerate Stellar Mixture and Eternity condensates. To install it, mix 100,000 L of Degenerate Stellar Mixture at T2 first.\n\n§5§lTHE §lMILESTONE§r Run the T2 Homogeny on a quasar link at σ ≥ 1 for an hour before you install the core. The machine does not check it; it is the practice run for the link Entanglement Medium needs (see §cA Quasar-Held Vortex§r).\n\nEntanglement Medium needs a quasar link at σ ≥ 1; without it the run waits.\n\n§2§lDONE §lWHEN§r you tick the box after an hour at σ ≥ 1, and hold the Tier III Core (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 30127,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.metaitem.01"
+              "id:8": "beyondthestars:homogenyTier3Core"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nThe Homogeny T3§r",
+            "name:8": "§4§l§nThe Homogeny T3",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10285,6 +10430,24 @@
           "0:10": {
             "index:3": 0,
             "taskID:8": "bq_standard:checkbox"
+          },
+          "1:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 1,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:homogenyTier3Core"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10292,10 +10455,7 @@
     {
       "low": 48185,
       "key": "reality_diffraction",
-      "placeholder": true,
-      "needs": [
-        "realityRefab"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10318,8 +10478,8 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "A stack of glass drums with six Region Blades. Each run will split Entanglement Medium into six §9Entangled Region§r condensates (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass) and push them into a Bose-Einstein Condensate network: outside reality.\n- Each region needs its own anchor fluid in its own socket, or its sixth is lost.\n- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler.\n- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, × 1 with none (see §cRiding the Rift§r).\n- A missing block, or a footprint chunk that is not loaded, pauses the machine: the run is kept and resumes by itself when the structure is whole. Chunk-load the whole footprint.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "A stack of glass drums with six Region Blades. Each run splits 4,000 L of Entanglement Medium into six §9Entangled Region§r condensates, 1,000 L each (Hyperspace, Subspace, Forward Time, Reverse Time, Visible Mass, Dark Mass), and pushes them into a Bose-Einstein Condensate network: outside reality. 120 s at MAX.\n- Each region needs its own anchor in its own socket: I Space 1,440 L, II SpaceTime 1,440 L, III Time 1,440 L, IV Eternity 144 L, V Superdense Ergomatter 500 L, VI §9Attractor Dark Matter 288 L§r. A region without its anchor is lost.\n- The mass axis splits the way the real universe does: visible matter against dark matter.\n- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler. The machine waits, never voids, when the network is full.\n- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, × 1 with none (see §cRiding the Rift§r).\n- The controller: Condensate Assembler, MAX, with 36,864 L Entangled Attractor Dark Matter.\n\n§2§lDONE §lWHEN§r you hold the controller (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -10330,7 +10490,7 @@
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nReality Diffraction§r",
+            "name:8": "§4§l§nReality Diffraction",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10361,8 +10521,22 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28131,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10370,10 +10544,7 @@
     {
       "low": 48186,
       "key": "reality_refab",
-      "placeholder": true,
-      "needs": [
-        "realityRefab"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10392,8 +10563,8 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "A tall vase of a machine. It will draw the six regions back out of the BEC network in lockstep and reassemble them, borrowing a linked Condensate Assembler's nanites. Its first job is the §9Universal Upgrade Core§r, which takes the Eye from T9 to T10.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "A tall vase of a machine. It draws the six regions back out of the BEC network in lockstep and reassembles them, borrowing a linked Condensate Assembler's nanites.\n- The §9Universal Upgrade Core§r (Eye T9 → T10): 32,000 L of each region (32 Diffraction runs, about 64 min at σ 1), Eternity Shell, Region Crystal, UMV Field Generators and Emitters, 7,200 s of nanite-time.\n- The §9Universal Compression Field Generator§r, the tenth compression tier: a Gallifreyan generator (consumed) and 4,000 L of each region, 1,800 s.\n- §9Star Chart: The Observable Universe§r, T10's target: 1,000 L of each region.\n\n§5§lAUTOMATE§r Start the craft from an ME interface in the input bus. A level emitter on any region below 32,000 L can hold the core back; the reassembly lock pauses the run if a region runs short.\n\n§2§lDONE §lWHEN§r you hold the controller (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -10404,7 +10575,7 @@
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nReality Refab§r",
+            "name:8": "§4§l§nReality Refab",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10435,8 +10606,22 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28132,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10444,10 +10629,7 @@
     {
       "low": 48187,
       "key": "tenth_compression_tier",
-      "placeholder": true,
-      "needs": [
-        "eyeT9T10"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10466,19 +10648,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Gallifreyan is TecTech's last Spacetime Compression Field Generator. The gate is 1 : 1, so Eye T10 needs a new, tenth tier.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "Gallifreyan is TecTech's last Spacetime Compression Field Generator. The gate is 1 : 1, so Eye T10 needs a tenth tier: the §9Universal Compression Field Generator§r, reassembled in Reality Refab from a Gallifreyan generator (consumed) and 4,000 L of each Entangled Region.\n\nEvery compression slot of the Eye takes one for T10. Time Dilation and Stabilisation stay at tier 9: there is no time dial at T9 or T10.\n\n§2§lDONE §lWHEN§r you hold one Universal Compression Field Generator.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 8,
+              "Damage:2": 6,
               "OreDict:8": "",
-              "id:8": "tectech:gt.spacetime_compression_field_generator"
+              "id:8": "beyondthestars:slCasing4"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nThe Tenth Compression Tier§r",
+            "name:8": "§4§l§nUniversal Compression",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10509,8 +10691,22 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 6,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10518,21 +10714,14 @@
     {
       "low": 48188,
       "key": "eye_t10",
-      "placeholder": true,
-      "needs": [
-        "eyeT9T10"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
             "questIDHigh:4": 190,
-            "questIDLow:4": 48186
+            "questIDLow:4": 48208
           },
           "1:10": {
-            "questIDHigh:4": 190,
-            "questIDLow:4": 48187
-          },
-          "2:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48198
           }
@@ -10548,19 +10737,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The Universe. A jump as big as the Nano Forge's T4. Output: §9Universium§r, and only here. It opens §1The Endgame§r.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "§9The Universe§r, one at a time inside the crown. Each universe lives one§9 7,200 s batch§r, from first light to last. The job is cosmology's oldest problem: §9keep it flat§r. Too much matter and it recollapses (a Big Crunch); too little and dark energy tears it apart (a Big Rip).\n\n§5§lTHE §lFIELD§r Gauges P and §9H§r, the expansion error against the Friedmann curve the crown follows. H drifts up as dark energy takes over late in each universe (runaway gain +0.01). Trims: §9Attractor Dark Matter§r 4 L = H −2 (more mass, gravity slows it); §9Molten SpaceTime§r 100 L = H +2; Spatially Enlarged Fluid 100 L = P −2. Caps 10 a second. W, Λ, V and the beam retire. Demand§9 96 Bu/t§r (9.6e14 EU/t) on the crown's 12 ports.\n\n§5§lEVENTS§r §9Recombination§r at 1,800 s (warned 60 s): the universe turns transparent, H climbs for 300 s. §9Cosmic Dawn§r once a universe at 3,240 to 4,680 s (warned 120 s): the first stars ignite across the crown. Held Stable throughout: +12.5 % Universium.\n\n§5§lOUTPUT§r §9Universium 9,216 L a universe§r × mean Y × r, + 1,152 L for a caught Cosmic Dawn: about 6,200 L an hour. The charge is 9,216 L Attractor Dark Matter a universe. This is the §9only§r Universium source. A Big Rip or Crunch ends that universe early and salvages 25 % × the fraction run; the Eye never loses T10.\n\n§5§lSTANDARD §lRIG§r Universe bits 1 and 2 to two 2-unit valves (Dark Matter and SpaceTime), J1 on P, the Space valve, and a 600 SM quasar.\n\n§2§lDONE §lWHEN§r you have 144 L of Universium.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 28115,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "beyondthestars:starChartUniverse"
             },
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nEye T10: The Universe§r",
+            "name:8": "§4§l§nEye T10: The Universe",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10591,8 +10780,18 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "requiredFluids:9": {
+              "0:10": {
+                "Amount:3": 144,
+                "FluidName:8": "molten.universium"
+              }
+            },
+            "taskID:8": "bq_standard:fluid"
           }
         }
       }
@@ -10600,10 +10799,7 @@
     {
       "low": 48189,
       "key": "max_parts",
-      "placeholder": true,
-      "needs": [
-        "maxParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10622,8 +10818,8 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Every MAX part will be built from §9White Hole Matter§r, so MAX parts arrive before Eye T10. The four quests below group them: components and casings, power, materials, and the battery.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "Every MAX part is built from §9Attractor Dark Matter§r, so MAX parts arrive before Eye T10, and none of them needs Universium. A full MAX power room with its parts costs about 32 hours of one T9 (two Eyes: 16).\n\nWhere a MAX card names a UXV component, it takes §9two UMV ones§r instead: the pack's UXV components need Universium.\n\nThe four quests below group them: components and casings, power, materials, and the battery.\n\n§2§lDONE §lWHEN§r you tick the box.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -10634,7 +10830,7 @@
             "isMain:1": 1,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nMAX Parts§r",
+            "name:8": "§4§l§nMAX Parts",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10674,10 +10870,7 @@
     {
       "low": 48190,
       "key": "max_components",
-      "placeholder": true,
-      "needs": [
-        "maxParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10696,19 +10889,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The MAX tier of GT's component set (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator and the rest), the MAX CoAL casing and the MAX machine casing, all from White Hole Matter.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The §9eight MAX components§r (motor, pump, conveyor, piston, robot arm, emitter, sensor, field generator) on the §9Component Assembly Line§r at its MAX casing tier, 16 a batch. Each takes 8 of its UMV part, 2 MAX Superconductor Wire and a MAX circuit.\n\nAttractor Dark Matter each, all in: motor, pump, conveyor, piston, robot arm§9 2,304 L§r (11 min of one T9); emitter, sensor§9 3,456 L§r; field generator§9 4,608 L§r.\n\n- §9MAX Component Assembly Line Casing§r (Assembly Line): 2 UMV casings, 4,608 L. You need it before the MAX components.\n- §9MAX Machine Casing§r and §9Hull§r (Assembler): 2,304 L each.\n\n§2§lDONE §lWHEN§r you hold one of each MAX component.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 12102,
+              "Damage:2": 32020,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "gregtech:gt.metaitem.01"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nMAX Components and Casings§r",
+            "name:8": "§4§l§nMAX Components and Casings",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10739,8 +10932,64 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 32020,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 32028,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              },
+              "2:10": {
+                "Count:3": 1,
+                "Damage:2": 32032,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              },
+              "3:10": {
+                "Count:3": 1,
+                "Damage:2": 32024,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              },
+              "4:10": {
+                "Count:3": 1,
+                "Damage:2": 32036,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              },
+              "5:10": {
+                "Count:3": 1,
+                "Damage:2": 32040,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              },
+              "6:10": {
+                "Count:3": 1,
+                "Damage:2": 32044,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              },
+              "7:10": {
+                "Count:3": 1,
+                "Damage:2": 32048,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.metaitem.01"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10748,10 +10997,7 @@
     {
       "low": 48191,
       "key": "max_power",
-      "placeholder": true,
-      "needs": [
-        "maxParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10770,19 +11016,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The MAX energy and dynamo hatches, the MAX laser source and target hatches, and the MAX wireless hatch, all from White Hole Matter.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The MAX hatches, all on the Assembly Line around a MAX hull:\n- §9MAX Energy Hatch§r and §9MAX Dynamo Hatch§r: 9,216 L each (45 min of one T9).\n- §9MAX Wireless Energy Hatch§r: 9,216 L.\n- §9MAX 4096A Laser Target§r and §9Source Hatch§r: 18,432 L each (90 min of one T9).\n\nOne MAX amp is 2,147,483,640 EU/t.\n\n§2§lDONE §lWHEN§r you hold a MAX Energy Hatch and a MAX Dynamo Hatch.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 286,
+              "Damage:2": 28133,
               "OreDict:8": "",
               "id:8": "gregtech:gt.blockmachines"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nMAX Power§r",
+            "name:8": "§4§l§nMAX Power",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10813,8 +11059,28 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 28133,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              },
+              "1:10": {
+                "Count:3": 1,
+                "Damage:2": 28134,
+                "OreDict:8": "",
+                "id:8": "gregtech:gt.blockmachines"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10822,10 +11088,7 @@
     {
       "low": 48192,
       "key": "max_materials",
-      "placeholder": true,
-      "needs": [
-        "maxParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10844,19 +11107,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The MAX superconductor, the White Hole heating coil, White Hole glass and the White Hole frame box, all from White Hole Matter.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "- §9MAX Superconductor Wire§r × 16 (Mega / Alloy Blast Smelter): 864 L of Attractor Dark Matter, 16 UXV Superconductor Wire, Super Coolant. A crafting part in every MAX hatch, component, coil and battery.\n- §9Dark Matter Heating Coil§r × 2 (Assembly Line): 1,152 L. A heating coil at the MAX level, the same 13,501 K as the Eternal coil (GregTech's coil levels end at MAX). The hologram places GregTech's own coils, so place these by hand.\n- §9Dark Matter Borosilicate Glass§r × 4 (Alloy Blast Smelter): 4 Magnetar-Reinforced glass + one plate. Glass tier MAX.\n- §9Attractor Dark Matter Frame Box§r (Assembler): 2 plates.\n\n§2§lDONE §lWHEN§r you hold 16 wire, 2 coils, 4 glass and a frame box.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 2089,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "beyondthestars:superconductorWireMAX"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nMAX Materials§r",
+            "name:8": "§4§l§nMAX Materials",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10887,8 +11150,40 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 16,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:superconductorWireMAX"
+              },
+              "1:10": {
+                "Count:3": 2,
+                "Damage:2": 7,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              },
+              "2:10": {
+                "Count:3": 4,
+                "Damage:2": 1,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slGlass"
+              },
+              "3:10": {
+                "Count:3": 1,
+                "Damage:2": 9,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:slCasing4"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10896,10 +11191,7 @@
     {
       "low": 48193,
       "key": "max_battery",
-      "placeholder": true,
-      "needs": [
-        "maxParts"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10918,19 +11210,19 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The MAX battery, built from White Hole Matter.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The §9MAX Battery§r holds 2^63 − 1 EU (about 9.2 quintillion) at the MAX tier and charges in any MAX battery buffer or charger. Assembly Line: 16 dense plates, 32 MAX wire, a MAX Field Generator and Attractor Dark Matter, 36,864 L all in, about 3 hours of one T9.\n\n§2§lDONE §lWHEN§r you hold a MAX Battery.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
-              "Damage:2": 11245,
+              "Damage:2": 0,
               "OreDict:8": "",
-              "id:8": "gregtech:gt.blockmachines"
+              "id:8": "beyondthestars:maxBattery"
             },
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nMAX Battery§r",
+            "name:8": "§4§l§nMAX Battery",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -10961,8 +11253,22 @@
         "rewards:9": {},
         "tasks:9": {
           "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
             "index:3": 0,
-            "taskID:8": "bq_standard:checkbox"
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:maxBattery"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
           }
         }
       }
@@ -10970,11 +11276,7 @@
     {
       "low": 48194,
       "key": "reality_link",
-      "placeholder": true,
-      "needs": [
-        "realityRefab",
-        "conduit"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -10997,8 +11299,8 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "Reality Diffraction's portal has 6 reserved cells for §9GRB Receptor Ports§r. Demand: 24 Bu/t (burst units per tick; 2.4e14 EU/t).\n- §9No port fitted§r: the regions run at × 1 on their anchor fluids. No link is needed.\n- §9Ports fitted§r: the regions ride the stream at × min(σ, 1.5); below σ 0.5 no run starts and a running one pauses (nothing is voided). Fit ports only when you can feed them: a second quasar with its own mouths is the clean way.\n\n§2§lDONE §lWHEN§r your Reality Diffraction runs on a quasar link (tick the box).\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "Reality Diffraction's portal has 6 reserved cells for §9GRB Receptor Ports§r. Demand: 24 Bu/t (burst units per tick; 2.4e14 EU/t).\n- §9No port fitted§r: the regions run at × 1 on their anchor fluids. No link is needed.\n- §9Ports fitted§r: the regions ride the stream at × min(σ, 1.5); below σ 0.5 no run starts and a running one pauses (nothing is voided). Fit ports only when you can feed them: a second quasar with its own mouths is the clean way.\n\n§2§lDONE §lWHEN§r your Reality Diffraction runs on a quasar link (tick the box).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -11009,7 +11311,7 @@
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nRiding the Rift§r",
+            "name:8": "§4§l§nRiding the Rift",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -11262,11 +11564,7 @@
     {
       "low": 48198,
       "key": "supermassive_link",
-      "placeholder": true,
-      "needs": [
-        "smbh",
-        "eyeT9T10"
-      ],
+      "placeholder": false,
       "nbt": {
         "preRequisites:9": {
           "0:10": {
@@ -11285,8 +11583,8 @@
               "OreDict:8": "",
               "id:8": "minecraft:stick"
             },
-            "countAsQuest:1": 0,
-            "desc:8": "The Eye's §9T9 → T10 machine milestone§r: link a hole of at least§9 65,536 SM§r with a Supermassive Lattice (any tier) to the Eye through the conduit for§9 30 min unbroken§r, with a 60 s mean of at least§9 96 Bu/t§r (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.\n\nIt is met with an §9L1 lattice§r (Eye T8 products) and pack gases: nothing from Eye T9 or later.\n\nEvery stream already carries its source's lattice tier and mass. The Eye's GUI shows a §9Supermassive Link§r row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+            "countAsQuest:1": 1,
+            "desc:8": "The Eye's §9T9 → T10 machine milestone§r: link a hole of at least§9 65,536 SM§r with a Supermassive Lattice (any tier) to the Eye through the conduit for§9 30 min unbroken§r, with a 60 s mean of at least§9 96 Bu/t§r (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.\n\nIt is met with an §9L1 lattice§r (Eye T8 products) and pack gases: nothing from Eye T9 or later. It gates Eye T10 (see §cInflation§r).\n\nEvery stream already carries its source's lattice tier and mass. The Eye's GUI shows a §9Supermassive Link§r row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Supermassive Link held (tick the box).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -11297,7 +11595,7 @@
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§8Coming later: §7§l§nSupermassive Link§r",
+            "name:8": "§4§l§nSupermassive Link",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -11357,7 +11655,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 16,000 L Entangled Superdense Ergomatter, 4,608 L Entangled Magnetar Matter and 4 any-MAX circuits, in the Condensate Assembler at MAX. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nTake the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).",
+            "desc:8": "Remake the 48 nodes as §9L2§r: each L1 node plus 4,032 L Entangled §9Attractor Dark Matter§r (4,000 L of the fluid, 72 L condensate steps) and 4 any-MAX circuits, in the Condensate Assembler at MAX. 48 nodes: about 15.6 hours of one T9. L2's safe limit is§9 65,536 SM§r and its top 262,144 SM: the Eye gate's mass with no hold-up gas at all.\n\nTake the 48 L1 nodes out before you place the L2 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set. L2 is not needed for the Eye gate, which is met on L1, but L3 and L4 are made from L2 nodes.\n\n[note]A server with latticeNodesUseP5Matter=false keeps the older L2 recipe: Entangled Superdense Ergomatter and Magnetar Matter. NEI shows the one in use. Nodes already built stay.[/note]\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L2 (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -11368,7 +11666,7 @@
             "isMain:1": 0,
             "isSilent:1": 0,
             "lockedProgress:1": 0,
-            "name:8": "§4§l§nThe L2 Lattice",
+            "name:8": "§4§l§nDark Matter Lattice",
             "notification_duration:5": -1.0,
             "notification_effect:3": -1,
             "notification_fade_in:5": -1.0,
@@ -11420,6 +11718,894 @@
       }
     },
     {
+      "low": 48200,
+      "key": "pellet_injector",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48181
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The §9Pellet Injector Hatch§r sits in the socket on the top collar of the T9 collimator stack and fires pellets down the axis into the core. It fires the highest grade it holds, or the one locked in its GUI.\n\nIts rate cap comes from the §9Injector Barrel§r in its slot: §9Mk I 4, Mk II 8, Mk III 16§r pellets a second. Superdense pellets on a Mk I already hold every flow.\n- Mk I: Condensate Assembler, UXV (Casimir Plates, UMV Field Generators, Jet Collimator Rings, SpaceTime).\n- Mk II: 4 Mk I + Entangled Antipolarization Agent. Mk III: 4 Mk II + 16,000 L Superdense Ergomatter (Assembly Line).\n\nBelow T9 the injector does nothing except the Deep Link's test fire. ME stocking buses are fine on it: pellets are upkeep, not a trim.\n\n§2§lDONE §lWHEN§r you hold an Injector Barrel Mk I, then fit it with the hatch.",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:injectorBarrelMk1"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nThe Pellet Injector",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48200,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:injectorBarrelMk1"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48201,
+      "key": "deep_link",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48200
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48148
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The T8 → T9 §9machine milestone§r, on a lit Milky Way:\n- linked, with a 60 s mean of at least§9 24 Bu/t§r (2.4e14 EU/t) landing on the Eye's ports, at least half of it into the five §9collar§r ports (no field effect at T8);\n- the beam §9test-firing§r at a 60 s mean ρ ≥ 1;\n- for§9 30 min unbroken§r.\nThe test fire setting forces J1 to the Eye. It needs a§9 250 SM quasar§r: below that the forced burst heats P faster than Space can trim. It burns about 1,200 Superdense pellets.\n\nAlso on the T8 star: 108,000 L of Superdense Ergomatter made at Stable or better, 2 h Resonant, 4 satellite crossings caught.\n\n§5§lAUTOMATE§r The Slots set's bit 4 (Deep Link test fire wanted) to both Burst Control Hatches.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Deep Link held (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 28125,
+              "OreDict:8": "",
+              "id:8": "gregtech:gt.blockmachines"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nThe Deep Link",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48201,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48202,
+      "key": "attractor_seed_core",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48201
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "The T8 → T9 core (Condensate Assembler, UXV, 3,600 s): 64,000 L Entangled Superdense Ergomatter (about 3.2 h of a T8), 32,000 L Entangled Ergomatter, 2,304 L Entangled Magnetar Matter, 64 Superdense pellets, 64 Bastion Plates, 32 Resonance Chambers III, 32 Field Manipulators II.\n\nRight-click the controller to put it in escrow. It is consumed only if The Infall succeeds.\n\n§2§lDONE §lWHEN§r you hold the core (HOLD → CLAIM → INSTALL).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:attractorSeedCore"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nThe Attractor Seed Core",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48202,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "autoConsume:1": 0,
+            "consume:1": 0,
+            "groupDetect:1": 0,
+            "ignoreNBT:1": 1,
+            "index:3": 0,
+            "partialMatch:1": 1,
+            "requireOnlyOneItem:1": 0,
+            "requiredItems:9": {
+              "0:10": {
+                "Count:3": 1,
+                "Damage:2": 0,
+                "OreDict:8": "",
+                "id:8": "beyondthestars:attractorSeedCore"
+              }
+            },
+            "taskID:8": "bq_standard:retrieval"
+          }
+        }
+      }
+    },
+    {
+      "low": 48203,
+      "key": "zone_of_avoidance",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48202
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§9The Infall§r, the T8 → T9 transition (1,800 s).\n\n§5§lBEFORE§r The collimator stack built with its injector stocked; compression tier 9 everywhere (Gallifreyan); the Milky Way lit and Stable in galaxy mode, no companions; the beam's hold rating ≥ 6; the charge buffered: 18,000 L Superdense Ergomatter; Star Chart: Great Attractor in the slot.\n\n§5§lTHE §lEVENT§r\n1. t 0: the object becomes the Attractor. V appears at 0 and its drift ramps in over 600 s. The charge drains at 10 L/s; demand climbs from 6 to 24 Bu/t.\n2. t 1,020 to 1,440: a forced Galactic Flow of 6, warned at 1,020, arriving at 1,200. Hold it.\n3. Hold Stable or better for 120 s in a row after the flow, by t 2,100.\n\nSuccess: the core is consumed and T9 is unlocked for good. Failure: the Milky Way is thrown back §9still lit at T8§r with Integrity 50; the charge is spent, the core stays in escrow.\n\n§5§lAUTOMATE§r Transition bit 1 to the Eye's Burst Control Hatch in begin mode; the standard rig does every step.\n\n§2§lDONE §lWHEN§r The Infall succeeds (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:starChartGreatAttractor"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nOut of the Zone of Avoidance",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48203,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48204,
+      "key": "holding_the_flow",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48182
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Hold one §9Galactic Flow§r in full: Stable or better for all 240 s of an accepted group, so every galaxy in it is captured (+144 L Attractor Dark Matter each).\n\nRaise the beam ahead of the peak (the V loop does it by itself), keep the halo fed (J3), aim toward the flow's side (J2), keep the Space valve ready. The Flow set's bit 3 says a flow is coming and accepted.\n\n§2§lDONE §lWHEN§r a flow is held in full (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:gatedPelletSuperdense"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nHolding the Flow",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48204,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48205,
+      "key": "twenty_eev",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48182
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Run T9 on §9Superdense pellets for 1 hour§r. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.\n\nWatch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.\n\n§2§lDONE §lWHEN§r T9 has run an hour on Superdense pellets (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:injectorBarrelMk1"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nTwenty EeV",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48205,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48206,
+      "key": "laniakea",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48204
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Hold§9 1,000 galaxies§r, about 14 hours of a T9: +1 a cycle at mean Y ≥ 1, +n for each group captured. The counter is never lost on a failure.\n\nLaniakea, \"immeasurable heaven\", holds about 100,000.\n\n§2§lDONE §lWHEN§r the Eye's panel shows 1,000 galaxies held (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:starChartGreatAttractor"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nLaniakea",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48206,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48207,
+      "key": "a_wider_pull",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48182
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Run T9 with §9three companions§r. At T9 a companion may be a galaxy: Triangulum (×2) or the Milky Way (×1, fed Ergomatter). Each galaxy adds half of T9's demand.\n\nSGR 1806-20 + Triangulum + the Milky Way on a§9 500 SM quasar§r supply their own pellets: Magnetar, Ergomatter and Superdense Ergomatter beside 12,500 L/h of Attractor Dark Matter. The demand is 54 Bu/t: below about 400 SM the burst falls short.\n\n§2§lDONE §lWHEN§r T9 runs with three companions (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:starChartMilkyWay"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nA Wider Pull",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48207,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48208,
+      "key": "inflation",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48186
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48187
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "§9Inflation§r, the T9 → T10 transition (900 s).\n\n§5§lBEFORE§r the §cSupermassive Link§r held; 60,000 L of Attractor Dark Matter made at Stable or better; 2 h Resonant; 8 Galactic Flows held in full; the §9Universal Upgrade Core§r in escrow; Star Chart: The Observable Universe; the universal crown built with its 12 receptors; a §9Universal Compression Field Generator§r in every compression slot; the Attractor lit and Stable in galaxy mode, no companions; the charge buffered: 18,432 L Attractor Dark Matter.\n\n§5§lTHE §lEVENT§r\n1. t 0 to 300: the six regions unfold inside the crown under T9 rules; demand climbs from 24 to 96 Bu/t.\n2. t 300: W, Λ and V retire and §9H appears at +85§r (Integrity −20). Dark Matter trims pull it down onto the curve.\n3. t 600: recombination. Hold Stable or better for 120 s in a row inside 600 to 900 s.\n\nSuccess: the core is consumed, T10 is unlocked and the first universe is charged. Failure: the Attractor is relit at T9 with Integrity 50; the charge is spent, the core stays in escrow.\n\n§2§lDONE §lWHEN§r Inflation succeeds (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:universalUpgradeCore"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nInflation",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48208,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48209,
+      "key": "keep_it_flat",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48188
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Run one universe at a §9mean Y of 1.0 or more§r. The real universe is flat to about 0.4 %, and nobody knows why. Here you are the reason.\n\nTwo 2-unit valves on Universe bits 1 and 2 (Dark Matter, SpaceTime) keep H on the curve; 10-unit valves chatter and waste SpaceTime. Bit 3 is a countdown, bit 4 a short charge for the next universe.\n\n§2§lDONE §lWHEN§r a universe ends at mean Y 1.0 or more (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:starChartUniverse"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nKeep It Flat",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48209,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48210,
+      "key": "cosmic_dawn",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48188
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Catch one §9Cosmic Dawn§r: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes §9+12.5 % Universium§r (1,152 L).\n\n§2§lDONE §lWHEN§r a Cosmic Dawn is caught (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 6,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:slCasing4"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nCosmic Dawn",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48210,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
+      "low": 48211,
+      "key": "last_light",
+      "placeholder": false,
+      "nbt": {
+        "preRequisites:9": {
+          "0:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48209
+          }
+        },
+        "properties:10": {
+          "betterquesting:10": {
+            "autoClaim:1": 0,
+            "completion_animation:8": "default",
+            "completion_particle:8": "default",
+            "confetti_icon:10": {
+              "Count:3": 0,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "minecraft:stick"
+            },
+            "countAsQuest:1": 1,
+            "desc:8": "Run§9 10 universes§r to their last light: 20 hours of T10, about 124,000 L of Universium. A Big Rip or Crunch ends a universe early and does not count.\n\n§2§lDONE §lWHEN§r ten universes have run their full 7,200 s (tick the box).",
+            "globalShare:1": 0,
+            "icon:10": {
+              "Count:3": 1,
+              "Damage:2": 0,
+              "OreDict:8": "",
+              "id:8": "beyondthestars:starChartUniverse"
+            },
+            "isMain:1": 0,
+            "isSilent:1": 0,
+            "lockedProgress:1": 0,
+            "name:8": "§4§l§nLast Light",
+            "notification_duration:5": -1.0,
+            "notification_effect:3": -1,
+            "notification_fade_in:5": -1.0,
+            "notification_fade_out:5": -1.0,
+            "notification_icon_offset_y:3": -2147483648,
+            "notification_icon_scale:5": -1.0,
+            "notification_pos_x:3": -2147483648,
+            "notification_pos_y:3": -2147483648,
+            "notification_show_icon:8": "default",
+            "notification_style:8": "default",
+            "notification_subtitle:8": "",
+            "notification_subtitle_scale:5": -1.0,
+            "notification_title:8": "",
+            "notification_title_scale:5": -1.0,
+            "particle_count:3": -1,
+            "questLogic:8": "AND",
+            "repeatTime:3": -1,
+            "repeat_relative:1": 1,
+            "simultaneous:1": 0,
+            "snd_complete:8": "random.levelup",
+            "snd_update:8": "random.levelup",
+            "taskLogic:8": "AND",
+            "visibility:8": "NORMAL"
+          }
+        },
+        "questIDHigh:4": 190,
+        "questIDLow:4": 48211,
+        "rewards:9": {},
+        "tasks:9": {
+          "0:10": {
+            "index:3": 0,
+            "taskID:8": "bq_standard:checkbox"
+          }
+        }
+      }
+    },
+    {
       "low": 48220,
       "key": "the_endgame",
       "placeholder": false,
@@ -11442,7 +12628,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "§9Universium is not the end of the game.§r It is where the pack's MHDCSM line begins: MHDCSM coats Eternity parts, builds Resplendent Components, and stands between you and the Stargate.\n\nIn Beyond the Stars the crafted Stargate waits here, past MAX. The pack's own Stargate quests follow in their own order, and §1What, How?§r is the end of the book.\n\n[note]Universium comes with Eye T10 (coming later), so the pack's Universium line in this tab waits for it. The Supermassive Lattice quests here (L3, L4, Overdrive, Unbound) do not: they follow on from §cThe L2 Lattice§r in Tier 14 - MAX.[/note]\n\n§2§lDONE §lWHEN§r you tick the box: this one is the chapter's introduction.",
+            "desc:8": "§9Universium is not the end of the game.§r It is where the pack's MHDCSM line begins: MHDCSM coats Eternity parts, builds Resplendent Components, and stands between you and the Stargate.\n\nEye T10 is the only Universium source, so this tab opens with it: Universium, MHDCSM, Constrained Eternity and Resplendent parts, the Stargate chain and the Astral Array all run on T10's Universium. The Supermassive Lattice's L3 node needs it too.\n\nIn Beyond the Stars the crafted Stargate waits here, past MAX. The pack's own Stargate quests follow in their own order, and §1What, How?§r is the end of the book.\n\n§2§lDONE §lWHEN§r you tick the box: this one is the chapter's introduction.",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,
@@ -11499,6 +12685,10 @@
           "0:10": {
             "questIDHigh:4": 190,
             "questIDLow:4": 48199
+          },
+          "1:10": {
+            "questIDHigh:4": 190,
+            "questIDLow:4": 48188
           }
         },
         "properties:10": {
@@ -11513,7 +12703,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "§9L3§r: each L2 node remade with 48,000 L Entangled Superdense Ergomatter, 9,216 L Entangled Magnetar Matter, 9,216 L Entangled Black Dwarf Matter and 4 any-MAX circuits (Condensate Assembler, MAX). Safe limit§9 262,144 SM§r, top§9 4,194,304 SM§r, and §9Overdrive§r.\n\nAt 262,144 SM a hole gives §9×7.9§r on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.\n\n[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost; then let the projector place the new tier with the lattice channel set.[/note]\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L3 (HOLD → CLAIM → INSTALL).",
+            "desc:8": "§9L3§r: each L2 node remade with 2,304 L (16 ingots) of Entangled §9Universium§r and 4 any-MAX circuits (Condensate Assembler, MAX). 48 nodes: about 18 hours of one Eye T10. Safe limit§9 262,144 SM§r, top§9 4,194,304 SM§r, and §9Overdrive§r.\n\nAt 262,144 SM a hole gives §9×7.9§r on gas alone (7.7e17 EU/t). A whole endgame base draws 1e16 to 1e17 EU/t: one L3 hole holds it several times over.\n\n[note]Take the 48 L2 nodes out before you place the L3 ones: the projector does not replace nodes in place. Over 4,096 SM the quasar freezes meanwhile, and nothing is lost. A server with latticeNodesUseP5Matter=false keeps the older L3 recipe (Superdense Ergomatter, Magnetar and Black Dwarf Matter), which needs no Eye T10.[/note]\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L3 (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,

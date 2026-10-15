@@ -20,6 +20,8 @@ public final class SLBlocks {
     public static BlockSLCasing3 slCasing3;
     /** SMBH v1: the Supermassive Lattice and the Mk IV crown (smbh-v1.md §8.1). */
     public static BlockSLCasing4 slCasing4;
+    /** P5: the two see-through glasses, Magnetar-Reinforced (UXV) and Dark Matter (MAX) Borosilicate Glass. */
+    public static BlockSLGlass slGlass;
 
     private SLBlocks() {}
 
@@ -32,6 +34,13 @@ public final class SLBlocks {
         GameRegistry.registerBlock(slCasing3, ItemBlockSL.class, "slCasing3");
         slCasing4 = new BlockSLCasing4();
         GameRegistry.registerBlock(slCasing4, ItemBlockSL.class, "slCasing4");
+        slGlass = new BlockSLGlass();
+        GameRegistry.registerBlock(slGlass, ItemBlockSL.class, "slGlass");
+    }
+
+    /** A stack of {@code slGlass:meta}. Throws on a hole. */
+    public static ItemStack glass(int meta, int count) {
+        return stack(slGlass, meta, count);
     }
 
     /** A stack of {@code slCasing:meta}. Throws on a hole, so a retired meta is never crafted. */

@@ -34,8 +34,20 @@ public class BTSTooltipItem extends Item {
     public static void addLangTooltip(String unlocalizedName, List<String> lines) {
         final String key = unlocalizedName + ".tooltip";
         if (!StatCollector.canTranslate(key)) return;
-        for (String line : StatCollector.translateToLocal(key)
-            .split("\\\\n")) {
+        addLines(StatCollector.translateToLocal(key), lines);
+        // docs/tooltip-style.md rule 5: the details behind [LSHIFT], from an optional <key>.shift (client only)
+        final String shift = key + ".shift";
+        if (!StatCollector.canTranslate(shift)) return;
+        if (org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LSHIFT)
+            || org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_RSHIFT)) {
+            addLines(StatCollector.translateToLocal(shift), lines);
+        } else {
+            lines.add(EnumChatFormatting.DARK_GRAY + "Hold [LSHIFT] for details");
+        }
+    }
+
+    private static void addLines(String text, List<String> lines) {
+        for (String line : text.split("\\\\n")) {
             lines.add(EnumChatFormatting.GRAY + line);
         }
     }

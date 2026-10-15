@@ -16,8 +16,8 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "A tall vase of a machine. It will draw the six regions back out of the BEC network in lockstep and reassemble them, borrowing a linked Condensate Assembler's nanites. Its first job is the §9Universal Upgrade Core§r, which takes the Eye from T9 to T10.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "A tall vase of a machine. It draws the six regions back out of the BEC network in lockstep and reassembles them, borrowing a linked Condensate Assembler's nanites.\n- The §9Universal Upgrade Core§r (Eye T9 → T10): 32,000 L of each region (32 Diffraction runs, about 64 min at σ 1), Eternity Shell, Region Crystal, UMV Field Generators and Emitters, 7,200 s of nanite-time.\n- The §9Universal Compression Field Generator§r, the tenth compression tier: a Gallifreyan generator (consumed) and 4,000 L of each region, 1,800 s.\n- §9Star Chart: The Observable Universe§r, T10's target: 1,000 L of each region.\n\n§5§lAUTOMATE§r Start the craft from an ME interface in the input bus. A level emitter on any region below 32,000 L can hold the core back; the reassembly lock pauses the run if a region runs short.\n\n§2§lDONE §lWHEN§r you hold the controller (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -28,7 +28,7 @@
       "isMain:1": 1,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nReality Refab§r",
+      "name:8": "§4§l§nReality Refab",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +59,22 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 28132,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
     }
   }
 }

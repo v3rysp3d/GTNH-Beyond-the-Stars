@@ -3104,3 +3104,37 @@ quests name the multiblock engraver (question 25); the circuit config comments (
   each), L4 Unbound n 1 (upkeep halved to 50,000, anchor 4,096 L/s), both Mk IV crowns at their cap with the wireless
   total equal to their lifetime counters, the state through three restarts, the anchor cut.
 - **Fixed:** B-160 (`/btssmbh fill` and Space fluid), B-161 (GUI rows cut at supermassive sizes).
+
+## P5 content: the Great Attractor's matter, MAX and UXV parts (questions B-200..B-216)
+
+Design of record: design repo `designs/docs/p5-t9-t10.md` (D-52, D-53; Q-P5-1..13 accepted 2026-10-16). This
+section is the content unit's contract; the Eye machine code (T9 / T10 fields, the Pellet Injector Hatch, the
+structures) is the Eye unit's.
+
+**Fluids** (`SLRealityFluids`): `darkMatter` = `btsdarkmatter` "Attractor Dark Matter"; `entangledDarkMatter` =
+`btsentangleddarkmatter` (144 L condensate, SL-C04). `btswhiteholematter` / `btsentangledwhitehole` are retired (B-200).
+
+**Items** (`items/SLP5Items`, registry name = field name): `gatedPelletMagnetar` / `gatedPelletErgomatter` /
+`gatedPelletSuperdense` (1.25e9 / 5e9 / 2e10 GeV: `pelletGrade`, `pelletGeV`), `injectorBarrelMk1..3` (4 / 8 / 16 a
+second: `barrelTier`, `barrelRate`), `attractorSeedCore` (T8 -> T9), `starChartGreatAttractor` (T9 target),
+`attractorDarkMatterPlate`, `attractorDarkMatterDensePlate`, `superconductorWireUXV`, `superconductorWireMAX`,
+`maxBattery` (`ItemMaxBattery`, IC2 electric, tier 14, 2^63 - 1 EU).
+
+**Blocks:** `slCasing4` 6 `UNIVERSAL_COMPRESSION` (compression tier 10), 7 `DARK_MATTER_COIL` (`IHeatingCoil`,
+`HeatingCoilLevel.MAX`), 8 hole, 9 `DARK_MATTER_FRAME`; `slGlass` (`BlockSLGlass`) 0 `MAGNETAR_UXV` (glass tier 13), 1
+`DARK_MATTER_MAX` (tier 14).
+
+**MTEs** (`machines/BTSMaxHatches`, B-204): base+33 MAX Energy Hatch, base+34 MAX Dynamo Hatch, base+36 MAX 4096A
+Laser Target Hatch, base+37 MAX 4096A Laser Source Hatch. base+28 (the Pellet Injector Hatch) is the Eye unit's.
+
+**Recipes** (`BTSRecipesP5`, line "p5"): SL-F01..F03 pellets (Kerr DENSITY), SL-F04..F06 barrels, SL-F07 Attractor
+Seed Core, SL-F08 the T9 chart, SL-F09 the Pellet Injector Hatch (waits for its MTE); SL-M01..M03 plate, dense plate,
+frame box; SL-M04 MAX wire; SL-M05 MAX glass; SL-M06 coil; SL-M07 battery; SL-M08 / M09 MAX casing and hull
+(`Casing_MAXV`, `Hull_MAXV`); SL-M10..M17 the eight MAX components (Component Assembly Line, `COAL_CASING_TIER` 14);
+SL-M18 the MAX CoAL casing; SL-M19..M23 MAX energy, dynamo, wireless and laser hatches; SL-V01 UXV wire; SL-V02 UXV
+glass; SL-V03 / V04 UXV 4096A laser hatches. Reality: SL-R06 Universal Compression Field Generator (Refab). Changed:
+SL-C04, SL-H20, SL-H21, SL-R01..R04 (Attractor Dark Matter; UMV x2 for UXV parts, B-205); SL-Q31 / Q32 behind
+`latticeNodesUseP5Matter` (B-213).
+
+**Checks:** `/btseye gates` adds a P5 audit (51 parts; T8 -> T9 parts gate 9, T9 -> T10 and MAX parts gate 10, the UXV
+leftovers gate 7) and prints each part's registry id. Boot: 408 registered, 0 skipped (B-215).

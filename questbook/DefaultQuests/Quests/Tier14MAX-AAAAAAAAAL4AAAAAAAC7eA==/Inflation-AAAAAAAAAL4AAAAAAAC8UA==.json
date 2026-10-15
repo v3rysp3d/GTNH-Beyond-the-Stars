@@ -2,7 +2,11 @@
   "preRequisites:9": {
     "0:10": {
       "questIDHigh:4": 190,
-      "questIDLow:4": 48182
+      "questIDLow:4": 48186
+    },
+    "1:10": {
+      "questIDHigh:4": 190,
+      "questIDLow:4": 48187
     }
   },
   "properties:10": {
@@ -16,19 +20,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "Eye T9's harvest, and what every MAX part will be built from.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "§9Inflation§r, the T9 → T10 transition (900 s).\n\n§5§lBEFORE§r the §cSupermassive Link§r held; 60,000 L of Attractor Dark Matter made at Stable or better; 2 h Resonant; 8 Galactic Flows held in full; the §9Universal Upgrade Core§r in escrow; Star Chart: The Observable Universe; the universal crown built with its 12 receptors; a §9Universal Compression Field Generator§r in every compression slot; the Attractor lit and Stable in galaxy mode, no companions; the charge buffered: 18,432 L Attractor Dark Matter.\n\n§5§lTHE §lEVENT§r\n1. t 0 to 300: the six regions unfold inside the crown under T9 rules; demand climbs from 24 to 96 Bu/t.\n2. t 300: W, Λ and V retire and §9H appears at +85§r (Integrity −20). Dark Matter trims pull it down onto the curve.\n3. t 600: recombination. Hold Stable or better for 120 s in a row inside 600 to 900 s.\n\nSuccess: the core is consumed, T10 is unlocked and the first universe is charged. Failure: the Attractor is relit at T9 with Integrity 50; the charge is spent, the core stays in escrow.\n\n§2§lDONE §lWHEN§r Inflation succeeds (tick the box).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 11585,
+        "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "gregtech:gt.metaitem.01"
+        "id:8": "beyondthestars:universalUpgradeCore"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nWhite Hole Matter§r",
+      "name:8": "§4§l§nInflation",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -55,7 +59,7 @@
     }
   },
   "questIDHigh:4": 190,
-  "questIDLow:4": 48183,
+  "questIDLow:4": 48208,
   "rewards:9": {},
   "tasks:9": {
     "0:10": {

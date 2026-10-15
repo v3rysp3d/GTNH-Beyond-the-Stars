@@ -94,6 +94,12 @@ public class Config {
     public static boolean renderQuasar = true;
     /** SMBH v1 (smbh-v1.md §5.1): the Unbind button on an L4 Supermassive Lattice. */
     public static boolean smbhAllowUnbound = true;
+    /**
+     * P5 (p5-t9-t10.md §8.2, Q-P5-9): the Containment Node L2 on Attractor Dark Matter (Eye T9) and L3 on Universium
+     * (Eye T10). False keeps D-51's recipes (reachable matter only). L4 and Overdrive are the same either way; built
+     * nodes are blocks and stay whatever the flag says. One recipe per node is registered, never both.
+     */
+    public static boolean latticeNodesUseP5Matter = true;
 
     /**
      * CIRCUITS v2 (design repo designs/docs/circuits-v2.md §1.1, §7.1, revision 3): the Sidereal / Empyrean / Omega
@@ -265,6 +271,14 @@ public class Config {
                 + " anchor of 1,024 x 4^(n^2) L/s; a short anchor only sheds mass (no terrain is ever damaged). False"
                 + " hides the button, refuses OpenComputers' setUnbound(true) and turns an Unbound hole back (it sheds"
                 + " to 67,108,864 SM).");
+        latticeNodesUseP5Matter = configuration.getBoolean(
+            "latticeNodesUseP5Matter",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Supermassive Lattice node recipes: true makes the L2 node from an L1 node + 4,032 L Entangled Attractor"
+                + " Dark Matter (Eye T9) and the L3 node from an L2 node + 2,304 L Entangled Universium (Eye T10)."
+                + " False keeps the older recipes on Superdense Ergomatter, Magnetar and Black Dwarf Matter. L4 and"
+                + " Overdrive do not change. Nodes already built stay as they are.");
 
         stellarCircuits = configuration.getBoolean(
             "stellarCircuits",

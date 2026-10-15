@@ -16,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The MAX energy and dynamo hatches, the MAX laser source and target hatches, and the MAX wireless hatch, all from White Hole Matter.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "The MAX hatches, all on the Assembly Line around a MAX hull:\n- §9MAX Energy Hatch§r and §9MAX Dynamo Hatch§r: 9,216 L each (45 min of one T9).\n- §9MAX Wireless Energy Hatch§r: 9,216 L.\n- §9MAX 4096A Laser Target§r and §9Source Hatch§r: 18,432 L each (90 min of one T9).\n\nOne MAX amp is 2,147,483,640 EU/t.\n\n§2§lDONE §lWHEN§r you hold a MAX Energy Hatch and a MAX Dynamo Hatch.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 286,
+        "Damage:2": 28133,
         "OreDict:8": "",
         "id:8": "gregtech:gt.blockmachines"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nMAX Power§r",
+      "name:8": "§4§l§nMAX Power",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +59,28 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 28133,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        },
+        "1:10": {
+          "Count:3": 1,
+          "Damage:2": 28134,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
     }
   }
 }

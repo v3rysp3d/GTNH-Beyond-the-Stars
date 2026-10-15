@@ -20,8 +20,8 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "A stack of glass drums with six Region Blades. Each run will split Entanglement Medium into six §9Entangled Region§r condensates (Hyperspace, Subspace, Forward Time, Reverse Time, Positive Mass, Negative Mass) and push them into a Bose-Einstein Condensate network: outside reality.\n- Each region needs its own anchor fluid in its own socket, or its sixth is lost.\n- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler.\n- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, × 1 with none (see §cRiding the Rift§r).\n- A missing block, or a footprint chunk that is not loaded, pauses the machine: the run is kept and resumes by itself when the structure is whole. Chunk-load the whole footprint.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "A stack of glass drums with six Region Blades. Each run splits 4,000 L of Entanglement Medium into six §9Entangled Region§r condensates, 1,000 L each (Hyperspace, Subspace, Forward Time, Reverse Time, Visible Mass, Dark Mass), and pushes them into a Bose-Einstein Condensate network: outside reality. 120 s at MAX.\n- Each region needs its own anchor in its own socket: I Space 1,440 L, II SpaceTime 1,440 L, III Time 1,440 L, IV Eternity 144 L, V Superdense Ergomatter 500 L, VI §9Attractor Dark Matter 288 L§r. A region without its anchor is lost.\n- The mass axis splits the way the real universe does: visible matter against dark matter.\n- Give the Reality machines their own BEC network: six extra condensates would clog every other Condensate Assembler. The machine waits, never voids, when the network is full.\n- Its portal takes 6 GRB Receptor Ports: faster with a strong quasar link, paused with a weak one, × 1 with none (see §cRiding the Rift§r).\n- The controller: Condensate Assembler, MAX, with 36,864 L Entangled Attractor Dark Matter.\n\n§2§lDONE §lWHEN§r you hold the controller (HOLD → CLAIM → INSTALL).",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -32,7 +32,7 @@
       "isMain:1": 1,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nReality Diffraction§r",
+      "name:8": "§4§l§nReality Diffraction",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -63,8 +63,22 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 28131,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
     }
   }
 }

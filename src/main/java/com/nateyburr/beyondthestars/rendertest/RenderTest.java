@@ -1063,7 +1063,7 @@ public final class RenderTest {
             0f,
             0.7f,
             false,
-            "L2 lattice (White Hole Matter), 131,072 SM, the hold-up 70 % covered (leaking)");
+            "L2 lattice (Attractor Dark Matter), 131,072 SM, the hold-up 70 % covered (leaking)");
         smbh(out, "l3_262k", 3, 262_144, 0, 0f, 0f, 0f, 1f, false, "L3 lattice (Universium), 262,144 SM, Resonant");
         smbh(
             out,

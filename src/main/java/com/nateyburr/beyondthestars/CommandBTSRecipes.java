@@ -67,8 +67,8 @@ public class CommandBTSRecipes extends CommandBase {
 
     /** The lines ("group" in the JSON). Public so the code that changes or removes a pack recipe can name its line. */
     public static final String KERR = "Kerr", EYE = "Eye", BEC = "BEC / Condensate", HR = "Homogeny / Reality",
-        QUASAR = "Quasar / Conduit", AUTOMATION = "Automation", OLD_PLANT = "Old plant", UPGRADE = "Upgrade path",
-        CIRCUITS = "Circuits", OTHER = "Other";
+        QUASAR = "Quasar / Conduit", P5 = "Great Attractor / MAX", AUTOMATION = "Automation", OLD_PLANT = "Old plant",
+        UPGRADE = "Upgrade path", CIRCUITS = "Circuits", OTHER = "Other";
 
     static final String NEW = "new", CHANGED = "changed-GT", REMOVED = "removed";
 
@@ -332,7 +332,8 @@ public class CommandBTSRecipes extends CommandBase {
     private static Map<String, Object> counts(List<Map<String, Object>> recipes) {
         final Map<String, Integer> byStatus = new LinkedHashMap<>(), byGroup = new LinkedHashMap<>();
         for (String s : new String[] { NEW, CHANGED, REMOVED }) byStatus.put(s, 0);
-        for (String g : new String[] { KERR, EYE, BEC, HR, QUASAR, CIRCUITS, AUTOMATION, OLD_PLANT, UPGRADE, OTHER }) {
+        for (String g : new String[] { KERR, EYE, BEC, HR, QUASAR, P5, CIRCUITS, AUTOMATION, OLD_PLANT, UPGRADE,
+            OTHER }) {
             byGroup.put(g, 0);
         }
         int display = 0, fallback = 0, placeholder = 0;
@@ -385,6 +386,9 @@ public class CommandBTSRecipes extends CommandBase {
                     // P4: an SL-P id here (SL-P40 was the Resonance Chamber IV, now SL-G03) sits with the compression
                     // gate parts
                     return i.startsWith("SL-P") ? EYE : QUASAR;
+                case "p5":
+                    // P5 (BTSRecipesP5): the T9 parts SL-F, the MAX parts SL-M, the UXV leftovers SL-V
+                    return P5;
                 case "singularity":
                     return i.startsWith("SL-P") && number(i.substring(4)) <= 14 ? KERR : EYE;
                 case "circuits":

@@ -16,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The UXV glass tier for multiblocks that check their glass, made with Magnetar Matter. It belongs to the new UXV parts, which will take Universium out of UXV recipes.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "The §9UXV glass tier§r for multiblocks that check their glass. Alloy Blast Smelter at UXV: 4 Transcendentally Reinforced Borosilicate Glass + 144 L Magnetar Matter → 4 blocks, 36 L each (a 48-glass multi is about 1.5 h of one T6).\n\n§2§lDONE §lWHEN§r you hold 4 blocks.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
         "Damage:2": 0,
         "OreDict:8": "",
-        "id:8": "tectech:tile.quantumGlass"
+        "id:8": "beyondthestars:slGlass"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nMagnetar-Reinforced Borosilicate Glass§r",
+      "name:8": "§4§l§nMagnetar-Reinforced Borosilicate Glass",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +59,22 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 4,
+          "Damage:2": 0,
+          "OreDict:8": "",
+          "id:8": "beyondthestars:slGlass"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
     }
   }
 }

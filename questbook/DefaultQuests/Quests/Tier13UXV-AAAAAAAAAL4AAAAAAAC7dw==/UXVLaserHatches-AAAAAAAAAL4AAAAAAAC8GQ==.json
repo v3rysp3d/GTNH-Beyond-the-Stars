@@ -16,19 +16,19 @@
         "OreDict:8": "",
         "id:8": "minecraft:stick"
       },
-      "countAsQuest:1": 0,
-      "desc:8": "The pack's UXV laser source and target hatches carry more power than any energy hatch. They are built from the pack's UXV parts, which need Universium, so they come with Eye T10 (coming later).\n\n[note]On a Kerr module the tier of the total input (voltage × amps) sets the parallels: a 256A UXV laser counts as tier 17, so 8 × 17 × floor(sqrt M).[/note]\n\n§2§lDONE §lWHEN§r you hold a 256A UXV Laser Source Hatch and its Target Hatch.\n\n[note]§lComing §llater.§r This part is not in this build yet, so this quest is a checkbox: tick it to keep the chapter moving. It becomes a real quest in a later update, and a ticked box is then cleared so the real step counts.[/note]",
+      "countAsQuest:1": 1,
+      "desc:8": "The pack's§9 4096A UXV laser hatches§r carry more power than any energy hatch. The pack's own recipe needs UXV parts (Universium, Eye T10), so this one does not (Assembly Line, UXV):\n- Target: 2 UMV Energy Hatches, 32 UMV Sensors, 8 UXV circuits, 16 UXV Superconductor Wire;\n- Source: 2 UMV Dynamo Hatches, 32 UMV Emitters, the same circuits and wire;\n- each with 2,304 L Magnetar Matter and 32,000 L Antipolarization Agent (about 2 h of one T6).\n\n[note]On a Kerr module the tier of the total input (voltage × amps) sets the parallels: a 4096A UXV laser counts as tier 19.[/note]\n\n§2§lDONE §lWHEN§r you hold a 4096A UXV Laser Target Hatch and its Source Hatch.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
-        "Damage:2": 15238,
+        "Damage:2": 15158,
         "OreDict:8": "",
         "id:8": "gregtech:gt.blockmachines"
       },
       "isMain:1": 0,
       "isSilent:1": 0,
       "lockedProgress:1": 0,
-      "name:8": "§8Coming later: §7§l§nUXV Laser Hatches§r",
+      "name:8": "§4§l§nUXV Laser Hatches",
       "notification_duration:5": -1.0,
       "notification_effect:3": -1,
       "notification_fade_in:5": -1.0,
@@ -59,8 +59,28 @@
   "rewards:9": {},
   "tasks:9": {
     "0:10": {
+      "autoConsume:1": 0,
+      "consume:1": 0,
+      "groupDetect:1": 0,
+      "ignoreNBT:1": 1,
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "partialMatch:1": 1,
+      "requireOnlyOneItem:1": 0,
+      "requiredItems:9": {
+        "0:10": {
+          "Count:3": 1,
+          "Damage:2": 15158,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        },
+        "1:10": {
+          "Count:3": 1,
+          "Damage:2": 15258,
+          "OreDict:8": "",
+          "id:8": "gregtech:gt.blockmachines"
+        }
+      },
+      "taskID:8": "bq_standard:retrieval"
     }
   }
 }
