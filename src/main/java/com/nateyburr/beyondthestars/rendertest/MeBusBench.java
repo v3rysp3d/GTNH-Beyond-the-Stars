@@ -63,6 +63,10 @@ public final class MeBusBench {
                     break;
                 }
                 final int slot = Integer.parseInt(args[6]) - 1;
+                if (slot < 0 || slot >= 16) {
+                    out.add("mebus stock <slot 1-16> <item> [n]: no slot " + args[6]);
+                    break;
+                }
                 final ItemStack what = item(eye, args[7]);
                 final long n = args.length > 8 ? Long.parseLong(args[8]) : 1;
                 if (what == null) {
