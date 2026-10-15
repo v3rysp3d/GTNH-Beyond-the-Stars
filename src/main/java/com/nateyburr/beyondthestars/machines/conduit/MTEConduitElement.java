@@ -96,9 +96,11 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     /** The upkeep fuel choice (GUI, OpenComputers). NBT keeps the name. */
     public enum FuelMode {
 
-        AUTO("Auto", "Ergomatter when the hatches hold enough, else Molten SpaceTime"),
-        SPACETIME("Molten SpaceTime", "always Molten SpaceTime (4 / 16 / 64 L/s)"),
-        ERGOMATTER("Ergomatter", "always Ergomatter (0.25 / 1 / 4 L/s, from Eye T7)");
+        AUTO("Auto",
+            "Ergomatter when the hatches hold enough, else Molten SpaceTime (a Mk IV throat takes Superdense Ergomatter first)"),
+        SPACETIME("Molten SpaceTime", "always Molten SpaceTime (Mk I-IV: 4 / 16 / 64 / 256 L/s)"),
+        ERGOMATTER("Ergomatter",
+            "the Ergomatter family (Mk I-IV: 0.25 / 1 / 4 / 16 L/s, from Eye T7; Mk IV: Superdense Ergomatter 2 L/s first)");
 
         public static final FuelMode[] VALUES = values();
         public final String label, help;

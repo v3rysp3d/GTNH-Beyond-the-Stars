@@ -752,6 +752,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
 
     /** One disc second. */
     private void second(IGregTechTileEntity base) {
+        if (secondsSinceLoad < Integer.MAX_VALUE) secondsSinceLoad++;
         final World world = base.getWorld();
         final long now = world.getTotalWorldTime();
         pollBurstHatches();
@@ -895,6 +896,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     }
 
     private double lastVented;
+    /** Disc seconds run since this tile loaded (not saved). */
+    private int secondsSinceLoad;
     /** SMBH: last second's net mass change and the leak alone, as fractions of M per hour (GUI, sensors). */
     private double massRatePerHour, leakRatePerHour;
     /** The Accretion Buffer keeps refilling every tick after a second's draw while the hatches still give. */
@@ -1551,7 +1554,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         s.purgeAt = purgeAt;
         s.open = mMachine && q.hole == QuasarState.Hole.OPEN;
         s.b = mMachine ? q.b : 0;
-        s.vented = lastVented;
+        // QA-B33: the docks re-register only once a second after a load, so the first seconds would read as venting
+        // and flash Disc [8] on every restart
+        s.vented = secondsSinceLoad < 3 ? 0 : lastVented;
         s.conduitOpen = conduitOpen();
         // SMBH: the Horizon set (last second's result; all quiet with no hole running)
         final boolean on = mMachine && running();

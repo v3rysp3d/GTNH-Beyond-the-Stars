@@ -151,7 +151,13 @@ public class CommandBTSQuasar extends CommandBase {
             return;
         }
         if (args.length >= 4 && BENCH.contains(args[0].toLowerCase(Locale.ROOT))) {
-            bench(sender, args);
+            try {
+                bench(sender, args);
+            } catch (NumberFormatException bad) {
+                // QA-B58: "/btsquasar seed x y z abc" threw "An unknown error occurred"
+                SLConsoleTest
+                    .tell(sender, EnumChatFormatting.RED + "Quasar bench: not a number (" + bad.getMessage() + ")");
+            }
             return;
         }
         final SLConsoleTest.Placement at = SLConsoleTest.parsePlacement(sender, args);

@@ -105,7 +105,7 @@ public final class QuasarRecipeMaps {
                         "EU goes to your wireless",
                         "  network: no dynamo hatch",
                         PETALS[m] + (m == 4 ? " Radiator Petals, Event" : " Radiator Petals"),
-                        m == 4 ? "  Horizon Thermaliser core" : "  (Thermaliser Core inside)",
+                        m == 4 ? "  Horizon Thermaliser core" : "  (Burst Thermaliser Casing core)",
                         "A second crown stacked on",
                         "  top takes the overflow",
                         "Display only - not a recipe")

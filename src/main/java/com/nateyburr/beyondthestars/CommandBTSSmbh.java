@@ -148,8 +148,9 @@ public class CommandBTSSmbh extends CommandBase {
                         : "Set up by script: mass " + MTEQuasarEngine.fmt(got)
                             + " SM"
                             + (got == want ? ""
-                                : " (clamped: this structure holds " + MTEQuasarEngine.fmt(q.getStructureTop())
-                                    + " SM)"));
+                                : got > want ? " (clamped: at least 1 SM)"
+                                    : " (clamped: this structure holds " + MTEQuasarEngine.fmt(q.getStructureTop())
+                                        + " SM)"));
                 break;
             }
             case "fill":
