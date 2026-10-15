@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "The §9MAX Battery§r holds 2^63 − 1 EU (about 9.2 quintillion) at the MAX tier and charges in any MAX battery buffer or charger. Assembly Line: 16 dense plates, 32 MAX wire, a MAX Field Generator and Attractor Dark Matter, 36,864 L all in, about 3 hours of one T9.\n\n§2§lDONE §lWHEN§r you hold a MAX Battery.",
+      "desc:8": "The §9MAX Battery§r holds 2^59 − 1 EU (about 576 quadrillion) at the MAX tier and charges in any MAX battery buffer or charger; sixteen fit in one 4x4 buffer without overflowing its readout. Assembly Line: 16 dense plates, 32 MAX wire, a MAX Field Generator and Attractor Dark Matter, 36,864 L all in, about 3 hours of one T9.\n\n§2§lDONE §lWHEN§r you hold a MAX Battery.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

@@ -419,7 +419,8 @@ public final class BTSRecipesP5 {
                     stack(SLP5Items.attractorDarkMatterPlate, 2),
                     BTSRecipeGuard.anyCircuit(Materials.MAX, 1)),
                 darkMatter(1_152 - 2 * 288 - 4 * DM_WIRE - 2 * DM_PLATE)));
-        // SL-M07 MAX Battery (2^63 - 1 EU; Assembly Line): 16 dense plates + 32 MAX wire + a MAX Field Generator +
+        // SL-M07 MAX Battery (2^59 - 1 EU, B-208; Assembly Line): 16 dense plates + 32 MAX wire + a MAX Field Generator
+        // +
         // 9,792 L = 36,864 L, 3 h of one Eye T9. Research: the dense plate.
         BTSRecipeGuard.recipe(
             "SL-M07",

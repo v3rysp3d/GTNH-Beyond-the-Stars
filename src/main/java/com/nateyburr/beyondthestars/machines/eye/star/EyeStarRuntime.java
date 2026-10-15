@@ -1882,6 +1882,14 @@ public final class EyeStarRuntime {
             lastEvent = want.name + " lit (planets mode: put planet items in the slot bus, one per slot)";
             return;
         }
+        // D-54 (B-217): with T7 unlocked a dark Eye relights Triangulum at T7, the base of the intergalactic band, from
+        // a new Magnetar Collapse charge (no magnetar re-spawn, no Magnetar Collapse re-run); with T10 unlocked the
+        // Universe chart begins a new universe from a new Dark Matter charge
+        final StarDef base = baseRelight(want);
+        if (base != null) {
+            tryBaseRelight(base, want);
+            return;
+        }
         if (unlockedTier < 6) {
             waitReason = "the galaxy is born from a lit magnetar by the Magnetar Collapse: unlock T6 first";
             return;
@@ -2256,17 +2264,23 @@ public final class EyeStarRuntime {
             tryGalaxy(want);
             return;
         }
-        // T4 (D-49 review): once T4 is unlocked, a dark Eye holding the Neutron Star chart relights Arcturus by itself
-        // from a Stellar Ignition Charge, exactly as a T1-T3 star relights; Arcturus then goes PENDING and re-runs the
-        // Core Collapse (no core) once its fluids are buffered. QA-A02: the same for the chart one tier above the
-        // unlocked one (Sirius A on T1, Arcturus on T2, the Neutron Star on T3): a Mass Infusion, Shell Ignition or
-        // first Core Collapse that failed or was aborted left the Eye dark for good with that chart in. The star below
-        // relights, burns PENDING and the transition begins again once its preconditions hold (the core stays in
-        // escrow).
+        // D-54 (B-217): once T4 is unlocked, a dark Eye holding the Neutron Star chart relights the neutron star itself
+        // at T4, the base of its band, from a Stellar Ignition Charge and the 5,000 L HSM neutron seed (no Arcturus,
+        // no Core Collapse re-run).
+        final StarDef base = baseRelight(want);
+        if (base != null) {
+            tryBaseRelight(base, want);
+            return;
+        }
+        // QA-A02: the chart one tier above the unlocked one (Sirius A on T1, Arcturus on T2, the Neutron Star on T3):
+        // a Mass Infusion, Shell Ignition or first Core Collapse that failed or was aborted left the Eye dark for good
+        // with that chart in. The star below relights, burns PENDING and the transition begins again once its
+        // preconditions hold (the core stays in escrow).
         final StarDef lights = ignitable(want);
         if (lights == null) {
             waitReason = "the neutron star is born from a lit Arcturus by the Core Collapse (light Arcturus, then put the"
-                + " Neutron Star chart in while it burns; once T4 is unlocked the Eye relights Arcturus by itself)";
+                + " Neutron Star chart in while it burns; once T4 is unlocked the Eye relights the neutron star itself"
+                + " from a charge)";
             return;
         }
         autoIgnite(lights, lights == want ? "" : relightWhy(want));
@@ -2274,7 +2288,6 @@ public final class EyeStarRuntime {
 
     /** Why a dark Eye lights the star below the chart's: " (to re-run the Core Collapse ...)", or a first run. */
     private String relightWhy(StarDef want) {
-        if (want.n() == 4 && unlockedTier >= 4) return " (to re-run the Core Collapse for the neutron star)";
         return " (the " + eventFor(want.n() - 1) + " toward " + want.name + " begins once it burns)";
     }
 
@@ -2335,6 +2348,213 @@ public final class EyeStarRuntime {
         return out;
     }
 
+    // ===================================================================== D-54: the band's base relight
+
+    /**
+     * D-54 (B-217): the base tier of a star tier's band, where a lost star of that band relights: T4 for the galactic
+     * band (T4-T6), T7 for the intergalactic band (T7-T9), T10 for the universal band. 0 for T1-T3 (they relight at
+     * their own tier from a Stellar Ignition Charge, as built).
+     */
+    public static int bandBase(int n) {
+        return n >= 10 ? 10 : n >= 7 ? 7 : n >= 4 ? 4 : 0;
+    }
+
+    /**
+     * D-54 (B-217): the star a dark Eye relights straight from a new charge for this chart, at the base of the
+     * chart's band, without re-running the chain below the base; null when the rule does not apply.
+     * <ul>
+     * <li>The Neutron Star chart, T4 unlocked: the neutron star itself (no Arcturus, no Core Collapse).</li>
+     * <li>Sirius B and the magnetar (T5, T6): null. Neither needs a lit neutron star: Sirius B runs its next batch
+     * from a White Dwarf Matter charge and the magnetar re-merges from the merger charge, so a lost T5 or T6 already
+     * relights inside the band from a charge and never falls below T4.</li>
+     * <li>A Triangulum, Milky Way or Great Attractor chart (galaxy mode), T7 unlocked and the chart at most one tier
+     * past the unlocked one: Triangulum (no magnetar, no Magnetar Collapse). The Galactic Merger and The Infall then
+     * re-run from it on the Begin signal, as every galaxy transition does.</li>
+     * <li>The Universe chart, T10 unlocked: a new universe. Before T10 is unlocked it walks the T7 chain, as
+     * above.</li>
+     * </ul>
+     * Planets mode lights its field at once and never needs this.
+     */
+    StarDef baseRelight(StarDef want) {
+        if (want == null || want.tier.planets()) return null;
+        final int n = want.n();
+        if (n == 4) return unlockedTier >= 4 ? want : null;
+        if (n == 10 && unlockedTier >= 10) return want;
+        if (n < 7 || galaxy.mode == EyeGalaxy.Mode.PLANETS) return null;
+        if (unlockedTier < 7 || n > unlockedTier + 1) return null;
+        return StarDef.ofTier(7);
+    }
+
+    /**
+     * GUI / controller: {@link #baseRelight} for the chart in the slot (the chart's star; null when it does not apply).
+     */
+    public StarDef baseRelightFor(StarDef chart) {
+        return baseRelight(chart);
+    }
+
+    /** D-54: what a base relight takes as its charge, in words (wait lines, the failure line). */
+    public static String baseChargeName(int base) {
+        if (base == 4) return "Stellar Ignition Charge and the 5,000 L Hyperdense Stellar Mixture neutron seed";
+        if (base == 7) return "Magnetar Collapse charge (White and Black Dwarf Matter)";
+        return "universe charge (Attractor Dark Matter)";
+    }
+
+    /**
+     * D-54: the buffered litres a base relight needs at parallel {@code p}: its charge (T4: the Core Collapse's HSM
+     * neutron seed, 5,000 L; T7: the Magnetar Collapse's charge, WDM + BDM; T10: one universe's Dark Matter) PLUS
+     * the new star's first cycle (upkeep, T7's fractional Magnetar Matter, T4's HSM feed at {@code feed} for one
+     * cycle), so the relit star never starts at r = 0. All × p. T4 also takes one Stellar Ignition Charge (an item).
+     */
+    public static Map<Fluid, Long> baseRelightNeeds(StarDef base, int p, double feed) {
+        final Map<Fluid, Long> out = new LinkedHashMap<>();
+        if (base == null) return out;
+        final int n = base.n();
+        if (n == 4) {
+            out.merge(SLFluids.hyperdenseStellarMixture, (long) Math.ceil(CollapseOverlay.HSM_SEED * p), Long::sum);
+        } else if (n == 10) {
+            final Fluid dm = EyeAttractor.darkMatter();
+            if (dm != null) out.merge(dm, EyeAttractor.universeCharge() * p, Long::sum);
+        } else {
+            for (EyeRecipe.FluidAmount ch : base.charge) {
+                if (ch.fluid != null) out.merge(ch.fluid, ch.amount * p, Long::sum);
+            }
+        }
+        for (EyeRecipe.FluidAmount up : base.upkeep) {
+            if (up.fluid != null) out.merge(up.fluid, up.amount * p, Long::sum);
+        }
+        for (Map.Entry<Fluid, Double> up : base.exactUpkeep.entrySet()) {
+            if (up.getKey() != null) out.merge(up.getKey(), (long) Math.ceil(up.getValue() * p), Long::sum);
+        }
+        if (base.feed != null && !base.tier.ergoFeed) {
+            out.merge(base.feed, (long) Math.ceil(feed * StellarField.CYCLE_SECONDS * p), Long::sum);
+        }
+        return out;
+    }
+
+    /** {@link #baseRelightNeeds(StarDef, int, double)} at this Eye's parallel and HSM feed setpoint. */
+    public Map<Fluid, Long> baseRelightNeeds(StarDef base) {
+        return baseRelightNeeds(base, Math.max(1, parallel(base.n())), feedSet);
+    }
+
+    /** D-54: the wireless EU a base relight needs: the new star's first cycle, × p. */
+    public BigInteger baseRelightEu(StarDef base) {
+        return BigInteger.valueOf(base.euPerCycle)
+            .multiply(BigInteger.valueOf(Math.max(1, parallel(base.n()))));
+    }
+
+    /**
+     * D-54 (B-217): a dark Eye relights {@code base} (T4, T7 or T10) from a new charge when everything is there;
+     * otherwise sets the wait reason, naming the first thing missing. The relit star is LIT at once: the gauges at
+     * 0, Integrity 100, a fresh cycle charged (T10: a new universe, its charge paid). Milestones, unlocked tiers,
+     * the escrowed core and the counters are untouched; with a chart above the base the star is PENDING toward it
+     * and each transition above re-runs (no milestones, no core once that tier is unlocked).
+     */
+    private void tryBaseRelight(StarDef base, StarDef want) {
+        final int n = base.n();
+        final String to = base == want ? ""
+            : "; then each transition above it re-runs toward " + want.name + " (Begin, no core)";
+        final int p = parallel(n);
+        if (p < 1) {
+            waitReason = "the Eye does not reach T" + n
+                + " (bands T"
+                + host.structureTier()
+                + ", compression T"
+                + host.compressionTier()
+                + ")";
+            return;
+        }
+        final String head = (n == 10 ? "a new universe begins at T10" : base.name + " relights at T" + n)
+            + ", the base of its band, from a new charge: ";
+        if (base.tier.burstDriven()) {
+            // a galaxy or a universe lit with no bursts on its ports would breach within a minute and take the next
+            // charge with it: wait for a linked quasar's stream (any Bu/t) first
+            final EyeBursts b = benchBursts != null ? benchBursts : host.bursts(galaxyDemand(base.tier) * p, 0);
+            galaxy.bursts = b;
+            if (b.paused) {
+                waitReason = head + b.line() + to;
+                return;
+            }
+            if (!b.linkedAll) {
+                waitReason = head + "no bursts on the GRB Receptor Ports (route a linked quasar's stream to the Eye;"
+                    + " lit without bursts it would breach)"
+                    + to;
+                return;
+            }
+        }
+        if (n == 4 && !host.takeIgnitionCharge(true)) {
+            waitReason = head + "no Stellar Ignition Charge in a plinth input bus" + to;
+            return;
+        }
+        for (Map.Entry<Fluid, Long> need : baseRelightNeeds(base, p, feedSet).entrySet()) {
+            if (host.buffer(need.getKey()) < need.getValue()) {
+                waitReason = head + "the buffers need "
+                    + fmt(need.getValue())
+                    + " L of "
+                    + fluidName(need.getKey())
+                    + " (the charge plus the first cycle)"
+                    + to;
+                return;
+            }
+        }
+        final BigInteger eu = baseRelightEu(base);
+        if (networkEU().compareTo(eu) < 0) {
+            waitReason = head + "the wireless network needs " + sci(eu) + " EU (one cycle)" + to;
+            return;
+        }
+        // ---- consume the charge (the first cycle's upkeep and EU are taken by light()'s chargeCycle)
+        if (n == 4) {
+            if (!host.takeIgnitionCharge(false)) return;
+            host.takeBuffer(SLFluids.hyperdenseStellarMixture, (long) Math.ceil(CollapseOverlay.HSM_SEED * p));
+        } else if (n == 10) {
+            host.takeBuffer(EyeAttractor.darkMatter(), EyeAttractor.universeCharge() * p);
+        } else {
+            for (EyeRecipe.FluidAmount ch : base.charge) {
+                if (ch.fluid != null) host.takeBuffer(ch.fluid, ch.amount * p);
+            }
+        }
+        trans = null;
+        ensureField(base);
+        star = base;
+        fs.setX(0, 0, 0, 0);
+        if (base.tier.burstDriven()) galaxy.starOut();
+        if (n == 10) {
+            fs.uni = UniverseField.newUniverse(fs);
+            attractor.uniOwed = 0;
+        }
+        light();
+        waitReason = "";
+        lastEvent = base.name + " RELIT at T"
+            + n
+            + ", the base of its band (D-54): the "
+            + baseChargeName(n)
+            + " taken"
+            + (n == 10 ? "; a new universe begins" : "")
+            + to;
+        logEvent(lastEvent);
+    }
+
+    /**
+     * D-54: what the dark Eye does next for the chart in the slot, appended to a failure or put-out line when the
+     * base relight applies; empty otherwise.
+     */
+    private String relightNote() {
+        final StarDef want = wanted();
+        final StarDef base = baseRelight(want);
+        if (base == null) return "";
+        if (base.n() == 10) {
+            return "; with the chart still in, the Eye begins a new universe at T10 (the base of its band) from a new "
+                + baseChargeName(10)
+                + "; milestones, unlocked tiers and the counters are kept";
+        }
+        return "; with the chart still in, the Eye relights " + base.name
+            + " at T"
+            + base.n()
+            + " (the base of its band) from a new "
+            + baseChargeName(base.n())
+            + (base != want ? ", then re-runs each transition above it toward " + want.name + " (no core)" : "")
+            + "; milestones, unlocked tiers and the escrowed core are kept";
+    }
+
     // ============================================================================ intake cap (B-108)
 
     /** B-108: the cycles of upkeep (and of the T4 feed at its maximum) a star's buffers fill to. */
@@ -2377,11 +2597,19 @@ public final class EyeStarRuntime {
         final Map<Fluid, Long> cap = new LinkedHashMap<>();
         final StarDef want = StarDef.byChart(host.target());
         final boolean liveStar = live() && star != null;
+        final StarDef relightBase = baseRelight(wanted());
         if (liveStar) starIntake(cap, star);
         if (want != null) {
             starIntake(cap, want);
             final StarDef lights = ignitable(want);
             if (lights != null && lights != want) starIntake(cap, lights);
+            // D-54: the star a dark Eye relights at its band's base, and its charge plus first cycle
+            if (relightBase != null) {
+                if (relightBase != want) starIntake(cap, relightBase);
+                for (Map.Entry<Fluid, Long> need : baseRelightNeeds(relightBase).entrySet()) {
+                    cap.merge(need.getKey(), need.getValue(), Math::max);
+                }
+            }
             // P4: a galaxy chart lights its planets-mode variant in planets mode
             if (want.galaxyTier()) {
                 final StarDef planets = StarDef.planetsOf(want.n());
@@ -2390,7 +2618,10 @@ public final class EyeStarRuntime {
         }
         galaxyIntake(cap, want, liveStar);
         final EnumSet<EyeTransition.Type> types = EnumSet.noneOf(EyeTransition.Type.class);
-        if (want != null && want.n() >= 2 && (want.n() >= 4 || liveStar && star.n() == want.n() - 1)) {
+        // (D-54: not for a dark Eye that relights the chart's own star at its band's base)
+        if (want != null && want.n() >= 2
+            && (want.n() >= 4 || liveStar && star.n() == want.n() - 1)
+            && (liveStar || relightBase == null || relightBase.n() != want.n())) {
             final EyeTransition.Type t = EyeTransition.Type.leaving(want.n() - 1);
             if (t != null) types.add(t);
         }
@@ -2400,7 +2631,9 @@ public final class EyeStarRuntime {
         // may begin, and each object on the way is a star in play.
         if (want != null && want.galaxyTier() && galaxy.mode == EyeGalaxy.Mode.GALAXY) {
             final int liveN = liveStar ? star.n() : 0;
-            for (int from = 5; from < want.n(); from++) {
+            // D-54: with T7 unlocked the chain starts at Triangulum (the band's base), not at the magnetar
+            final int chainFrom = relightBase != null ? relightBase.n() : 5;
+            for (int from = chainFrom; from < want.n(); from++) {
                 if (liveN > from) continue;
                 final EyeTransition.Type t = EyeTransition.Type.leaving(from);
                 if (t != null) types.add(t);
@@ -2564,11 +2797,11 @@ public final class EyeStarRuntime {
         final int n = star == null ? 0 : star.n();
         lastEvent = (star == null ? "star" : star.name) + " LOST: "
             + reason
-            + (n == 4
-                ? " (collapsed to a black hole: with the Neutron Star chart still in the slot the Eye relights Arcturus"
-                    + " from a Stellar Ignition Charge and re-runs the Core Collapse, no core needed)"
-                : n == 6 ? " (field decoherence: a re-merge needs the merger charge, no core)"
-                    : n <= 3 ? " (relighting needs a new Stellar Ignition Charge)" : "");
+            + (n == 4 ? " (collapsed to a black hole)" + relightNote()
+                : n == 6
+                    ? " (field decoherence: with the chart still in, the Eye re-merges the magnetar from a new"
+                        + " merger charge, no core; nothing below T6 re-runs)"
+                    : n <= 3 ? " (relighting needs a new Stellar Ignition Charge)" : relightNote());
         if (ledger != null) ledger.fails++;
         recordFailure(lastEvent);
         goDark();
@@ -2593,6 +2826,7 @@ public final class EyeStarRuntime {
                 .append(" L of Black Dwarf Matter salvaged")
                 .append(salvageOwed ? " (owed: paid out once the Eye is formed again)" : "");
         }
+        if (!reason.startsWith("the target changed") && (star == null || star.n() >= 4)) sb.append(relightNote());
         lastEvent = sb.toString();
         // A plain target change (no transition, no batch) is the player's own choice, not a failure: it must not
         // replace a more useful "Last failure" line (B-59).
@@ -3003,7 +3237,8 @@ public final class EyeStarRuntime {
         lastEvent = (tr == null ? "transition" : tr.type.title) + " FAILED: "
             + reason
             + (escrow != null ? "; the " + escrow.getDisplayName() + " stays in escrow" : "")
-            + retryNote(tr);
+            + retryNote(tr)
+            + (tr != null && tr.type.from >= 4 ? relightNote() : "");
         if (ledger != null) ledger.fails++;
         recordFailure(lastEvent);
         goDark();
@@ -3274,6 +3509,18 @@ public final class EyeStarRuntime {
         return null;
     }
 
+    /**
+     * Debug {@code lose} (D-54 test): the live star is lost as a Breach loses it: a running transition fails, a T10
+     * universe is put out (a T10 breach only ends that universe), every other star fails. Returns an error or null.
+     */
+    public String debugLose() {
+        if (!live()) return "no star is live";
+        if (trans != null) failTransition("Breach (bench)");
+        else if (star != null && star.tier.universe) extinguish("the universe was lost on the bench");
+        else fail("Breach (bench)");
+        return null;
+    }
+
     /** Debug {@code transition abort}: as a wrench would. */
     public void debugAbort() {
         if (trans != null) extinguish("aborted on the bench");
@@ -3371,6 +3618,14 @@ public final class EyeStarRuntime {
 
     /** P5 Universe bit 4: the next universe's charge is short (owed now, or the buffer under one charge × p). */
     public boolean universeChargeShort() {
+        if (!live()) {
+            // D-54: a dark Eye with the Universe chart and T10 unlocked begins a new universe from one charge
+            final StarDef base = baseRelight(wanted());
+            if (base != null && base.n() == 10) {
+                final Fluid dm = EyeAttractor.darkMatter();
+                return dm == null || host.buffer(dm) < EyeAttractor.universeCharge() * Math.max(1, parallel(10));
+            }
+        }
         if (fs == null || !fs.tier.universe) return false;
         if (attractor.uniOwed > 0) return true;
         final Fluid dm = EyeAttractor.darkMatter();
@@ -3610,6 +3865,15 @@ public final class EyeStarRuntime {
         }
         final StarDef want = StarDef.byChart(host.target());
         if (want == null) return false;
+        // D-54: a dark Eye relighting at its band's base: the charge plus the first cycle
+        final StarDef base = baseRelight(wanted());
+        if (base != null) {
+            if (parallel(base.n()) < 1) return false;
+            for (Map.Entry<Fluid, Long> need : baseRelightNeeds(base).entrySet()) {
+                if (host.buffer(need.getKey()) < need.getValue()) return true;
+            }
+            return false;
+        }
         if (want.n() == 5) {
             final Fluid wdm = wdmFluid();
             return wdm != null && host.buffer(wdm) < BATCH_WDM * Math.max(1, parallel(5));
@@ -3625,13 +3889,14 @@ public final class EyeStarRuntime {
     /**
      * The star a dark Eye lights from a Stellar Ignition Charge for this chart, or null: a T1-T3 chart's own star once
      * its tier is unlocked; for the chart one tier above the unlocked one (T2-T4) the star below it, which then runs
-     * the transition toward the chart (QA-A02); the Neutron Star chart on an Eye that has T4 relights Arcturus.
+     * the transition toward the chart (QA-A02). D-54: the Neutron Star chart on an Eye that has T4 is not here: the
+     * neutron star relights itself ({@link #baseRelight}).
      */
     private StarDef ignitable(StarDef want) {
         if (want == null) return null;
         final int n = want.n();
         if (want.tier.ignite && n <= unlockedTier) return want;
-        if (n >= 2 && n <= 4 && (n == unlockedTier + 1 || (n == 4 && unlockedTier >= 4))) {
+        if (n >= 2 && n <= 4 && n == unlockedTier + 1) {
             final StarDef progenitor = StarDef.ofTier(n - 1);
             if (progenitor != null && progenitor.tier.ignite) return progenitor;
         }
@@ -3641,6 +3906,9 @@ public final class EyeStarRuntime {
     /** Status bit 2: a dark Eye would light its chart's star now but no Stellar Ignition Charge is in a plinth bus. */
     public boolean chargeWanted() {
         if (state != StarState.DARK) return false;
+        // D-54: the neutron star's relight at T4 takes a Stellar Ignition Charge too
+        final StarDef base = baseRelight(wanted());
+        if (base != null) return base.n() == 4 && parallel(4) >= 1 && !host.takeIgnitionCharge(true);
         final StarDef def = ignitable(StarDef.byChart(host.target()));
         return def != null && def.n() <= host.installedTier() && !host.takeIgnitionCharge(true);
     }
@@ -4065,6 +4333,78 @@ public final class EyeStarRuntime {
                 BTSText.lit(ok ? BTSFormat.eu(eu10) : BTSFormat.eu(have) + " / " + BTSFormat.eu(eu10)),
                 ok ? -1 : (float) Math.max(0, Math.min(1, have.doubleValue() / eu10.doubleValue())),
                 BTSText.lang("beyondthestars.gui.eye.chk.eu.tip", BTSFormat.eu(eu10)));
+        }
+        return c;
+    }
+
+    /**
+     * D-54 GUI: every condition {@link #tryBaseRelight} checks before relighting {@code base} at the base of its
+     * band, met or not: the Eye reaching that tier, T4's Stellar Ignition Charge, the charge plus the first cycle in
+     * the buffers (× p) and one cycle of EU. Reads only.
+     */
+    public BTSChecklist baseRelightChecklist(StarDef base) {
+        final BTSChecklist c = new BTSChecklist();
+        if (base == null) return c;
+        final int n = base.n();
+        final int inst = host.installedTier();
+        String why = "";
+        if (host.structureTier() < n) why = "tier" + n;
+        else if (host.compressionTier() < n) why = "compression" + n;
+        c.add(
+            parallel(n) >= 1,
+            BTSText.lang("beyondthestars.gui.eye.chk.reach", n),
+            BTSText.lit("T" + inst + " / T" + n),
+            -1,
+            why.isEmpty() ? "" : BTSText.lang(RESULT_KEY + why));
+        if (base.tier.burstDriven()) {
+            final EyeBursts b = galaxy.bursts;
+            c.add(
+                b != null && b.linkedAll && !b.paused,
+                BTSText.lang("beyondthestars.gui.eye.chk.bursts"),
+                BTSText.lit(b == null ? "-" : BTSFormat.buEuShort(b.total())),
+                -1,
+                BTSText.lang("beyondthestars.gui.eye.chk.bursts.tip"));
+        }
+        if (n == 4) {
+            final int charges = host.countIgnitionCharges();
+            c.add(
+                charges >= 1,
+                BTSText.lang("beyondthestars.gui.eye.chk.charge"),
+                BTSText.lang("beyondthestars.gui.eye.chk.inbus", charges),
+                -1,
+                BTSText.lang("beyondthestars.gui.eye.chk.charge.tip"));
+        }
+        for (Map.Entry<Fluid, Long> need : baseRelightNeeds(base).entrySet()) {
+            final long have = host.buffer(need.getKey());
+            final String name = fluidName(need.getKey());
+            c.add(
+                have >= need.getValue(),
+                BTSText.lit(name),
+                BTSText.lit(BTSFormat.haveNeed(have, need.getValue()) + " L"),
+                BTSChecklist.frac(have, need.getValue()),
+                BTSText.lang(
+                    "beyondthestars.gui.eye.fluid.tip",
+                    name,
+                    BTSFormat.exact(have),
+                    BTSFormat.exact(need.getValue())));
+        }
+        final BigInteger eu = baseRelightEu(base);
+        if (host.owner() == null) {
+            c.add(
+                false,
+                BTSText.lang("beyondthestars.gui.eye.chk.eu"),
+                BTSText.lang("beyondthestars.gui.eye.chk.noowner"),
+                -1,
+                BTSText.lang(RESULT_KEY + "noowner"));
+        } else {
+            final BigInteger have = networkEU();
+            final boolean ok = have.compareTo(eu) >= 0;
+            c.add(
+                ok,
+                BTSText.lang("beyondthestars.gui.eye.chk.eu"),
+                BTSText.lit(ok ? BTSFormat.eu(eu) : BTSFormat.eu(have) + " / " + BTSFormat.eu(eu)),
+                ok ? -1 : (float) Math.max(0, Math.min(1, have.doubleValue() / eu.doubleValue())),
+                BTSText.lang("beyondthestars.gui.eye.chk.eu1.tip", BTSFormat.eu(eu)));
         }
         return c;
     }

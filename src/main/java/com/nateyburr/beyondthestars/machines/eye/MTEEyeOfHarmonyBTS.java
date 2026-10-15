@@ -2473,6 +2473,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             case IDLE:
                 return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
             default:
+                // D-54: a lost T4, T7-T9 or T10 relights at the base of its band from a new charge
+                if (runtime.baseRelightFor(star) != null) {
+                    return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_relight");
+                }
                 if (star.n() >= 7) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_galaxy");
                 if (star.n() == 6) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_merger");
                 if (star.n() == 5) return SimpleCheckRecipeResult.ofFailure("beyondthestars.eye.star_idle");
@@ -3432,6 +3436,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 "Each " + num((int) StellarField.CYCLE_SECONDS + " s") + " cycle takes wireless EU and fluid upkeep.")
             .addInfo("Trim fluids in the Field hatches hold the stability field.")
             .addInfo(warn("Let the field slip too far and the star is lost."))
+            .addInfo(hint("A lost star relights itself from a new charge:"))
+            .addInfo(hint("T1-T7 and T10 at their own tier; T8 and T9 at T7."))
+            .addInfo(hint("Unlocked tiers, milestones and cores are never lost."))
             .addInfo("The GUI shows every gauge, the upkeep and the next step.")
             .addSeparator()
             .addInfo("Each tier up to T" + MAX_TIER + " adds a band to the structure.")

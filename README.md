@@ -258,6 +258,16 @@ the event's fluids buffered. Load the next star chart and the transition runs. S
 consumes the core. Failure loses the star and the event materials, but **the core stays in escrow**. Re-running a
 transition later needs no core.
 
+**A lost star relights at the base tier of its band** from a new charge, without the chain below (D-54). T1-T3
+relight at their own tier from a Stellar Ignition Charge. The neutron star relights at T4 from a Stellar Ignition
+Charge and a 5,000 L Hyperdense Stellar Mixture seed (no Arcturus, no Core Collapse re-run). Sirius B and the magnetar
+relight at their own tier from their own charges. A lost Triangulum, Milky Way or Great Attractor relights at
+Triangulum (T7) from a new Magnetar Collapse charge (White and Black Dwarf Matter, once a quasar's bursts reach the
+ports); the Galactic Merger and The Infall then re-run on Begin. A lost universe comes back as a new universe at T10
+from a 9,216 L Attractor Dark Matter charge. Each relit star also needs its first cycle buffered and its EU.
+Milestones, unlocked tiers, the escrowed core and the counters are never lost, so a re-climb needs only each
+transition's event, with no core and no milestone grind.
+
 | Step | Milestones | Core | What you have to survive |
 |---|---|---|---|
 | T1 to T2: **Mass Infusion** | 20,000,000 L Raw Star Matter made; 2 h Resonant | Stellar Mass Core | 5,000,000 L Raw Star Matter poured in; 600 s with the pressure climbing |
@@ -517,7 +527,7 @@ wire (54 L each) and the MAX hull (2,304 L) inside a part.
 | MAX 4096A Laser Target / Source Hatch (MTE 28136 / 28137) | Assembly Line | 18,432 L each |
 | Dark Matter Heating Coil x2 (GT coil level MAX, 13,501 K) | Assembly Line | 1,152 L |
 | Dark Matter Borosilicate Glass x4 (glass tier MAX) | Alloy Blast Smelter | 144 L |
-| MAX Battery (2^63 - 1 EU) | Assembly Line | 36,864 L |
+| MAX Battery (2^59 - 1 EU, about 5.76e17) | Assembly Line | 36,864 L |
 
 One Eye T9 makes about 12,300 L an hour: a MAX power room with 64 components and 256 coils is about 32 hours of it.
 

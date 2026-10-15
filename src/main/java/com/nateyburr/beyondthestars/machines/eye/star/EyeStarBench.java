@@ -48,6 +48,8 @@ import gregtech.common.misc.WirelessNetworkManager;
  * from the same seed and settings and prints both hashes (equal when the Eye matches the prototype);</li>
  * <li>{@code set dial|feed|shock <v>} ({@code shock}: the next Core Collapse's bounce, 150 adopted, 90 for the golden
  * cases), {@code unlock <1-6>}, {@code milestones <n> done}, {@code fill};</li>
+ * <li>{@code lose} - D-54: the live star is lost as a Breach loses it (T10: put out), and relights at its band's
+ * base;</li>
  * <li>{@code transition [abort]} - the running transition's phase, or abort it as a wrench would; {@code event} - the
  * tier's next event now (its warning this second);</li>
  * <li>{@code sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog]} and {@code probe} - the sensor hatches;</li>
@@ -71,7 +73,7 @@ public final class EyeStarBench {
 
     public static final String USAGE = "/btseye star <x> <y> <z> status | target <name> | lit [name] | seed <n> | "
         + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed|shock <v> | unlock <1-6> | "
-        + "milestones <n> done|reset | transition [abort] | event | crossing | "
+        + "milestones <n> done|reset | transition [abort] | lose | event | crossing | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
         + "bus <chart> [n] | legacy [galactic] [run <key> <n>] | fix | gt | mefield | intake [setup [G]] | eu | "
@@ -204,6 +206,13 @@ public final class EyeStarBench {
                 out.add(
                     tr == null ? "No transition running."
                         : tr.type.title + " running for " + tr.t + " s (began at field second " + tr.beginT + ")");
+                break;
+            }
+            case "lose": {
+                // D-54 (B-217): the live star is lost as a Breach loses it (T10: put out, since a T10 breach only
+                // ends the universe); the dark Eye then relights it at the base of its band
+                final String err = rt.debugLose();
+                out.add(err == null ? "Lost: " + rt.lastFailure() : "lose refused: " + err);
                 break;
             }
             case "event": {

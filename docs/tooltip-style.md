@@ -110,6 +110,16 @@ Open: a §fBlack Hole Seed§7 in a bolt bus (the hole starts at §f8 SM§7).
 Close: a §fBlack Hole Collapser§7, or let it evaporate below §f2 SM§7.
 ```
 
+Eye of Harmony, the loss lines (normal view; D-54's relight rule in three short lines, the detail in the GUI and
+the questbook):
+
+```
+§cLet the field slip too far and the star is lost.
+§8A lost star relights itself from a new charge:
+§8T1-T7 and T10 at their own tier; T8 and T9 at T7.
+§8Unlocked tiers, milestones and cores are never lost.
+```
+
 A hatch (normal view):
 
 ```

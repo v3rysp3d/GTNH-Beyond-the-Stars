@@ -1144,6 +1144,19 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         }
         final StarDef want = want();
         final int n = want == null ? 0 : want.n();
+        // D-54: a lost T4, T7-T9 or T10 relights at the base of its band from a new charge
+        final StarDef base = rt.baseRelightFor(want);
+        if (base != null) {
+            rows.section(BTSText.lang("beyondthestars.gui.eye.sec.base", base.name, base.n()), "");
+            rows.checks(rt.baseRelightChecklist(base));
+            rows.para(
+                BTSText.lang(
+                    base == want ? "beyondthestars.gui.eye.base.same" : "beyondthestars.gui.eye.base.climb",
+                    want.name),
+                BTSGuiKit.DIM);
+            lastRow(rows);
+            return;
+        }
         final StarDef lights = n >= 1 && n <= 4 ? rt.ignitableFor(want) : null;
         if (lights == want && n >= 1 && n <= 3) {
             rows.section(BTSText.lang("beyondthestars.gui.eye.sec.light", want.name), "");

@@ -58,8 +58,8 @@ rig rule with the threshold set to w; on T1, T2 and T4 it asks for exactly the s
 
 | Bit | Meaning | Typical action |
 |---|---|---|
-| 1 (1) | **Buffers short**: the next cycle's upkeep (or this cycle ran short), a dark Eye's ignition (10 cycles and the seed cloud), a waiting Sirius B batch, the magnetar's dwarf-matter top-up, or, with the next core in escrow, the next transition's fluids | stock the gas / stellar sockets |
-| 2 (2) | **Ignition charge wanted**: a dark Eye would light its chart's star now (T4: relight Arcturus) but no Stellar Ignition Charge is in a plinth bus | push one charge |
+| 1 (1) | **Buffers short**: the next cycle's upkeep (or this cycle ran short), a dark Eye's ignition (10 cycles and the seed cloud) or base relight (D-54: the T4, T7 or T10 charge plus one cycle), a waiting Sirius B batch, the magnetar's dwarf-matter top-up, or, with the next core in escrow, the next transition's fluids | stock the gas / stellar sockets |
+| 2 (2) | **Ignition charge wanted**: a dark Eye would light its chart's star now (T1-T3, or D-54's relight of the neutron star at T4) but no Stellar Ignition Charge is in a plinth bus | push one charge |
 | 3 (4) | **Event / fifth trim**: T3 the flash's heat (a flash warned or hitting and Θ above +20: open the bigger Super Coolant valve); T6 the Antipolarization Agent is wanted (Π past ±w or a flare warned). During the Magnetar Merger: the imprint asks above Π +66, the release above +30 | the event valve; on T6 **while Transition bit 2 is on, a 1 unit/s (100 L/s) Agent valve** instead of the 5-unit one (the imprint must keep Π inside +60..+70: above +70 the field is Critical and drains Integrity 2/s, and 5 units take 20 off Π at once) |
 | 4 (8) | **Alarm**: the Eye is not formed or is switched off, or the star is Critical or Breach, or Integrity is below 50 | lamp, alarm, backup |
 
@@ -206,6 +206,13 @@ end
   the gas sockets, an ME input bus with charges. That is all: the star relights itself after a loss, and after a
   failed Mass Infusion, Shell Ignition or Core Collapse too: with the next tier's chart still in, the Eye relights the
   star below from a charge and the transition begins again (Status bit 2 asks for the charge).
+- **A lost star above T3 (D-54)** relights at the base tier of its band from a new charge, with nothing below re-run:
+  the neutron star at T4 (a Stellar Ignition Charge, Status bit 2, and 5,000 L of HSM); Sirius B and the magnetar at
+  their own tier, as before (a White Dwarf Matter charge, the merger charge); a lost Triangulum, Milky Way or Great
+  Attractor at Triangulum, T7 (the Magnetar Collapse charge, WDM + BDM, Status bit 1, once bursts reach the ports);
+  a lost universe as a new universe at T10 (9,216 L Dark Matter, Status bit 1 and Universe bit 4). The rig needs no
+  new wiring: the charges come in through the sockets it already stocks, and each galaxy transition above the base
+  re-runs on the Begin signal (Galaxy Transition bit 1) with no core.
 - **Eye T3:** add a third Trims hatch (Bit 3, Super Coolant) and a Status hatch (Bit 3) on a second Super Coolant
   regulator for the flash. The Trims bits pre-cool once on the warning (Θ to about −35) and hold there, so the rig
   rides every flash in Stable (the T3 -> T4 milestone): 38/38 offline, 5/3 live under /btswarp.

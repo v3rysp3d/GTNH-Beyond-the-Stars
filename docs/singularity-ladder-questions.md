@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -54,10 +54,10 @@ Most important first. "Recommended" is what we would build if nothing else is de
 | 29 | Under Angelica, a Reality Diffraction / Refab render can stay invisible until the controller block has been on screen once | Accept for now; the real fix is a small render tile at each machine's render centre (R-05's alternative, a structure change) | R-16 |
 | 30 | ~~SMBH: with `replaceTecTechEyeOfHarmony` on, MagMatter waits for our Eye T10 (the Godforge EE upgrade takes 2 Universium frames), but Saturation needs MagMatter coils and the T9 -> T10 Supermassive Link needs a lattice: a loop~~ | **Settled**: "Cheaper Godforge upgrade"; SL-Q36 as built (8 Black Dwarf Matter frames in place of 2 Universium ones, under the same flag) | B-153, B-157 |
 | 31 | SMBH: a broken lattice block under a hole over 4,096 SM unforms the quasar (frozen, nothing lost) instead of shedding the hole to the coil cap | Keep: a mis-click must not cost days of growth; taking a lattice down means lowering the setpoint to 4,096 SM first | B-154 |
-| 32 | P5: the wired MAX energy / dynamo hatches and the MAX 4,096 A laser hatches do not exist in RC-2; built on spare ids 28133 / 28134 / 28136 / 28137 | Keep these four ids (frozen once a world holds one) | B-204 |
-| 33 | P5: the Dark Matter Heating Coil cannot sit above Eternal (GT's coil levels end at MAX, 13,501 K) | Keep it as the T9-matter MAX coil at Eternal's heat; a hotter tier needs a mixin | B-206 |
+| 32 | ~~P5: the wired MAX energy / dynamo hatches and the MAX 4,096 A laser hatches do not exist in RC-2; built on spare ids 28133 / 28134 / 28136 / 28137~~ **Settled 2026-10-16 ("Yes to all")** | Keep these four ids (frozen once a world holds one) | B-204 |
+| 33 | ~~P5: the Dark Matter Heating Coil cannot sit above Eternal (GT's coil levels end at MAX, 13,501 K)~~ **Settled 2026-10-16 ("Yes to all")** | Keep it as the T9-matter MAX coil at Eternal's heat; a hotter tier needs a mixin | B-206 |
 | 34 | P5: the quests the Eye would tick (The Deep Link, The Infall, Inflation, the flow / universe counts) are checkboxes | Keep for the first P5 playtest; a quest bridge from the Eye's milestones later | B-211 |
-| 35 | P5: two full MAX Batteries in one GT battery buffer overflow its capacity readout (2^63 - 1 EU each) | Lower to 2^59 EU each if the playtest shows a misreading | B-208 |
+| 35 | ~~P5: two full MAX Batteries in one GT battery buffer overflow its capacity readout (2^63 - 1 EU each)~~ **Settled 2026-10-16 ("Yes to all"), built** | Lowered to 2^59 - 1 EU each | B-208 |
 
 ## 2. Settled
 
@@ -65,6 +65,8 @@ My answers, newest first. Quotes are my words.
 
 | Topic | My answer | What was built |
 |---|---|---|
+| A lost star relights at the base tier of its band [D-54; B-217] | "Yea relight at the base tier so t4, t7 and t10 id say" | A dark Eye relights the neutron star at T4, Triangulum at T7 (for a lost T7, T8 or T9) and a new universe at T10 from a new charge, with nothing below re-run; T1-T3, Sirius B and the magnetar relight at their own tier as before; milestones, unlocked tiers and the escrowed core are kept |
+| The P5 open calls [open questions 32-35; B-204, B-206, B-208, B-211] | "Yes to all" | The four MAX hatch ids and the Eternal-heat coil kept; the MAX Battery at 2^59 - 1 EU; the Eye completes its own quests (B-218) |
 | The MagMatter loop at the T9 -> T10 gate [open question 30; B-153] | "Cheaper Godforge upgrade" | SL-Q36 stays: under `replaceTecTechEyeOfHarmony` the Godforge EE upgrade (magmatter mode) takes 8 Black Dwarf Matter frame boxes instead of 2 Universium ones, so MagMatter, the T4 coils, Saturation and the lattice arrive at Eye T7 (B-157); with the flag off nothing changes |
 | Circuits v2 (build notes items 31-33; `designs/docs/circuits-v2.md` revision 3) | "they can make umv and uxv but we make cheaper"; "Any of the tier such as the (any uxv) forming oress recipe"; "No offset, build until finished please"; rack "Yes, slightly better"; the raise on by default; NAC "Patch now, PR later" | Sidereal / Empyrean / Omega (B-130..B-134), in GT's any-of-tier ore names, no compensation, the Piko raise (2.5x / 2x), the NAC patch, the rack parts; tested B-136, filmed B-137, merged and packaged in `master.304` (B-138). The UMV stopgap for the UXV parts stays |
 | The time warp in release jars [open question 24; B-117] | Ship it, op + cheats | `/btswarp` stays in every jar, op only (B-138 marks it settled) |
@@ -272,7 +274,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-216
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-219
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -7597,6 +7599,8 @@ reads `BTSMaxHatches` for MTE ids.
 
 **Suggestion.** Keep these four. Alternative: drop the wired MAX hatches and use the wireless ones only.
 
+**Settled 2026-10-16 ("Yes to all").** The four ids 28133 / 28134 / 28136 / 28137 are accepted as built. No change.
+
 ### B-205 The T9 -> T10 parts take UMV parts: the B-72 rule [p5-content]
 
 **Context.** The P5 gate audit (`/btseye gates`) reads RC-2's live recipes: the UXV Field Generator, Emitter, Electric
@@ -7627,6 +7631,8 @@ The tooltip says all of this.
 
 **Suggestion.** Keep it as the T9-matter MAX coil (Eternal coils need an Eternal Singularity). Alternative: drop it.
 
+**Settled 2026-10-16 ("Yes to all").** The coil stays at 13,501 K (`HeatingCoilLevel.MAX`). No change.
+
 ### B-207 The MAX components: Component Assembly Line, MAX casing tier, 16 a batch [p5-content]
 
 **Built.** SL-M10..M17 on GoodGenerator's Component Assembly Line map, `COAL_CASING_TIER` 14 (the MAX casing,
@@ -7652,6 +7658,12 @@ overflow its displayed capacity. A capacity of 2^63 - 1 is the spec's number; 2^
 hold sixteen.
 
 **Suggestion.** Lower the capacity to 2^59 EU if the playtest shows a buffer misreading.
+
+**Settled 2026-10-16 ("Yes to all"), built.** `ItemMaxBattery.CAPACITY` is 2^59 - 1 EU (576,460,752,303,423,487, about
+5.76e17): one EU under 2^59, so a full 4x4 buffer of sixteen sums to 2^63 - 16 and stays inside a `long` (at exactly
+2^59 the sixteenth battery would reach 2^63 and wrap). The item tooltip, the questbook (quest MAX Battery), the README
+and the build doc say 2^59 - 1. A battery already charged above the new capacity in a test world keeps its charge and
+discharges normally; it takes no more until it is below the cap.
 
 ### B-209 The UXV leftovers as built [p5-content]
 
@@ -7740,6 +7752,84 @@ Eternal Singularity, as before).
 - The Universal Compression Field Generator is `slCasing4:6`; the Eye unit puts it in the compression slots.
 - `/btseye gates` prints each P5 part's `modid:name:meta` (the questbook's task form).
 - `/btstooltips` also writes the `.tooltip.shift` lines.
+
+### B-217 A lost star relights at the base tier of its band (D-54) [relight-pulsar, ruling + build]
+
+**Context.** A lost T4 relit Arcturus and re-ran the Core Collapse; a lost T7 or T8 (and, since P5, a lost T9 or a
+dark T10) re-ran the chain from a re-spawned magnetar (P4-59): the Magnetar Merger, the Magnetar Collapse, the
+Galactic Merger and The Infall, hours of play to get back where the loss happened. My ruling (2026-10-16): "Yea relight
+at the base tier so t4, t7 and t10 id say".
+
+**The rule (built).** A dark Eye relights a lost star at the base tier of its band, from a new charge, without the
+chain below. `EyeStarRuntime.bandBase(n)`, `baseRelight(want)`, `tryBaseRelight`, `baseRelightNeeds`.
+
+| Lost | Relights | The charge | Then |
+|---|---|---|---|
+| T1-T3 | its own tier (as built) | a Stellar Ignition Charge, the seed cloud and 10 cycles | nothing |
+| T4 neutron star | **T4, the neutron star itself** | a Stellar Ignition Charge and the Core Collapse's 5,000 L HSM neutron seed (x p) | nothing (no Arcturus, no Core Collapse re-run) |
+| T5 Sirius B | its own tier (as built) | a White Dwarf Matter batch charge | nothing |
+| T6 magnetar | its own tier (as built) | the Magnetar Merger's charge (a re-merge, no core) | nothing |
+| T7 Triangulum | **T7** | the Magnetar Collapse's charge, WDM 18,432 + BDM 4,608 L (x p) | nothing |
+| T8 Milky Way, T9 Great Attractor | **T7, Triangulum** | as T7 | the Galactic Merger (and for T9 The Infall) re-run on the Begin signal, no core, no milestones |
+| T10 universe | **T10, a new universe** | one universe's charge, 9,216 L Attractor Dark Matter (x p) | nothing |
+
+- **T5 and T6 relight at their own tier**, not at T4. Neither needs a lit neutron star: Sirius B runs its batches from
+  a dark Eye and the magnetar re-merges from a dark Eye, both from their own charge. Relighting them at T4 would only
+  add a neutron star that the way back to T5 or T6 never uses, which is harsher than before. So T4 is a floor for the
+  galactic band, never a step down.
+- **Every base relight also needs** the new star's first cycle in the buffers (its upkeep, T7's Magnetar Matter, T4's
+  HSM feed for a cycle at the setpoint) and one cycle of wireless EU, so the relit star never starts at r = 0. It is
+  lit at once: the gauges at 0, Integrity 100, a fresh cycle (T10: a new universe, its dawn drawn).
+- **T7 and T10 wait for bursts.** A galaxy or a universe lit with no bursts on its GRB Receptor Ports breaches within
+  a minute and would take the next charge with it, again and again. The dark Eye therefore waits until a linked
+  quasar's stream (any Bu/t) reaches the ports, or a paused quasar runs again; the wait line says so.
+- **Milestones stay earned, and re-climbs need neither milestones nor a core.** Milestones, the link milestones,
+  unlocked tiers, the counters (galaxies held, universes, dawns) and the escrowed core are never lost (as before).
+  Each transition above the base re-runs with its own event materials only, because the tier above is already
+  unlocked (`missing()` asks for milestones and the core only the first time). A first climb that fails keeps its
+  core in escrow and is retried from the base.
+- **The base needs the base unlocked.** A Neutron Star chart before T4 is unlocked still relights Arcturus for the
+  first Core Collapse (QA-A02); a galaxy chart before T7 is unlocked still re-spawns the magnetar for the first Magnetar
+  Collapse (P4-59); the Universe chart before T10 is unlocked walks the T7 chain toward the first Inflation. A chart
+  more than one tier past the unlocked tier waits, as before. Planets mode lights its field at once, as before.
+- **Soft fails are unchanged.** A failed Infall leaves the Milky Way lit, a failed Inflation the Great Attractor, and a
+  T10 breach only ends that universe (salvage, the next universe charged). The base relight is for a star that is
+  actually lost: a breach below T10, a structure break, the Eye switched off, the tier no longer reached, a pick-up.
+- **Wait reasons and Directive bits.** The wait line names the first thing missing: "... relights at T4, the base of
+  its band, from a new charge: no Stellar Ignition Charge in a plinth input bus" (Status bit 2); "... the buffers
+  need N L of X (the charge plus the first cycle)" (Status bit 1; T10 also Universe bit 4); "... no bursts on the GRB
+  Receptor Ports"; "... the wireless network needs N EU (one cycle)". The intake cap (B-108) covers the charge and the
+  first cycle, and in galaxy mode the chain is capped from T7 instead of the magnetar. The failure and put-out lines
+  end with what the dark Eye will do next.
+- **GUI.** A dark Eye's page shows "X relights at Tn, the base of its band" with a checklist (reach, bursts for T7 and
+  T10, the charge for T4, each fluid have / need, one cycle of EU) and one line saying what is kept or what re-runs
+  next. The controller's run-check line reads "The star is dark: it relights at the base tier of its band".
+- **Text.** The controller tooltip (three short lines, `docs/tooltip-style.md`), the questbook (the stability-field
+  quest, Eye T4, T6, the Magnetar Collapse, the Galactic Merger, Eye T9, Eye T10), `docs/automation.md`, the README and
+  the build doc. The field engine is unchanged, so no golden moves.
+
+**Test (dev server, port 25821, world rptest, four boots, no client).** `/btseye t10 0 10 0 north gen 9 fill force`;
+a new bench command `/btseye star ... lose` loses the live star as a Breach does (a transition fails; T10 is put out,
+since a T10 breach only ends the universe).
+
+- **T10.** `lose` -> DARK, "a new universe begins at T10 ... no bursts on the GRB Receptor Ports". Dark Matter at 0:
+  "the buffers need 9,216 L of Attractor Dark Matter", Status code 1. 50,000 L buffered and the bench quasar (600 SM):
+  "The Universe RELIT at T10 ... a new universe begins", 40,784 L left (one 9,216 L charge); 600 s later the universe
+  at age 601 s, mean Y 1.228, 0 failures.
+- **T9.** The Great Attractor lit, `lose` -> "relights Triangulum (M33) at T7 ... then re-runs each transition above
+  it toward The Great Attractor (no core)"; the next second "Triangulum (M33) RELIT at T7"; the rig's Begin began the
+  Galactic Merger (re-run, no core), COMPLETE in 1,920 s; The Infall began (re-run, no core) and, once the wireless EU
+  was topped up (10^18 EU ran out at parallel 8 / 4, as in B-177), COMPLETE in 1,619 s; the Great Attractor lit again.
+- **T7 by a structure break.** Triangulum lit with the Milky Way chart, the Galactic Merger running: `damage` -> put
+  out, the merger aborted, the line names the T7 relight; `repair` -> RELIT at T7, PENDING, the Galactic Merger began
+  again on Begin.
+- **T6.** `lose` -> "the Eye re-merges the magnetar from a new merger charge, no core; nothing below T6 re-runs"; the
+  next second the Magnetar Merger began (re-spawn). No T4 or T5 step.
+- **T4.** `lose` -> "relights Neutron Star (Arcturus Remnant) at T4 ... from a new Stellar Ignition Charge and the
+  5,000 L Hyperdense Stellar Mixture neutron seed"; no charge in the bus: the wait line says so and Status code 2.
+- **Restarts.** A dark T4 waiting for its charge across a restart: still waiting; one charge in the bus -> "RELIT at
+  T4". A Galactic Merger re-run after a T7 relight across a restart: "running for 320 s", then COMPLETE in 1,920 s and
+  the Milky Way lit. A relit universe across a restart: still lit, its age carried on.
 
 ## Where the old question numbers went
 

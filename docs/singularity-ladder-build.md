@@ -2599,7 +2599,8 @@ Galactic Merger in the D-49 frame: milestone, then the core in escrow, then the 
    the first pass), then T8 (the Milky Way lit by `relit()`).
 6. **T8 steady state.** P, W and Λ; the feed; the satellite crossing and its bonus.
 
-A lost galaxy re-runs from a re-spawned magnetar (P4-59).
+A lost galaxy re-runs from a re-spawned magnetar (P4-59) until T7 is unlocked. From then on (D-54, B-217) it relights at
+Triangulum, the base of the intergalactic band, from a new Magnetar Collapse charge, and the transitions above re-run.
 
 **NBT** (every key is new; a pre-P4 save reads defaults):
 
@@ -3118,7 +3119,7 @@ structures) is the Eye unit's.
 `gatedPelletSuperdense` (1.25e9 / 5e9 / 2e10 GeV: `pelletGrade`, `pelletGeV`), `injectorBarrelMk1..3` (4 / 8 / 16 a
 second: `barrelTier`, `barrelRate`), `attractorSeedCore` (T8 -> T9), `starChartGreatAttractor` (T9 target),
 `attractorDarkMatterPlate`, `attractorDarkMatterDensePlate`, `superconductorWireUXV`, `superconductorWireMAX`,
-`maxBattery` (`ItemMaxBattery`, IC2 electric, tier 14, 2^63 - 1 EU).
+`maxBattery` (`ItemMaxBattery`, IC2 electric, tier 14, 2^59 - 1 EU: B-208).
 
 **Blocks:** `slCasing4` 6 `UNIVERSAL_COMPRESSION` (compression tier 10), 7 `DARK_MATTER_COIL` (`IHeatingCoil`,
 `HeatingCoilLevel.MAX`), 8 hole, 9 `DARK_MATTER_FRAME`; `slGlass` (`BlockSLGlass`) 0 `MAGNETAR_UXV` (glass tier 13), 1

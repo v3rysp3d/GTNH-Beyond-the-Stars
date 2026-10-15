@@ -15,7 +15,7 @@ import ic2.api.item.ElectricItem;
 import ic2.api.item.IElectricItem;
 
 /**
- * The MAX Battery (p5-t9-t10.md §7.2): an IC2 electric item at GT's MAX tier, holding 2^63 - 1 EU. GT's battery
+ * The MAX Battery (p5-t9-t10.md §7.2): an IC2 electric item at GT's MAX tier, holding 2^59 - 1 EU (B-208). GT's battery
  * buffers, chargers and machines handle any {@link IElectricItem} through IC2's electric item manager, which keeps
  * the charge in the stack's NBT. One item, charged and empty alike (the charge bar shows the state), stack size 1.
  */
@@ -23,8 +23,12 @@ public class ItemMaxBattery extends BTSTooltipItem implements IElectricItem {
 
     /** GT's MAX voltage tier. */
     public static final int TIER = 14;
-    /** The capacity of record: 2^63 - 1 EU. */
-    public static final long CAPACITY = Long.MAX_VALUE;
+    /**
+     * The capacity of record (B-208, settled 2026-10-16): 2^59 - 1 EU, about 5.76e17. GT's battery buffers add their
+     * batteries' capacities as a long, so at the spec's 2^63 - 1 two batteries overflowed the readout; at 2^59 - 1 a
+     * full 4x4 buffer of sixteen stays under 2^63.
+     */
+    public static final long CAPACITY = (1L << 59) - 1;
 
     public ItemMaxBattery() {
         setMaxStackSize(1);
