@@ -6,8 +6,8 @@
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "9bcbee3 playtest-1",
-    "manifestSha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1"
+    "srcHead": "ea421b7 p5-eye",
+    "manifestSha": "7796eeb6b7823f938be225118e9e1e7fa0c89d83"
   },
   "features": {
     "kerrRedesign": true,
