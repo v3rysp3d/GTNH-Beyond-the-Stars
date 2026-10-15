@@ -61,6 +61,12 @@ public final class EyeGalaxy {
      * qualifying source (a lattice in force, at least 65,536 SM). Data only until Eye T9.
      */
     final BurstLink link9 = new BurstLink();
+    /**
+     * QA-B09: seconds the Supermassive Link source has been under 65,536 SM since it last qualified, its lattice still
+     * in
+     * force and the link up ({@link EyeStarRuntime#SM_DIP_GRACE}: none left, or no qualifying second yet).
+     */
+    int smDip = EyeStarRuntime.SM_DIP_GRACE;
     /** Fractional litres owed per purpose and fluid ("up:fluid", "charge:fluid", "feed:fluid", "out:fluid"). */
     final Map<String, Double> carry = new LinkedHashMap<>();
     /** The companions running (earlier object tiers 1..6), latched at the last relight; empty in planets mode. */
@@ -221,6 +227,7 @@ public final class EyeGalaxy {
         link9.restore(new double[2 * BurstLink.WINDOW], 0);
         link9.streak = link9.best = 0;
         link9.done = false;
+        smDip = EyeStarRuntime.SM_DIP_GRACE;
         carry.clear();
         companions = new int[0];
         companionR = new double[0];
@@ -258,6 +265,7 @@ public final class EyeGalaxy {
         writeLink(g, "link6", link6);
         writeLink(g, "link7", link7);
         writeLink(g, "link9", link9);
+        if (smDip < EyeStarRuntime.SM_DIP_GRACE) g.setInteger("smDip", smDip);
         if (!carry.isEmpty()) {
             final NBTTagCompound c = new NBTTagCompound();
             for (Map.Entry<String, Double> e : carry.entrySet()) c.setDouble(e.getKey(), e.getValue());
@@ -293,6 +301,7 @@ public final class EyeGalaxy {
         readLink(g, "link6", link6);
         readLink(g, "link7", link7);
         readLink(g, "link9", link9);
+        smDip = g.hasKey("smDip") ? Math.max(0, g.getInteger("smDip")) : EyeStarRuntime.SM_DIP_GRACE;
         carry.clear();
         if (g.hasKey("carry")) {
             final NBTTagCompound c = g.getCompoundTag("carry");

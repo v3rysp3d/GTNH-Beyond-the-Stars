@@ -1317,17 +1317,28 @@ public final class EyeStarRuntime {
     }
 
     /**
+     * QA-B09: how long the Supermassive Link source may sit under 65,536 SM, its lattice in force and the link up,
+     * before the streak resets: the Accretion Buffer's 60 s.
+     */
+    public static final int SM_DIP_GRACE = BurstLink.WINDOW;
+
+    /**
      * SMBH (smbh-v1.md §1.3): one second of the Supermassive Link, P5's T9 → T10 machine milestone, as data only: a
      * 60 s mean of everything on the Eye's ports, and a streak while the link source (its stream record: a lattice in
-     * force and at least 65,536 SM) qualifies and the mean is at least D₁₀ = 96 Bu/t. It resets when the link drops or
-     * the hole leaks under 65,536 SM. Held after 1,800 s, recorded in the milestones (item NBT) for P5; nothing gates
-     * on it until Eye T9 exists.
+     * force and at least 65,536 SM) qualifies and the mean is at least D₁₀ = 96 Bu/t. It resets when the link drops,
+     * the lattice is lost, or the hole stays under 65,536 SM for longer than {@link #SM_DIP_GRACE} seconds (QA-B09: a
+     * one-second supply gap dips the hole under the line for a second or two, which the 60 s Accretion Buffer is there
+     * to ride, so a short dip counts as held). Held after 1,800 s, recorded in the milestones (item NBT) for P5;
+     * nothing gates on it until Eye T9 exists.
      */
     private void supermassiveSecond(EyeBursts b) {
         final BurstLink l = galaxy.link9;
-        final boolean source = b.linkedAll && b.supermassiveSource();
-        l.roll(b.total(), source ? b.total() : 0);
-        if (l.update(l.supermassiveOk(b.linkedAll, b.supermassiveSource())) && !milestones.smLinkDone) {
+        final boolean qualifies = b.supermassiveSource();
+        final boolean dip = !qualifies && b.linkedAll && b.smLattice > 0 && galaxy.smDip < SM_DIP_GRACE;
+        galaxy.smDip = qualifies ? 0 : dip ? galaxy.smDip + 1 : SM_DIP_GRACE;
+        final boolean held = qualifies || dip;
+        l.roll(b.total(), b.linkedAll && held ? b.total() : 0);
+        if (l.update(l.supermassiveOk(b.linkedAll, held)) && !milestones.smLinkDone) {
             milestones.smLinkDone = true;
             lastEvent = "the " + EyeMilestones.SM_LINK_NAME
                 + " is HELD: 30 min unbroken from the hole at "

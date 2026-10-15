@@ -3187,7 +3187,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("  The rest stays in the hatch or ME network (scanner: held / cap),")
             .addInfo("  so one ME stocking hatch never drains the network. Outputs go to ME only.")
             .addSeparator()
-            .addInfo("Chunk-load the full footprint: while any chunk of it is unloaded the Eye is frozen (nothing is lost).")
+            .addInfo(
+                "Chunk-load the full footprint: while any chunk of it is unloaded the Eye is frozen (nothing is lost).")
             .beginVariableStructureBlock(core[0], full[0], core[1], full[1], core[2], full[2], false)
             .addController("Plinth, front centre")
             .addCasingInfoExactly("Reinforced Spatial Structure Casing", bom(PIECE_CORE, 'U'), false)
