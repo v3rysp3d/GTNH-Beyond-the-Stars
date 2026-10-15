@@ -459,6 +459,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
      * lower tier is a whole lattice: the engine sheds the hole to that tier's top (§2.5). An INCOMPLETE lattice under
      * a hole heavier than any coil holds (over 4,096 SM) unforms the quasar instead, so a broken frame block freezes
      * the hole (nothing moves, nothing is lost) until it is repaired; to take a lattice down, shed to 4,096 SM first.
+     * The same holds for a whole lattice on coils under MagMatter (QA-B30): to fit lower coils, shed to 4,096 SM first.
      */
     private void checkLattice(List<StructureError> errors) {
         nodeTier = -1;
@@ -468,7 +469,17 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         latticeBuilt = whole ? Math.min(QuasarParams.LATTICE_MAX, nodeTier) : 0;
         latticeTier = saturated ? latticeBuilt : 0;
         final boolean needed = q.hole != QuasarState.Hole.NONE && q.M > QuasarParams.M_REF * (1 + 1e-9);
-        if (whole) {
+        if (whole && needed && coilTier >= 1 && coilTier < QuasarParams.LATTICE_COIL) {
+            // QA-B30: a whole lattice on coils under MagMatter is not in force; under a hole that needs it (over 4,096
+            // SM) the quasar freezes, as for an incomplete lattice (B-154), instead of shedding days of growth
+            latticeNote = "Lattice L" + latticeBuilt
+                + " stands, but on T"
+                + coilTier
+                + " coils it is not in force under a "
+                + fmt(q.M)
+                + " SM hole: the quasar is frozen until MagMatter (T4) coils are back";
+            errors.add(StructureErrors.of("beyondthestars.structure.quasar.lattice.coils"));
+        } else if (whole) {
             latticeNote = "Lattice L" + latticeBuilt
                 + " ("
                 + QuasarParams.LATTICE_NAME[latticeBuilt]

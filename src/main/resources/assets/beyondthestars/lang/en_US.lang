@@ -457,6 +457,7 @@ beyondthestars.structure.quasar.coil=Every Disc Field Coil must be the same tier
 beyondthestars.structure.quasar.energy=The quasar needs at least one Energy or Laser Hatch in the control box (coil power: 2 A UXV x b squared)
 # ---- SMBH v1: the Supermassive Lattice, the Event Horizon Crown, Conduit Throat Mk IV (smbh-v1.md §1, §3.4, §8.1) ----
 beyondthestars.structure.quasar.lattice=The Supermassive Lattice is incomplete and the hole (over 4,096 SM) needs it: the quasar stays frozen until the lattice is whole (to take it down, lower the mass setpoint to 4,096 SM first)
+beyondthestars.structure.quasar.lattice.coils=The Supermassive Lattice needs MagMatter (T4) Disc Field Coils and the hole (over 4,096 SM) needs the lattice: the quasar stays frozen until T4 coils are back (to fit lower coils, lower the mass setpoint to 4,096 SM first)
 # slCasing4 metas 0-5 (BlockSLCasing4)
 tile.beyondthestars.slCasing4.0.name=Lattice Frame Casing
 tile.beyondthestars.slCasing4.0.tooltip=The Supermassive Lattice round a Quasar Engine: its equatorial band, two latitude rings, struts and ribs (8,436 a lattice).\nThe lattice unlocks at Saturation (4,096 SM on MagMatter coils, Stable, for 1 hour).\nAssembler (UXV), 4 a craft.
