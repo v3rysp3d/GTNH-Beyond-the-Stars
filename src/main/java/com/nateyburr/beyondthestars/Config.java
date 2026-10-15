@@ -49,6 +49,12 @@ public class Config {
     public static boolean replaceTecTechEyeOfHarmony = true;
 
     /**
+     * P5 (p5-t9-t10.md §9.6): Eye T9 (the Great Attractor) and T10 (the Universe). False caps every Eye at T8 (a server
+     * that wants the MAX chapter closed); unlocked tiers above 8 stay saved and come back if it is turned on again.
+     */
+    public static boolean enableEyeT9T10 = true;
+
+    /**
      * D-49 retired {@code interimBlackDwarfAtEyeT4} (the interim Eye T4 Black Dwarf Matter recipe, Q-3):
      * Black Dwarf Matter now comes from Eye T5's Sirius B cooling batches. The stale key is removed from
      * the config file on load (d49-build-plan.md §10.4).
@@ -199,6 +205,12 @@ public class Config {
                 + " replaces it at UIV). Every recipe that consumes a BHC controller (Spacetime Compression Field"
                 + " Generators, Compressed Circuit Array) is rewritten to consume a Kerr Ergosphere Engine controller"
                 + " instead. Placed compressors keep working. Set false to keep the BHC and its recipes as stock.");
+
+        enableEyeT9T10 = configuration.getBoolean(
+            "enableEyeT9T10",
+            Configuration.CATEGORY_GENERAL,
+            true,
+            "Eye of Harmony T9 (the Great Attractor) and T10 (the Universe). Set false to cap every Eye at T8.");
 
         replaceTecTechEyeOfHarmony = configuration.getBoolean(
             "replaceTecTechEyeOfHarmony",

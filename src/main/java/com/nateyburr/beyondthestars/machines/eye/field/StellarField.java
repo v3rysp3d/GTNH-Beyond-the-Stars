@@ -27,12 +27,14 @@ import java.util.Map;
  */
 public final class StellarField {
 
-    public static final int P = 0, TH = 1, OM = 2, PI = 3, W = 4, L = 5;
-    /** Gauge slots in every field array (P, Θ, Ω, Π, and P4's W, Λ). */
-    public static final int GAUGES = 6;
-    public static final String[] GAUGE_SYM = { "P", "Θ", "Ω", "Π", "W", "Λ" };
+    public static final int P = 0, TH = 1, OM = 2, PI = 3, W = 4, L = 5, V = 6, H = 7;
+    /** Gauge slots in every field array (P, Θ, Ω, Π, P4's W, Λ, and P5's V, H). */
+    public static final int GAUGES = 8;
+    /** The D-49 and P4 gauges (the T1-T8 golden tests hash and list these six). */
+    public static final int GAUGES_P4 = 6;
+    public static final String[] GAUGE_SYM = { "P", "Θ", "Ω", "Π", "W", "Λ", "V", "H" };
     public static final String[] GAUGE_NAME = { "Pressure", "Core heat", "Spin", "Polarity", "Rail warp",
-        "Tidal shear" };
+        "Tidal shear", "Infall", "Expansion" };
     public static final String[] ZONE_NAME = { "Resonant", "Stable", "Strained", "Critical", "Breach" };
     static final double[] ZONE_Y = { 1.25, 1.0, 0.5, 0, 0 };
     static final double[] ZONE_DI = { 1, 0.2, -0.5, -2, 0 };
@@ -148,6 +150,7 @@ public final class StellarField {
      * first cycle.
      */
     public static boolean stepIgniting(FieldState s, double dialSetpoint, int tt) {
+        s.zone = -1;
         s.x[P] = Math.min(s.x[P] + IGNITION_RATE, 0);
         boolean lit = false;
         if (s.x[P] >= IGNITION_LIT) {
@@ -160,6 +163,7 @@ public final class StellarField {
 
     /** One DARK (or IDLE) second: only the clock moves. */
     public static void stepDark(FieldState s) {
+        s.zone = -1;
         s.t++;
     }
 
@@ -227,8 +231,8 @@ public final class StellarField {
         if (w2 != 0) warn = w2;
         if (T.ergoFeed) crossingTick(s, E, q, ov.running(), out);
 
-        // ---- the gauge update
-        final double[] d = ov.drift(T, s, in);
+        // ---- the gauge update (P5: the T9 beam and flow, and the T10 universe clock, run inside the drift)
+        final double[] d = ov.drift(T, s, in, out);
         final int[] gauges = ov.gauges(T);
         for (int k : gauges) {
             final double e = s.x[k] - (k == TH && T.batch ? sp : 0);
@@ -243,7 +247,7 @@ public final class StellarField {
                 if (f != 0) dv += f * tr.getValue() / p;
             }
             dv += E[k];
-            if (T.galaxy) dv += T.burstTerm(k, in); // the prototype's T.bx (0 on P)
+            if (T.galaxy) dv += T.burstTerm(k, s, in); // the prototype's T.bx (0 on P)
             s.x[k] = clamp(s.x[k] + dv, -120, 120);
         }
 
@@ -269,6 +273,7 @@ public final class StellarField {
         }
         final int z = zoneOf(worst);
         out.zone = z;
+        s.zone = z;
         out.worst = worst;
         out.worstGauge = wk;
         out.err = err;
@@ -286,22 +291,25 @@ public final class StellarField {
         s.prevE = err;
         s.prevWarn = warn;
 
-        // ---- failure
+        // ---- failure (P5: the Infall and Inflation recover softly, a universe collapses; before the clock moves)
         if (z == 4) {
             out.fail = "Breach, " + GAUGE_SYM[wk] + " " + fmtSigned(err[wk]);
+            failRule(s, ov, in, out);
             s.t++;
             return out;
         }
         s.I = clamp(s.I + ZONE_DI[z], 0, 100);
         if (s.I <= 0) {
             out.fail = "Integrity reached 0";
+            failRule(s, ov, in, out);
             s.t++;
             return out;
         }
 
-        // ---- the transition (after Integrity, before the cycles: prototype order)
+        // ---- the transition (after Integrity, before the cycles: prototype order). A P5 soft fail inside it
+        // (recovered) carries on into the per-second terms of the tier below, as the prototype's does.
         ov.tick(s, z, in, out);
-        if (out.fail != null || out.supernova) {
+        if ((out.fail != null && !out.recovered) || out.supernova) {
             s.t++;
             return out;
         }
@@ -310,7 +318,7 @@ public final class StellarField {
         // one)
         final TierParams Tn = s.tier;
         // the prototype's S.trans after the transition's second (a success clears it before the per-second terms)
-        final boolean trans = ov.running() && !out.transitionSuccess;
+        final boolean trans = ov.running() && !out.transitionSuccess && !out.recovered;
         if (Tn.feed) {
             final double h = in.feed * m * p;
             s.cyc.hsm += h;
@@ -327,7 +335,13 @@ public final class StellarField {
                 }
                 crossingPost(s, z, in, out);
             }
+            if (Tn.attractor) { // P5 T9: the flow's end, then its warning on the event channel
+                AttractorField.flowPost(s, z, in, out);
+                if (out.flowEnded && trans) ov.onFlowEnded();
+                if (s.flowWarn != 0 && out.warn == 0) out.warn = s.flowWarn;
+            }
         }
+        if (Tn.universe) UniverseField.perSec(s, Y, in, trans, out);
         final FieldState.Cycle cy = s.cyc;
         cy.ySum += Y;
         cy.n++;
@@ -339,7 +353,13 @@ public final class StellarField {
             out.cycleMeanY = mY;
             out.cycleRMin = cy.rMin;
             if (!Tn.batch && !Tn.planets()) {
-                if (Tn.galaxy) {
+                if (Tn.universe) {
+                    out.cycleProduct = 0; // the universe's product is per batch
+                } else if (Tn.attractor) {
+                    out.companionCycle = !trans;
+                    out.galaxyCycle = !trans && mY >= 1;
+                    out.cycleProduct = trans ? 0 : AttractorField.DM_CYCLE * p * mY * cy.rMin;
+                } else if (Tn.galaxy) {
                     out.companionCycle = !trans;
                     out.cycleProduct = trans ? 0
                         : Tn.ergoFeed ? GalaxyField.T8_RATIO * cy.f8 * mY * cy.rMin
@@ -370,6 +390,25 @@ public final class StellarField {
         }
         s.t++;
         return out;
+    }
+
+    /**
+     * P5: the failure rule inside the field (the prototype's {@code fail} wrapper): a running Infall or Inflation soft
+     * fails ({@link Overlay#onFail}); a T10 universe with no transition collapses ({@link UniverseField#collapse}).
+     * Everything else is the runtime's (the star goes out).
+     */
+    static void failRule(FieldState s, Overlay ov, StepInputs in, StepResult out) {
+        out.failEarly = true;
+        if (ov.running()) {
+            ov.onFail(s, in, out);
+            return;
+        }
+        if (s.tier.universe) UniverseField.collapse(s, out);
+    }
+
+    /** P5: the time dial does nothing at T9 or T10 (F-P5-3); TecTech's Time generators stop at tier 9. */
+    public static boolean dialRetired(TierParams t) {
+        return t.n >= 9;
     }
 
     // ------------------------------------------------------------------ P4: the T8 satellite crossing

@@ -46,7 +46,26 @@ public final class FieldReadout {
         /** Planets mode: the running slots' mean progress, %. */
         SLOT_PROGRESS(false, 100),
         /** Seconds to the running countdown (merger, crossing, pass, collapse); −1 none; analog 0..w. */
-        COUNTDOWN(false, 0);
+        COUNTDOWN(false, 0),
+        // ---- P5 (p5-t9-t10.md §9.3; appended)
+        /** T9: V, the infall against the beam (the beam's own wire: analog, window ±30). */
+        V(true, 0),
+        /** T10: H, the expansion error against the Friedmann curve. */
+        H(true, 0),
+        /** T9: the beam's ρ (beam power over the Attractor's drive); analog 0..w. */
+        BEAM_RHO(false, 0),
+        /** T9: GeV per pellet of the grade fired, in EeV (1.25 / 5 / 20); analog 0..w. */
+        BEAM_GEV(false, 0),
+        /** T9: the beam's hold rating, 0..12. */
+        HOLD_RATING(false, 12),
+        /** T9: the warned or surging group's size, 0..12 (0 none). */
+        FLOW_SIZE(false, 12),
+        /** T9+: galaxies held (the display counter); analog 0..w. */
+        GALAXIES(false, 0),
+        /** T10: the universe's age, % of its 7,200 s. */
+        UNIVERSE_AGE(false, 100),
+        /** T8: the Deep Link's streak, % of 30 min. */
+        DEEP_LINK_STREAK(false, 100);
 
         /** Gauge-scaled (−120..+120). */
         public final boolean gauge;
@@ -102,6 +121,23 @@ public final class FieldReadout {
     public final int countdown;
     /** Planets mode (one gauge). */
     public final boolean planets;
+    // ---- P5 (set by withP5)
+    public double beamRho, beamEeV, galaxies, universeAge, deepLinkStreak;
+    public int holdRating, flowSize;
+
+    /** P5: this snapshot with the T9 / T10 extras (the fields are set in place on a fresh copy). */
+    public FieldReadout withP5(double beamRho, double beamEeV, int holdRating, int flowSize, double galaxies,
+        double universeAge, double deepLinkStreak) {
+        final FieldReadout r = withGalaxy(beta, linkStreak, linkMean, slotProgress, countdown, planets);
+        r.beamRho = beamRho;
+        r.beamEeV = beamEeV;
+        r.holdRating = holdRating;
+        r.flowSize = flowSize;
+        r.galaxies = galaxies;
+        r.universeAge = universeAge;
+        r.deepLinkStreak = deepLinkStreak;
+        return r;
+    }
 
     public FieldReadout(boolean lit, int tier, double[] x, double A, double I, int lock, int zone, double stability,
         double Y, int warn, double sp, double m, double q, double r, double p) {
@@ -229,6 +265,24 @@ public final class FieldReadout {
                 return 100 * slotProgress;
             case COUNTDOWN:
                 return countdown;
+            case V:
+                return x[StellarField.V];
+            case H:
+                return x[StellarField.H];
+            case BEAM_RHO:
+                return beamRho;
+            case BEAM_GEV:
+                return beamEeV;
+            case HOLD_RATING:
+                return holdRating;
+            case FLOW_SIZE:
+                return flowSize;
+            case GALAXIES:
+                return galaxies;
+            case UNIVERSE_AGE:
+                return 100 * universeAge;
+            case DEEP_LINK_STREAK:
+                return 100 * deepLinkStreak;
             default:
                 return Double.isNaN(sp) ? 0 : x[StellarField.TH] - sp;
         }

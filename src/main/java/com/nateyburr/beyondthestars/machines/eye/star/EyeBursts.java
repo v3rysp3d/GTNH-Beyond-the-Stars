@@ -17,6 +17,12 @@ public final class EyeBursts {
 
     /** Bu/t on the rail-high, rail-low and halo ports last second. */
     public double hi, lo, halo;
+    /**
+     * P5: Bu/t on the T9 collar ports (the Deep Link's test fire at T8, where they move nothing; part of the Eye from
+     * T9) and on the T10 crown's 12 ports (every burst of the Universe).
+     */
+    public double collar, crown;
+    public int collarPorts, crownPorts;
     /** A linked quasar delivered to the rail (the Stability Link's "linked"), to any port (the Heavy Link's). */
     public boolean linkedRail, linkedAll;
     /** Q-8: a source that fed these ports is frozen or not loaded: the galaxy field and cycle pause. */
@@ -52,11 +58,11 @@ public final class EyeBursts {
     }
 
     public double total() {
-        return hi + lo + halo;
+        return hi + lo + halo + collar + crown;
     }
 
     public int ports() {
-        return hiPorts + loPorts + haloPorts;
+        return hiPorts + loPorts + haloPorts + collarPorts + crownPorts;
     }
 
     /** One scanner line. */
@@ -65,7 +71,7 @@ public final class EyeBursts {
         if (ports() == 0) return "no GRB Receptor Ports (the T7 rail and the T8 halo carry them)";
         return String.format(
             Locale.ROOT,
-            "Bursts %s: rail high %.2f (%d ports), low %.2f (%d), halo %.2f (%d)%s",
+            "Bursts %s: rail high %.2f (%d ports), low %.2f (%d), halo %.2f (%d)%s%s",
             com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(total()),
             hi,
             hiPorts,
@@ -73,6 +79,8 @@ public final class EyeBursts {
             loPorts,
             halo,
             haloPorts,
+            collarPorts + crownPorts == 0 ? ""
+                : String.format(Locale.ROOT, ", collar %.2f (%d), crown %.2f (%d)", collar, collarPorts, crown, crownPorts),
             source.isEmpty() ? (total() > 1e-9 ? ", not linked" : "") : ", linked to " + source);
     }
 }

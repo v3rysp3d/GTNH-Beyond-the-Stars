@@ -28,7 +28,9 @@ import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.items.SLQuasarItems;
 import com.nateyburr.beyondthestars.machines.eye.field.CollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
+import com.nateyburr.beyondthestars.machines.eye.field.AttractorField;
 import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
+import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
 import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.StellarField;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
@@ -266,6 +268,56 @@ public final class EyeRecipeRegistry {
             none,
             list(in(wdm, 18_432L), in(bdm, 4_608L), in(SLFluids.antipolarizationAgent, 100_000L)));
         registerGalaxies(wdm, bdm);
+        registerP5();
+    }
+
+    /**
+     * P5 (p5-t9-t10.md §2, §6): Eye T9 the Great Attractor (no fluid upkeep: the pellet beam is its touch, drawn per
+     * second; product Attractor Dark Matter 144 L × Y × r a cycle plus 144 L per galaxy captured; born by The Infall,
+     * whose Superdense Ergomatter charge is shown as its charge), its planets mode (9 slots), and Eye T10 the Universe
+     * (one universe per 7,200 s batch, charged with Attractor Dark Matter 9,216 L; product Molten Universium; born by
+     * Inflation, whose Dark Matter charge is shown as its charge).
+     */
+    private static void registerP5() {
+        final Fluid dm = com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.darkMatter();
+        final Fluid universium = com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.universium();
+        final Fluid superdense = SLQuasarFluids.superdenseErgomatter;
+        if (dm == null || universium == null || superdense == null) {
+            BeyondTheStars.LOG.error(
+                "[BTS] Eye T9/T10 skipped: Attractor Dark Matter, Molten Universium or Superdense Ergomatter is not"
+                    + " registered.");
+            return;
+        }
+        galaxyDef(
+            "star:attractor",
+            "The Great Attractor",
+            TierParams.T9,
+            com.nateyburr.beyondthestars.items.SLP5Items.starChartGreatAttractor,
+            Collections.emptyMap(),
+            dm,
+            null,
+            list(in(superdense, EyeStarRuntime.INFALL_SDE)),
+            false);
+        galaxyDef(
+            "star:planets9",
+            "Great Attractor: 9 planets",
+            TierParams.PLANETS9,
+            com.nateyburr.beyondthestars.items.SLP5Items.starChartGreatAttractor,
+            Collections.emptyMap(),
+            null,
+            null,
+            Collections.emptyList(),
+            true);
+        galaxyDef(
+            "star:universe",
+            "The Universe",
+            TierParams.T10,
+            com.nateyburr.beyondthestars.items.SLMaxItems.starChartUniverse,
+            Collections.emptyMap(),
+            universium,
+            null,
+            list(in(dm, EyeStarRuntime.INFLATION_DM)),
+            false);
     }
 
     /**
@@ -651,6 +703,45 @@ public final class EyeRecipeRegistry {
                 desc.add("Then Stable 120 s in 300 s");
                 desc.add("Re-runs: no core, no link");
                 break;
+            case INFALL:
+                desc.add(" Deep Link 30 min (24 Bu/t,");
+                desc.add(" half on the collars, beam");
+                desc.add(" rho >= 1)");
+                desc.add(
+                    " " + compact((long) EyeMilestones.PROD_NEED[8])
+                        + " L Stable, "
+                        + fmt(EyeMilestones.RES_NEED[8])
+                        + " s, "
+                        + EyeMilestones.CROSSINGS_NEED
+                        + " crossings");
+                desc.add("Pellet Injector, hold >= 6;");
+                desc.add(" galaxy mode, no companions");
+                desc.add("Begin: GUI, Begin hatch, OC");
+                desc.add("1,800 s: demand 6 -> 24 Bu/t");
+                desc.add(" V ramps in over 600 s");
+                desc.add(" forced flow of 6 at 1,200 s");
+                desc.add("Then Stable 120 s by 2,100 s");
+                desc.add("Fail: the Milky Way stays");
+                desc.add(" lit at T8, core kept");
+                desc.add("Re-runs: no core, no link");
+                break;
+            case INFLATION:
+                desc.add(" Supermassive Link 30 min,");
+                desc.add(
+                    " " + compact((long) EyeMilestones.PROD_NEED[9])
+                        + " L Dark Matter, "
+                        + EyeMilestones.FLOWS_NEED
+                        + " flows held");
+                desc.add("Crown built, all 12 ports;");
+                desc.add(" compression tier 10");
+                desc.add("Begin: GUI, Begin hatch, OC");
+                desc.add("900 s: demand 24 -> 96 Bu/t");
+                desc.add(" 300 s: H appears at +85");
+                desc.add(" 600 s: recombination");
+                desc.add("Then Stable 120 s by 900 s");
+                desc.add("Fail: the Attractor stays");
+                desc.add(" lit at T9, core kept");
+                break;
             case MAGNETAR_MERGER:
             default:
                 desc.add(" " + EyeMilestones.GOOD_BATCHES_NEED + " batches, mean Y >= 0.9");
@@ -662,7 +753,9 @@ public final class EyeRecipeRegistry {
                 desc.add("Every re-spawn: the charge");
                 break;
         }
-        desc.add("Fail: star lost, core kept");
+        if (type != EyeTransition.Type.INFALL && type != EyeTransition.Type.INFLATION) {
+            desc.add("Fail: star lost, core kept");
+        }
         // the event fluids plus the new star's first cycle (p = 1, default feed): the same amounts the controller
         // waits for before it begins (EyeStarRuntime.transitionNeeds)
         for (Map.Entry<Fluid, Long> need : EyeStarRuntime.transitionNeeds(type, 1, EyeStarRuntime.FEED_DEFAULT)
@@ -765,6 +858,10 @@ public final class EyeRecipeRegistry {
      * setpoint, shown here at the default (0.694 L/s = 41.64 L per cycle); T5 is per batch.
      */
     private static void displayStar(StarDef def) {
+        if (def.tier.attractor || def.tier.universe) {
+            displayP5(def);
+            return;
+        }
         if (def.galaxyTier()) {
             displayGalaxy(def);
             return;
@@ -889,6 +986,99 @@ public final class EyeRecipeRegistry {
             .fluidInputs(in.toArray(new FluidStack[0]))
             .fluidOutputs(out.toArray(new FluidStack[0]))
             .duration((int) StarDef.CYCLE_TICKS)
+            .eut(0)
+            .fake()
+            .ignoreCollision()
+            .setNEIDesc(desc.toArray(new String[0]))
+            .addTo(EyeRecipeMaps.EYE);
+    }
+
+    /**
+     * P5 star pages (p5-t9-t10.md §9.4, recipe.eye9 / recipe.flow / recipe.eye10): T9 per 60 s cycle (the Superdense
+     * pellets of a steady beam in, Dark Matter 144 L out; the beam's rate law and hold-rating table), the Galactic Flow
+     * (one page per group size from 3 to 12: the galaxies captured and their Dark Matter), and T10 per universe (the Dark
+     * Matter charge in, Universium 9,216 L out; the curve and its events).
+     */
+    private static void displayP5(StarDef def) {
+        final TierParams t = def.tier;
+        final List<String> desc = new ArrayList<>();
+        final List<FluidStack> in = new ArrayList<>(), out = new ArrayList<>();
+        final List<ItemStack> items = new ArrayList<>();
+        int ticks = (int) StarDef.CYCLE_TICKS;
+        desc.add("T" + t.n + " " + clip(def.name, 25));
+        if (t.attractor) {
+            final net.minecraft.item.Item sup = com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense;
+            if (sup != null) items.add(new ItemStack(sup, 30, 0)); // ~0.5 pellets/s steady
+            out.add(new FluidStack(def.product, (int) Math.round(AttractorField.DM_CYCLE)));
+            desc.add("Per 60 s cycle:");
+            desc.add("Out Dark Matter 144 L x Y x r");
+            desc.add(" +144 L per galaxy captured");
+            desc.add("Bursts: D 24 Bu/t x p");
+            desc.add(" (" + com.nateyburr.beyondthestars.machines.gui.BTSFormat.euOfBu(24) + " x p)");
+            desc.add("Pellet beam (V's control):");
+            desc.add(" n = cap x clamp(c + k(s/15-.5))");
+            desc.add(" rho = beam / 1e10 GeV/s");
+            desc.add(" dV = 2 phi - 2 rho");
+            desc.add("Grade x barrel: rating");
+            desc.add(" Superdense Mk I: 12");
+            desc.add(" Ergomatter Mk II: 8, Mk I: 0");
+            desc.add(" Magnetar: primer only");
+            desc.add("Field: " + gaugeList(t) + ", Galactic Flow");
+            desc.add(sci(def.euPerCycle) + " EU/cycle, wireless");
+            desc.add("Companions: 3 (galaxies too)");
+            desc.add("Born: The Infall");
+            // the flow pages: a group of n, held in full
+            for (int n = AttractorField.FLOW_MIN; n <= AttractorField.FLOW_MAX; n++) {
+                final List<String> fd = new ArrayList<>();
+                fd.add("Galactic Flow: " + n + " galaxies");
+                fd.add("Warned 180 s (side, size)");
+                fd.add("Accepted if n <= the limit");
+                fd.add(" (default: the hold rating);");
+                fd.add(" else it streams past");
+                fd.add("Surge 240 s: phi peaks " + String.format(Locale.ROOT, "%.2f", 1 + 0.25 * n));
+                fd.add("Held Stable all 240 s:");
+                fd.add(" all " + n + " captured");
+                fd.add("Partly: floor(n x fraction)");
+                fd.add("Needs rho_max >= " + String.format(Locale.ROOT, "%.2f", 2 + 0.25 * n));
+                GTValues.RA.stdBuilder()
+                    .itemInputs(def.chart.copy())
+                    .fluidOutputs(new FluidStack(def.product, (int) Math.round(AttractorField.DM_CYCLE * n)))
+                    .duration(AttractorField.FLOW_DUR * 20)
+                    .eut(0)
+                    .fake()
+                    .ignoreCollision()
+                    .setNEIDesc(fd.toArray(new String[0]))
+                    .addTo(EyeRecipeMaps.EYE);
+            }
+        } else {
+            final Fluid dm = com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.darkMatter();
+            if (dm != null) in.add(new FluidStack(dm, (int) Math.round(UniverseField.CHARGE)));
+            out.add(new FluidStack(def.product, (int) Math.round(UniverseField.OUT)));
+            ticks = UniverseField.BATCH * 20;
+            desc.add("One universe, 7,200 s:");
+            desc.add("Charge Dark Matter 9,216 L");
+            desc.add("Out Universium 9,216 L x mean Y");
+            desc.add(" x r; +12.5 % for Cosmic Dawn");
+            desc.add("Keep it flat: H = 0");
+            desc.add(" Dark Matter trim: H -2");
+            desc.add(" SpaceTime trim: H +2");
+            desc.add("Recombination 1,800 s");
+            desc.add("Cosmic Dawn 3,240-4,680 s");
+            desc.add("Breach: 25 % x run salvaged,");
+            desc.add(" next universe; T10 kept");
+            desc.add("Bursts: D 96 Bu/t on the crown");
+            desc.add(" (" + com.nateyburr.beyondthestars.machines.gui.BTSFormat.euOfBu(96) + " x p)");
+            desc.add(sci(def.euPerCycle) + " EU/cycle, wireless");
+            desc.add("Born: Inflation");
+        }
+        final List<ItemStack> allItems = new ArrayList<>();
+        allItems.add(def.chart.copy());
+        allItems.addAll(items);
+        GTValues.RA.stdBuilder()
+            .itemInputs(allItems.toArray(new ItemStack[0]))
+            .fluidInputs(in.toArray(new FluidStack[0]))
+            .fluidOutputs(out.toArray(new FluidStack[0]))
+            .duration(ticks)
             .eut(0)
             .fake()
             .ignoreCollision()

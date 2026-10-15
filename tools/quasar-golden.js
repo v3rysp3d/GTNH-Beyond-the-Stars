@@ -42,7 +42,7 @@ const JAVA = path.join(ROOT, 'src', 'main', 'java', 'com', 'nateyburr', 'beyondt
 const javaSrc = () => [
   ...fs.readdirSync(path.join(JAVA, 'eye', 'field')).filter(f => f.endsWith('.java')).map(f => path.join(JAVA, 'eye', 'field', f)),
   ...fs.readdirSync(path.join(JAVA, 'quasar', 'engine')).filter(f => f.endsWith('.java')).map(f => path.join(JAVA, 'quasar', 'engine', f)),
-  ...['DirectiveSet.java', 'GalaxyDirective.java', 'QuasarDirective.java'].map(f => path.join(JAVA, 'directive', f))];
+  ...['DirectiveSet.java', 'GalaxyDirective.java', 'QuasarDirective.java', 'P5Directive.java'].map(f => path.join(JAVA, 'directive', f))];
 const CLASSES = path.join(ROOT, 'build', 'quasar-classes');
 const E_START = '/*ENGINE-START*/', E_END = '/*ENGINE-END*/', P_START = '/*P4-START*/', P_END = '/*P4-END*/';
 

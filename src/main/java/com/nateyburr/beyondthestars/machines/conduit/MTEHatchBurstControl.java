@@ -54,7 +54,9 @@ public class MTEHatchBurstControl extends MTEHatch {
         HOLD("Hold",
             "the mass setpoint, safe limit (1) .. band top (15), log scale; 0 leaves the GUI's (Quasar Engine, lattice)"),
         OVERDRIVE("Overdrive", "Overdrive o = s / 15 in 5 % steps (Quasar Engine, L3 lattice)"),
-        SHED("Shed", "a rising edge lowers the mass setpoint to the safe limit (Quasar Engine, lattice)");
+        SHED("Shed", "a rising edge lowers the mass setpoint to the safe limit (Quasar Engine, lattice)"),
+        // ---- P5 (p5-t9-t10.md §3.3): beside a Pellet Injector Hatch on the Eye's T9 top collar. Appended.
+        BEAM("Pellet beam", "pellets/s = cap x clamp(c + k (s/15 - 0.5)) (Eye of Harmony, Pellet Injector)");
 
         public static final Mode[] VALUES = values();
 
@@ -134,6 +136,8 @@ public class MTEHatchBurstControl extends MTEHatch {
             BTSTip.heading("Conduit Junction") + ": the level moves the split share.",
             BTSTip.heading("Eye of Harmony") + ": an edge begins the galaxy transition",
             "once its Transition bit [1] is on.",
+            BTSTip.heading("Pellet beam") + " (Eye T9, beside the Pellet Injector):",
+            "the level is s in the injector's rate law (V sensor or two Directive bits).",
             "Level " + BTSTip.num("0") + " leaves the GUI's own value.");
     }
 

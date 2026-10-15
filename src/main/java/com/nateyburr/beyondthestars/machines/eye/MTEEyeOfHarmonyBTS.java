@@ -68,6 +68,7 @@ import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeBursts;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeNbt;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
+import com.nateyburr.beyondthestars.machines.eye.star.PelletFeed;
 import com.nateyburr.beyondthestars.machines.eye.star.StarDef;
 import com.nateyburr.beyondthestars.machines.gui.BTSChecklist;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
@@ -197,17 +198,29 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** P4: the T8 band, the shard halo with 8 GRB Receptor Ports at the shard roots. */
     public static final String PIECE_HALO = "eye_halo";
     /**
+     * P5: the T9 band, the thorn-crowned collimator stack (five collars, 5 GRB Receptor Ports, group collar; two
+     * Pellet Injector sockets on the top collar).
+     */
+    public static final String PIECE_JET9 = "eye_jet9";
+    /** P5: the T10 band, the universal crown lifted 62 above the core (12 GRB Receptor Ports, group crown). */
+    public static final String PIECE_CROWN = "eye_crown";
+    /**
      * Pieces in hologram and tier order; the trigger stack size (1..8) projects the first N. D-49: the
      * bands are CUMULATIVE, so piece i (tier i+1) counts only while every piece before it stands.
      */
     public static final String[] PIECES = { PIECE_CORE, PIECE_BEAM, PIECE_JET, PIECE_ARMS, PIECE_ARMS2, PIECE_RIM,
-        PIECE_RAIL, PIECE_HALO };
+        PIECE_RAIL, PIECE_HALO, PIECE_JET9, PIECE_CROWN };
     /** What the scanner calls each piece (index = piece index). */
     private static final String[] BAND_NAMES = { "core", "beam band", "jet crescent", "spiral arms", "second arms",
-        "galactic rim", "stability rail", "shard halo" };
-    /** P4: the Receptor Port groups (manifest {@code sockets.r[i].group}). */
-    public static final int GROUP_HIGH = 0, GROUP_LOW = 1, GROUP_HALO = 2;
-    public static final String[] GROUP_NAMES = { "rail-high", "rail-low", "halo" };
+        "galactic rim", "stability rail", "shard halo", "collimator stack", "universal crown" };
+    /** P4: the Receptor Port groups (manifest {@code sockets.r[i].group}); P5 adds collar (T9) and crown (T10). */
+    public static final int GROUP_HIGH = 0, GROUP_LOW = 1, GROUP_HALO = 2, GROUP_COLLAR = 3, GROUP_CROWN = 4;
+    public static final String[] GROUP_NAMES = { "rail-high", "rail-low", "halo", "collar", "crown" };
+    /**
+     * P5: slCasing4's meta for the Universal Compression Field Generator, the tenth compression tier (p5-t9-t10.md
+     * §6.3; the content unit's {@code BlockSLCasing4.UNIVERSAL_COMPRESSION}). Walks as compression meta 9 (tier 10).
+     */
+    public static final int UNIVERSAL_COMPRESSION_META = 6;
     /** The highest tier the structure can carry. */
     public static final int MAX_TIER = PIECES.length;
 
@@ -224,7 +237,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * (D-49 extends the gate to T6; P4 to T7 meta 6 and T8 meta 7). Index 0 is unused. Change the mapping here and
      * nowhere else.
      */
-    public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3, 4, 5, 6, 7 };
+    public static final int[] COMPRESSION_META_FOR_TIER = { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     /** Buffers cap at 2^62 L each (spec §3.3); what the sockets fill them to is {@link #intakeCaps} (B-108). */
     public static final long BUFFER_CAP = 1L << 62;
@@ -296,7 +309,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** P4: GRB Receptor Ports by group (rail-high, rail-low on the T7 rail; halo on the T8 shards). */
     @SuppressWarnings("unchecked")
     private final ArrayList<MTEHatchGRBReceptor>[] receptors = new ArrayList[] { new ArrayList<>(), new ArrayList<>(),
-        new ArrayList<>() };
+        new ArrayList<>(), new ArrayList<>(), new ArrayList<>() };
+    /** P5: the top collar's 'i' sockets: Pellet Injector Hatches, their Burst Control Hatches, pellet stock buses. */
+    private final ArrayList<MTEHatchPelletInjector> injectors = new ArrayList<>();
+    private final ArrayList<MTEHatchBurstControl> beamControls = new ArrayList<>();
+    private final ArrayList<MTEHatchInputBus> pelletBuses = new ArrayList<>();
     /** P4: Burst Control Hatches in the 'd' sockets (Begin mode: a rising edge begins a galaxy transition). */
     private final ArrayList<MTEHatchBurstControl> burstControls = new ArrayList<>();
     /** P4: the slot bus ('p'): planet items and companion star charts, read every second, never consumed. */
@@ -351,6 +368,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addShape(PIECE_RIM, BTSShapes.load(PIECE_RIM))
             .addShape(PIECE_RAIL, BTSShapes.load(PIECE_RAIL))
             .addShape(PIECE_HALO, BTSShapes.load(PIECE_HALO))
+            .addShape(PIECE_JET9, BTSShapes.load(PIECE_JET9))
+            .addShape(PIECE_CROWN, BTSShapes.load(PIECE_CROWN))
             // ---- TecTech's own EOH blocks (the mid-run ruling)
             .addElement('U', casing(Casings.ReinforcedSpatialStructureCasing))
             .addElement('Q', casing(Casings.ReinforcedTemporalStructureCasing))
@@ -462,6 +481,29 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     .casingIndex(shellIndex)
                     .hint(9)
                     .buildAndChain(block(sl, BlockSLCasing.BASTION)))
+            // ---- P5 (p5-t9-t10.md §9.5): the T10 crown's Eternity Shell; its 12 GRB Receptor Ports ('k', group crown,
+            // falling back to the shell) and the T9 top collar's two Pellet Injector sockets ('i', falling back to the
+            // Bastion Plate). Both are OPTIONAL sockets (BTSStructures.optionalHatch): no build path pulls a late-tier
+            // hatch unless the projector asks for the optional hatches.
+            .addElement(
+                'E',
+                block(com.nateyburr.beyondthestars.blocks.SLBlocks.slCasing3,
+                    com.nateyburr.beyondthestars.blocks.BlockSLCasing3.ETERNITY_SHELL))
+            .addElement(
+                'k',
+                optionalHatch(
+                    buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Receptor)
+                        .casingIndex(shellIndex)
+                        .hint(9),
+                    block(com.nateyburr.beyondthestars.blocks.SLBlocks.slCasing3,
+                        com.nateyburr.beyondthestars.blocks.BlockSLCasing3.ETERNITY_SHELL)))
+            .addElement(
+                'i',
+                optionalHatch(
+                    buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Pellet)
+                        .casingIndex(shellIndex)
+                        .hint(10),
+                    block(sl, BlockSLCasing.BASTION)))
             .build();
     }
 
@@ -510,11 +552,76 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * placement reads the trigger stack only, never server state (trap 1).
      */
     private static IStructureElement<MTEEyeOfHarmonyBTS> compressionField(Block generator) {
-        return tieredBlock(
+        final IStructureElement<MTEEyeOfHarmonyBTS> tecTech = tieredBlock(
             generator,
             FIELD_METAS,
             fieldWalk(FIELD_COMPRESSION, generator),
-            MTEEyeOfHarmonyBTS::compressionMetaFor);
+            t -> Math.min(FIELD_METAS.length - 1, compressionMetaFor(t)));
+        return universalOr(tecTech);
+    }
+
+    /**
+     * P5: the tenth compression tier (p5-t9-t10.md §6.3): a cell passes with a Universal Compression Field Generator
+     * (slCasing4, recorded as meta 9) or with any TecTech generator; a build for T10 places the Universal one.
+     */
+    private static IStructureElement<MTEEyeOfHarmonyBTS> universalOr(IStructureElement<MTEEyeOfHarmonyBTS> tecTech) {
+        final IStructureElement<MTEEyeOfHarmonyBTS> tenth = onElementPass(
+            x -> x.noteField(FIELD_COMPRESSION, 9),
+            ofBlock(com.nateyburr.beyondthestars.blocks.SLBlocks.slCasing4, UNIVERSAL_COMPRESSION_META));
+        final IStructureElement<MTEEyeOfHarmonyBTS> placeTenth = noOverwrite(
+            ofBlock(com.nateyburr.beyondthestars.blocks.SLBlocks.slCasing4, UNIVERSAL_COMPRESSION_META));
+        return new IStructureElement<MTEEyeOfHarmonyBTS>() {
+
+            private boolean wantsTenth(ItemStack trigger) {
+                return compressionMetaFor(trigger) >= 9;
+            }
+
+            @Override
+            public boolean check(MTEEyeOfHarmonyBTS t, net.minecraft.world.World world, int x, int y, int z) {
+                return tenth.check(t, world, x, y, z) || tecTech.check(t, world, x, y, z);
+            }
+
+            @Override
+            public boolean couldBeValid(MTEEyeOfHarmonyBTS t, net.minecraft.world.World world, int x, int y, int z,
+                ItemStack trigger) {
+                return tenth.couldBeValid(t, world, x, y, z, trigger) || tecTech.couldBeValid(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public List<String> getDescription(MTEEyeOfHarmonyBTS t) {
+                return tecTech.getDescription(t);
+            }
+
+            @Override
+            public boolean spawnHint(MTEEyeOfHarmonyBTS t, net.minecraft.world.World world, int x, int y, int z,
+                ItemStack trigger) {
+                return wantsTenth(trigger) ? placeTenth.spawnHint(t, world, x, y, z, trigger)
+                    : tecTech.spawnHint(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public boolean placeBlock(MTEEyeOfHarmonyBTS t, net.minecraft.world.World world, int x, int y, int z,
+                ItemStack trigger) {
+                return wantsTenth(trigger) ? placeTenth.placeBlock(t, world, x, y, z, trigger)
+                    : tecTech.placeBlock(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public com.gtnewhorizon.structurelib.structure.IStructureElement.BlocksToPlace getBlocksToPlace(
+                MTEEyeOfHarmonyBTS t, net.minecraft.world.World world, int x, int y, int z, ItemStack trigger,
+                com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment env) {
+                return wantsTenth(trigger) ? placeTenth.getBlocksToPlace(t, world, x, y, z, trigger, env)
+                    : tecTech.getBlocksToPlace(t, world, x, y, z, trigger, env);
+            }
+
+            @Override
+            public com.gtnewhorizon.structurelib.structure.IStructureElement.PlaceResult survivalPlaceBlock(
+                MTEEyeOfHarmonyBTS t, net.minecraft.world.World world, int x, int y, int z, ItemStack trigger,
+                com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment env) {
+                return wantsTenth(trigger) ? placeTenth.survivalPlaceBlock(t, world, x, y, z, trigger, env)
+                    : tecTech.survivalPlaceBlock(t, world, x, y, z, trigger, env);
+            }
+        };
     }
 
     /**
@@ -555,6 +662,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         directiveHatches.clear();
         itemBuses.clear();
         for (List<MTEHatchGRBReceptor> group : receptors) group.clear();
+        injectors.clear();
+        beamControls.clear();
+        pelletBuses.clear();
         burstControls.clear();
         slotBuses.clear();
         mOutputBusses.clear();
@@ -586,7 +696,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         for (int i = 1; i < PIECES.length; i++) {
             pieceErrors.clear();
             final int mark = stellarHatches.size();
-            final int[] rMark = { receptors[0].size(), receptors[1].size(), receptors[2].size() };
+            final int[] rMark = { receptors[0].size(), receptors[1].size(), receptors[2].size(), receptors[3].size(),
+                receptors[4].size() };
+            final int[] iMark = { injectors.size(), beamControls.size(), pelletBuses.size() };
             final int[] at = off(PIECES[i]);
             bandBuilt[i] = checkPiece(PIECES[i], at[0], at[1], at[2], pieceErrors);
             bandFault[i] = fault(bandBuilt[i], pieceErrors);
@@ -596,9 +708,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     stellarHatches.remove(stellarHatches.size() - 1);
                 }
                 // P4: a rail or halo that does not count drops its Receptor Ports too
-                for (int g = 0; g < 3; g++) {
+                for (int g = 0; g < receptors.length; g++) {
                     while (receptors[g].size() > rMark[g]) receptors[g].remove(receptors[g].size() - 1);
                 }
+                // P5: a collimator stack that does not count drops its injector sockets too
+                while (injectors.size() > iMark[0]) injectors.remove(injectors.size() - 1);
+                while (beamControls.size() > iMark[1]) beamControls.remove(beamControls.size() - 1);
+                while (pelletBuses.size() > iMark[2]) pelletBuses.remove(pelletBuses.size() - 1);
             }
         }
         // D-49 migration (plan §13): a pre-D-49 Eye's bands are grandfathered under the old rule. Every successful
@@ -908,23 +1024,29 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     private static volatile List<ReceptorSocket> RECEPTOR_SOCKETS;
 
-    /** The 16 'r' sockets of eye_rail and eye_halo with their groups (manifest, read once). */
+    /**
+     * The 'r' sockets of eye_rail, eye_halo and eye_jet9 and the 'k' sockets of eye_crown with their groups (manifest,
+     * read once): 16 (P4) + 5 collar + 12 crown.
+     */
     public static List<ReceptorSocket> receptorSockets() {
         List<ReceptorSocket> out = RECEPTOR_SOCKETS;
         if (out != null) return out;
         out = new ArrayList<>();
-        for (String piece : new String[] { PIECE_RAIL, PIECE_HALO }) {
+        for (String piece : new String[] { PIECE_RAIL, PIECE_HALO, PIECE_JET9, PIECE_CROWN }) {
             try {
                 final com.google.gson.JsonObject entry = BTSShapes.manifestPiece(piece);
                 if (entry == null || !entry.has("sockets")) continue;
                 final com.google.gson.JsonObject sockets = entry.getAsJsonObject("sockets");
-                if (!sockets.has("r")) continue;
-                for (com.google.gson.JsonElement e : sockets.getAsJsonArray("r")) {
+                final String ch = PIECE_CROWN.equals(piece) ? "k" : "r";
+                if (!sockets.has(ch)) continue;
+                for (com.google.gson.JsonElement e : sockets.getAsJsonArray(ch)) {
                     final com.google.gson.JsonObject o = e.getAsJsonObject();
                     final com.google.gson.JsonArray rel = o.getAsJsonArray("rel");
                     final String g = o.has("group") ? o.get("group")
                         .getAsString() : "";
-                    final int group = "rail-high".equals(g) ? GROUP_HIGH : "halo".equals(g) ? GROUP_HALO : GROUP_LOW;
+                    final int group = "rail-high".equals(g) ? GROUP_HIGH
+                        : "halo".equals(g) ? GROUP_HALO
+                            : "collar".equals(g) ? GROUP_COLLAR : "crown".equals(g) ? GROUP_CROWN : GROUP_LOW;
                     out.add(
                         new ReceptorSocket(
                             new int[] { rel.get(0)
@@ -941,6 +1063,50 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
         RECEPTOR_SOCKETS = out;
         return out;
+    }
+
+    /**
+     * P5: an 'i' socket on the T9 top collar: a Pellet Injector Hatch, the injector's Burst Control Hatch (mode Pellet
+     * beam), or an input bus holding more pellets (ME stocking buses included; crafting input buffers refused).
+     */
+    public boolean addPelletSocket(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
+        if (mte instanceof MTEHatchPelletInjector) {
+            ((MTEHatchPelletInjector) mte).updateTexture(casingIndex);
+            injectors.add((MTEHatchPelletInjector) mte);
+            return true;
+        }
+        if (mte instanceof MTEHatchBurstControl) {
+            ((MTEHatchBurstControl) mte).updateTexture(casingIndex);
+            beamControls.add((MTEHatchBurstControl) mte);
+            return true;
+        }
+        if (mte instanceof MTEHatchInputBus && !(mte instanceof MTEHatchCraftingInputME)) {
+            ((MTEHatchInputBus) mte).updateTexture(casingIndex);
+            pelletBuses.add((MTEHatchInputBus) mte);
+            return true;
+        }
+        return false;
+    }
+
+    public int pelletSocketCount() {
+        return liveCount(injectors) + liveCount(beamControls) + liveCount(pelletBuses);
+    }
+
+    /** P5: the Pellet Injector Hatches. Server state, read-only. */
+    public List<MTEHatchPelletInjector> injectorHatches() {
+        return Collections.unmodifiableList(injectors);
+    }
+
+    /** P5: the injectors' Burst Control Hatches. Server state, read-only. */
+    public List<MTEHatchBurstControl> beamControlHatches() {
+        return Collections.unmodifiableList(beamControls);
+    }
+
+    /** P5: the pellet stock buses. Server state, read-only. */
+    public List<MTEHatchInputBus> pelletBusHatches() {
+        return Collections.unmodifiableList(pelletBuses);
     }
 
     /** P4: a Burst Control Hatch in a 'd' socket (Begin mode). */
@@ -970,7 +1136,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     public int receptorCount() {
-        return receptorCount(GROUP_HIGH) + receptorCount(GROUP_LOW) + receptorCount(GROUP_HALO);
+        int n = 0;
+        for (int g = 0; g < receptors.length; g++) n += receptorCount(g);
+        return n;
     }
 
     public int burstControlCount() {
@@ -2697,6 +2865,44 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             return (int) Math.min(Integer.MAX_VALUE, count);
         }
 
+        /**
+         * P5: pellets of a grade in a pellet stock bus (READ ONLY, no window): its own slots, plus an ME stocking bus's
+         * network stock for each slot configured to that pellet, from the grid's item list.
+         */
+        private long countPellets(MTEHatchInputBus bus, int grade) {
+            long count = 0;
+            for (int i = 0; i < bus.getSizeInventory(); i++) {
+                final ItemStack stack = bus.getStackInSlot(i);
+                if (stack != null && stack.stackSize > 0
+                    && com.nateyburr.beyondthestars.items.SLP5Items.pelletGrade(stack) == grade) count += stack.stackSize;
+            }
+            if (!(bus instanceof MTEHatchInputBusME)) return count;
+            final MTEHatchInputBusME me = (MTEHatchInputBusME) bus;
+            if (!me.isAllowedToWork()) return count;
+            final List<ItemStack> seen = new ArrayList<>();
+            try {
+                final IItemList<IAEItemStack> list = me.getProxy()
+                    .getStorage()
+                    .getItemInventory()
+                    .getStorageList();
+                for (int i = 0; i < MTEHatchInputBusME.SLOT_COUNT; i++) {
+                    final ItemStack config = me.getSlotConfig(i);
+                    if (config == null || com.nateyburr.beyondthestars.items.SLP5Items.pelletGrade(config) != grade) {
+                        continue;
+                    }
+                    boolean dup = false;
+                    for (ItemStack s : seen) dup |= GTUtility.areStacksEqual(s, config);
+                    if (dup) continue;
+                    seen.add(config);
+                    final IAEItemStack stored = list.findPrecise(AEItemStack.create(config));
+                    if (stored != null && stored.getStackSize() > 0) count += stored.getStackSize();
+                }
+            } catch (GridAccessException e) {
+                return count;
+            }
+            return count;
+        }
+
         /** A stocking bus's network stock of the charge, read from the grid's item list (no extraction, no window). */
         private long stockedCharges(MTEHatchInputBusME bus, Item charge) {
             if (!bus.isAllowedToWork()) return 0;
@@ -2767,13 +2973,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             final BurstReading hi = BurstHost.read(receptors[GROUP_HIGH], "Eye of Harmony (rail-high)");
             final BurstReading lo = BurstHost.read(receptors[GROUP_LOW], "Eye of Harmony (rail-low)");
             final BurstReading halo = BurstHost.read(receptors[GROUP_HALO], "Eye of Harmony (halo)");
+            final BurstReading collar = BurstHost.read(receptors[GROUP_COLLAR], "Eye of Harmony (collar)");
+            final BurstReading crown = BurstHost.read(receptors[GROUP_CROWN], "Eye of Harmony (crown)");
             final List<MTEHatchGRBReceptor> all = new ArrayList<>(receptors[GROUP_HIGH]);
-            all.addAll(receptors[GROUP_LOW]);
-            all.addAll(receptors[GROUP_HALO]);
+            for (int g = 1; g < receptors.length; g++) all.addAll(receptors[g]);
             final BurstReading r = burstHost.second(all, eyeKey(), "Eye of Harmony", demandBuPerTick, streak01);
             b.hi = hi.total;
             b.lo = lo.total;
             b.halo = halo.total;
+            b.collar = collar.total;
+            b.crown = crown.total;
+            b.collarPorts = receptorCount(GROUP_COLLAR);
+            b.crownPorts = receptorCount(GROUP_CROWN);
             b.linkedRail = hi.linked() || lo.linked();
             b.linkedAll = r.linked();
             b.paused = r.paused;
@@ -2794,7 +3005,63 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
         @Override
         public int receptorPorts(int group) {
-            return group >= 0 && group < 3 ? receptorCount(group) : 0;
+            return group >= 0 && group < receptors.length ? receptorCount(group) : 0;
+        }
+
+        /**
+         * P5: the Pellet Injector(s) this second: the first live injector's settings, the best barrel, the pellets by
+         * grade across the injectors and the pellet stock buses (their counts as GT shows them outside a processing
+         * window: the bus's own slots; an ME stocking bus's network stock is read from the grid, nothing extracted),
+         * and the level of the injector's Burst Control Hatch (polled in Pellet beam mode; the highest if several).
+         */
+        @Override
+        public PelletFeed pellets() {
+            final PelletFeed f = new PelletFeed();
+            for (MTEHatchPelletInjector inj : injectors) {
+                if (!live(inj)) continue;
+                if (f.injectors == 0) {
+                    f.lockedGrade = inj.lockedGrade();
+                    f.centreAuto = inj.centreAuto();
+                    f.centre = inj.centre();
+                    f.gain = inj.gain();
+                }
+                f.injectors++;
+                f.barrelMk = Math.max(f.barrelMk, inj.barrelMk());
+                for (int g = 1; g <= 3; g++) f.stock[g] += inj.pellets(g);
+            }
+            for (MTEHatchInputBus bus : pelletBuses) {
+                if (!live(bus)) continue;
+                for (int g = 1; g <= 3; g++) f.stock[g] += countPellets(bus, g);
+            }
+            final String line = f.injectors == 0 ? "no Pellet Injector Hatch beside it"
+                : "pellet rate: pellets/s = cap x clamp(c + k (s/15 - 0.5))";
+            for (MTEHatchBurstControl h : beamControls) {
+                if (!live(h)) continue;
+                h.poll("Eye of Harmony (Pellet Injector)", line, MTEHatchBurstControl.Mode.BEAM);
+                f.level = Math.max(f.level, h.level());
+            }
+            return f;
+        }
+
+        /**
+         * P5: up to {@code count} pellets of a grade: the injectors first, then the stock buses (an ME stocking bus
+         * through one processing window, its stocked pellets credited only if the network gave them up).
+         */
+        @Override
+        public long takePellets(int grade, long count) {
+            long got = 0;
+            for (MTEHatchPelletInjector inj : injectors) {
+                if (got >= count) break;
+                if (live(inj)) got += inj.takePellets(grade, count - got);
+            }
+            for (MTEHatchInputBus bus : pelletBuses) {
+                while (got < count && live(bus)) {
+                    if (takeFromBus(bus, st -> com.nateyburr.beyondthestars.items.SLP5Items.pelletGrade(st) == grade)
+                        == null) break;
+                    got++;
+                }
+            }
+            return got;
         }
 
         /** Polls every Burst Control Hatch (Begin mode); true if any saw a rising edge since the last second. */
@@ -2963,7 +3230,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 + receptorCount(GROUP_LOW)
                 + " low / "
                 + receptorCount(GROUP_HALO)
-                + " halo"
+                + " halo / "
+                + receptorCount(GROUP_COLLAR)
+                + " collar / "
+                + receptorCount(GROUP_CROWN)
+                + " crown, Pellet Injector "
+                + liveCount(injectors)
+                + " (+"
+                + liveCount(beamControls)
+                + " Burst Control, "
+                + liveCount(pelletBuses)
+                + " pellet bus)"
                 + ", ME out "
                 + outputBusCount()
                 + " bus / "
@@ -3159,6 +3436,18 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addInfo("an Eye of tier N needs every one at tier N or higher.")
             .addInfo(parallel("x2") + " parallels for each installed tier above the recipe's.")
             .addInfo("T7 and T8 run on a Quasar Engine's bursts (GRB Receptor Ports).")
+            .addInfo("T9 holds the Great Attractor: fire pellets down the collimator to hold the flow.")
+            .addInfo("T10 runs a universe for 2 hours: keep it flat.")
+            .addInfo(
+                hint(
+                    "D9 " + num("24") + " Bu/t (" + num("2.4e14") + " EU/t), D10 " + num("96")
+                        + " Bu/t ("
+                        + num("9.6e14")
+                        + " EU/t)."))
+            .addInfo(
+                hint(
+                    "Dark Matter " + num("144") + " L a cycle; Universium " + num("9,216")
+                        + " L a universe."))
             .addInfo("Outputs go to ME only.")
             .addInfo(hint("Optional: Stellar Field Sensor and Directive Hatches for redstone."))
             .addInfo(warn("Chunk-load the whole footprint; an unloaded Eye is frozen."))
@@ -3189,6 +3478,14 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addOtherStructurePart(
                 "T8 shard halo",
                 (bom(PIECE_HALO, 'B') + bom(PIECE_HALO, 'r')) + " Bastion Plate and glass")
+            .addOtherStructurePart(
+                "T9 collimator stack",
+                (bom(PIECE_JET9, 'B') + bom(PIECE_JET9, 'r') + bom(PIECE_JET9, 'i')) + " Bastion Plate, lining and glass")
+            .addOtherStructurePart(
+                "T10 universal crown",
+                (bom(PIECE_CROWN, 'E') + bom(PIECE_CROWN, 'k')) + " Eternity Shell Casing, "
+                    + bom(PIECE_CROWN, 'P')
+                    + " Casimir Plate, lining and glass")
             .addInputHatch("1+", "Plinth gas sockets (Hydrogen, Helium)", 1)
             .addInputBus("0+", "Plinth gas sockets (Stellar Ignition Charges)", 1)
             .addOutputBus("1", "ME Output Bus, plinth", 2)
@@ -3199,7 +3496,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addMiscHatch("0+", "Stellar Field Sensor Hatch, Directive Hatch", "core band sockets", 6)
             .addMiscHatch("0+", "Directive Hatch, Burst Control Hatch", "plinth, above the controller", 7)
             .addInputBus("0-1", "Plinth slot bus (planets, companion charts)", 8)
-            .addMiscHatch("1+", "GRB Receptor Port", "T7 rail: 1+ per bank; T8 halo: all 8", 9)
+            .addMiscHatch("1+", "GRB Receptor Port", "T7 rail: 1+ per bank; T8 halo: all 8; T9 collars; T10 crown: all 12", 9)
+            .addMiscHatch("1", "Pellet Injector Hatch, its Burst Control Hatch", "T9 top collar", 10)
             .addStructureInfo("Projector stack N builds tiers 1 to N (stack 1: the T1 core).")
             .addStructureInfo("Compression generators go in at the stack's tier.")
             .addStructureInfo("GT's EOH projector channels raise any generator tier.")

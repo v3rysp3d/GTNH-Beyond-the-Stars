@@ -6,7 +6,10 @@ import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
 import com.nateyburr.beyondthestars.machines.eye.star.CoreCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeStarRuntime;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
+import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
 import com.nateyburr.beyondthestars.machines.eye.star.GalacticMerger;
+import com.nateyburr.beyondthestars.machines.eye.star.Infall;
+import com.nateyburr.beyondthestars.machines.eye.star.Inflation;
 import com.nateyburr.beyondthestars.machines.eye.star.MagnetarCollapse;
 import com.nateyburr.beyondthestars.machines.eye.star.MassInfusion;
 import com.nateyburr.beyondthestars.machines.eye.star.ShellIgnition;
@@ -57,6 +60,18 @@ public final class EyeStarLook {
     public static final byte MILKY_WAY = 10;
     /** P4 planets mode: a calm glow with the slots' planets on their orbits; {@link #aux} = planets / 9. */
     public static final byte PLANETS = 11;
+    /**
+     * P5 T9 the Great Attractor: a dark, lensing core with the cosmic web streaming into it and the pellet beam down
+     * the collimator stack; its render-only state is {@link #p5}.
+     */
+    public static final byte ATTRACTOR = 12;
+    /** P5 T10 the Universe: one universe inside the lifted crown; its render-only state is {@link #p5}. */
+    public static final byte UNIVERSE = 13;
+    /**
+     * P5: the radius the two P5 kinds report (the renderer ignores it): the render tile's bounding box is 3 x it, so
+     * the filaments (200 blocks out) and the crown with its spikes stay in the frustum check.
+     */
+    public static final float P5_RADIUS = 70f;
 
     public final byte kind;
     public final float radius;
@@ -119,6 +134,11 @@ public final class EyeStarLook {
     public final float xIn;
     /** World tick of the satellite crossing's hit (0: none): the client counts it down and runs the ring wave. */
     public final long xAt;
+    /**
+     * P5: the T9 / T10 render-only snapshot (null for every other object). Set last in {@link #of}; the centre render
+     * turns its clocks into world ticks ({@link EyeP5Look#at}) before the look is sent.
+     */
+    public EyeP5Look p5;
 
     public EyeStarLook(byte kind, float radius, int rgb, float gamma, float spin, float pulse) {
         this(kind, radius, rgb, gamma, spin, pulse, 0f);
@@ -219,7 +239,24 @@ public final class EyeStarLook {
     public EyeStarLook at(long now) {
         final long at = ev == EV_NONE ? 0L : now + Math.round(evIn * 20.0);
         final long xat = Float.isNaN(xIn) ? 0L : now + Math.round(xIn * 20.0);
-        return new EyeStarLook(kind, radius, rgb, gamma, spin, pulse, aux, n, ev, evIn, at, trans, transP, xIn, xat);
+        final EyeStarLook out = new EyeStarLook(
+            kind,
+            radius,
+            rgb,
+            gamma,
+            spin,
+            pulse,
+            aux,
+            n,
+            ev,
+            evIn,
+            at,
+            trans,
+            transP,
+            xIn,
+            xat);
+        out.p5 = p5;
+        return out;
     }
 
     /**
@@ -298,12 +335,18 @@ public final class EyeStarLook {
         if (tr != null) {
             final float p = (float) Math.max(0, rt.transitionProgress());
             look = look.transition(tr.type.from, p);
+            if (tr instanceof Infall || tr instanceof Inflation) look = look.tier(tr.type.from + 1);
             // the Mass Infusion and the Shell Ignition blend the star toward the next one (both render paths)
             if (tr instanceof MassInfusion || tr instanceof ShellIgnition) {
                 final EyeStarLook g = growing(tr instanceof MassInfusion ? 1 : 2, p);
                 look = look.reshaped(g.radius, g.rgb, g.gamma);
             }
         }
+        // P5: the Great Attractor's / the Universe's render-only state
+        look.p5 = EyeP5Look.of(
+            rt,
+            rt.galaxy()
+                .bursts().paused);
         return look;
     }
 
@@ -359,7 +402,15 @@ public final class EyeStarLook {
         if (tr instanceof GalacticMerger) {
             return galaxy(rt.galaxyLit() && star.n() == 8 ? 8 : 7, Math.max(unrest, 0.3f), Math.max(warn, 0.5f));
         }
+        // P5: the Infall makes the Attractor at once; Inflation shows the Attractor while the regions unfold, then
+        // the Universe (the field's tier says which)
+        final FieldState fs = rt.fieldState();
+        if (tr instanceof Infall || tr instanceof Inflation) {
+            return fs != null && fs.tier.universe ? universe(unrest, warn) : attractor(unrest, warn);
+        }
         if (star.tier.planets()) return planets(star.tier.slots);
+        if (fs != null && fs.tier.attractor) return attractor(unrest, warn);
+        if (fs != null && fs.tier.universe) return universe(unrest, warn);
         if (star.n() == 5) {
             return dwarf(rt.batchFraction());
         }
@@ -521,6 +572,17 @@ public final class EyeStarLook {
             warn);
     }
 
+    /** P5 T9: the Great Attractor (a dark core; the renderer draws it from {@link #p5}). */
+    public static EyeStarLook attractor(float unrest, float warn) {
+        return new EyeStarLook(ATTRACTOR, P5_RADIUS, 0x2A1A48, 0.6f, 0.4f, 0.02f + 0.06f * unrest + 0.04f * warn, warn)
+            .tier(9);
+    }
+
+    /** P5 T10: the Universe (the renderer draws it from {@link #p5}). */
+    public static EyeStarLook universe(float unrest, float warn) {
+        return new EyeStarLook(UNIVERSE, P5_RADIUS, 0xFFB070, 1.2f, 0.2f, 0.02f + 0.04f * unrest, warn).tier(10);
+    }
+
     /** Planets mode with {@code slots} planet slots (3 or 6). */
     public static EyeStarLook planets(int slots) {
         return new EyeStarLook(PLANETS, 1.6f, PLANETS_RGB, 1.4f, 0.6f, 0.01f, Math.max(0, Math.min(9, slots)) / 9f)
@@ -583,6 +645,7 @@ public final class EyeStarLook {
         if (o.n != n || o.ev != ev || o.trans != trans || Math.abs(o.evAt - evAt) > 40) return true;
         if ((o.xAt == 0) != (xAt == 0) || Math.abs(o.xAt - xAt) > 40) return true;
         if (Math.abs(o.transP - transP) > 0.01f) return true;
+        if ((o.p5 == null) != (p5 == null) || (p5 != null && p5.differs(o.p5))) return true;
         return Math.abs(o.radius - radius) > 0.02f * Math.max(1f, radius) || Math.abs(o.gamma - gamma) > 0.05f
             || Math.abs(o.spin - spin) > 0.05f
             || Math.abs(o.pulse - pulse) > 0.02f
@@ -614,6 +677,10 @@ public final class EyeStarLook {
                 return "the Milky Way (galaxy)";
             case PLANETS:
                 return "planets mode";
+            case ATTRACTOR:
+                return "the Great Attractor";
+            case UNIVERSE:
+                return "the Universe";
             default:
                 return "nothing";
         }

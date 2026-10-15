@@ -35,6 +35,17 @@ public final class GalaxyField {
         return demandT(tier) * demandFactor(planets, companions);
     }
 
+    /**
+     * P5: the demand factor's companion weight for a list of companion tiers: 1 per star, 2 per galaxy (T9's
+     * Triangulum and Milky Way, Q-P5-7: a galaxy companion adds 0.5·D₉). Pass it as {@code companions} to
+     * {@link #demand}; σ_P still counts companions one each.
+     */
+    public static int companionWeight(int[] tiers) {
+        int w = 0;
+        for (int k : tiers) w += Companion.of(k).galaxy ? 2 : 1;
+        return w;
+    }
+
     // ------------------------------------------------------------------ the field's burst terms
 
     /** P drift per unit of (β − 1): galaxy 3, planets mode 1. */
@@ -110,9 +121,14 @@ public final class GalaxyField {
     /** The field factor a second in this zone gives a planet run: Resonant / Stable 1, Strained 0.5, else 0. */
     public static final double[] PLANET_ZONE_FACTOR = { 1, 1, 0.5, 0, 0 };
 
-    /** Companions per galaxy tier: T7 1, T8 2, T9 3. */
+    /** Companions per galaxy tier: T7 1, T8 2, T9 3 (T10 runs none). */
     public static int maxCompanions(int tier) {
-        return Math.max(0, Math.min(3, tier - 6));
+        return tier >= 10 ? 0 : Math.max(0, Math.min(3, tier - 6));
+    }
+
+    /** The highest tier a companion of an Eye of tier N may be: stars (k ≤ 6) at T7/T8; at T9 also the galaxies 7, 8. */
+    public static int maxCompanionTier(int tier) {
+        return tier >= 9 ? 8 : 6;
     }
 
     /** A companion's parallel at Eye tier N for an earlier object of tier k: 2^(N − 1 − k). */
@@ -138,12 +154,19 @@ public final class GalaxyField {
             new double[] { 153.6 }),
         MAGNETAR(6, "SGR 1806-20 (T6)", "Magnetar Matter", 15,
             new String[] { "White Dwarf Matter", "Black Dwarf Matter", "Antipolarization Agent" },
-            new double[] { 60, 15, 3000 });
+            new double[] { 60, 15, 3000 }),
+        /** P5 (Q-P5-7): at T9 a galaxy may ride the Attractor's flow. Triangulum, ×2 at T9. */
+        TRIANGULUM(7, "Triangulum (T7)", "Ergomatter", 600, new String[] { "Magnetar Matter" }, new double[] { 7.5 }),
+        /** P5: the Milky Way, ×1 at T9, fed Ergomatter like a T8. */
+        MILKY_WAY(8, "Milky Way (T8)", "Superdense Ergomatter", 300, new String[] { "Ergomatter" },
+            new double[] { 300 });
 
         public final int tier;
         public final String label;
         public final String product;
         public final double productPerCycle;
+        /** P5: a galaxy (T7 / T8, only beside a T9): weighs 2 in the demand and needs galaxy companions allowed. */
+        public final boolean galaxy;
         private final String[] upNames;
         private final double[] upAmounts;
 
@@ -153,6 +176,7 @@ public final class GalaxyField {
             this.label = label;
             this.product = product;
             this.productPerCycle = productPerCycle;
+            this.galaxy = tier >= 7;
             this.upNames = upNames;
             this.upAmounts = upAmounts;
         }
@@ -169,7 +193,7 @@ public final class GalaxyField {
             return upAmounts[i];
         }
 
-        /** The companion object of tier k (1..6). */
+        /** The companion object of tier k (1..8). */
         public static Companion of(int k) {
             for (Companion c : values()) if (c.tier == k) return c;
             throw new IllegalArgumentException("no companion of tier " + k);

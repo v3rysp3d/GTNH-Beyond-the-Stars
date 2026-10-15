@@ -10,13 +10,17 @@ import java.util.List;
 import java.util.Map;
 
 import com.nateyburr.beyondthestars.machines.directive.GalaxyDirective;
+import com.nateyburr.beyondthestars.machines.directive.P5Directive;
 import com.nateyburr.beyondthestars.machines.directive.QuasarDirective;
+import com.nateyburr.beyondthestars.machines.eye.field.AttractorField;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRig;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRng;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldSim;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
 import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
+import com.nateyburr.beyondthestars.machines.eye.field.InfallOverlay;
+import com.nateyburr.beyondthestars.machines.eye.field.InflationOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.Overlay;
 import com.nateyburr.beyondthestars.machines.eye.field.PlanetSlots;
@@ -25,6 +29,7 @@ import com.nateyburr.beyondthestars.machines.eye.field.StepInputs;
 import com.nateyburr.beyondthestars.machines.eye.field.StepResult;
 import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 import com.nateyburr.beyondthestars.machines.eye.field.TrimDef;
+import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
 
 /**
  * P4: the offline world runner and golden test (quasar-p4.md §1-§5, §8; the B-37 discipline). A plain-JDK program:
@@ -70,6 +75,27 @@ public final class QuasarSim {
         public int[] comp = {};
         /** Planet ids for the slots (prototype list). */
         public String[] planetIds = { "mars", "titan", "bare", "io", "pluto", "dd" };
+        // ---- P5 (the prototype's P5 CFG)
+        /** T9 companions (up to 3; the galaxies 7 and 8 allowed). */
+        public int[] comp9 = {};
+        public boolean unlocked9, unlocked10, coreIN, coreINF, bufIN, bufINF;
+        /** Pellet grade 1 Magnetar / 2 Ergomatter / 3 Superdense; Injector Barrel Mk 1-3. */
+        public int grade = 3, inj = 1;
+        /** The injector's centre: auto (ρ = 1 at V = 0) or {@link #bc}; its gain; the analog window; the fixed level. */
+        public boolean bcAuto = true;
+        public double bc = 0.125, bk = 1, bwin = 30, bman = 8;
+        /** The beam wired to V (analog, or two Directive bits); pellets in stock; the pre-fire rule. */
+        public boolean beamRig = true, beamTwoLevel, pelletsOK = true, preFire;
+        /** The flow accept limit (negative: the hold rating). */
+        public int acceptMax = -1;
+        public double infShock = InflationOverlay.DEFAULT_SHOCK;
+    }
+
+    /** P5: the Universe rig (prototype {@code U_RIG}): one binary Dark Matter valve and one SpaceTime valve. */
+    public static final class URig {
+
+        public boolean on = true;
+        public double dm = UniverseField.RIG_VALVE, st = UniverseField.RIG_VALVE;
     }
 
     /** The quasar's configuration (prototype {@code QC}). */
@@ -95,6 +121,9 @@ public final class QuasarSim {
         public int throat = 1, mk = 2;
         public boolean fuelErg, fuelOK = true, inv1 = true, stack, test8, twoLevel;
         public double c1 = 0.5, k1 = 2, p3 = 0, c2 = 0.5, k2 = 2, c3 = 0.2, k3 = 2, win = 30, c3t = 0.75;
+        /** P5: the T8 Deep Link test fire (J1 forced to the Eye, c4t of it into the collar ports). */
+        public boolean test9;
+        public double c4t = DeepLink.TEST_FIRE_SHARE;
     }
 
     /** The prototype's automation sub-switches ({@code RIG}). */
@@ -145,6 +174,8 @@ public final class QuasarSim {
 
         final Cfg c;
         final Rig rig;
+        /** P5: the Universe rig (null outside the P5 runner: no H trims). */
+        URig urig;
         public final FieldState s;
         public int state = LIT;
         public int zone;
@@ -171,13 +202,36 @@ public final class QuasarSim {
             light();
         }
 
-        /** Companions running beside a galaxy of tier n (none in planets mode). */
+        /** Companions running beside a galaxy of tier n (none in planets mode; T9 takes the P5 list). */
         int[] comps(TierParams t) {
             if (!t.galaxy) return new int[0];
-            final int n = Math.min(c.comp.length, GalaxyField.maxCompanions(t.n));
+            final int[] list = t.n >= 9 ? c.comp9 : c.comp;
+            final int n = Math.min(list.length, GalaxyField.maxCompanions(t.n));
             final int[] out = new int[n];
-            System.arraycopy(c.comp, 0, out, 0, n);
+            System.arraycopy(list, 0, out, 0, n);
             return out;
+        }
+
+        /** P5: the flow's accept limit (the configured one, or the hold rating). */
+        int acceptMax() {
+            return c.acceptMax >= 0 ? c.acceptMax : AttractorField.holdRating(c.inj, c.grade);
+        }
+
+        /** P5: the beam's inputs this second (the prototype's beamTick rig; V is last second's error). */
+        void beamInputs(StepInputs in) {
+            in.beamGeV = AttractorField.gev(c.grade);
+            in.beamCap = AttractorField.cap(c.inj);
+            in.beamCentre = c.bcAuto ? AttractorField.autoCentre(c.inj, c.grade) : c.bc;
+            in.beamGain = c.bk;
+            in.pelletsOk = c.pelletsOK;
+            in.acceptMax = acceptMax();
+            final double V = s.prevE[StellarField.V];
+            double lv = c.beamRig ? c.beamTwoLevel ? AttractorField.twoLevel(V) : AttractorField.analogLevel(V, c.bwin)
+                : c.bman;
+            final FieldState.Flow f = s.flow;
+            if (c.preFire && f != null && f.warned && f.accepted && s.t >= f.next - AttractorField.SPOOL)
+                lv = Math.max(lv, AttractorField.PRE_FIRE_LEVEL);
+            in.beamLevel = lv;
         }
 
         void light() {
@@ -212,10 +266,14 @@ public final class QuasarSim {
             StellarField.resetLost(s);
         }
 
-        /** Prototype {@code relight(S)} for T6-T8. */
+        /** Prototype {@code relight(S)} for T6-T8 (P5: T9's Attractor also schedules its first flow). */
         void relight() {
             final TierParams T = s.tier;
-            if (T.n >= 7) {
+            if (T.attractor) {
+                s.setX(0, 0, 0, 0);
+                light();
+                s.flow = AttractorField.newFlow(s);
+            } else if (T.n >= 7) {
                 s.setX(0, 0, 0, 0);
                 light();
             } else if (T.n == 6) {
@@ -251,6 +309,7 @@ public final class QuasarSim {
             in.gEye = w.gEye;
             in.f8 = c.f8;
             in.companions = comps(T).length;
+            beamInputs(in);
             final LinkedHashMap<String, Double> raw;
             if (T.n <= 6) raw = FieldRig.ctrl(T, s.prevE, s.prevWarn, FieldRig.Mode.FINE);
             else {
@@ -258,6 +317,11 @@ public final class QuasarSim {
                 final double sp = w.gate != null ? w.gate.eyeSpace(w)
                     : rig.space && s.prevE[StellarField.P] > 5 ? SPACE_ON : 0;
                 if (sp > 0) raw.put("Space", sp);
+                // P5 T10: the Universe rig, one valve each way on H
+                if (T.universe && urig != null && urig.on) {
+                    if (s.prevE[StellarField.H] > 5) raw.put("DM", urig.dm);
+                    if (s.prevE[StellarField.H] < -5) raw.put("ST", urig.st);
+                }
             }
             FieldRig.toUnits(T, raw, in.u);
             final StepResult out = StellarField.step(s, tr != null ? tr : Overlay.NONE, in);
@@ -271,22 +335,46 @@ public final class QuasarSim {
             zone = out.zone;
             warn = out.warn;
 
+            // P5: what the drift did (the beam's pellets, a universe charged on first need)
+            if (out.beamFired) {
+                FieldSim.add(L.up, AttractorField.GRADE_NAME[c.grade], out.pellets);
+                pellets += out.pellets;
+            }
+            if (out.uniChargedInDrift) FieldSim.add(L.up, "Dark Matter", UniverseField.CHARGE * c.r);
             // the transition's charges (taken before its own failure, as the prototype's transTick)
             if (out.wdmCharged > 0) FieldSim.add(L.up, "White Dwarf Matter", out.wdmCharged);
             if (out.bdmCharged > 0) FieldSim.add(L.up, "Black Dwarf Matter", out.bdmCharged);
             if (out.ergoCharged > 0) FieldSim.add(L.up, "Ergomatter", out.ergoCharged);
-            if (out.fail != null) {
+            if (out.infallCharge > 0) FieldSim.add(L.up, "Superdense Ergomatter", out.infallCharge);
+            if (out.inflationCharge > 0) FieldSim.add(L.up, "Dark Matter", out.inflationCharge);
+            if (out.uniChargedInTick) FieldSim.add(L.up, "Dark Matter", UniverseField.CHARGE * c.r);
+            if (out.fail != null && !out.recovered) {
                 fail();
                 return;
+            }
+            if (out.fail != null) { // P5: a soft fail, or a universe that collapsed (the Eye stays lit)
+                L.fails++;
+                if (out.universeCollapsed) {
+                    FieldSim.add(L.prod, "Universium", out.universeSalvage);
+                    FieldSim.add(L.up, "Dark Matter", UniverseField.CHARGE * c.r);
+                }
+                if (out.softFail) trans = null;
             }
             if (out.relit) {
                 state = LIT;
                 chargeCycle();
             }
+            if (out.fail != null && out.failEarly) return;
             if (out.transitionSuccess) {
                 if (tr instanceof MagnetarCollapseOverlay) {
                     c.unlocked7 = true;
                     c.coreMC = false;
+                } else if (tr instanceof InfallOverlay) {
+                    c.unlocked9 = true;
+                    c.coreIN = false;
+                } else if (tr instanceof InflationOverlay) {
+                    c.unlocked10 = true;
+                    c.coreINF = false;
                 } else {
                     c.unlocked8 = true;
                     c.coreGM = false;
@@ -300,6 +388,19 @@ public final class QuasarSim {
                 FieldSim.add(runs, run.key(), run.succeeded);
                 lastRunLost = run.fieldFactor < 1;
             }
+            // P5 per second: a flow's end, a universe's last light
+            if (out.flowEnded) {
+                flows++;
+                if (out.flowHeld) caught++;
+                gal += out.flowCaptured;
+                FieldSim.add(L.prod, "Dark Matter", out.flowDarkMatter);
+            }
+            if (out.universeDone) {
+                FieldSim.add(L.prod, "Universium", out.universeBase + out.universeBonus);
+                L.batches++;
+                if (out.universeDawnOk) dawns++;
+                FieldSim.add(L.up, "Dark Matter", UniverseField.CHARGE * c.r);
+            }
             if (out.cycleEnded) {
                 if (out.hasCycleProduct) {
                     if (out.companionCycle) for (int k : comps(Tn)) {
@@ -311,6 +412,7 @@ public final class QuasarSim {
                                 * out.cycleMeanY
                                 * out.cycleRMin);
                     }
+                    if (out.galaxyCycle) gal++;
                     FieldSim.add(L.prod, productName(Tn), out.cycleProduct);
                 }
                 L.cycles++;
@@ -324,6 +426,10 @@ public final class QuasarSim {
                     return "Magnetar Matter";
                 case 7:
                     return "Ergomatter";
+                case 9:
+                    return "Dark Matter";
+                case 10:
+                    return "Universium";
                 default:
                     return "Superdense Ergomatter";
             }
@@ -333,7 +439,10 @@ public final class QuasarSim {
         double demandNow() {
             if (trans instanceof MagnetarCollapseOverlay) return ((MagnetarCollapseOverlay) trans).demand();
             if (trans instanceof GalacticMergerOverlay) return ((GalacticMergerOverlay) trans).demand();
+            if (trans instanceof InfallOverlay) return ((InfallOverlay) trans).demand();
+            if (trans instanceof InflationOverlay) return ((InflationOverlay) trans).demand();
             final TierParams T = s.tier;
+            if (T.n >= 9) return GalaxyField.demand(T.n, T.planets(), GalaxyField.companionWeight(comps(T)));
             return T.n >= 7 ? GalaxyField.demand(T.n, T.planets(), comps(T).length) : GalaxyField.D7;
         }
 
@@ -363,6 +472,20 @@ public final class QuasarSim {
         public void beginGM() {
             trans = GalacticMergerOverlay.begin(s);
         }
+
+        /** P5: prototype {@code beginInfall}. */
+        public void beginInfall() {
+            trans = InfallOverlay.begin(s);
+        }
+
+        /** P5: prototype {@code beginInflation}. */
+        public void beginInflation() {
+            trans = new InflationOverlay(c.infShock);
+        }
+
+        // ---- P5 ledger counters (prototype L.gal, flows, caught, pellets, dawns)
+        public double gal, pellets;
+        public long flows, caught, dawns;
     }
 
     // ================================================================== the world (prototype W)
@@ -405,6 +528,11 @@ public final class QuasarSim {
         public double gBeta, gHi, gLo, gHalo, gEye, gD;
         /** Bu/t into crowns this second (EU/t = 10¹³ × this). */
         public double crownBu;
+        /** P5: the Deep Link (T8 → T9 milestone), the collar ports' Bu/t this second, the Flow and Universe codes. */
+        public final DeepLink link9 = new DeepLink();
+        public double collar;
+        public int dirFlow, dirUni;
+        final StepInputs beamIn = new StepInputs();
 
         public World(int tier, Cfg c, QCfg qc, KCfg k, Rig rig) {
             this.c = c;
@@ -433,6 +561,7 @@ public final class QuasarSim {
             quasarStep();
             conduitStep();
             eye.step(this);
+            deepLinkTick();
             final QuasarDirective.State ds = new QuasarDirective.State();
             ds.lagE = q.lagE;
             ds.lagPhi = q.lagPhi;
@@ -466,6 +595,31 @@ public final class QuasarSim {
                     six ? link.done : link8.done,
                     six ? c.coreMC : c.coreGM,
                     six ? c.bufMC : c.bufGM));
+            // P5: the Flow and Universe sets
+            dirFlow = P5Directive.flow(
+                s.tier.n == 9 && eye.state == Eye.LIT,
+                s.prevE[StellarField.V],
+                AttractorField.warnedAccepted(s),
+                !c.pelletsOK,
+                DIRECTIVE_W);
+            dirUni = P5Directive.universe(
+                s.tier.n == 10 && eye.state == Eye.LIT,
+                s.prevE[StellarField.H],
+                eye.warn != 0,
+                false,
+                DIRECTIVE_W);
+        }
+
+        /** P5: prototype {@code deepLinkTick}: the T8 test fire's beam and the Deep Link's window and streak. */
+        void deepLinkTick() {
+            final FieldState s = eye.s;
+            if (!(s.tier == TierParams.T8 && eye.trans == null && k.test9) || link9.done()) return;
+            eye.beamInputs(beamIn);
+            final double n = AttractorField.beamTick(s, beamIn);
+            FieldSim.add(eye.L.up, AttractorField.GRADE_NAME[c.grade], n);
+            eye.pellets += n;
+            link9.roll(gEye, collar, s.beam.rho);
+            link9.update(link9.ok(linked));
         }
 
         /** The Galaxy Transition bits (prototype {@code transBits}) from last second's state. */
@@ -527,6 +681,29 @@ public final class QuasarSim {
 
         /** The prototype's conduitStep: the standard rig, crowns, the Eye's burst inputs and the links. */
         void conduitStep() {
+            final FieldState s = eye.s;
+            // P5: the Deep Link test fire forces J1 to the Eye and sends c4t of the Eye's share to the collar ports
+            final boolean t9 = s.tier == TierParams.T8 && eye.trans == null && k.test9;
+            if (t9) force1 = true;
+            conduitStepP4();
+            collar = 0;
+            if (t9 && gEye > 0) {
+                final double d = k.c4t * gEye, sc = (gEye - d) / gEye;
+                collar = d;
+                gBeta *= sc;
+                gHi *= sc;
+                gLo *= sc;
+                gHalo *= sc;
+            }
+            if (s.tier.n == 10) {
+                gHi = 0;
+                gLo = 0;
+                gHalo = 0;
+            }
+        }
+
+        /** The prototype's P4 conduitStep. */
+        void conduitStepP4() {
             final FieldState s = eye.s;
             final TierParams T = s.tier;
             final boolean wired = rig.aim;
@@ -659,7 +836,7 @@ public final class QuasarSim {
             W.tick();
             if (S.state == Eye.DARK) S.relight();
             final FieldState s = S.s;
-            for (int k = 0; k < StellarField.GAUGES; k++) he = FieldSim.fnv(he, FieldSim.q6(s.x[k]));
+            for (int k = 0; k < StellarField.GAUGES_P4; k++) he = FieldSim.fnv(he, FieldSim.q6(s.x[k]));
             he = FieldSim.fnv(he, FieldSim.q6(s.A));
             he = FieldSim.fnv(he, FieldSim.q6(s.I));
             he = FieldSim.fnv(he, S.zone);
@@ -694,7 +871,7 @@ public final class QuasarSim {
         res.put("trims", new LinkedHashMap<String, Object>(L.trims));
         res.put("runs", new LinkedHashMap<String, Object>(S.runs));
         final List<Object> xs = new ArrayList<>();
-        for (double v : S.s.x) xs.add(v);
+        for (int k = 0; k < StellarField.GAUGES_P4; k++) xs.add(S.s.x[k]);
         res.put("x", xs);
         res.put("A", S.s.A);
         res.put("I", S.s.I);
@@ -890,6 +1067,272 @@ public final class QuasarSim {
         return r;
     }
 
+    // ================================================================== P5: one golden case (tools/p5-golden.js)
+
+    static int[] ints(Object v, int[] dflt) {
+        if (!(v instanceof List)) return dflt;
+        final List<?> l = (List<?>) v;
+        final int[] out = new int[l.size()];
+        for (int i = 0; i < l.size(); i++) out[i] = ((Number) l.get(i)).intValue();
+        return out;
+    }
+
+    static int gradeOf(Object v, int dflt) {
+        return "mag".equals(v) ? 1 : "erg".equals(v) ? 2 : "sup".equals(v) ? 3 : dflt;
+    }
+
+    /** The P5 harness's CFG (p5/harness.js defaults, then the case's overrides). */
+    public static Cfg cfgOfP5(Map<String, Object> spec) {
+        final Cfg c = new Cfg();
+        c.shock = 120;
+        c.unlocked8 = true;
+        c.planetIds = new String[] { "mars", "titan", "bare", "io", "pluto", "dd", "moon", "barc", "dd" };
+        c.seed = (long) FieldSim.num(spec, "seed", 1);
+        final Map<String, Object> o = sub(spec, "cfg");
+        c.m = FieldSim.num(o, "m", c.m);
+        c.tt = (int) FieldSim.num(o, "tt", c.tt);
+        c.ts = (int) FieldSim.num(o, "ts", c.ts);
+        c.r = FieldSim.num(o, "r", c.r);
+        c.f8 = FieldSim.num(o, "f8", c.f8);
+        c.shock = FieldSim.num(o, "shock", c.shock);
+        c.planets = "planets".equals(o.get("mode"));
+        c.comp = ints(o.get("comp"), c.comp);
+        c.comp9 = ints(o.get("comp9"), c.comp9);
+        c.grade = gradeOf(o.get("grade"), c.grade);
+        c.inj = (int) FieldSim.num(o, "inj", c.inj);
+        c.bcAuto = bool(o, "bcAuto", c.bcAuto);
+        c.bc = FieldSim.num(o, "bc", c.bc);
+        c.bk = FieldSim.num(o, "bk", c.bk);
+        c.bwin = FieldSim.num(o, "bwin", c.bwin);
+        c.bman = FieldSim.num(o, "bman", c.bman);
+        c.beamRig = bool(o, "beamRig", c.beamRig);
+        c.beamTwoLevel = bool(o, "beamTwoLevel", c.beamTwoLevel);
+        c.pelletsOK = bool(o, "pelletsOK", c.pelletsOK);
+        c.preFire = bool(o, "preFire", c.preFire);
+        c.acceptMax = (int) FieldSim.num(o, "acceptMax", c.acceptMax);
+        c.infShock = FieldSim.num(o, "infShock", c.infShock);
+        return c;
+    }
+
+    public static QCfg qcfgOfP5(Map<String, Object> spec) {
+        final Map<String, Object> o = sub(spec, "qc");
+        final QCfg q = qcfgOf(spec);
+        q.M0 = FieldSim.num(o, "M0", 300);
+        return q;
+    }
+
+    public static KCfg kcfgOfP5(Map<String, Object> spec) {
+        final Map<String, Object> o = sub(spec, "k");
+        final KCfg k = kcfgOf(spec);
+        k.throat = (int) FieldSim.num(o, "throat", 2);
+        k.mk = (int) FieldSim.num(o, "mk", 3);
+        k.fuelErg = !o.containsKey("fuel") || "erg".equals(o.get("fuel"));
+        k.test9 = bool(o, "test9", k.test9);
+        k.c4t = FieldSim.num(o, "c4t", k.c4t);
+        return k;
+    }
+
+    public static URig urigOf(Map<String, Object> spec) {
+        final URig u = new URig();
+        final Map<String, Object> o = sub(spec, "urig");
+        u.on = bool(o, "on", u.on);
+        u.dm = FieldSim.num(o, "dm", u.dm);
+        u.st = FieldSim.num(o, "st", u.st);
+        return u;
+    }
+
+    /** Runs one P5 case exactly like tools/p5-golden.js's {@code __run} and returns its result tree. */
+    public static Map<String, Object> runCaseP5(Map<String, Object> spec) {
+        final int tier = (int) FieldSim.num(spec, "tier", 9);
+        final long secs = (long) FieldSim.num(spec, "secs", 14400);
+        final boolean relight = !Boolean.FALSE.equals(spec.get("relight"));
+        final long infallAt = spec.containsKey("infallAt") ? (long) FieldSim.num(spec, "infallAt", -1) : -1;
+        final long inflationAt = spec.containsKey("inflationAt") ? (long) FieldSim.num(spec, "inflationAt", -1) : -1;
+        final World W = new World(tier, cfgOfP5(spec), qcfgOfP5(spec), kcfgOfP5(spec), rigOf(spec));
+        final Eye S = W.eye;
+        S.urig = urigOf(spec);
+        final QuasarState Q = W.q;
+        int he = FieldSim.FNV_OFFSET, hq = FieldSim.FNV_OFFSET, hg = FieldSim.FNV_OFFSET, hd = FieldSim.FNV_OFFSET;
+        int hb = FieldSim.FNV_OFFSET;
+        for (long i = 0; i < secs; i++) {
+            if (i == infallAt) S.beginInfall();
+            if (i == inflationAt) S.beginInflation();
+            W.tick();
+            if (S.state == Eye.DARK && relight) S.relight();
+            final FieldState s = S.s;
+            for (int k = 0; k < StellarField.GAUGES; k++) he = FieldSim.fnv(he, FieldSim.q6(s.x[k]));
+            he = FieldSim.fnv(he, FieldSim.q6(s.A));
+            he = FieldSim.fnv(he, FieldSim.q6(s.I));
+            he = FieldSim.fnv(he, S.zone);
+            he = FieldSim.fnv(he, S.state);
+            he = FieldSim.fnv(he, s.tier.n);
+            he = FieldSim.fnv(he, s.lock);
+            he = FieldSim.fnv(he, s.prec);
+            for (double v : new double[] { Q.E, Q.Phi, Q.a, Q.M, Q.G, Q.I }) hq = FieldSim.fnv(hq, FieldSim.q6(v));
+            hq = FieldSim.fnv(hq, Q.zone);
+            hq = FieldSim.fnv(hq, Q.reform);
+            hq = FieldSim.fnv(hq, Q.hole == QuasarState.Hole.OPEN ? 0 : 1);
+            for (double v : new double[] { W.gBeta, W.gHi, W.gLo, W.gHalo, W.gEye, W.link.mean, W.link8.mean,
+                W.link9.link.mean, W.link9.rho }) hg = FieldSim.fnv(hg, FieldSim.q6(v));
+            hg = FieldSim.fnv(hg, W.link.streak);
+            hg = FieldSim.fnv(hg, W.link8.streak);
+            hg = FieldSim.fnv(hg, W.link9.link.streak);
+            hd = FieldSim.fnv(hd, W.dirDisc);
+            hd = FieldSim.fnv(hd, W.dirField);
+            hd = FieldSim.fnv(hd, W.dirEvent);
+            hd = FieldSim.fnv(hd, W.dirTrans);
+            hd = FieldSim.fnv(hd, W.dirFlow);
+            hd = FieldSim.fnv(hd, W.dirUni);
+            final FieldState.Beam B = s.beam;
+            final FieldState.Flow F = s.flow;
+            final FieldState.Universe U = s.uni;
+            hb = FieldSim.fnv(hb, FieldSim.q6(B != null ? B.B : 0));
+            hb = FieldSim.fnv(hb, FieldSim.q6(B != null ? B.n : 0));
+            hb = FieldSim.fnv(hb, F != null ? FieldSim.q6(F.next) : -1);
+            hb = FieldSim.fnv(hb, F != null ? F.left : -1);
+            hb = FieldSim.fnv(hb, F != null ? F.size : -1);
+            hb = FieldSim.fnv(hb, F != null ? F.sign : 0);
+            hb = FieldSim.fnv(hb, F != null ? F.ok : -1);
+            hb = FieldSim.fnv(hb, F != null ? (F.warned ? 1 : 0) | (F.accepted ? 2 : 0) | (F.forced ? 4 : 0) : -1);
+            hb = FieldSim.fnv(hb, U != null ? U.t : -1);
+            hb = FieldSim.fnv(hb, U != null ? U.dawn : -1);
+            hb = FieldSim.fnv(hb, U != null ? (U.dawnOk ? 1 : 0) : -1);
+        }
+        final FieldSim.Ledger L = S.L;
+        final LinkedHashMap<String, Object> res = new LinkedHashMap<>();
+        res.put("zoneT", longs(L.zoneT));
+        res.put("ySum", L.ySum);
+        res.put("yN", (double) L.yN);
+        res.put("fails", (double) L.fails);
+        res.put("charges", (double) L.charges);
+        res.put("cycles", (double) L.cycles);
+        res.put("eu", L.eu);
+        res.put("up", new LinkedHashMap<String, Object>(L.up));
+        res.put("prod", new LinkedHashMap<String, Object>(L.prod));
+        res.put("trims", new LinkedHashMap<String, Object>(L.trims));
+        res.put("runs", new LinkedHashMap<String, Object>(S.runs));
+        res.put("gal", S.gal);
+        res.put("flows", (double) S.flows);
+        res.put("caught", (double) S.caught);
+        res.put("pellets", S.pellets);
+        res.put("batches", (double) L.batches);
+        res.put("dawns", (double) S.dawns);
+        final List<Object> xs = new ArrayList<>();
+        for (double v : S.s.x) xs.add(v);
+        res.put("x", xs);
+        res.put("A", S.s.A);
+        res.put("I", S.s.I);
+        res.put("lock", (double) S.s.lock);
+        res.put("t", (double) S.s.t);
+        res.put("eyeT", S.s.eyeT);
+        res.put("tier", (double) S.s.tier.n);
+        res.put("state", (double) S.state);
+        res.put("prec", (double) S.s.prec);
+        res.put("unlocked9", W.c.unlocked9);
+        res.put("unlocked10", W.c.unlocked10);
+        if (S.trans instanceof InfallOverlay) {
+            final InfallOverlay o = (InfallOverlay) S.trans;
+            final LinkedHashMap<String, Object> tr = new LinkedHashMap<>();
+            tr.put("kind", "in");
+            tr.put("phase", 1.0); // the prototype's Infall keeps phase 1 throughout
+            tr.put("st", (double) o.st);
+            tr.put("streak", (double) o.streak);
+            res.put("trans", tr);
+        } else if (S.trans instanceof InflationOverlay) {
+            final InflationOverlay o = (InflationOverlay) S.trans;
+            final LinkedHashMap<String, Object> tr = new LinkedHashMap<>();
+            tr.put("kind", "inf");
+            tr.put("phase", (double) o.phase);
+            tr.put("st", (double) o.st);
+            tr.put("streak", (double) o.streak);
+            res.put("trans", tr);
+        } else res.put("trans", null);
+        if (S.s.beam != null) {
+            final LinkedHashMap<String, Object> b = new LinkedHashMap<>();
+            b.put("B", S.s.beam.B);
+            b.put("rho", S.s.beam.rho);
+            b.put("n", S.s.beam.n);
+            b.put("s", S.s.beam.s);
+            res.put("beam", b);
+        } else res.put("beam", null);
+        if (S.s.flow != null) {
+            final FieldState.Flow f = S.s.flow;
+            final LinkedHashMap<String, Object> m = new LinkedHashMap<>();
+            m.put("next", f.next);
+            m.put("left", (double) f.left);
+            m.put("tau", (double) f.tau);
+            m.put("size", (double) f.size);
+            m.put("sign", (double) f.sign);
+            m.put("ok", (double) f.ok);
+            m.put("warned", f.warned);
+            m.put("accepted", f.accepted);
+            m.put("forced", f.forced);
+            res.put("flow", m);
+        } else res.put("flow", null);
+        if (S.s.uni != null) {
+            final FieldState.Universe u = S.s.uni;
+            final LinkedHashMap<String, Object> m = new LinkedHashMap<>();
+            m.put("t", (double) u.t);
+            m.put("ySum", u.ySum);
+            m.put("n", (double) u.n);
+            m.put("rMin", u.rMin);
+            m.put("dawn", (double) u.dawn);
+            m.put("dawnOk", u.dawnOk);
+            res.put("uni", m);
+        } else res.put("uni", null);
+        final LinkedHashMap<String, Object> l9 = new LinkedHashMap<>(linkMap(W.link9.link));
+        l9.put("rho", W.link9.rho);
+        res.put("link9", l9);
+        final LinkedHashMap<String, Object> qr = new LinkedHashMap<>();
+        qr.put("M", Q.M);
+        qr.put("a", Q.a);
+        qr.put("E", Q.E);
+        qr.put("Phi", Q.Phi);
+        qr.put("I", Q.I);
+        qr.put("open", Q.hole == QuasarState.Hole.OPEN);
+        qr.put("fails", (double) W.QL.fails);
+        qr.put("eruptions", (double) W.QL.eruptions);
+        qr.put("purges", (double) W.QL.purges);
+        qr.put("bu", W.QL.bu);
+        res.put("quasar", qr);
+        res.put("conduit", new LinkedHashMap<String, Object>(W.KL));
+        final LinkedHashMap<String, Object> hash = new LinkedHashMap<>();
+        hash.put("eye", (double) (he & 0xFFFFFFFFL));
+        hash.put("quasar", (double) (hq & 0xFFFFFFFFL));
+        hash.put("bursts", (double) (hg & 0xFFFFFFFFL));
+        hash.put("directive", (double) (hd & 0xFFFFFFFFL));
+        hash.put("p5", (double) (hb & 0xFFFFFFFFL));
+        res.put("hash", hash);
+        return res;
+    }
+
+    @SuppressWarnings("unchecked")
+    static int goldenP5(String file) throws IOException {
+        final String text = new String(Files.readAllBytes(Paths.get(file)), StandardCharsets.UTF_8);
+        final Map<String, Object> root = (Map<String, Object>) new FieldSim.Json(text).value();
+        final List<Object> cases = (List<Object>) root.get("cases");
+        int pass = 0, fail = 0;
+        final long t0 = System.nanoTime();
+        for (Object o : cases) {
+            final Map<String, Object> cs = (Map<String, Object>) o;
+            final String name = (String) cs.get("name");
+            final Map<String, Object> got = runCaseP5((Map<String, Object>) cs.get("spec"));
+            final List<String> diffs = new ArrayList<>();
+            FieldSim.compare(cs.get("expect"), got, "", diffs);
+            if (diffs.isEmpty()) {
+                pass++;
+                System.out.println("PASS " + name);
+            } else {
+                fail++;
+                System.out.println("FAIL " + name);
+                for (String d : diffs) System.out.println("    " + d);
+            }
+        }
+        System.out
+            .printf("%d cases: %d PASS, %d FAIL (%.0f ms)%n", pass + fail, pass, fail, (System.nanoTime() - t0) / 1e6);
+        return fail == 0 && pass > 0 ? 0 : 1;
+    }
+
     // ================================================================== golden
 
     @SuppressWarnings("unchecked")
@@ -924,6 +1367,8 @@ public final class QuasarSim {
     public static void main(String[] args) throws IOException {
         if (args.length >= 2 && "golden".equals(args[0])) {
             System.exit(golden(args[1]));
+        } else if (args.length >= 2 && "golden-p5".equals(args[0])) {
+            System.exit(goldenP5(args[1]));
         } else if (args.length >= 2 && "run".equals(args[0])) {
             final Map<String, Object> spec = (Map<String, Object>) new FieldSim.Json(args[1]).value();
             System.out.println(FieldSim.Json.write(runCase(spec)));

@@ -1,7 +1,7 @@
 {
  "generator": "tools/export-structures.js",
  "source": "designs/voxel.js",
- "sha": "fa6fec2a751c20eef04cc449df70c3e0c428e9e1",
+ "sha": "7796eeb6b7823f938be225118e9e1e7fa0c89d83",
  "format": "StructureLib native String[d][h] (w chars). Layer 0 = controller front (mockup +z), rows top to bottom, chars left to right seen from the front (mockup +x). off = controller (h,v,d) in the piece's own frame. ' ' = skip.",
  "orientation": {
   "flipH": false,
@@ -365,21 +365,42 @@
    },
    "B": {
     "role": "rail_halo_shell",
-    "kind": "bastion (T7 rail, rim->rail clamps, T8 shards)",
+    "kind": "bastion (T7 rail, rim->rail clamps, T8 shards, T9 collars, thorns, tie rails and tripod)",
     "block": "slCasing:13 Bastion Plate (existing)"
    },
    "P": {
     "role": "rail_trim",
-    "kind": "casimir (T7 rail outer-face trim)",
+    "kind": "casimir (T7 rail outer-face trim, T10 crown trim)",
     "block": "slCasing:14 Casimir Plate (existing)"
    },
    "r": {
     "role": "grb_receptor",
-    "kind": "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo)",
+    "kind": "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo), 5 on the T9 collars' outer rings (group collar)",
     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback",
     "fallback": "B",
     "min": 0,
     "hint": 9
+   },
+   "k": {
+    "role": "grb_receptor_crown",
+    "kind": "receptor: 12 on the T10 crown above its band (group crown)",
+    "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125), group crown, else fallback",
+    "fallback": "E",
+    "min": 0,
+    "hint": 9
+   },
+   "E": {
+    "role": "crown_shell",
+    "kind": "eternity (T10 crown band, its 48 sawtooth crystals, 12 spokes and 12 spikes)",
+    "block": "slCasing3:10 Eternity Shell Casing (BlockSLCasing3.ETERNITY_SHELL, existing)"
+   },
+   "i": {
+    "role": "pellet_injector_socket",
+    "kind": "bastion (T9 top collar's outer ring, either side of its receptor: 2 cells)",
+    "block": "Pellet Injector Hatch (MTE 28128) or a Burst Control Hatch (MTE 28126) for the injector's rate, else fallback",
+    "fallback": "B",
+    "min": 0,
+    "hint": 10
    }
   },
   "quasar": {
@@ -1159,9 +1180,342 @@
     "eye_arms2": "T5 second arm pair, optional; counts only with every band below",
     "eye_rim": "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below",
     "eye_rail": "T7 stability rail (tilted 8 deg) with 8 GRB Receptor Ports, groups rail-high / rail-low; optional, counts only with every band below",
-    "eye_halo": "T8 shard halo with 8 GRB Receptor Ports at the shard roots, group halo; optional, counts only with every band below"
+    "eye_halo": "T8 shard halo with 8 GRB Receptor Ports at the shard roots, group halo; optional, counts only with every band below",
+    "eye_jet9": "T9 collimator stack: five collars, 5 GRB Receptor Ports (group collar), 2 Pellet Injector sockets on the top collar; optional, counts only with every band below",
+    "eye_crown": "T10 universal crown: 12 GRB Receptor Ports (group crown); optional, counts only with every band below"
    },
-   "receptorGroups": "manifest.pieces.eye_rail / eye_halo .sockets.r[i].group: rail-high (the rail's +z half, raised by the 8 deg tilt), rail-low, halo"
+   "receptorGroups": "manifest.pieces.eye_rail / eye_halo / eye_jet9 / eye_crown .sockets.r[i].group: rail-high (the rail's +z half, raised by the 8 deg tilt), rail-low, halo, collar (one per T9 collar), crown (the T10 crown)",
+   "jet9": {
+    "collars": [
+     {
+      "yVoxel": 30,
+      "radius": 14,
+      "outerRadius": 14.6,
+      "centreRel": [
+       0,
+       -70,
+       40
+      ]
+     },
+     {
+      "yVoxel": 44,
+      "radius": 12.32,
+      "outerRadius": 12.92,
+      "centreRel": [
+       0,
+       -84,
+       40
+      ]
+     },
+     {
+      "yVoxel": 58,
+      "radius": 10.64,
+      "outerRadius": 11.24,
+      "centreRel": [
+       0,
+       -98,
+       40
+      ]
+     },
+     {
+      "yVoxel": 72,
+      "radius": 8.96,
+      "outerRadius": 9.56,
+      "centreRel": [
+       0,
+       -112,
+       40
+      ]
+     },
+     {
+      "yVoxel": 86,
+      "radius": 7.28,
+      "outerRadius": 7.88,
+      "centreRel": [
+       0,
+       -126,
+       40
+      ]
+     }
+    ],
+    "axisTopRel": [
+     0,
+     -126,
+     40
+    ],
+    "axisBottomRel": [
+     0,
+     -40,
+     40
+    ],
+    "beamVoxelY": [
+     20,
+     92
+    ]
+   },
+   "crown": {
+    "centreRel": [
+     0,
+     -102,
+     40
+    ],
+    "centreVoxel": [
+     0,
+     62,
+     0
+    ],
+    "tiltDeg": -10,
+    "radiiAB": [
+     74,
+     70
+    ],
+    "outerSize": [
+     148,
+     140
+    ],
+    "spikes": [
+     {
+      "k": 0,
+      "paramDeg": 15,
+      "elevDeg": 14,
+      "baseRel": [
+       71,
+       -99,
+       22
+      ],
+      "tipRel": [
+       95,
+       -105,
+       16
+      ],
+      "dirAbc": [
+       0.94141,
+       -0.241922,
+       -0.23499
+      ]
+     },
+     {
+      "k": 1,
+      "paramDeg": 45,
+      "elevDeg": -4,
+      "baseRel": [
+       52,
+       -93,
+       -9
+      ],
+      "tipRel": [
+       71,
+       -92,
+       -26
+      ],
+      "dirAbc": [
+       0.729914,
+       0.069756,
+       -0.67997
+      ]
+     },
+     {
+      "k": 2,
+      "paramDeg": 75,
+      "elevDeg": 6,
+      "baseRel": [
+       19,
+       -90,
+       -27
+      ],
+      "tipRel": [
+       26,
+       -93,
+       -51
+      ],
+      "dirAbc": [
+       0.274909,
+       -0.104528,
+       -0.955771
+      ]
+     },
+     {
+      "k": 3,
+      "paramDeg": 105,
+      "elevDeg": 14,
+      "baseRel": [
+       -19,
+       -90,
+       -27
+      ],
+      "tipRel": [
+       -26,
+       -96,
+       -50
+      ],
+      "dirAbc": [
+       -0.268212,
+       -0.241922,
+       -0.932489
+      ]
+     },
+     {
+      "k": 4,
+      "paramDeg": 135,
+      "elevDeg": -4,
+      "baseRel": [
+       -52,
+       -93,
+       -9
+      ],
+      "tipRel": [
+       -71,
+       -92,
+       -26
+      ],
+      "dirAbc": [
+       -0.729914,
+       0.069756,
+       -0.67997
+      ]
+     },
+     {
+      "k": 5,
+      "paramDeg": 165,
+      "elevDeg": 6,
+      "baseRel": [
+       -71,
+       -99,
+       22
+      ],
+      "tipRel": [
+       -96,
+       -102,
+       16
+      ],
+      "dirAbc": [
+       -0.964915,
+       -0.104528,
+       -0.240857
+      ]
+     },
+     {
+      "k": 6,
+      "paramDeg": 195,
+      "elevDeg": 14,
+      "baseRel": [
+       -71,
+       -105,
+       58
+      ],
+      "tipRel": [
+       -95,
+       -111,
+       64
+      ],
+      "dirAbc": [
+       -0.94141,
+       -0.241922,
+       0.23499
+      ]
+     },
+     {
+      "k": 7,
+      "paramDeg": 225,
+      "elevDeg": -4,
+      "baseRel": [
+       -52,
+       -111,
+       89
+      ],
+      "tipRel": [
+       -71,
+       -109,
+       106
+      ],
+      "dirAbc": [
+       -0.729914,
+       0.069756,
+       0.67997
+      ]
+     },
+     {
+      "k": 8,
+      "paramDeg": 255,
+      "elevDeg": 6,
+      "baseRel": [
+       -19,
+       -114,
+       107
+      ],
+      "tipRel": [
+       -26,
+       -116,
+       131
+      ],
+      "dirAbc": [
+       -0.274909,
+       -0.104528,
+       0.955771
+      ]
+     },
+     {
+      "k": 9,
+      "paramDeg": 285,
+      "elevDeg": 14,
+      "baseRel": [
+       19,
+       -114,
+       107
+      ],
+      "tipRel": [
+       26,
+       -120,
+       130
+      ],
+      "dirAbc": [
+       0.268212,
+       -0.241922,
+       0.932489
+      ]
+     },
+     {
+      "k": 10,
+      "paramDeg": 315,
+      "elevDeg": -4,
+      "baseRel": [
+       52,
+       -111,
+       89
+      ],
+      "tipRel": [
+       71,
+       -109,
+       106
+      ],
+      "dirAbc": [
+       0.729914,
+       0.069756,
+       0.67997
+      ]
+     },
+     {
+      "k": 11,
+      "paramDeg": 345,
+      "elevDeg": 6,
+      "baseRel": [
+       71,
+       -105,
+       58
+      ],
+      "tipRel": [
+       96,
+       -108,
+       64
+      ],
+      "dirAbc": [
+       0.964915,
+       -0.104528,
+       0.240857
+      ]
+     }
+    ]
+   }
   },
   "homogeny": {
    "mte": 28130,
@@ -1634,7 +1988,9 @@
    "eye_arms2": 371,
    "eye_rim": 213,
    "eye_rail": 42,
-   "eye_halo": 0
+   "eye_halo": 0,
+   "eye_jet9": 0,
+   "eye_crown": 0
   }
  },
  "assembled": {
@@ -1777,6 +2133,37 @@
    ],
    "size": "196x73x218",
    "blocks": 69657
+  },
+  "Eye T9": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet",
+    "eye_arms",
+    "eye_arms2",
+    "eye_rim",
+    "eye_rail",
+    "eye_halo",
+    "eye_jet9"
+   ],
+   "size": "196x134x218",
+   "blocks": 76505
+  },
+  "Eye T10": {
+   "pieces": [
+    "eye_core",
+    "eye_beam",
+    "eye_jet",
+    "eye_arms",
+    "eye_arms2",
+    "eye_rim",
+    "eye_rail",
+    "eye_halo",
+    "eye_jet9",
+    "eye_crown"
+   ],
+   "size": "196x134x218",
+   "blocks": 105248
   },
   "Quasar Engine": {
    "pieces": [
@@ -4712,6 +5099,455 @@
      }
     ]
    }
+  },
+  "eye_jet9": {
+   "machine": "eye",
+   "file": "structures/eye_jet9.txt",
+   "w": 55,
+   "h": 85,
+   "d": 47,
+   "off": [
+    27,
+    132,
+    -17
+   ],
+   "blocks": 6848,
+   "bom": [
+    {
+     "ch": "B",
+     "count": 5271,
+     "role": "rail_halo_shell",
+     "block": "slCasing:13 Bastion Plate (existing)"
+    },
+    {
+     "ch": "Z",
+     "count": 972,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "J",
+     "count": 598,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "r",
+     "count": 5,
+     "role": "grb_receptor",
+     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback"
+    },
+    {
+     "ch": "i",
+     "count": 2,
+     "role": "pellet_injector_socket",
+     "block": "Pellet Injector Hatch (MTE 28128) or a Burst Control Hatch (MTE 28126) for the injector's rate, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "i": 2,
+    "r": 5
+   },
+   "sockets": {
+    "i": [
+     {
+      "abc": [
+       24,
+       6,
+       16
+      ],
+      "rel": [
+       -3,
+       -126,
+       33
+      ],
+      "voxel": [
+       -3,
+       86,
+       7
+      ]
+     },
+     {
+      "abc": [
+       30,
+       6,
+       16
+      ],
+      "rel": [
+       3,
+       -126,
+       33
+      ],
+      "voxel": [
+       3,
+       86,
+       7
+      ]
+     }
+    ],
+    "r": [
+     {
+      "abc": [
+       27,
+       61,
+       8
+      ],
+      "rel": [
+       0,
+       -71,
+       25
+      ],
+      "voxel": [
+       0,
+       31,
+       15
+      ],
+      "group": "collar"
+     },
+     {
+      "abc": [
+       27,
+       48,
+       10
+      ],
+      "rel": [
+       0,
+       -84,
+       27
+      ],
+      "voxel": [
+       0,
+       44,
+       13
+      ],
+      "group": "collar"
+     },
+     {
+      "abc": [
+       27,
+       34,
+       12
+      ],
+      "rel": [
+       0,
+       -98,
+       29
+      ],
+      "voxel": [
+       0,
+       58,
+       11
+      ],
+      "group": "collar"
+     },
+     {
+      "abc": [
+       25,
+       20,
+       14
+      ],
+      "rel": [
+       -2,
+       -112,
+       31
+      ],
+      "voxel": [
+       -2,
+       72,
+       9
+      ],
+      "group": "collar"
+     },
+     {
+      "abc": [
+       27,
+       6,
+       15
+      ],
+      "rel": [
+       0,
+       -126,
+       32
+      ],
+      "voxel": [
+       0,
+       86,
+       8
+      ],
+      "group": "collar"
+     }
+    ]
+   },
+   "cellsKeptByEarlierPiece": 156
+  },
+  "eye_crown": {
+   "machine": "eye",
+   "file": "structures/eye_crown.txt",
+   "w": 189,
+   "h": 37,
+   "d": 179,
+   "off": [
+    94,
+    121,
+    49
+   ],
+   "blocks": 28743,
+   "bom": [
+    {
+     "ch": "E",
+     "count": 18851,
+     "role": "crown_shell",
+     "block": "slCasing3:10 Eternity Shell Casing (BlockSLCasing3.ETERNITY_SHELL, existing)"
+    },
+    {
+     "ch": "J",
+     "count": 6833,
+     "role": "band_lining",
+     "block": "Casings.InfiniteSpacetimeEnergyBoundaryCasing (BA0:12)"
+    },
+    {
+     "ch": "Z",
+     "count": 2368,
+     "role": "glass_channel",
+     "block": "Casings.QuantumGlass (TecTech)"
+    },
+    {
+     "ch": "P",
+     "count": 679,
+     "role": "rail_trim",
+     "block": "slCasing:14 Casimir Plate (existing)"
+    },
+    {
+     "ch": "k",
+     "count": 12,
+     "role": "grb_receptor_crown",
+     "block": "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125), group crown, else fallback"
+    }
+   ],
+   "socketCounts": {
+    "k": 12
+   },
+   "sockets": {
+    "k": [
+     {
+      "abc": [
+       75,
+       26,
+       22
+      ],
+      "rel": [
+       -19,
+       -95,
+       -27
+      ],
+      "voxel": [
+       -19,
+       55,
+       67
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       113,
+       26,
+       22
+      ],
+      "rel": [
+       19,
+       -95,
+       -27
+      ],
+      "voxel": [
+       19,
+       55,
+       67
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       42,
+       23,
+       40
+      ],
+      "rel": [
+       -52,
+       -98,
+       -9
+      ],
+      "voxel": [
+       -52,
+       58,
+       49
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       146,
+       23,
+       40
+      ],
+      "rel": [
+       52,
+       -98,
+       -9
+      ],
+      "voxel": [
+       52,
+       58,
+       49
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       23,
+       18,
+       71
+      ],
+      "rel": [
+       -71,
+       -103,
+       22
+      ],
+      "voxel": [
+       -71,
+       63,
+       18
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       165,
+       18,
+       71
+      ],
+      "rel": [
+       71,
+       -103,
+       22
+      ],
+      "voxel": [
+       71,
+       63,
+       18
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       23,
+       11,
+       107
+      ],
+      "rel": [
+       -71,
+       -110,
+       58
+      ],
+      "voxel": [
+       -71,
+       70,
+       -18
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       165,
+       11,
+       107
+      ],
+      "rel": [
+       71,
+       -110,
+       58
+      ],
+      "voxel": [
+       71,
+       70,
+       -18
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       42,
+       6,
+       138
+      ],
+      "rel": [
+       -52,
+       -115,
+       89
+      ],
+      "voxel": [
+       -52,
+       75,
+       -49
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       146,
+       6,
+       138
+      ],
+      "rel": [
+       52,
+       -115,
+       89
+      ],
+      "voxel": [
+       52,
+       75,
+       -49
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       75,
+       3,
+       156
+      ],
+      "rel": [
+       -19,
+       -118,
+       107
+      ],
+      "voxel": [
+       -19,
+       78,
+       -67
+      ],
+      "group": "crown"
+     },
+     {
+      "abc": [
+       113,
+       3,
+       156
+      ],
+      "rel": [
+       19,
+       -118,
+       107
+      ],
+      "voxel": [
+       19,
+       78,
+       -67
+      ],
+      "group": "crown"
+     }
+    ]
+   },
+   "cellsKeptByEarlierPiece": 192
   },
   "homog_t1": {
    "machine": "homogeny",
@@ -7943,6 +8779,8 @@
   "ok   eye_rim: no '~' (anchored by off 78,42,34, outside its own box)",
   "ok   eye_rail: no '~' (anchored by off 91,57,47, outside its own box)",
   "ok   eye_halo: no '~' (anchored by off 98,71,71, outside its own box)",
+  "ok   eye_jet9: no '~' (anchored by off 27,132,-17, outside its own box)",
+  "ok   eye_crown: no '~' (anchored by off 94,121,49, outside its own box)",
   "ok   homog_t1: one controller '~' at off 24,35,2",
   "ok   homog_t2: no '~' (anchored by off 48,8,22, outside its own box)",
   "ok   homog_t3: no '~' (anchored by off 69,30,31, outside its own box)",
@@ -7970,6 +8808,8 @@
   "ok   eye_rim: off resolves to the machine's controller cell",
   "ok   eye_rail: off resolves to the machine's controller cell",
   "ok   eye_halo: off resolves to the machine's controller cell",
+  "ok   eye_jet9: off resolves to the machine's controller cell",
+  "ok   eye_crown: off resolves to the machine's controller cell",
   "ok   homog_t1: off resolves to the machine's controller cell",
   "ok   homog_t2: off resolves to the machine's controller cell",
   "ok   homog_t3: off resolves to the machine's controller cell",
@@ -8002,27 +8842,44 @@
   "ok   eye_core and eye_rim share no cell",
   "ok   eye_core and eye_rail share no cell",
   "ok   eye_core and eye_halo share no cell",
+  "ok   eye_core and eye_jet9 share no cell",
+  "ok   eye_core and eye_crown share no cell",
   "ok   eye_beam and eye_jet share no cell",
   "ok   eye_beam and eye_arms share no cell",
   "ok   eye_beam and eye_arms2 share no cell",
   "ok   eye_beam and eye_rim share no cell",
   "ok   eye_beam and eye_rail share no cell",
   "ok   eye_beam and eye_halo share no cell",
+  "ok   eye_beam and eye_jet9 share no cell",
+  "ok   eye_beam and eye_crown share no cell",
   "ok   eye_jet and eye_arms share no cell",
   "ok   eye_jet and eye_arms2 share no cell",
   "ok   eye_jet and eye_rim share no cell",
   "ok   eye_jet and eye_rail share no cell",
   "ok   eye_jet and eye_halo share no cell",
+  "ok   eye_jet and eye_jet9 share no cell",
+  "ok   eye_jet and eye_crown share no cell",
   "ok   eye_arms and eye_arms2 share no cell",
   "ok   eye_arms and eye_rim share no cell",
   "ok   eye_arms and eye_rail share no cell",
   "ok   eye_arms and eye_halo share no cell",
+  "ok   eye_arms and eye_jet9 share no cell",
+  "ok   eye_arms and eye_crown share no cell",
   "ok   eye_arms2 and eye_rim share no cell",
   "ok   eye_arms2 and eye_rail share no cell",
   "ok   eye_arms2 and eye_halo share no cell",
+  "ok   eye_arms2 and eye_jet9 share no cell",
+  "ok   eye_arms2 and eye_crown share no cell",
   "ok   eye_rim and eye_rail share no cell",
   "ok   eye_rim and eye_halo share no cell",
+  "ok   eye_rim and eye_jet9 share no cell",
+  "ok   eye_rim and eye_crown share no cell",
   "ok   eye_rail and eye_halo share no cell",
+  "ok   eye_rail and eye_jet9 share no cell",
+  "ok   eye_rail and eye_crown share no cell",
+  "ok   eye_halo and eye_jet9 share no cell",
+  "ok   eye_halo and eye_crown share no cell",
+  "ok   eye_jet9 and eye_crown share no cell",
   "ok   homog_t1 and homog_t2 share no cell",
   "ok   homog_t1 and homog_t3 share no cell",
   "ok   homog_t2 and homog_t3 share no cell",
@@ -8044,6 +8901,8 @@
   "ok   Reality Refab assembled box 104x139x83 (W x H x D, spec 104x139x83)",
   "ok   Eye T7 assembled box 183x59x175 (W x H x D, spec 183x59x175)",
   "ok   Eye T8 assembled box 196x73x218 (W x H x D, spec 196x73x218)",
+  "ok   Eye T9 assembled box 196x134x218 (W x H x D, spec 196x134x218)",
+  "ok   Eye T10 assembled box 196x134x218 (W x H x D, spec 196x134x218)",
   "ok   Quasar Engine assembled box 143x161x144 (W x H x D, spec 143x161x144)",
   "ok   Burst Thermaliser Crown Mk I assembled box 33x17x33 (W x H x D, spec 33x17x33)",
   "ok   Burst Thermaliser Crown Mk II assembled box 49x23x49 (W x H x D, spec 49x23x49)",
@@ -8064,6 +8923,8 @@
   "ok   Reality Diffraction: every socket has an outside-reachable face",
   "ok   Reality Refab: every socket has an outside-reachable face",
   "ok   Eye T8: every socket has an outside-reachable face",
+  "ok   Eye T9: every socket has an outside-reachable face",
+  "ok   Eye T10: every socket has an outside-reachable face",
   "ok   Quasar Engine: every socket has an outside-reachable face",
   "ok   crown_mk1: every socket has an outside-reachable face",
   "ok   crown_mk2: every socket has an outside-reachable face",
@@ -8109,6 +8970,42 @@
   "ok   crown_mk2: a second crown stacked at core top - 2 (dy 14) shares 0 cells with the first",
   "ok   crown_mk3: a second crown stacked at core top - 2 (dy 18) shares 0 cells with the first",
   "ok   crown_mk4: a second crown stacked at core top - 2 (dy 23) shares 0 cells with the first",
+  "ok   eye_jet9: 5 GRB Receptor Ports 'r' and 2 Pellet Injector sockets 'i', no other socket (5 / 2, ir)",
+  "ok   eye_crown: 12 GRB Receptor Ports 'k', no other socket (12, k)",
+  "ok   eye_jet9: one receptor on each collar's Bastion rows (voxel y 31,44,58,72,86)",
+  "ok   eye_jet9: both Pellet Injector sockets on the top collar (voxel y 86,86, collar 86-87)",
+  "ok   eye_jet9: 'r' at voxel 0,31,15 has 2 open face(s) in the full T10 build",
+  "ok   eye_jet9: 'r' at voxel 0,44,13 has 2 open face(s) in the full T10 build",
+  "ok   eye_jet9: 'r' at voxel 0,58,11 has 3 open face(s) in the full T10 build",
+  "ok   eye_jet9: 'r' at voxel -2,72,9 has 3 open face(s) in the full T10 build",
+  "ok   eye_jet9: 'i' at voxel -3,86,7 has 3 open face(s) in the full T10 build",
+  "ok   eye_jet9: 'i' at voxel 3,86,7 has 2 open face(s) in the full T10 build",
+  "ok   eye_jet9: 'r' at voxel 0,86,8 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -19,55,67 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 19,55,67 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -52,58,49 has 4 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 52,58,49 has 4 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -71,63,18 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 71,63,18 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -71,70,-18 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 71,70,-18 has 5 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -52,75,-49 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 52,75,-49 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel -19,78,-67 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: 'k' at voxel 19,78,-67 has 2 open face(s) in the full T10 build",
+  "ok   eye_crown: spike 0 (163 cells) spans 4.8..23.7 along its axis (drawn 3.5..25.5), farthest cell 1.99 from the tip",
+  "ok   eye_crown: spike 1 (161 cells) spans 6.3..23.4 along its axis (drawn 3.5..25.5), farthest cell 2.31 from the tip",
+  "ok   eye_crown: spike 2 (175 cells) spans 4.5..23.6 along its axis (drawn 3.5..25.5), farthest cell 1.97 from the tip",
+  "ok   eye_crown: spike 3 (171 cells) spans 5.7..23.2 along its axis (drawn 3.5..25.5), farthest cell 2.40 from the tip",
+  "ok   eye_crown: spike 4 (161 cells) spans 6.3..23.4 along its axis (drawn 3.5..25.5), farthest cell 2.31 from the tip",
+  "ok   eye_crown: spike 5 (175 cells) spans 4.7..23.2 along its axis (drawn 3.5..25.5), farthest cell 2.36 from the tip",
+  "ok   eye_crown: spike 6 (163 cells) spans 5.0..23.8 along its axis (drawn 3.5..25.5), farthest cell 1.73 from the tip",
+  "ok   eye_crown: spike 7 (161 cells) spans 6.3..23.3 along its axis (drawn 3.5..25.5), farthest cell 2.23 from the tip",
+  "ok   eye_crown: spike 8 (175 cells) spans 4.5..23.5 along its axis (drawn 3.5..25.5), farthest cell 2.01 from the tip",
+  "ok   eye_crown: spike 9 (171 cells) spans 5.6..23.1 along its axis (drawn 3.5..25.5), farthest cell 2.54 from the tip",
+  "ok   eye_crown: spike 10 (161 cells) spans 6.3..23.3 along its axis (drawn 3.5..25.5), farthest cell 2.23 from the tip",
+  "ok   eye_crown: spike 11 (175 cells) spans 4.7..23.3 along its axis (drawn 3.5..25.5), farthest cell 2.31 from the tip",
+  "ok   Eye T10: no cell on the walls of the mockup's 265x191x257 scratch world (placed voxel y -41..92, |x| <= 98, |z| <= 111; beam to y 92 of 95): nothing clipped",
   "ok   kerr_t1: 700 window pane cells, 3006 opened",
   "ok   kerr_t2: 700 window pane cells, 3323 opened",
   "ok   eye_core: 339 window pane cells, 371 opened",
@@ -8117,6 +9014,8 @@
   "ok   eye_rim: no pane, 213 cells opened in front of the core's pane",
   "ok   eye_rail: no pane, 42 cells opened in front of the core's pane",
   "ok   eye_halo: no window cells (the shards stand clear of the band; 0 opened)",
+  "ok   eye_jet9: no window cells (it stands clear above the core; 0 opened)",
+  "ok   eye_crown: no window cells (it stands clear above the core; 0 opened)",
   "ok   Kerr T1: the front window is clear at y +-1, |x| <= 8",
   "ok   Kerr T2: the front window is clear at y +-1, |x| <= 8",
   "ok   Eye T1: the front window is clear at y +-1, |x| <= 20",
@@ -8126,7 +9025,9 @@
   "ok   Eye T5: the front window is clear at y +-1, |x| <= 8",
   "ok   Eye T6: the front window is clear at y +-1, |x| <= 8",
   "ok   Eye T7: the front window is clear at y +-1, |x| <= 8",
-  "ok   Eye T8: the front window is clear at y +-1, |x| <= 8"
+  "ok   Eye T8: the front window is clear at y +-1, |x| <= 8",
+  "ok   Eye T9: the front window is clear at y +-1, |x| <= 8",
+  "ok   Eye T10: the front window is clear at y +-1, |x| <= 8"
  ],
  "notes": [
   "kerr: 40 cells drawn by kerr_core then by kerr_compressor; the later piece owns them",
@@ -8137,6 +9038,8 @@
   "eye_arms2: 73 cells written over an earlier piece in the mockup ({\"arm3\":36,\"arm2\":37}); the earlier piece keeps them",
   "eye_rim: 112 cells written over an earlier piece in the mockup ({\"rim\":104,\"clamp\":8}); the earlier piece keeps them",
   "eye_rail: 36 cells written over an earlier piece in the mockup ({\"clamp\":36}); the earlier piece keeps them",
+  "eye_jet9: 156 cells written over an earlier piece in the mockup ({\"clamp\":156}); the earlier piece keeps them",
+  "eye_crown: 192 cells written over an earlier piece in the mockup ({\"clamp\":192}); the earlier piece keeps them",
   "homog_t2: 30 cells written over an earlier tier in the mockup; the earlier piece keeps them",
   "homog_t3: 45 cells written over an earlier tier in the mockup; the earlier piece keeps them",
   "quasar_lattice: 2 strut-root cells fall on the quasar's buttresses and stay quasar cells"

@@ -88,4 +88,45 @@ public final class StepResult {
     public boolean collapsed;
     /** Galactic Merger: the first pass bound the second nucleus this second (the tier is now T8). */
     public boolean merged;
+
+    // ---- P5 failures handled inside the field
+    /**
+     * The failure in {@link #fail} was handled inside the field: a soft-failed Infall or Inflation ({@link #softFail};
+     * the star is lit at the tier below, Integrity 50) or a collapsed universe ({@link #universeCollapsed}; T10 stays
+     * lit). The runtime counts it but does not put the star out.
+     */
+    public boolean recovered;
+    public boolean softFail;
+    /** The failure came before the transition's second (a Breach or Integrity 0): no per-second terms followed. */
+    public boolean failEarly;
+
+    // ---- P5 (T9) the beam and the flow
+    /** The beam fired this second (inside the drift); {@link #pellets} pellets (fractional) to draw. */
+    public boolean beamFired;
+    public double pellets;
+    /** A Galactic Flow was warned / arrived and surges / streamed past (declined) this second. */
+    public boolean flowWarned, flowArrived, flowPassed;
+    /** A surge ended: held in full or not, its size, the galaxies captured, the fraction held, the Dark Matter, L. */
+    public boolean flowEnded, flowHeld;
+    public int flowSize;
+    public double flowCaptured, flowFraction, flowDarkMatter;
+    /** A T9 cycle ended at mean Y ≥ 1 (one more galaxy held, the display counter). */
+    public boolean galaxyCycle;
+    /** The Infall's charge taken this second, litres of Superdense Ergomatter. */
+    public double infallCharge;
+
+    // ---- P5 (T10) the universe
+    /** A universe was charged (Dark Matter 9,216 L × r): in the drift, in the transition, per second, in a fail. */
+    public boolean uniChargedInDrift, uniChargedInTick, uniChargedPerSec, uniChargedInFail;
+    /** Inflation's charge taken this second, litres of Dark Matter; Inflation reached its inflation second. */
+    public double inflationCharge;
+    public boolean inflated;
+    /** The universe's events this second. */
+    public boolean recombinationWarned, recombination, dawnWarned, dawnHit;
+    /** A universe ran to its last light: Universium base + the dawn's bonus, litres; its mean Y. */
+    public boolean universeDone, universeDawnOk;
+    public double universeBase, universeBonus, universeMeanY;
+    /** A universe collapsed: a Big Rip (H above 0) or a Big Crunch; the fraction run; Universium salvaged, litres. */
+    public boolean universeCollapsed, universeRip;
+    public double universeFraction, universeSalvage;
 }

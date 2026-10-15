@@ -1,0 +1,5394 @@
+{
+ "about": "P5 golden results (Eye T9 the Great Attractor, the Deep Link, The Infall, Eye T10 the Universe, Inflation) from the prototype engine with patches B-169 (tools/p5-golden.js). QuasarSim golden-p5 must match every number exactly. Regenerate; do not edit.",
+ "engineSha1": "c28c22097debf085fd21226aed3f656c7706d04b",
+ "p4Sha1": "8bc2943b9f93db5da721d4469b63bddb3da7b1f2",
+ "p5Sha1": "d18b3f49b8c0d570d5852da489045b70e1901dd7",
+ "sourceSha1": "6c0c157327a69497cbe943ab77c2dcc990b98efe",
+ "cases": [
+  {
+   "name": "T9 standard 300SM s1",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 1
+   },
+   "expect": {
+    "zoneT": [
+     11756,
+     2642,
+     2,
+     0,
+     0
+    ],
+    "ySum": 17338,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 2384840720646144000,
+    "up": {
+     "Superdense Pellet": 8025.999999999979
+    },
+    "prod": {
+     "Dark Matter": 49243.200000000004
+    },
+    "trims": {
+     "Space": 352000
+    },
+    "runs": {},
+    "gal": 293,
+    "flows": 7,
+    "caught": 6,
+    "pellets": 8025.999999999979,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     1.047743003555708,
+     0,
+     0,
+     0,
+     -4.272154690609808,
+     -2.5680722889563365,
+     -0.7364101221795234,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 19,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 8243887167.932049,
+     "rho": 0.8243887167932049,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 15080.23883896321,
+     "left": 0,
+     "tau": 240,
+     "size": 8,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.6029347151539,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 660880.7384224505
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 54115643986469410000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 4210452877,
+     "quasar": 1184655144,
+     "bursts": 1616505521,
+     "directive": 1812441952,
+     "p5": 3371069309
+    }
+   }
+  },
+  {
+   "name": "T9 standard 300SM s2",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 2
+   },
+   "expect": {
+    "zoneT": [
+     11646,
+     2751,
+     3,
+     0,
+     0
+    ],
+    "ySum": 17310,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 2384840720646144000,
+    "up": {
+     "Superdense Pellet": 8051.233333333353
+    },
+    "prod": {
+     "Dark Matter": 48888.00000000005
+    },
+    "trims": {
+     "Space": 372000
+    },
+    "runs": {},
+    "gal": 290,
+    "flows": 7,
+    "caught": 6,
+    "pellets": 8051.233333333353,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -8.523494370202027,
+     0,
+     0,
+     0,
+     -3.4450750877286174,
+     -2.7749430938872686,
+     2.7777544648683152,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 1,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 10583062695.109465,
+     "rho": 1.0583062695109464,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 16085.13245536387,
+     "left": 0,
+     "tau": 240,
+     "size": 6,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.68517294783913,
+     "a": 0.4520441516519049,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 417,
+     "bu": 664404.9514040947
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 54336385107438550000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 653362609,
+     "quasar": 419505241,
+     "bursts": 3848622207,
+     "directive": 919467018,
+     "p5": 2014294998
+    }
+   }
+  },
+  {
+   "name": "T9 standard 300SM s3",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 3
+   },
+   "expect": {
+    "zoneT": [
+     11728,
+     2632,
+     40,
+     0,
+     0
+    ],
+    "ySum": 17312,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 2384840720646144000,
+    "up": {
+     "Superdense Pellet": 8014.166666666701
+    },
+    "prod": {
+     "Dark Matter": 48748.80000000002
+    },
+    "trims": {
+     "Space": 341000
+    },
+    "runs": {},
+    "gal": 287,
+    "flows": 7,
+    "caught": 5,
+    "pellets": 8014.166666666701,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     1.861467545050137,
+     0,
+     0,
+     0,
+     -5.713427144866054,
+     -1.3959446876970079,
+     3.110192960456904,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 30,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 12777638236.306854,
+     "rho": 1.2777638236306854,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 15267.706501595676,
+     "left": 0,
+     "tau": 240,
+     "size": 9,
+     "sign": -1,
+     "ok": 232,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.5254378562136,
+     "a": 0.45257954274337453,
+     "E": 5.993331118258865,
+     "Phi": 40.979689926967254,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 656863.7820815048
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 53471166558794910000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 1966855084,
+     "quasar": 2863725582,
+     "bursts": 288498335,
+     "directive": 2869822335,
+     "p5": 3305480706
+    }
+   }
+  },
+  {
+   "name": "T9 250SM s1",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 1,
+    "qc": {
+     "M0": 250
+    }
+   },
+   "expect": {
+    "zoneT": [
+     10172,
+     4082,
+     74,
+     70,
+     2
+    ],
+    "ySum": 16834,
+    "yN": 14400,
+    "fails": 2,
+    "charges": 0,
+    "cycles": 238,
+    "eu": 2384840720646144000,
+    "up": {
+     "Superdense Pellet": 7780.533333333307
+    },
+    "prod": {
+     "Dark Matter": 44119.20000000003
+    },
+    "trims": {
+     "Space": 10000
+    },
+    "runs": {},
+    "gal": 263,
+    "flows": 4,
+    "caught": 4,
+    "pellets": 7780.533333333307,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -7.270886723063529,
+     0,
+     0,
+     0,
+     -7.022280657811223,
+     0.5937863715974874,
+     1.4106188786572424,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 83,
+    "t": 14400,
+    "eyeT": 14398,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 10795268963.367271,
+     "rho": 1.079526896336727,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 15005.557969603688,
+     "left": 0,
+     "tau": 240,
+     "size": 5,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 294.66911226262596,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 458944.95723780734
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 25013956415408280000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 1104726652,
+     "quasar": 1572927587,
+     "bursts": 2249050487,
+     "directive": 361517251,
+     "p5": 1032526916
+    }
+   }
+  },
+  {
+   "name": "T9 200SM (relights) s2",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 2,
+    "qc": {
+     "M0": 200
+    }
+   },
+   "expect": {
+    "zoneT": [
+     191,
+     2517,
+     4490,
+     2,
+     0
+    ],
+    "ySum": 5000.75,
+    "yN": 7200,
+    "fails": 21,
+    "charges": 0,
+    "cycles": 110,
+    "eu": 1306219813797888000,
+    "up": {
+     "Superdense Pellet": 3634.033333333332
+    },
+    "prod": {
+     "Dark Matter": 11280.599999999999
+    },
+    "trims": {},
+    "runs": {},
+    "gal": 29,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 3634.033333333332,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -44.97450285359907,
+     0,
+     0,
+     0,
+     7.360381115616509,
+     2.589056681005593,
+     4.981770845118984,
+     0
+    ],
+    "A": 0,
+    "I": 43.70000000000003,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7179,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 11490767166.782541,
+     "rho": 1.149076716678254,
+     "n": 0.8999999999999999,
+     "s": 9
+    },
+    "flow": {
+     "next": 8764.636539373547,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 217.14872568862023,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 139302.8995087962
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 287346304179737060,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 3326867630,
+     "quasar": 447937529,
+     "bursts": 1901733379,
+     "directive": 794736229,
+     "p5": 129026438
+    }
+   }
+  },
+  {
+   "name": "T9 two-level beam s3",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 3,
+    "cfg": {
+     "beamTwoLevel": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     11812,
+     2548,
+     40,
+     0,
+     0
+    ],
+    "ySum": 17333,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 2384840720646144000,
+    "up": {
+     "Superdense Pellet": 7904.333333332547
+    },
+    "prod": {
+     "Dark Matter": 48799.2
+    },
+    "trims": {
+     "Space": 341000
+    },
+    "runs": {},
+    "gal": 287,
+    "flows": 7,
+    "caught": 5,
+    "pellets": 7904.333333332547,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     1.861467545050137,
+     0,
+     0,
+     0,
+     -5.713427144866054,
+     -1.3959446876970079,
+     -4.387056200245394,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 30,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 14139071397.029388,
+     "rho": 1.4139071397029388,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 15267.706501595676,
+     "left": 0,
+     "tau": 240,
+     "size": 9,
+     "sign": -1,
+     "ok": 232,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.5254378562136,
+     "a": 0.45257954274337453,
+     "E": 5.993331118258865,
+     "Phi": 40.979689926967254,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 656863.7820815048
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 53471166558794910000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 914003025,
+     "quasar": 2863725582,
+     "bursts": 288498335,
+     "directive": 3140047420,
+     "p5": 1818335650
+    }
+   }
+  },
+  {
+   "name": "T9 all binary s1",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 1,
+    "cfg": {
+     "beamTwoLevel": true
+    },
+    "k": {
+     "twoLevel": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     11875,
+     2525,
+     0,
+     0,
+     0
+    ],
+    "ySum": 17368.75,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 2384840720646144000,
+    "up": {
+     "Superdense Pellet": 7915.233333332577
+    },
+    "prod": {
+     "Dark Matter": 49461.00000000001
+    },
+    "trims": {
+     "Space": 527000
+    },
+    "runs": {},
+    "gal": 294,
+    "flows": 7,
+    "caught": 7,
+    "pellets": 7915.233333332577,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     3.005066480810539,
+     0,
+     0,
+     0,
+     1.4440196200319457,
+     -4.021688943167954,
+     -1.216417162264171,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 18,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 7780660406.7017765,
+     "rho": 0.7780660406701777,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 15080.23883896321,
+     "left": 0,
+     "tau": 240,
+     "size": 8,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.6029347151539,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 660880.7384224505
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 48490006764315340000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 313298744,
+     "quasar": 1184655144,
+     "bursts": 1242890820,
+     "directive": 1496118039,
+     "p5": 3111104925
+    }
+   }
+  },
+  {
+   "name": "T9 beam unwired s2",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 2,
+    "cfg": {
+     "beamRig": false,
+     "bman": 7.5
+    }
+   },
+   "expect": {
+    "zoneT": [
+     2304,
+     3140,
+     1071,
+     672,
+     13
+    ],
+    "ySum": 6555.5,
+    "yN": 7200,
+    "fails": 20,
+    "charges": 0,
+    "cycles": 110,
+    "eu": 1296324209147904000,
+    "up": {
+     "Superdense Pellet": 3600
+    },
+    "prod": {
+     "Dark Matter": 15577.199999999999
+    },
+    "trims": {
+     "Space": 141000
+    },
+    "runs": {},
+    "gal": 79,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 3600,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -5.822901774567429,
+     0,
+     0,
+     0,
+     6.293668134524519,
+     -1.9990152426627066,
+     -42.172063368356575,
+     0
+    ],
+    "A": 0,
+    "I": 98.5,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7180,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 9999999999.99998,
+     "rho": 0.9999999999999981,
+     "n": 0.5,
+     "s": 7.5
+    },
+    "flow": {
+     "next": 8899.150217358023,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 325.72308853293185,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 313431.52389479097
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 24311060681960554000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 1337262020,
+     "quasar": 224550155,
+     "bursts": 611875131,
+     "directive": 4046617056,
+     "p5": 669938248
+    }
+   }
+  },
+  {
+   "name": "T9 Ergomatter Mk I rating 0 s3",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 3,
+    "cfg": {
+     "grade": "erg",
+     "inj": 1
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5871,
+     1329,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8667.75,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 1197368162648064000,
+    "up": {
+     "Ergomatter Pellet": 14408.53333333336
+    },
+    "prod": {
+     "Dark Matter": 20802.600000000002
+    },
+    "trims": {
+     "Space": 141000
+    },
+    "runs": {},
+    "gal": 120,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 14408.53333333336,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -2.763838080843467,
+     0,
+     0,
+     0,
+     4.273780355538957,
+     -1.64659421179791,
+     -1.1400897751496473,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 48,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 9343547066.699446,
+     "rho": 0.9343547066699446,
+     "n": 2.1333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 8036.689992390573,
+     "left": 0,
+     "tau": 0,
+     "size": 4,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 325.6367424058026,
+     "a": 0.452669514185722,
+     "E": -8.325926688862774,
+     "Phi": 31.265005463234438,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 207,
+     "bu": 309891.0846006523
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 23441009448266764000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 1758240626,
+     "quasar": 516847855,
+     "bursts": 3736899323,
+     "directive": 61432053,
+     "p5": 3064484799
+    }
+   }
+  },
+  {
+   "name": "T9 Ergomatter Mk I accept 12 s1",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 1,
+    "cfg": {
+     "grade": "erg",
+     "inj": 1,
+     "acceptMax": 12
+    }
+   },
+   "expect": {
+    "zoneT": [
+     11475,
+     2672,
+     153,
+     94,
+     6
+    ],
+    "ySum": 17092.25,
+    "yN": 14400,
+    "fails": 6,
+    "charges": 0,
+    "cycles": 236,
+    "eu": 2404631929946112000,
+    "up": {
+     "Ergomatter Pellet": 29463.999999999927
+    },
+    "prod": {
+     "Dark Matter": 40783.799999999974
+    },
+    "trims": {
+     "Space": 339000
+    },
+    "runs": {},
+    "gal": 234,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 29463.999999999927,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     2.2174253182421224,
+     0,
+     0,
+     0,
+     8.948046385970553,
+     4.560932891077913,
+     59.51876163249852,
+     0
+    ],
+    "A": 0,
+    "I": 77,
+    "lock": 0,
+    "t": 14400,
+    "eyeT": 14394,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 19884818773.13383,
+     "rho": 1.988481877313383,
+     "n": 4,
+     "s": 15
+    },
+    "flow": {
+     "next": 14253.97788451612,
+     "left": 94,
+     "tau": 146,
+     "size": 4,
+     "sign": 1,
+     "ok": 100,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.6029347151539,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 660880.7384224505
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 53770237567333790000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 2212963095,
+     "quasar": 1184655144,
+     "bursts": 161743533,
+     "directive": 371769873,
+     "p5": 499710740
+    }
+   }
+  },
+  {
+   "name": "T9 Magnetar Mk III s2",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 2,
+    "cfg": {
+     "grade": "mag",
+     "inj": 3
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5774,
+     1426,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8643.5,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 1197368162648064000,
+    "up": {
+     "Magnetar Pellet": 57870.93333333359
+    },
+    "prod": {
+     "Dark Matter": 20744.4
+    },
+    "trims": {
+     "Space": 155000
+    },
+    "runs": {},
+    "gal": 120,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 57870.93333333359,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -4.33243006042441,
+     0,
+     0,
+     0,
+     3.0615791667368204,
+     -1.014172768250318,
+     3.124752524865337,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 11,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 8728957445.928953,
+     "rho": 0.8728957445928953,
+     "n": 8.533333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 7402.956568274647,
+     "left": 0,
+     "tau": 0,
+     "size": 3,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 325.72308853293185,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 313431.52389479097
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 23714076791235420000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 3231781748,
+     "quasar": 224550155,
+     "bursts": 3232938390,
+     "directive": 3450882546,
+     "p5": 228782432
+    }
+   }
+  },
+  {
+   "name": "T9 Ergomatter Mk II s3",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 3,
+    "cfg": {
+     "grade": "erg",
+     "inj": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5776,
+     1424,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8644,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 1197368162648064000,
+    "up": {
+     "Ergomatter Pellet": 15091.199999999988
+    },
+    "prod": {
+     "Dark Matter": 22329.6
+    },
+    "trims": {
+     "Space": 138000
+    },
+    "runs": {},
+    "gal": 131,
+    "flows": 2,
+    "caught": 2,
+    "pellets": 15091.199999999988,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -2.764114676977342,
+     0,
+     0,
+     0,
+     -2.9852413331271204,
+     -1.9233181545003786,
+     -0.6350840616434594,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 48,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 9315504274.674795,
+     "rho": 0.9315504274674795,
+     "n": 2.2666666666666666,
+     "s": 8
+    },
+    "flow": {
+     "next": 8132.680144224316,
+     "left": 0,
+     "tau": 240,
+     "size": 6,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 325.6367424058026,
+     "a": 0.452669514185722,
+     "E": -8.325926688862774,
+     "Phi": 31.265005463234438,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 207,
+     "bu": 309891.0846006523
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 23809259262088454000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 249069175,
+     "quasar": 516847855,
+     "bursts": 167562302,
+     "directive": 323323715,
+     "p5": 766284711
+    }
+   }
+  },
+  {
+   "name": "T9 quasar unattended f0.85 s3",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 3,
+    "qc": {
+     "f": 0.85
+    }
+   },
+   "expect": {
+    "zoneT": [
+     11985,
+     2288,
+     52,
+     73,
+     2
+    ],
+    "ySum": 17295.25,
+    "yN": 14400,
+    "fails": 3,
+    "charges": 0,
+    "cycles": 238,
+    "eu": 2394736325296128000,
+    "up": {
+     "Superdense Pellet": 8073.199999999991
+    },
+    "prod": {
+     "Dark Matter": 47381.40000000001
+    },
+    "trims": {
+     "Space": 284000
+    },
+    "runs": {},
+    "gal": 279,
+    "flows": 5,
+    "caught": 5,
+    "pellets": 8073.199999999991,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     2.5878942247022474,
+     0,
+     0,
+     0,
+     -4.995098479040441,
+     2.345505981621752,
+     0.8865864858389854,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 34,
+    "t": 14400,
+    "eyeT": 14397,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 11241786516.247873,
+     "rho": 1.1241786516247874,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 15031.846702832729,
+     "left": 0,
+     "tau": 240,
+     "size": 11,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.3908662547623,
+     "a": 0.4506544835179416,
+     "E": -8.286552643058661,
+     "Phi": 3.5530585398740113,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 637283.8649600397
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 51431547237542950000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 9162924,
+     "quasar": 3289714074,
+     "bursts": 905724628,
+     "directive": 1891444933,
+     "p5": 101391635
+    }
+   }
+  },
+  {
+   "name": "T9 + SGR 1806-20 s1",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 1,
+    "cfg": {
+     "comp9": [
+      6
+     ]
+    }
+   },
+   "expect": {
+    "zoneT": [
+     12222,
+     2137,
+     31,
+     9,
+     1
+    ],
+    "ySum": 17434,
+    "yN": 14400,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 239,
+    "eu": 2384840720646144000,
+    "up": {
+     "White Dwarf Matter": 57840,
+     "Black Dwarf Matter": 14460,
+     "Antipolarization Agent": 2892000,
+     "Superdense Pellet": 7963.399999999982
+    },
+    "prod": {
+     "Magnetar Matter (companion)": 17370.75,
+     "Dark Matter": 48169.8
+    },
+    "trims": {
+     "Space": 85000
+    },
+    "runs": {},
+    "gal": 283,
+    "flows": 6,
+    "caught": 6,
+    "pellets": 7963.399999999982,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -3.0942570439522314,
+     0,
+     0,
+     0,
+     -4.877510742400088,
+     -2.048017819873512,
+     0.5784052311049395,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 14,
+    "t": 14400,
+    "eyeT": 14399,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 8562437875.136664,
+     "rho": 0.8562437875136665,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 14814.305127367377,
+     "left": 0,
+     "tau": 240,
+     "size": 5,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 353.6029347151539,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 660880.7384224505
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 45579787107854190000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 3487173537,
+     "quasar": 1184655144,
+     "bursts": 2130102492,
+     "directive": 2662516059,
+     "p5": 3043306955
+    }
+   }
+  },
+  {
+   "name": "T9 + 3 companions 500SM s2",
+   "spec": {
+    "secs": 14400,
+    "relight": true,
+    "tier": 9,
+    "seed": 2,
+    "cfg": {
+     "comp9": [
+      6,
+      7,
+      8
+     ]
+    },
+    "qc": {
+     "M0": 500
+    }
+   },
+   "expect": {
+    "zoneT": [
+     12841,
+     1559,
+     0,
+     0,
+     0
+    ],
+    "ySum": 17610.25,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 2384840720646144000,
+    "up": {
+     "White Dwarf Matter": 57840,
+     "Black Dwarf Matter": 14460,
+     "Antipolarization Agent": 2892000,
+     "Magnetar Matter": 3615,
+     "Ergomatter": 72300,
+     "Superdense Pellet": 8051.233333333353
+    },
+    "prod": {
+     "Magnetar Matter (companion)": 17610.25,
+     "Ergomatter (companion)": 352205,
+     "Superdense Ergomatter (companion)": 88051.25,
+     "Dark Matter": 49752.6
+    },
+    "trims": {
+     "Space": 586000
+    },
+    "runs": {},
+    "gal": 292,
+    "flows": 7,
+    "caught": 7,
+    "pellets": 8051.233333333353,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     0.97267142372285,
+     0,
+     0,
+     0,
+     -1.9325662748775525,
+     -3.636037548587792,
+     2.7777544648683152,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 5,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 10583062695.109465,
+     "rho": 1.0583062695109464,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 16085.13245536387,
+     "left": 0,
+     "tau": 240,
+     "size": 6,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 589.4752882463968,
+     "a": 0.4520441516519049,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 417,
+     "bu": 1845569.30945581
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 175996927459840560000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 1969610580,
+     "quasar": 343369748,
+     "bursts": 716776619,
+     "directive": 890199330,
+     "p5": 1027164168
+    }
+   }
+  },
+  {
+   "name": "T9 + 3 companions 300SM s3",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 3,
+    "cfg": {
+     "comp9": [
+      6,
+      7,
+      8
+     ]
+    }
+   },
+   "expect": {
+    "zoneT": [
+     202,
+     2341,
+     4604,
+     53,
+     0
+    ],
+    "ySum": 4895.5,
+    "yN": 7200,
+    "fails": 22,
+    "charges": 0,
+    "cycles": 110,
+    "eu": 1316115418447872000,
+    "up": {
+     "White Dwarf Matter": 31920,
+     "Black Dwarf Matter": 7980,
+     "Antipolarization Agent": 1596000,
+     "Magnetar Matter": 1995,
+     "Ergomatter": 39900,
+     "Superdense Pellet": 3619.8333333333408
+    },
+    "prod": {
+     "Magnetar Matter (companion)": 4616,
+     "Ergomatter (companion)": 92320,
+     "Superdense Ergomatter (companion)": 23080,
+     "Dark Matter": 11078.400000000001
+    },
+    "trims": {},
+    "runs": {},
+    "gal": 26,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 3619.8333333333408,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -57.75716369050291,
+     0,
+     0,
+     0,
+     8.731436809491589,
+     3.6913649480577915,
+     -1.107584555588869,
+     0
+    ],
+    "A": 0,
+    "I": 20.700000000000045,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7178,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 8079944548.970046,
+     "rho": 0.8079944548970046,
+     "n": 0.3666666666666667,
+     "s": 7
+    },
+    "flow": {
+     "next": 8183.188605889678,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 325.6367424058026,
+     "a": 0.452669514185722,
+     "E": -8.325926688862774,
+     "Phi": 31.265005463234438,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 207,
+     "bu": 309891.0846006523
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 670797234870120000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 4190190677,
+     "quasar": 516847855,
+     "bursts": 1037358044,
+     "directive": 957407552,
+     "p5": 2019078083
+    }
+   }
+  },
+  {
+   "name": "T9 planets 120SM s1",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 1,
+    "cfg": {
+     "mode": "planets"
+    },
+    "qc": {
+     "M0": 120
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5532,
+     1668,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8583,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 1197368162648064000,
+    "up": {},
+    "prod": {},
+    "trims": {},
+    "runs": {
+     "Moon (R1 → T1) ×256": 972.8,
+     "Mars (R2 → T1) ×256": 691.2,
+     "Io (R3 → T1) ×256": 652.8,
+     "Titan (R5 → T2) ×128": 96,
+     "Pluto (R6 → T2) ×128": 89.6,
+     "Barnard C (R7 → T3) ×64": 41.599999999999994,
+     "Barnard E (R8 → T3) ×64": 38.4
+    },
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -9.161440609039703,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 61,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 130.27182994591433,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 49833.89667651189
+    },
+    "conduit": {
+     "Ergomatter": 50400,
+     "eu": 2086754136193223200,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 2702848865,
+     "quasar": 2747516343,
+     "bursts": 766409247,
+     "directive": 2144162117,
+     "p5": 649193413
+    }
+   }
+  },
+  {
+   "name": "T9 planets 64SM throat1 s2",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 2,
+    "cfg": {
+     "mode": "planets"
+    },
+    "qc": {
+     "M0": 64
+    },
+    "k": {
+     "throat": 1
+    }
+   },
+   "expect": {
+    "zoneT": [
+     342,
+     1873,
+     4985,
+     0,
+     0
+    ],
+    "ySum": 4793,
+    "yN": 7200,
+    "fails": 24,
+    "charges": 0,
+    "cycles": 101,
+    "eu": 1246846185897984000,
+    "up": {},
+    "prod": {},
+    "trims": {},
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -65.34326599752727,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 8,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7176,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 69.48759222035883,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 14264.616909700673
+    },
+    "conduit": {
+     "Ergomatter": 12600,
+     "eu": 53176109796483816,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 2555246864,
+     "quasar": 2429772802,
+     "bursts": 254628081,
+     "directive": 3685276453,
+     "p5": 649193413
+    }
+   }
+  },
+  {
+   "name": "T9 pellets run out s1",
+   "spec": {
+    "secs": 1800,
+    "relight": false,
+    "tier": 9,
+    "seed": 1,
+    "cfg": {
+     "pelletsOK": false
+    }
+   },
+   "expect": {
+    "zoneT": [
+     4,
+     11,
+     12,
+     13,
+     1
+    ],
+    "ySum": 22,
+    "yN": 41,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 0,
+    "eu": 9895604649984000,
+    "up": {
+     "Superdense Pellet": 0
+    },
+    "prod": {},
+    "trims": {
+     "Space": 1000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 68,
+    "lock": 0,
+    "t": 1800,
+    "eyeT": 40,
+    "tier": 9,
+    "state": 2,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 0,
+     "rho": 0,
+     "n": 0,
+     "s": 15
+    },
+    "flow": {
+     "next": 1855.7472908869386,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 306.22224719523115,
+     "a": 0.47136909566583735,
+     "E": 12.91589116016215,
+     "Phi": 8.487461624740458,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 52,
+     "bu": 80048.59567645927
+    },
+    "conduit": {
+     "Ergomatter": 14400,
+     "eu": 6937224163392920000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 4276596353,
+     "quasar": 3480375629,
+     "bursts": 2626482436,
+     "directive": 3040665520,
+     "p5": 2975542085
+    }
+   }
+  },
+  {
+   "name": "T9 pre-fire s2",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 2,
+    "cfg": {
+     "preFire": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5391,
+     1654,
+     125,
+     30,
+     0
+    ],
+    "ySum": 8455.25,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 1197368162648064000,
+    "up": {
+     "Superdense Pellet": 3903.2333333333427
+    },
+    "prod": {
+     "Dark Matter": 22308.600000000006
+    },
+    "trims": {
+     "Space": 164000
+    },
+    "runs": {},
+    "gal": 129,
+    "flows": 3,
+    "caught": 0,
+    "pellets": 3903.2333333333427,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -4.694227751041061,
+     0,
+     0,
+     0,
+     -6.334556321169567,
+     -0.4743971563778082,
+     7.35403913879181,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 11,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 10325099594.828192,
+     "rho": 1.032509959482819,
+     "n": 0.8999999999999999,
+     "s": 9
+    },
+    "flow": {
+     "next": 8411.408007573336,
+     "left": 0,
+     "tau": 240,
+     "size": 6,
+     "sign": -1,
+     "ok": 196,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 325.72308853293185,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 313431.52389479097
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 23992814153840350000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 573586224,
+     "quasar": 224550155,
+     "bursts": 888331437,
+     "directive": 479912001,
+     "p5": 3313405084
+    }
+   }
+  },
+  {
+   "name": "T9 upkeep r0.8 s3",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 9,
+    "seed": 3,
+    "cfg": {
+     "r": 0.8
+    }
+   },
+   "expect": {
+    "zoneT": [
+     4897,
+     2303,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8424.25,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 1197368162648064000,
+    "up": {
+     "Superdense Pellet": 4083.7333333333427
+    },
+    "prod": {
+     "Dark Matter": 18939.359999999993
+    },
+    "trims": {
+     "Space": 9000
+    },
+    "runs": {},
+    "gal": 144,
+    "flows": 3,
+    "caught": 3,
+    "pellets": 4083.7333333333427,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -4.4459004520423555,
+     0,
+     0,
+     0,
+     -2.051049954792598,
+     5.853172141667419,
+     19.330447547535236,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 31996614888.95212,
+     "rho": 3.199661488895212,
+     "n": 1.7000000000000002,
+     "s": 12
+    },
+    "flow": {
+     "next": 7061.934480432421,
+     "left": 102,
+     "tau": 138,
+     "size": 8,
+     "sign": 1,
+     "ok": 138,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 325.6367424058026,
+     "a": 0.452669514185722,
+     "E": -8.325926688862774,
+     "Phi": 31.265005463234438,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 207,
+     "bu": 309891.0846006523
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 17108741003114013000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 813497367,
+     "quasar": 516847855,
+     "bursts": 2615639903,
+     "directive": 980422335,
+     "p5": 2638307037
+    }
+   }
+  },
+  {
+   "name": "Deep Link 250SM s1",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 8,
+    "seed": 1,
+    "qc": {
+     "M0": 250
+    },
+    "k": {
+     "test9": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5329,
+     1853,
+     18,
+     0,
+     0
+    ],
+    "ySum": 8523.25,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 36000,
+     "Superdense Pellet": 1182.4333333333498
+    },
+    "prod": {
+     "Superdense Ergomatter": 42916.25
+    },
+    "trims": {
+     "Space": 309000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 1182.4333333333498,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -14.050637873204185,
+     0,
+     0,
+     0,
+     5.001945516648989,
+     -0.21222218410276206,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 12666666666.666649,
+     "rho": 1.2666666666666648,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 29.767932038222906,
+     "frac": 0.7499999999999988,
+     "n": 1867,
+     "rho": 1.2666666666666637
+    },
+    "quasar": {
+     "M": 271.3996457206554,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 216292.95432513952
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 0,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 2624795550,
+     "quasar": 1978614343,
+     "bursts": 187058851,
+     "directive": 2536630228,
+     "p5": 3874226850
+    }
+   }
+  },
+  {
+   "name": "Deep Link 250SM s2",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 8,
+    "seed": 2,
+    "qc": {
+     "M0": 250
+    },
+    "k": {
+     "test9": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5417,
+     1763,
+     20,
+     0,
+     0
+    ],
+    "ySum": 8544.25,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 36000,
+     "Superdense Pellet": 1182.4333333333498
+    },
+    "prod": {
+     "Superdense Ergomatter": 43321.25
+    },
+    "trims": {
+     "Space": 321000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 1182.4333333333498,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -10.470855365924335,
+     0,
+     0,
+     0,
+     5.294486712406363,
+     0.010245017272555668,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 12666666666.666649,
+     "rho": 1.2666666666666648,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 30.94435569553457,
+     "frac": 0.7500000000000013,
+     "n": 1867,
+     "rho": 1.2666666666666637
+    },
+    "quasar": {
+     "M": 271.4359071107754,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 217660.780482493
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 0,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 833930244,
+     "quasar": 2530206208,
+     "bursts": 4049245852,
+     "directive": 92200144,
+     "p5": 3874226850
+    }
+   }
+  },
+  {
+   "name": "Deep Link 300SM s1",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 8,
+    "seed": 1,
+    "qc": {
+     "M0": 300
+    },
+    "k": {
+     "test9": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5996,
+     1202,
+     2,
+     0,
+     0
+    ],
+    "ySum": 8698,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 36000,
+     "Superdense Pellet": 1182.4333333333498
+    },
+    "prod": {
+     "Superdense Ergomatter": 43790
+    },
+    "trims": {
+     "Space": 894000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 1182.4333333333498,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -3.8581196620501803,
+     0,
+     0,
+     0,
+     2.3144838529315197,
+     -0.47281102983013756,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 4,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 12666666666.666649,
+     "rho": 1.2666666666666648,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 42.8658221350412,
+     "frac": 0.7499999999999961,
+     "n": 1867,
+     "rho": 1.2666666666666637
+    },
+    "quasar": {
+     "M": 325.6795748647882,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 311461.8542282018
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 0,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 3097818078,
+     "quasar": 3070574569,
+     "bursts": 1696757167,
+     "directive": 3569278089,
+     "p5": 3874226850
+    }
+   }
+  },
+  {
+   "name": "Deep Link 300SM s2",
+   "spec": {
+    "secs": 7200,
+    "relight": true,
+    "tier": 8,
+    "seed": 2,
+    "qc": {
+     "M0": 300
+    },
+    "k": {
+     "test9": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     6022,
+     1176,
+     2,
+     0,
+     0
+    ],
+    "ySum": 8704.5,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 299342040662016000,
+    "up": {
+     "Ergomatter": 36000,
+     "Superdense Pellet": 1182.4333333333498
+    },
+    "prod": {
+     "Superdense Ergomatter": 44122.5
+    },
+    "trims": {
+     "Space": 911000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 1182.4333333333498,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -12.988651100935801,
+     0,
+     0,
+     0,
+     4.090592189971972,
+     -2.2286866316108993,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 12666666666.666649,
+     "rho": 1.2666666666666648,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 44.55987220157002,
+     "frac": 0.7500000000000007,
+     "n": 1867,
+     "rho": 1.2666666666666637
+    },
+    "quasar": {
+     "M": 325.72308853293185,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 313431.52389479097
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 0,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 3525703126,
+     "quasar": 224550155,
+     "bursts": 471060696,
+     "directive": 143802968,
+     "p5": 3874226850
+    }
+   }
+  },
+  {
+   "name": "Deep Link 200SM never s3",
+   "spec": {
+    "secs": 3600,
+    "relight": true,
+    "tier": 8,
+    "seed": 3,
+    "qc": {
+     "M0": 200
+    },
+    "k": {
+     "test9": true
+    }
+   },
+   "expect": {
+    "zoneT": [
+     153,
+     1247,
+     2170,
+     30,
+     0
+    ],
+    "ySum": 2523.25,
+    "yN": 3600,
+    "fails": 11,
+    "charges": 0,
+    "cycles": 54,
+    "eu": 163277476724736000,
+    "up": {
+     "Ergomatter": 17945,
+     "Superdense Pellet": 2280.000000000117
+    },
+    "prod": {
+     "Superdense Ergomatter": 11706.25
+    },
+    "trims": {
+     "Space": 2000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 2280.000000000117,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -37.64973246505549,
+     0,
+     0,
+     0,
+     6.70807090437963,
+     2.2595185640817896,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 3600,
+    "eyeT": 3589,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 12666666666.666649,
+     "rho": 1.2666666666666648,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 19.073336119624226,
+     "frac": 0.7499999999999966,
+     "n": 3600,
+     "rho": 1.2666666666666637
+    },
+    "quasar": {
+     "M": 208.3667297802574,
+     "a": 0.4595246872753018,
+     "E": -14.657440454198687,
+     "Phi": 38.37288070145375,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 103,
+     "bu": 68971.23594244542
+    },
+    "conduit": {
+     "Ergomatter": 28800,
+     "eu": 0,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 2994497186,
+     "quasar": 2825589340,
+     "bursts": 1331417473,
+     "directive": 2390843232,
+     "p5": 4279236514
+    }
+   }
+  },
+  {
+   "name": "Infall 300SM s1",
+   "spec": {
+    "secs": 4000,
+    "relight": false,
+    "tier": 8,
+    "seed": 1,
+    "infallAt": 120
+   },
+   "expect": {
+    "zoneT": [
+     3118,
+     882,
+     0,
+     0,
+     0
+    ],
+    "ySum": 4779.5,
+    "yN": 4000,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 65,
+    "eu": 640740401086464000,
+    "up": {
+     "Ergomatter": 600,
+     "Superdense Pellet": 2148.2000000000066,
+     "Superdense Ergomatter": 16190
+    },
+    "prod": {
+     "Superdense Ergomatter": 706.25,
+     "Dark Matter": 7245.6
+    },
+    "trims": {
+     "Space": 302000
+    },
+    "runs": {},
+    "gal": 43,
+    "flows": 1,
+    "caught": 1,
+    "pellets": 2148.2000000000066,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     1.2054517519298327,
+     0,
+     0,
+     0,
+     4.315980431278155,
+     9.33461920704679,
+     22.160768358036368,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 4000,
+    "eyeT": 4000,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": true,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 35068650717.45829,
+     "rho": 3.506865071745829,
+     "n": 1.9666666666666668,
+     "s": 13
+    },
+    "flow": {
+     "next": 3884.309137158096,
+     "left": 125,
+     "tau": 115,
+     "size": 9,
+     "sign": -1,
+     "ok": 115,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 313.9936437258932,
+     "a": 0.4578030908882335,
+     "E": -1.0197431668958075,
+     "Phi": 33.81439540227369,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 115,
+     "bu": 172735.98575737645
+    },
+    "conduit": {
+     "Ergomatter": 32000,
+     "eu": 14726216229373321000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 2635157899,
+     "quasar": 828505495,
+     "bursts": 2234499717,
+     "directive": 1649810753,
+     "p5": 1741279633
+    }
+   }
+  },
+  {
+   "name": "Infall 300SM s2",
+   "spec": {
+    "secs": 4000,
+    "relight": false,
+    "tier": 8,
+    "seed": 2,
+    "infallAt": 120
+   },
+   "expect": {
+    "zoneT": [
+     3280,
+     720,
+     0,
+     0,
+     0
+    ],
+    "ySum": 4820,
+    "yN": 4000,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 65,
+    "eu": 640740401086464000,
+    "up": {
+     "Ergomatter": 600,
+     "Superdense Pellet": 2161.6666666666774,
+     "Superdense Ergomatter": 16190
+    },
+    "prod": {
+     "Superdense Ergomatter": 702.5,
+     "Dark Matter": 8026.2
+    },
+    "trims": {
+     "Space": 294000
+    },
+    "runs": {},
+    "gal": 48,
+    "flows": 2,
+    "caught": 2,
+    "pellets": 2161.6666666666774,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -0.6950177836278884,
+     0,
+     0,
+     0,
+     -4.011153370442961,
+     -1.8764833294166106,
+     -0.6702226467732597,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 52,
+    "t": 4000,
+    "eyeT": 4000,
+    "tier": 9,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": true,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 11393066414.22181,
+     "rho": 1.1393066414221809,
+     "n": 0.3666666666666667,
+     "s": 7
+    },
+    "flow": {
+     "next": 5608.972223613411,
+     "left": 0,
+     "tau": 240,
+     "size": 5,
+     "sign": -1,
+     "ok": 240,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 314.0151911166,
+     "a": 0.4582786256753927,
+     "E": -9.228723194664399,
+     "Phi": 35.21381980822632,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 115,
+     "bu": 173638.51466506926
+    },
+    "conduit": {
+     "Ergomatter": 32000,
+     "eu": 15081567693286881000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 749261254,
+     "quasar": 3373967781,
+     "bursts": 2402524130,
+     "directive": 1216016557,
+     "p5": 3320660574
+    }
+   }
+  },
+  {
+   "name": "Infall 300SM s3",
+   "spec": {
+    "secs": 4000,
+    "relight": false,
+    "tier": 8,
+    "seed": 3,
+    "infallAt": 120
+   },
+   "expect": {
+    "zoneT": [
+     3130,
+     867,
+     3,
+     0,
+     0
+    ],
+    "ySum": 4781,
+    "yN": 4000,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 65,
+    "eu": 640740401086464000,
+    "up": {
+     "Ergomatter": 600,
+     "Superdense Pellet": 2095.700000000006,
+     "Superdense Ergomatter": 16190
+    },
+    "prod": {
+     "Superdense Ergomatter": 681.25,
+     "Dark Matter": 7243.7999999999965
+    },
+    "trims": {
+     "Space": 299000
+    },
+    "runs": {},
+    "gal": 43,
+    "flows": 1,
+    "caught": 1,
+    "pellets": 2095.700000000006,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -1.548981883292849,
+     0,
+     0,
+     0,
+     3.609474858092242,
+     6.947481740501379,
+     9.445768166436423,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 1,
+    "t": 4000,
+    "eyeT": 4000,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": true,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 23583467427.95993,
+     "rho": 2.358346742795993,
+     "n": 1.1666666666666665,
+     "s": 10
+    },
+    "flow": {
+     "next": 3870.549269963056,
+     "left": 111,
+     "tau": 129,
+     "size": 6,
+     "sign": -1,
+     "ok": 129,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 313.97794966533206,
+     "a": 0.45770207211893166,
+     "E": 1.9172043866366089,
+     "Phi": 20.858482523550386,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 115,
+     "bu": 171966.1087182492
+    },
+    "conduit": {
+     "Ergomatter": 32000,
+     "eu": 14595448908543904000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 580448247,
+     "quasar": 4233371325,
+     "bursts": 1306268049,
+     "directive": 3357704593,
+     "p5": 3310516023
+    }
+   }
+  },
+  {
+   "name": "Infall beam unwired (soft fail) s1",
+   "spec": {
+    "secs": 4000,
+    "relight": false,
+    "tier": 8,
+    "seed": 1,
+    "infallAt": 120,
+    "cfg": {
+     "beamRig": false,
+     "bman": 7.5
+    }
+   },
+   "expect": {
+    "zoneT": [
+     2471,
+     1439,
+     56,
+     33,
+     1
+    ],
+    "ySum": 4555.75,
+    "yN": 4000,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 66,
+    "eu": 197912092999680000,
+    "up": {
+     "Ergomatter": 18610,
+     "Superdense Pellet": 139,
+     "Superdense Ergomatter": 2770
+    },
+    "prod": {
+     "Superdense Ergomatter": 21946.25,
+     "Dark Matter": 0
+    },
+    "trims": {
+     "Space": 1483000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 139,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     7.189559983771172,
+     0,
+     0,
+     0,
+     3.5346507484635197,
+     -7.776687484771628,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 4,
+    "t": 4000,
+    "eyeT": 3999,
+    "tier": 8,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 9999993585.507961,
+     "rho": 0.9999993585507961,
+     "n": 0.5,
+     "s": 7.5
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 313.9936437258932,
+     "a": 0.4578030908882335,
+     "E": -1.0197431668958075,
+     "Phi": 33.81439540227369,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 115,
+     "bu": 172735.98575737645
+    },
+    "conduit": {
+     "Ergomatter": 32000,
+     "eu": 17714852186688324000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 370526859,
+     "quasar": 828505495,
+     "bursts": 3627276162,
+     "directive": 3307141582,
+     "p5": 1380590796
+    }
+   }
+  },
+  {
+   "name": "Infall Ergomatter Mk I (soft fail) s2",
+   "spec": {
+    "secs": 4000,
+    "relight": false,
+    "tier": 8,
+    "seed": 2,
+    "infallAt": 120,
+    "cfg": {
+     "grade": "erg",
+     "inj": 1
+    }
+   },
+   "expect": {
+    "zoneT": [
+     2672,
+     1287,
+     20,
+     20,
+     1
+    ],
+    "ySum": 4637,
+    "yN": 4000,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 65,
+    "eu": 321607151124480000,
+    "up": {
+     "Ergomatter": 13445,
+     "Ergomatter Pellet": 2886.93333333334,
+     "Superdense Ergomatter": 13100
+    },
+    "prod": {
+     "Superdense Ergomatter": 15662.5,
+     "Dark Matter": 0
+    },
+    "trims": {
+     "Space": 1207000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 2886.93333333334,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -8.712027873724512,
+     0,
+     0,
+     0,
+     9.245571980392242,
+     -3.059087889606211,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 1,
+    "t": 4000,
+    "eyeT": 3999,
+    "tier": 8,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 19572750537.084873,
+     "rho": 1.9572750537084873,
+     "n": 4,
+     "s": 15
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 314.0151911166,
+     "a": 0.4582786256753927,
+     "E": -9.228723194664399,
+     "Phi": 35.21381980822632,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 115,
+     "bu": 173638.51466506926
+    },
+    "conduit": {
+     "Ergomatter": 32000,
+     "eu": 17600013254176162000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 4043070910,
+     "quasar": 3373967781,
+     "bursts": 3515251581,
+     "directive": 266560405,
+     "p5": 269082322
+    }
+   }
+  },
+  {
+   "name": "Infall 200SM s3",
+   "spec": {
+    "secs": 4000,
+    "relight": false,
+    "tier": 8,
+    "seed": 3,
+    "infallAt": 120,
+    "qc": {
+     "M0": 200
+    }
+   },
+   "expect": {
+    "zoneT": [
+     3303,
+     623,
+     29,
+     45,
+     0
+    ],
+    "ySum": 4766.25,
+    "yN": 4000,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 66,
+    "eu": 338924459261952000,
+    "up": {
+     "Ergomatter": 12960,
+     "Superdense Pellet": 793.9666666666636,
+     "Superdense Ergomatter": 14070
+    },
+    "prod": {
+     "Superdense Ergomatter": 15801.25,
+     "Dark Matter": 0
+    },
+    "trims": {
+     "Space": 240000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 793.9666666666636,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     4.420077253113547,
+     0,
+     0,
+     0,
+     -4.053040455497598,
+     -0.7299108948266342,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 13,
+    "t": 4000,
+    "eyeT": 3999,
+    "tier": 8,
+    "state": 0,
+    "prec": -1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 15359371970.038563,
+     "rho": 1.5359371970038562,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": null,
+    "uni": null,
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 209.31863311022002,
+     "a": 0.45770207211893166,
+     "E": 1.9172043866366089,
+     "Phi": 20.858482523550386,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 115,
+     "bu": 76429.3816525543
+    },
+    "conduit": {
+     "Ergomatter": 32000,
+     "eu": 6742801866528906000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 36155312,
+     "quasar": 3953897334,
+     "bursts": 359277641,
+     "directive": 2607986185,
+     "p5": 2419353323
+    }
+   }
+  },
+  {
+   "name": "Infall after the Deep Link 300SM s1",
+   "spec": {
+    "secs": 6000,
+    "relight": false,
+    "tier": 8,
+    "seed": 1,
+    "k": {
+     "test9": true
+    },
+    "infallAt": 2400
+   },
+   "expect": {
+    "zoneT": [
+     4906,
+     1086,
+     8,
+     0,
+     0
+    ],
+    "ySum": 7222.5,
+    "yN": 6000,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 99,
+    "eu": 695166226661376000,
+    "up": {
+     "Ergomatter": 12000,
+     "Superdense Pellet": 3220.033333333365,
+     "Superdense Ergomatter": 16190
+    },
+    "prod": {
+     "Superdense Ergomatter": 14515,
+     "Dark Matter": 7549.799999999999
+    },
+    "trims": {
+     "Space": 527000
+    },
+    "runs": {},
+    "gal": 45,
+    "flows": 2,
+    "caught": 1,
+    "pellets": 3220.033333333365,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -4.9710005372224435,
+     0,
+     0,
+     0,
+     4.462466683153703,
+     1.2340324790316095,
+     -1.6092402781985216,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 84,
+    "t": 6000,
+    "eyeT": 6000,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": true,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 13123529214.422588,
+     "rho": 1.312352921442259,
+     "n": 0.3666666666666667,
+     "s": 7
+    },
+    "flow": {
+     "next": 7768.529164522886,
+     "left": 0,
+     "tau": 240,
+     "size": 8,
+     "sign": 1,
+     "ok": 232,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": null,
+    "link9": {
+     "streak": 1800,
+     "best": 1800,
+     "done": true,
+     "mean": 42.8658221350412,
+     "frac": 0.7499999999999961,
+     "n": 1867,
+     "rho": 1.2666666666666637
+    },
+    "quasar": {
+     "M": 321.2419985940833,
+     "a": 0.4541274151796571,
+     "E": -10.486107473065557,
+     "Phi": 31.57432417949331,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 173,
+     "bu": 258094.53587175577
+    },
+    "conduit": {
+     "Ergomatter": 48000,
+     "eu": 13113436857515549000,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 2499709290,
+     "quasar": 2101476781,
+     "bursts": 3582512447,
+     "directive": 3580487294,
+     "p5": 4016244720
+    }
+   }
+  },
+  {
+   "name": "T10 standard 600SM s1",
+   "spec": {
+    "secs": 14400,
+    "relight": false,
+    "tier": 10,
+    "seed": 1,
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     12201,
+     2196,
+     3,
+     0,
+     0
+    ],
+    "ySum": 17448.75,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 9539362882584576000,
+    "up": {
+     "Dark Matter": 27648
+    },
+    "prod": {
+     "Universium": 24638.4
+    },
+    "trims": {
+     "DM": 23408,
+     "Space": 333000,
+     "ST": 200
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 2,
+    "dawns": 2,
+    "x": [
+     -0.49494832848303894,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 21,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": {
+     "t": 0,
+     "ySum": 0,
+     "n": 0,
+     "rMin": 1,
+     "dawn": 3988,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 707.2058694303078,
+     "a": 0.4522951877165222,
+     "E": 6.2504744091772775,
+     "Phi": 27.303097910797927,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 416,
+     "bu": 2643522.953689802
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 208384804453803850000,
+     "vent": 0,
+     "clip": 36230.362337980005
+    },
+    "hash": {
+     "eye": 3068803149,
+     "quasar": 1314767319,
+     "bursts": 2797307292,
+     "directive": 2356018197,
+     "p5": 4105130454
+    }
+   }
+  },
+  {
+   "name": "T10 standard 600SM s2",
+   "spec": {
+    "secs": 14400,
+    "relight": false,
+    "tier": 10,
+    "seed": 2,
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     12473,
+     1927,
+     0,
+     0,
+     0
+    ],
+    "ySum": 17518.25,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 9539362882584576000,
+    "up": {
+     "Dark Matter": 27648
+    },
+    "prod": {
+     "Universium": 24727.36
+    },
+    "trims": {
+     "DM": 23544,
+     "Space": 307000,
+     "ST": 200
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 2,
+    "dawns": 2,
+    "x": [
+     -4.830457131592767,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 5,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": {
+     "t": 0,
+     "ySum": 0,
+     "n": 0,
+     "rMin": 1,
+     "dawn": 4021,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 707.3703458956783,
+     "a": 0.4520441516519049,
+     "E": -8.287662782551754,
+     "Phi": 7.168693092401943,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 417,
+     "bu": 2657619.805616379
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 214382378457257740000,
+     "vent": 0,
+     "clip": 37069.16787823758
+    },
+    "hash": {
+     "eye": 1443359904,
+     "quasar": 2867967072,
+     "bursts": 1142163774,
+     "directive": 2294405104,
+     "p5": 2890658514
+    }
+   }
+  },
+  {
+   "name": "T10 standard 600SM s3",
+   "spec": {
+    "secs": 14400,
+    "relight": false,
+    "tier": 10,
+    "seed": 3,
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     12451,
+     1949,
+     0,
+     0,
+     0
+    ],
+    "ySum": 17512.75,
+    "yN": 14400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 240,
+    "eu": 9539362882584576000,
+    "up": {
+     "Dark Matter": 27648
+    },
+    "prod": {
+     "Universium": 24720.32
+    },
+    "trims": {
+     "DM": 23224,
+     "Space": 298000,
+     "ST": 400
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 2,
+    "dawns": 2,
+    "x": [
+     0.13367776905018924,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 27,
+    "t": 14400,
+    "eyeT": 14400,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": {
+     "t": 0,
+     "ySum": 0,
+     "n": 0,
+     "rMin": 1,
+     "dawn": 3913,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 707.0508757124272,
+     "a": 0.45257954274337453,
+     "E": 5.993331118258865,
+     "Phi": 40.979689926967254,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 415,
+     "bu": 2627455.1283260193
+    },
+    "conduit": {
+     "Ergomatter": 115200,
+     "eu": 209780097169689600000,
+     "vent": 0,
+     "clip": 33655.23175490952
+    },
+    "hash": {
+     "eye": 1831485680,
+     "quasar": 1105638548,
+     "bursts": 3167261360,
+     "directive": 1415437557,
+     "p5": 1299961949
+    }
+   }
+  },
+  {
+   "name": "T10 no H rig s1",
+   "spec": {
+    "secs": 7200,
+    "relight": false,
+    "tier": 10,
+    "seed": 1,
+    "urig": {
+     "on": false
+    },
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1123,
+     2808,
+     1856,
+     1356,
+     57
+    ],
+    "ySum": 5139.75,
+    "yN": 7200,
+    "fails": 57,
+    "charges": 0,
+    "cycles": 119,
+    "eu": 4749890231992320000,
+    "up": {
+     "Dark Matter": 534528
+    },
+    "prod": {
+     "Universium": 2276.1600000000003
+    },
+    "trims": {
+     "Space": 124000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -4.989949582718338,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     54.898122470594295
+    ],
+    "A": 0,
+    "I": 88,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7143,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": {
+     "t": 87,
+     "ySum": 78,
+     "n": 87,
+     "rMin": 1,
+     "dawn": 3413,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 651.3591497295764,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 1245847.4169128072
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 97225216431855860000,
+     "vent": 0,
+     "clip": 7074.539519721144
+    },
+    "hash": {
+     "eye": 1687194821,
+     "quasar": 227299322,
+     "bursts": 3764548258,
+     "directive": 1001393063,
+     "p5": 2008947628
+    }
+   }
+  },
+  {
+   "name": "T10 400SM s2",
+   "spec": {
+    "secs": 7200,
+    "relight": false,
+    "tier": 10,
+    "seed": 2,
+    "qc": {
+     "M0": 400,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     175,
+     2436,
+     4586,
+     3,
+     0
+    ],
+    "ySum": 4947.75,
+    "yN": 7200,
+    "fails": 22,
+    "charges": 0,
+    "cycles": 119,
+    "eu": 4749890231992320000,
+    "up": {
+     "Dark Matter": 211968
+    },
+    "prod": {
+     "Universium": 2272.9600000000005
+    },
+    "trims": {
+     "DM": 6120
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -37.25833187431361,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     4.8633856915903335
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 7200,
+    "eyeT": 7178,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": {
+     "t": 97,
+     "ySum": 99,
+     "n": 97,
+     "rMin": 1,
+     "dawn": 4572,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 434.29745137724046,
+     "a": 0.45347407906449055,
+     "E": -7.400600580784543,
+     "Phi": 20.4231424647056,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 557211.5980351848
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 1147138582455976400,
+     "vent": 0,
+     "clip": 0
+    },
+    "hash": {
+     "eye": 85668116,
+     "quasar": 1303586948,
+     "bursts": 3788858979,
+     "directive": 3803790454,
+     "p5": 886405535
+    }
+   }
+  },
+  {
+   "name": "T10 stabilisation 9 s3",
+   "spec": {
+    "secs": 7200,
+    "relight": false,
+    "tier": 10,
+    "seed": 3,
+    "cfg": {
+     "ts": 9
+    },
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     6100,
+     1100,
+     0,
+     0,
+     0
+    ],
+    "ySum": 8725,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 4789472650592256000,
+    "up": {
+     "Dark Matter": 18432
+    },
+    "prod": {
+     "Universium": 12320
+    },
+    "trims": {
+     "DM": 11664,
+     "Space": 123000
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 1,
+    "dawns": 1,
+    "x": [
+     -3.9711890973225423,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 49,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": {
+     "t": 0,
+     "ySum": 0,
+     "n": 0,
+     "rMin": 1,
+     "dawn": 4143,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 651.2734848116052,
+     "a": 0.452669514185722,
+     "E": -8.325926688862774,
+     "Phi": 31.265005463234438,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 207,
+     "bu": 1239564.338402609
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 95398389143900010000,
+     "vent": 0,
+     "clip": 6889.030177462421
+    },
+    "hash": {
+     "eye": 483292611,
+     "quasar": 2362216353,
+     "bursts": 3790735134,
+     "directive": 580799251,
+     "p5": 4225320270
+    }
+   }
+  },
+  {
+   "name": "T10 valves 4 s1",
+   "spec": {
+    "secs": 7200,
+    "relight": false,
+    "tier": 10,
+    "seed": 1,
+    "urig": {
+     "dm": 4,
+     "st": 4
+    },
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     5984,
+     1213,
+     3,
+     0,
+     0
+    ],
+    "ySum": 8694.5,
+    "yN": 7200,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 120,
+    "eu": 4789472650592256000,
+    "up": {
+     "Dark Matter": 18432
+    },
+    "prod": {
+     "Universium": 12280.960000000001
+    },
+    "trims": {
+     "DM": 11616,
+     "Space": 143000,
+     "ST": 3200
+    },
+    "runs": {},
+    "gal": 0,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 0,
+    "batches": 1,
+    "dawns": 1,
+    "x": [
+     -6.8413367323330245,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 6,
+    "t": 7200,
+    "eyeT": 7200,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": null,
+    "flow": null,
+    "uni": {
+     "t": 0,
+     "ySum": 0,
+     "n": 0,
+     "rMin": 1,
+     "dawn": 3367,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 651.3591497295764,
+     "a": 0.45316946411593156,
+     "E": -5.82319646689178,
+     "Phi": 18.067617904613844,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 208,
+     "bu": 1245847.4169128072
+    },
+    "conduit": {
+     "Ergomatter": 57600,
+     "eu": 94538640580760940000,
+     "vent": 0,
+     "clip": 7074.539519721144
+    },
+    "hash": {
+     "eye": 4183593753,
+     "quasar": 227299322,
+     "bursts": 3661111552,
+     "directive": 3915080948,
+     "p5": 4268627775
+    }
+   }
+  },
+  {
+   "name": "Inflation 600SM s1",
+   "spec": {
+    "secs": 2400,
+    "relight": false,
+    "tier": 9,
+    "seed": 1,
+    "inflationAt": 300,
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1879,
+     505,
+     10,
+     6,
+     0
+    ],
+    "ySum": 2858.75,
+    "yN": 2400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 39,
+    "eu": 1326011023097856000,
+    "up": {
+     "Superdense Pellet": 314.09999999999974,
+     "Dark Matter": 27678.719999999925
+    },
+    "prod": {
+     "Dark Matter": 810,
+     "Universium": 0
+    },
+    "trims": {
+     "Space": 247000,
+     "DM": 1712
+    },
+    "runs": {},
+    "gal": 5,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 314.09999999999974,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -7.412634020042266,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3.5580303576426586
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 10,
+    "t": 2400,
+    "eyeT": 2400,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": true,
+    "trans": null,
+    "beam": {
+     "B": 12449529696.978342,
+     "rho": 1.2449529696978343,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 1855.7472908869386,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": {
+     "t": 1381,
+     "ySum": 1667.75,
+     "n": 1382,
+     "rMin": 1,
+     "dawn": 4294,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 616.663334361798,
+     "a": 0.46638121178761033,
+     "E": 11.305031907892282,
+     "Phi": 24.0811446961424,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 69,
+     "bu": 422377.16836818896
+    },
+    "conduit": {
+     "Ergomatter": 19200,
+     "eu": 36056826051374550000,
+     "vent": 0,
+     "clip": 3144.8694613867556
+    },
+    "hash": {
+     "eye": 1506786083,
+     "quasar": 2964212149,
+     "bursts": 1307196943,
+     "directive": 357446933,
+     "p5": 3908578095
+    }
+   }
+  },
+  {
+   "name": "Inflation 600SM s2",
+   "spec": {
+    "secs": 2400,
+    "relight": false,
+    "tier": 9,
+    "seed": 2,
+    "inflationAt": 300,
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1931,
+     452,
+     11,
+     6,
+     0
+    ],
+    "ySum": 2871.25,
+    "yN": 2400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 39,
+    "eu": 1326011023097856000,
+    "up": {
+     "Superdense Pellet": 313.8000000000005,
+     "Dark Matter": 27678.719999999925
+    },
+    "prod": {
+     "Dark Matter": 825.5999999999999,
+     "Universium": 0
+    },
+    "trims": {
+     "Space": 244000,
+     "DM": 1784
+    },
+    "runs": {},
+    "gal": 5,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 313.8000000000005,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -6.195803776728886,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3.2551132738682504
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 10,
+    "t": 2400,
+    "eyeT": 2400,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": true,
+    "trans": null,
+    "beam": {
+     "B": 8920243029.772278,
+     "rho": 0.8920243029772278,
+     "n": 0.3666666666666667,
+     "s": 7
+    },
+    "flow": {
+     "next": 2226.5173793770373,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": {
+     "t": 1381,
+     "ySum": 1673.75,
+     "n": 1382,
+     "rMin": 1,
+     "dawn": 4359,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 616.6663300020042,
+     "a": 0.46641813416891753,
+     "E": 12.982236819778928,
+     "Phi": 22.958952413461137,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 69,
+     "bu": 423874.9015939747
+    },
+    "conduit": {
+     "Ergomatter": 19200,
+     "eu": 36587123712072810000,
+     "vent": 0,
+     "clip": 3070.400172089926
+    },
+    "hash": {
+     "eye": 2134804789,
+     "quasar": 3037756090,
+     "bursts": 557095483,
+     "directive": 3425546328,
+     "p5": 4175491642
+    }
+   }
+  },
+  {
+   "name": "Inflation 600SM s3",
+   "spec": {
+    "secs": 2400,
+    "relight": false,
+    "tier": 9,
+    "seed": 3,
+    "inflationAt": 300,
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1928,
+     455,
+     12,
+     5,
+     0
+    ],
+    "ySum": 2871,
+    "yN": 2400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 39,
+    "eu": 1326011023097856000,
+    "up": {
+     "Superdense Pellet": 304.8000000000001,
+     "Dark Matter": 27678.719999999925
+    },
+    "prod": {
+     "Dark Matter": 830.4,
+     "Universium": 0
+    },
+    "trims": {
+     "Space": 244000,
+     "DM": 1576
+    },
+    "runs": {},
+    "gal": 5,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 304.8000000000001,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -16.52923599167079,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2.345546731684823
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 0,
+    "t": 2400,
+    "eyeT": 2400,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": true,
+    "trans": null,
+    "beam": {
+     "B": 8192976030.042896,
+     "rho": 0.8192976030042897,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 1518.1768507696688,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": {
+     "t": 1381,
+     "ySum": 1669.75,
+     "n": 1382,
+     "rMin": 1,
+     "dawn": 4641,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 616.5913166834674,
+     "a": 0.46524489179339173,
+     "E": -9.537343445476811,
+     "Phi": 7.091668538331243,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 69,
+     "bu": 418540.86790430284
+    },
+    "conduit": {
+     "Ergomatter": 19200,
+     "eu": 35795937279749136000,
+     "vent": 0,
+     "clip": 3273.8389036249973
+    },
+    "hash": {
+     "eye": 1210328265,
+     "quasar": 2073234869,
+     "bursts": 1058842493,
+     "directive": 1697806930,
+     "p5": 407189274
+    }
+   }
+  },
+  {
+   "name": "Inflation shock 95 s1",
+   "spec": {
+    "secs": 2400,
+    "relight": false,
+    "tier": 9,
+    "seed": 1,
+    "inflationAt": 300,
+    "cfg": {
+     "infShock": 95
+    },
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1875,
+     506,
+     9,
+     10,
+     0
+    ],
+    "ySum": 2854.25,
+    "yN": 2400,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 39,
+    "eu": 1326011023097856000,
+    "up": {
+     "Superdense Pellet": 314.09999999999974,
+     "Dark Matter": 27678.719999999925
+    },
+    "prod": {
+     "Dark Matter": 810,
+     "Universium": 0
+    },
+    "trims": {
+     "Space": 247000,
+     "DM": 1744
+    },
+    "runs": {},
+    "gal": 5,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 314.09999999999974,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     -7.412634020042266,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     3.5580303576426586
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 10,
+    "t": 2400,
+    "eyeT": 2400,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": true,
+    "trans": null,
+    "beam": {
+     "B": 12449529696.978342,
+     "rho": 1.2449529696978343,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 1855.7472908869386,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": {
+     "t": 1381,
+     "ySum": 1667.75,
+     "n": 1382,
+     "rMin": 1,
+     "dawn": 4294,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 616.663334361798,
+     "a": 0.46638121178761033,
+     "E": 11.305031907892282,
+     "Phi": 24.0811446961424,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 69,
+     "bu": 422377.16836818896
+    },
+    "conduit": {
+     "Ergomatter": 19200,
+     "eu": 36056826051374550000,
+     "vent": 0,
+     "clip": 3144.8694613867556
+    },
+    "hash": {
+     "eye": 255283685,
+     "quasar": 2964212149,
+     "bursts": 1307196943,
+     "directive": 1574243061,
+     "p5": 3908578095
+    }
+   }
+  },
+  {
+   "name": "Inflation no H rig (soft fail) s2",
+   "spec": {
+    "secs": 2400,
+    "relight": false,
+    "tier": 9,
+    "seed": 2,
+    "inflationAt": 300,
+    "urig": {
+     "on": false
+    },
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     1519,
+     869,
+     0,
+     11,
+     1
+    ],
+    "ySum": 2767.75,
+    "yN": 2400,
+    "fails": 1,
+    "charges": 0,
+    "cycles": 39,
+    "eu": 435406604599296000,
+    "up": {
+     "Superdense Pellet": 1302.2000000000114,
+     "Dark Matter": 9584.639999999992
+    },
+    "prod": {
+     "Dark Matter": 5658.000000000001,
+     "Universium": 0
+    },
+    "trims": {
+     "Space": 872000
+    },
+    "runs": {},
+    "gal": 34,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 1302.2000000000114,
+    "batches": 0,
+    "dawns": 0,
+    "x": [
+     0.06004879239927341,
+     0,
+     0,
+     0,
+     1.2545273637845789,
+     -3.4446383882700267,
+     0.37262857775851055,
+     0
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 1,
+    "t": 2400,
+    "eyeT": 2399,
+    "tier": 9,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": false,
+    "trans": null,
+    "beam": {
+     "B": 20003684528.103294,
+     "rho": 2.0003684528103296,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 2226.5173793770373,
+     "left": 67,
+     "tau": 173,
+     "size": 6,
+     "sign": 1,
+     "ok": 173,
+     "warned": false,
+     "accepted": true,
+     "forced": false
+    },
+    "uni": {
+     "t": 0,
+     "ySum": 0,
+     "n": 0,
+     "rMin": 1,
+     "dawn": 4252,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 616.6663300020042,
+     "a": 0.46641813416891753,
+     "E": 12.982236819778928,
+     "Phi": 22.958952413461137,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 69,
+     "bu": 423874.9015939747
+    },
+    "conduit": {
+     "Ergomatter": 19200,
+     "eu": 43113467501617504000,
+     "vent": 0,
+     "clip": 3070.400172089926
+    },
+    "hash": {
+     "eye": 707661037,
+     "quasar": 3037756090,
+     "bursts": 4100225373,
+     "directive": 3290446719,
+     "p5": 1065246764
+    }
+   }
+  },
+  {
+   "name": "Inflation then a whole universe s3",
+   "spec": {
+    "secs": 9000,
+    "relight": false,
+    "tier": 9,
+    "seed": 3,
+    "inflationAt": 300,
+    "qc": {
+     "M0": 600,
+     "coil": 4
+    },
+    "k": {
+     "throat": 2
+    }
+   },
+   "expect": {
+    "zoneT": [
+     7437,
+     1546,
+     12,
+     5,
+     0
+    ],
+    "ySum": 10848.25,
+    "yN": 9000,
+    "fails": 0,
+    "charges": 0,
+    "cycles": 149,
+    "eu": 5680077069090816000,
+    "up": {
+     "Superdense Pellet": 304.8000000000001,
+     "Dark Matter": 36894.71999999993
+    },
+    "prod": {
+     "Dark Matter": 830.4,
+     "Universium": 12294.452437161504
+    },
+    "trims": {
+     "Space": 370000,
+     "DM": 12672
+    },
+    "runs": {},
+    "gal": 5,
+    "flows": 0,
+    "caught": 0,
+    "pellets": 304.8000000000001,
+    "batches": 1,
+    "dawns": 1,
+    "x": [
+     0.9027550886543112,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1.3654721458452035
+    ],
+    "A": 0,
+    "I": 100,
+    "lock": 21,
+    "t": 9000,
+    "eyeT": 9000,
+    "tier": 10,
+    "state": 0,
+    "prec": 1,
+    "unlocked9": false,
+    "unlocked10": true,
+    "trans": null,
+    "beam": {
+     "B": 8192976030.042896,
+     "rho": 0.8192976030042897,
+     "n": 0.6333333333333333,
+     "s": 8
+    },
+    "flow": {
+     "next": 1518.1768507696688,
+     "left": 0,
+     "tau": 0,
+     "size": 0,
+     "sign": 1,
+     "ok": 0,
+     "warned": false,
+     "accepted": false,
+     "forced": false
+    },
+    "uni": {
+     "t": 781,
+     "ySum": 940.75,
+     "n": 781,
+     "rMin": 1,
+     "dawn": 4526,
+     "dawnOk": true
+    },
+    "link9": {
+     "streak": 0,
+     "best": 0,
+     "done": false,
+     "mean": 0,
+     "frac": 0,
+     "n": 0,
+     "rho": 0
+    },
+    "quasar": {
+     "M": 664.7953939101013,
+     "a": 0.4526435521461512,
+     "E": 4.894402484354656,
+     "Phi": 33.20506021620717,
+     "I": 100,
+     "open": true,
+     "fails": 0,
+     "eruptions": 0,
+     "purges": 259,
+     "bu": 1565785.6870976414
+    },
+    "conduit": {
+     "Ergomatter": 72000,
+     "eu": 124039182310496860000,
+     "vent": 0,
+     "clip": 10501.587066186086
+    },
+    "hash": {
+     "eye": 1021093399,
+     "quasar": 2868150585,
+     "bursts": 3586667609,
+     "directive": 2847172897,
+     "p5": 2877846202
+    }
+   }
+  }
+ ]
+}

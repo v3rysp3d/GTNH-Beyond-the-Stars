@@ -81,7 +81,9 @@ public final class EyeStarBench {
         + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
         + "gui [info|galaxy] | "
         + "P4: burst <Bu/t> [high] [halo] [quasar <mean>] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
-        + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear";
+        + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear | "
+        + "P5: p5 status|pellets <mag|erg|sup> [n] [mk <1-3>]|refill <grade|off>|accept <n|auto>|beam <c|auto> [k]|"
+        + "deeplink [reset]|flow <n> [low|high]|uni";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {
@@ -548,6 +550,10 @@ public final class EyeStarBench {
                         .size() + " sensors set");
                 return out;
             }
+            case "p5": {
+                out.addAll(EyeP5Bench.run(eye, args, 5));
+                return out;
+            }
             case "core": {
                 final Item core = core(a5);
                 if (core == null) {
@@ -814,6 +820,10 @@ public final class EyeStarBench {
                 return com.nateyburr.beyondthestars.items.SLQuasarItems.intergalacticUpgradeCore;
             case "supermassive":
                 return com.nateyburr.beyondthestars.items.SLQuasarItems.supermassiveSeedCore;
+            case "attractor":
+                return com.nateyburr.beyondthestars.items.SLP5Items.attractorSeedCore;
+            case "universal":
+                return com.nateyburr.beyondthestars.items.SLMaxItems.universalUpgradeCore;
             default:
                 return null;
         }
@@ -894,6 +904,10 @@ public final class EyeStarBench {
                 return com.nateyburr.beyondthestars.items.SLQuasarItems.starChartTriangulum;
             case "milkyway":
                 return com.nateyburr.beyondthestars.items.SLQuasarItems.starChartMilkyWay;
+            case "attractor":
+                return com.nateyburr.beyondthestars.items.SLP5Items.starChartGreatAttractor;
+            case "universe":
+                return com.nateyburr.beyondthestars.items.SLMaxItems.starChartUniverse;
             default:
                 return null;
         }

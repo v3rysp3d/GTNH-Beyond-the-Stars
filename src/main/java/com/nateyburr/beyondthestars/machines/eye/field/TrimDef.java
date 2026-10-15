@@ -30,7 +30,9 @@ public final class TrimDef {
         /** Raw Star Matter ({@code Materials.RawStarMatter.getFluid}). */
         RAW_STAR_MATTER("RSPM", "Raw Star Matter", 1000),
         /** Antipolarization Agent (the addon's {@code btsantipolarizationagent}). */
-        AGENT("Agent", "Antipolarization Agent", 100);
+        AGENT("Agent", "Antipolarization Agent", 100),
+        /** P5 (T10's H trim): Attractor Dark Matter (the addon's {@code btsdarkmatter}), 4 L a unit. */
+        DARK_MATTER("DM", "Attractor Dark Matter", 4);
 
         public final String key;
         public final String displayName;
@@ -52,7 +54,7 @@ public final class TrimDef {
     public final Kind kind;
     /** Units per second per parallel. */
     public final double cap;
-    /** Effect per unit on P, Θ, Ω, Π, W, Λ (index {@link StellarField#P} ..; no trim moves W or Λ). */
+    /** Effect per unit on P, Θ, Ω, Π, W, Λ, V, H (index {@link StellarField#P} ..; no trim moves W, Λ or V). */
     private final double[] fx;
     /** A side note for tooltips and NEI (may be empty). */
     public final String note;
@@ -60,7 +62,16 @@ public final class TrimDef {
     TrimDef(Kind kind, double cap, double p, double th, double om, double pi, String note) {
         this.kind = kind;
         this.cap = cap;
-        this.fx = new double[] { p, th, om, pi, 0, 0 };
+        this.fx = new double[] { p, th, om, pi, 0, 0, 0, 0 };
+        this.note = note == null ? "" : note;
+    }
+
+    /** P5: a trim with its effect on every gauge (T10's Dark Matter and SpaceTime move H). */
+    TrimDef(Kind kind, double cap, double[] fx, String note) {
+        this.kind = kind;
+        this.cap = cap;
+        this.fx = new double[StellarField.GAUGES];
+        System.arraycopy(fx, 0, this.fx, 0, Math.min(fx.length, StellarField.GAUGES));
         this.note = note == null ? "" : note;
     }
 

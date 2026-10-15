@@ -101,6 +101,8 @@ function smbhLattice(){
   return nodes;
 }
 globalThis.__vox = { SCENES, BLOCKS, B, RENDER_ONLY, TAGS, CROWN,
+  // P5: the Eye's band table and its two direction helpers (the T10 crown's ellipse and its spikes, read, never redrawn)
+  EYE, ell, dirAt,
   // SMBH: the lattice alone, centred on the voxel origin (the quasar's hole centre); nodes = the 48 node cells
   lattice(){ tagArr = null; curTag = 0; collide = {}; newWorld(195,171,195); const nodes = smbhLattice();
     return { W, H, D, CX, CY, CZ, world: world.slice(), tags: new Uint8Array(W*H*D), collide: {}, nodes }; },
@@ -129,6 +131,9 @@ globalThis.__vox = { SCENES, BLOCKS, B, RENDER_ONLY, TAGS, CROWN,
 const V = loadVoxel();
 const KIND = V.BLOCKS.map((b) => b[0]);
 const isRender = (id) => !!V.RENDER_ONLY[id];
+// P5: the T9 / T10 geometry the exporter re-derives (locals of the Eye's build(), not reachable from outside) must still
+// read exactly so in voxel.js; the run fails loudly if one moves.
+const srcHas = (a) => { if (SRC.indexOf(a) < 0) fail(`P5 anchor not found in voxel.js: ${JSON.stringify(a)}`); };
 
 // ------------------------------------------------------------------------------------------------ legend
 // Shape char -> role -> intended block. Per the mid-run ruling, existing blocks play every role they fit: TecTech's
@@ -210,9 +215,13 @@ const LEGEND = {
     // P4 (quasar-p4.md §7). d and p sit on plinth face cells of eye_core, so an Eye built before P4 still forms.
     d: { role: "directive_socket", kind: "directive (plinth face, the row above the controller: 4 cells)", block: "EyeHatchElement.Directive (MTEHatchDirective, MTE 28127; sets Field / Events / Transition / Slots / any, chosen in its GUI), else fallback", fallback: "Q", min: 0, hint: 7 },
     p: { role: "slot_bus", kind: "slotbus (plinth face, below the controller)", block: "private Slot Bus element (an Input Bus, ME input bus included): planet items and companion star charts for planets mode / companions (T7+), else fallback", fallback: "Q", min: 0, hint: 8 },
-    B: { role: "rail_halo_shell", kind: "bastion (T7 rail, rim->rail clamps, T8 shards)", block: "slCasing:13 Bastion Plate (existing)" },
-    P: { role: "rail_trim", kind: "casimir (T7 rail outer-face trim)", block: "slCasing:14 Casimir Plate (existing)" },
-    r: { role: "grb_receptor", kind: "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo)", block: "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback", fallback: "B", min: 0, hint: 9 },
+    B: { role: "rail_halo_shell", kind: "bastion (T7 rail, rim->rail clamps, T8 shards, T9 collars, thorns, tie rails and tripod)", block: "slCasing:13 Bastion Plate (existing)" },
+    P: { role: "rail_trim", kind: "casimir (T7 rail outer-face trim, T10 crown trim)", block: "slCasing:14 Casimir Plate (existing)" },
+    r: { role: "grb_receptor", kind: "receptor: 8 on the T7 rail's outer face (group rail-high / rail-low, by the rail's 8 deg tilt), 8 at the T8 shard roots (group halo), 5 on the T9 collars' outer rings (group collar)", block: "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125); its group is the manifest's sockets.r[i].group (match the hatch's offset from the controller), else fallback", fallback: "B", min: 0, hint: 9 },
+    k: { role: "grb_receptor_crown", kind: "receptor: 12 on the T10 crown above its band (group crown)", block: "GRB Receptor Port (MTEHatchGRBReceptor, MTE 28125), group crown, else fallback", fallback: "E", min: 0, hint: 9 },
+    // P5 (designs/docs/p5-t9-t10.md §2.1, §6.2, §9.5)
+    E: { role: "crown_shell", kind: "eternity (T10 crown band, its 48 sawtooth crystals, 12 spokes and 12 spikes)", block: "slCasing3:10 Eternity Shell Casing (BlockSLCasing3.ETERNITY_SHELL, existing)" },
+    i: { role: "pellet_injector_socket", kind: "bastion (T9 top collar's outer ring, either side of its receptor: 2 cells)", block: "Pellet Injector Hatch (MTE 28128) or a Burst Control Hatch (MTE 28126) for the injector's rate, else fallback", fallback: "B", min: 0, hint: 10 },
   },
   // P4 (designs/docs/quasar-p4.md §1, §2, §3, §7). Every piece is in its controller's own frame (front = +z).
   quasar: {
@@ -348,7 +357,7 @@ const LEGEND = {
 // plain kind -> char (sockets and pinned cells come from the socket table instead)
 const KERR_KIND = { casing: "A", frame: "B", mirror: "C", mirrorback: "D", injector: "E", quad: "F", pipe: "G", coil: "H",
   bhc: "I", lining: "J", sglass: "K", eyeshell: "L", dump: "M", ring3: "N", bastion: "O", casimir: "P" };
-const EYE_KIND = { eyeshell: "U", deck: "Q", lining: "J", sglass: "Z", ring2: "R", ring3: "S", galactic: "T", bastion: "B", casimir: "P" };
+const EYE_KIND = { eyeshell: "U", deck: "Q", lining: "J", sglass: "Z", ring2: "R", ring3: "S", galactic: "T", bastion: "B", casimir: "P", eternity: "E" };
 // P4 socket kinds on the Eye, mapped by kind (counted below): Directive and slot bus on the plinth, receptors on T7/T8
 const EYE_KIND_SOCKET = { receptor: "r", directive: "d", slotbus: "p" };
 const SOCKET_KINDS = new Set(["control", "energy", "maint", "boltbus", "beamhatch", "output", "ergohatch", "gas", "grb", "dynamo",
@@ -411,6 +420,11 @@ const EYE_SOCKETS = [
   // T6 rim (ellipse a76 b72 at y-2): the mockup's four GRB receptors, 3.6 above the centre-line, become rim
   // stellar sockets (R-11)
   ...[45, 135, 225, 315].map((a) => ({ at: [76 * Math.cos(d2r(a)), -2 + 3.6, 72 * Math.sin(d2r(a))], kind: "grb", ch: "g", tier: 6 })),
+  // P5 T10 universal crown (ellipse a74 b70 at y62, tilted -10 deg): the mockup's 12 GRB cells, 4.6 above the band's
+  // centre-line at parameter 30k + 15 deg, become the crown receptors (group crown, p5-t9-t10.md §6.2). The T9 collar
+  // sockets are picked below (voxel.js draws none) and pushed onto this table.
+  ...(srcHas("const c=u(deg(30*k+15)); set(c[0],c[1]+4.6,c[2],B.grb);"), [...Array(12).keys()]).map((k) => {
+    const c = V.ell("uni")(d2r(30 * k + 15)); return { at: [c[0], c[1] + 4.6, c[2]], kind: "grb", ch: "k", tier: 10 }; }),
 ];
 
 // ------------------------------------------------------------------------------------------------ helpers
@@ -544,7 +558,7 @@ const EYE_STRUTS = (() => {
 })();
 
 function classifyEye(t) {
-  const b = V.build("eye", t), sockets = socketMap(b, EYE_SOCKETS, t);
+  const b = EYE_RAW[t] || V.build("eye", t), sockets = socketMap(b, EYE_SOCKETS, t);
   const cells = new Map();
   eachCell(b, (x, y, z, kind, tag) => {
     const k = keyOf(x, y, z);
@@ -658,10 +672,74 @@ for (const p of ["kerr_compressor", "kerr_extractor"]) {
 // Cells written by one Kerr piece and then by another belong to the LAST writer (spec §5.2); record how many.
 for (const [k, n] of Object.entries(K2.b.collide)) report.notes.push(`kerr: ${n} cells drawn by ${k.split(" × ")[0]} then by ${k.split(" × ")[1]}; the later piece owns them`);
 
-const E = [1, 2, 3, 4, 5, 6, 7, 8].map(classifyEye);
+// ------------------------------------------------------------------------------------------------ P5: Eye T9 sockets
+// p5-t9-t10.md §2.1: one GRB Receptor Port on each of the five collars (group collar) and two Pellet Injector sockets
+// on the top collar. voxel.js draws no socket cells on the T9 band, so the exporter picks Bastion cells of the collars'
+// OUTER rings (radius R + 0.6, either of a collar's two Bastion rows) and pins them in the socket table:
+//  - r: the outer-ring cell nearest the controller's side (90 deg, +z), lower row first, whose outward horizontal
+//    neighbour is open air reachable from outside in the full T10 build (the tripod's +z strut takes the air in front
+//    of the bottom collar's lower row; on the y 72 collar the T10 spoke at 90 deg takes the upper row and its hollow
+//    tube seals the air in front of the lower one);
+//  - i: on the top collar, the same rule at 70 and 110 deg (20 deg either side of its receptor, between two thorns).
+// A picked cell is new at T9 and Bastion in both the T9 and the T10 build (a T10 spoke root never takes it).
+srcHas("const Rc = y => 14 - (y-30)*0.12, JET_Y = [30,44,58,72,86];");
+srcHas("for (const dy of [0,1]) { hring(0,y+dy,0,R,B.bastion); hring(0,y+dy,0,R+0.6,B.bastion); } hring(0,y+2,0,R,B.sglass);");
+srcHas("for (let y=20;y<=92;y++) hdisc(0,y,0,0,1.6+(y-20)*0.022,B.jet,false);");
+const JET9 = { Rc: (y) => 14 - (y - 30) * 0.12, Y: [30, 44, 58, 72, 86], beamY: [20, 92] };
+// the raw T8-T10 builds, shared with classifyEye (a build is deterministic; only TAGS grows, by appending)
+const EYE_RAW = { 8: V.build("eye", 8), 9: V.build("eye", 9), 10: V.build("eye", 10) };
+// voxel.js hring(): n = ceil(2 pi R / 0.4) samples, each rounded to a cell
+function ringXZ(R) {
+  const n = Math.ceil(2 * Math.PI * R / 0.4), m = new Map();
+  for (let i = 0; i < n; i++) { const t = i / n * 2 * Math.PI, x = Math.round(R * Math.cos(t)), z = Math.round(R * Math.sin(t)); m.set(x + "," + z, [x, z]); }
+  return [...m.values()];
+}
+function rawKind(b, v) {
+  const x = v[0] + b.CX, y = v[1] + b.CY, z = v[2] + b.CZ;
+  if (x < 0 || y < 0 || z < 0 || x >= b.W || y >= b.H || z >= b.D) return "air";
+  const id = b.world[x + z * b.W + y * b.W * b.D];
+  return !id || isRender(id - 1) ? "air" : KIND[id - 1];
+}
+// open air connected to the scratch world's walls in the raw T10 build (render-only cells count as air); every wall
+// cell is air (checked below), so one seed in the corner reaches all of it
+const EYE_OUTSIDE = (() => {
+  const b = EYE_RAW[10], { W, H, D } = b, WD = W * D, n = W * H * D, seen = new Uint8Array(n), q = new Int32Array(n);
+  const air = (i) => { const id = b.world[i]; return !id || isRender(id - 1); };
+  let qh = 0, qt = 0;
+  seen[0] = 1; q[qt++] = 0;
+  while (qh < qt) {
+    const i = q[qh++], x = i % W, z = ((i / W) | 0) % D, y = (i / WD) | 0;
+    const nb = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, z > 0 ? i - W : -1, z < D - 1 ? i + W : -1, y > 0 ? i - WD : -1, y < H - 1 ? i + WD : -1];
+    for (const j of nb) if (j >= 0 && !seen[j] && air(j)) { seen[j] = 1; q[qt++] = j; }
+  }
+  return (v) => { const x = v[0] + b.CX, y = v[1] + b.CY, z = v[2] + b.CZ;
+    return x < 0 || y < 0 || z < 0 || x >= W || y >= H || z >= D || seen[x + z * W + y * WD] === 1; };
+})();
+function collarSocket(j, angle, what) {
+  const y0 = JET9.Y[j], cand = [];
+  for (const [x, z] of ringXZ(JET9.Rc(y0) + 0.6)) for (const y of [y0, y0 + 1]) {
+    const v = [x, y, z], r = Math.hypot(x, z), front = [Math.round(x + x / r), y, Math.round(z + z / r)];
+    if (rawKind(EYE_RAW[8], v) !== "air" || rawKind(EYE_RAW[9], v) !== "bastion" || rawKind(EYE_RAW[10], v) !== "bastion") continue;
+    if (!EYE_OUTSIDE(front)) continue;
+    let da = Math.abs(Math.atan2(z, x) * 180 / Math.PI - angle) % 360;
+    da = Math.min(da, 360 - da);
+    cand.push({ v, da });
+  }
+  cand.sort((p, q) => p.da - q.da || p.v[1] - q.v[1] || p.v[0] - q.v[0]);
+  if (!cand.length) fail(`eye T9: no open outer-ring Bastion cell on collar ${j} (y ${y0}) for ${what}`);
+  return cand[0].v;
+}
+const JET9_SOCKETS = [
+  ...JET9.Y.map((y, j) => ({ at: collarSocket(j, 90, "its receptor"), kind: "bastion", ch: "r", tier: 9 })),
+  ...[70, 110].map((a) => ({ at: collarSocket(JET9.Y.length - 1, a, "a pellet injector socket"), kind: "bastion", ch: "i", tier: 9 })),
+];
+EYE_SOCKETS.push(...JET9_SOCKETS); // socketMap() fails on two entries on one cell
+
+const EYE_NAMES = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo", "eye_jet9", "eye_crown"];
+const E = EYE_NAMES.map((n, i) => classifyEye(i + 1));
 const eyePieces = {}, eyeJoins = {}, overwrites = {};
 {
-  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"];
+  const names = EYE_NAMES;
   eyePieces.eye_core = [...E[0].cells.values()].filter((c) => !c.open);
   for (let t = 2; t <= names.length; t++) {
     const prev = E[t - 2].cells, cur = E[t - 1].cells, added = [];
@@ -1060,6 +1138,9 @@ const SPEC = [
   // P4 (quasar-p4.md §7)
   ["Eye T7", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail"], "183x59x175"],
   ["Eye T8", ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"], "196x73x218"],
+  // P5 (p5-t9-t10.md §2.1, §6.2, §9.5)
+  ["Eye T9", EYE_NAMES.slice(0, 9), "196x134x218"],
+  ["Eye T10", EYE_NAMES.slice(0, 10), "196x134x218"],
   ["Quasar Engine", ["quasar"], "143x161x144"],
   ["Burst Thermaliser Crown Mk I", ["crown_mk1"], "33x17x33"],
   ["Burst Thermaliser Crown Mk II", ["crown_mk2"], "49x23x49"],
@@ -1104,6 +1185,8 @@ reach(["homog_t1", "homog_t2", "homog_t3"], "Homogeny T3");
 reach(["reality_diffraction"], "Reality Diffraction");
 reach(["reality_refab"], "Reality Refab");
 reach(["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"], "Eye T8");
+reach(EYE_NAMES.slice(0, 9), "Eye T9");
+reach(EYE_NAMES.slice(0, 10), "Eye T10");
 reach(["quasar"], "Quasar Engine");
 for (const n of ["crown_mk1", "crown_mk2", "crown_mk3", "crown_mk4", "conduit_mouth", "conduit_mirror", "conduit_junction"]) reach([n], n);
 reach(["quasar", "quasar_lattice"], "Quasar Engine + Supermassive Lattice");
@@ -1175,6 +1258,48 @@ reach(["quasar", "quasar_lattice"], "Quasar Engine + Supermassive Lattice");
   CROWN_STACK.forEach((st, i) => ok(st.clash === 0, `crown_mk${i + 1}: a second crown stacked at core top - 2 (dy ${st.dy}) shares ${st.clash} cells with the first`));
 }
 
+// P5 checks: the Eye's T9 / T10 sockets and their open faces, the crown's spikes, and nothing clipped by the mockup's
+// scratch world
+srcHas("const p=30*k+15, e=[14,-4,6][k%3], base=u(deg(p)), ph=Math.atan2(base[2],base[0])*180/Math.PI, d=dirAt(ph,e); crystal(V3.add(base,V3.mul(d,3.5+11)), d, 11, 4.5, B.eternity, B.sglass);");
+// the crown's 12 spikes in the order Cosmic Dawn flares them (k = 0..11), as voxel.js draws them: base on the crown's
+// centre-line at parameter 30k + 15 deg, along dirAt(the base's compass angle, elevation 14 / -4 / 6 by k mod 3), the
+// crystal from base + 3.5 d to the tip at base + (3.5 + 11 + 11) d
+const CROWN_SPIKES = [...Array(12).keys()].map((k) => {
+  const p = 30 * k + 15, e = [14, -4, 6][k % 3], base = [...V.ell("uni")(d2r(p))], ph = Math.atan2(base[2], base[0]) * 180 / Math.PI, d = [...V.dirAt(ph, e)];
+  return { k, paramDeg: p, elevDeg: e, base, d, tip: base.map((x, i) => x + d[i] * (3.5 + 11 + 11)) };
+});
+{
+  const cnt = (n, ch) => out[n].counts[ch] || 0, sock = (n) => Object.keys(out[n].counts).filter((c) => /[a-z~]/.test(c)).sort().join("");
+  ok(cnt("eye_jet9", "r") === 5 && cnt("eye_jet9", "i") === 2 && sock("eye_jet9") === "ir",
+    `eye_jet9: 5 GRB Receptor Ports 'r' and 2 Pellet Injector sockets 'i', no other socket (${cnt("eye_jet9", "r")} / ${cnt("eye_jet9", "i")}, ${sock("eye_jet9")})`);
+  ok(cnt("eye_crown", "k") === 12 && sock("eye_crown") === "k", `eye_crown: 12 GRB Receptor Ports 'k', no other socket (${cnt("eye_crown", "k")}, ${sock("eye_crown")})`);
+  const vy = (n, ch) => pieceCells(n).filter((c) => c.ch === ch).map((c) => c.y - E[0].b.CY);
+  const ry = vy("eye_jet9", "r"), iy = vy("eye_jet9", "i"), top = JET9.Y[JET9.Y.length - 1];
+  ok(JET9.Y.every((y) => ry.filter((v) => v === y || v === y + 1).length === 1), `eye_jet9: one receptor on each collar's Bastion rows (voxel y ${ry.sort((a, b) => a - b)})`);
+  ok(iy.every((v) => v === top || v === top + 1), `eye_jet9: both Pellet Injector sockets on the top collar (voxel y ${iy}, collar ${top}-${top + 1})`);
+  // every new socket keeps an open face in the full T10 build (all ten pieces), so a hatch can go in
+  const full = new Set(EYE_NAMES.flatMap((n) => kerrOrEye(n)));
+  for (const n of ["eye_jet9", "eye_crown"]) for (const c of pieceCells(n).filter((q) => /[a-z]/.test(q.ch))) {
+    const open = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].filter(([dx, dy, dz]) => !full.has(keyOf(c.x + dx, c.y + dy, c.z + dz))).length;
+    ok(open > 0, `${n}: '${c.ch}' at voxel ${voxOf(E[0].b, c)} has ${open} open face(s) in the full T10 build`);
+  }
+  // the spikes as re-derived match the spike crystals' cells: every cell lies between base + 3.5 d and the tip (a cell
+  // of slack), and the farthest one sits by the tip (an octahedron's point is thinner than a cell, so up to 3 short)
+  for (const s of CROWN_SPIKES) {
+    const vs = [...E[9].cells.values()].filter((c) => c.tag === "spike" + s.k).map((c) => voxOf(E[0].b, c));
+    const along = (v) => (v[0] - s.base[0]) * s.d[0] + (v[1] - s.base[1]) * s.d[1] + (v[2] - s.base[2]) * s.d[2];
+    const far = vs.reduce((m, v) => (!m || along(v) > along(m) ? v : m), null), lo = Math.min(...vs.map(along)), hi = far ? along(far) : NaN;
+    const off = far ? Math.hypot(far[0] - s.tip[0], far[1] - s.tip[1], far[2] - s.tip[2]) : Infinity;
+    ok(vs.length > 0 && lo >= 2.5 && hi <= 26.5 && off <= 3,
+      `eye_crown: spike ${s.k} (${vs.length} cells) spans ${lo.toFixed(1)}..${hi.toFixed(1)} along its axis (drawn 3.5..25.5), farthest cell ${off.toFixed(2)} from the tip`);
+  }
+  // the mockup builds the Eye in a fixed scratch world; a cell outside it would be dropped silently
+  const b = EYE_RAW[10], bb = bbox([...E[9].cells.values()]);
+  let edge = 0;
+  eachCell(b, (x, y, z) => { if (!x || !y || !z || x === b.W - 1 || y === b.H - 1 || z === b.D - 1) edge++; });
+  ok(edge === 0 && JET9.beamY[1] < b.CY, `Eye T10: no cell on the walls of the mockup's ${b.W}x${b.H}x${b.D} scratch world (placed voxel y ${bb.mn[1] - b.CY}..${bb.mx[1] - b.CY}, |x| <= ${Math.max(b.CX - bb.mn[0], bb.mx[0] - b.CX)}, |z| <= ${Math.max(b.CZ - bb.mn[2], bb.mx[2] - b.CZ)}; beam to y ${JET9.beamY[1]} of ${b.CY}): nothing clipped`);
+}
+
 // window bands: every piece that should carry one does, and the sightline through it is clear. From the front, at
 // rows y +-1 (the controller and the Kerr's hatches stand on y 0), no cell between the viewer and the object's centre
 // may be opaque within |x| <= `half`; window cells, Quantum Glass, the BHC's glass and frame boxes count as clear, and
@@ -1186,11 +1311,12 @@ const OPENED = {
   kerr_t2: [...K2.cells.values()].filter((c) => c.open && (c.piece === "kerr_core" || c.piece === "kerr_density")).length,
   eye_core: [...E[0].cells.values()].filter((c) => c.open).length,
 };
-["eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"].forEach((n, i) => {
+EYE_NAMES.slice(1).forEach((n, i) => {
   const prev = E[i].cells; OPENED[n] = [...E[i + 1].cells].filter(([k, c]) => c.open && !prev.has(k)).length; });
 for (const n of ["kerr_t1", "kerr_t2", "eye_core"]) ok(windowCount(n) > 0, `${n}: ${windowCount(n)} window pane cells, ${OPENED[n]} opened`);
 for (const n of ["eye_arms", "eye_arms2", "eye_rim", "eye_rail"]) ok(windowCount(n) === 0 && OPENED[n] > 0, `${n}: no pane, ${OPENED[n]} cells opened in front of the core's pane`);
 ok(windowCount("eye_halo") === 0 && OPENED.eye_halo === 0, `eye_halo: no window cells (the shards stand clear of the band; ${OPENED.eye_halo} opened)`);
+for (const n of ["eye_jet9", "eye_crown"]) ok(windowCount(n) === 0 && OPENED[n] === 0, `${n}: no window cells (it stands clear above the core; ${OPENED[n]} opened)`);
 function sightline(names, label, b, half, clear) {
   const cells = new Map(names.flatMap((n) => pieceCells(n)).map((c) => [keyOf(c.x, c.y, c.z), c]));
   const bad = [];
@@ -1202,8 +1328,8 @@ function sightline(names, label, b, half, clear) {
 }
 sightline(["kerr_t1"], "Kerr T1", K1.b, 8, new Set(["B", "K"]));
 sightline(["kerr_t2"], "Kerr T2", K2.b, 8, new Set(["B", "K"]));
-for (let t = 1; t <= 8; t++) {
-  const names = ["eye_core", "eye_beam", "eye_jet", "eye_arms", "eye_arms2", "eye_rim", "eye_rail", "eye_halo"].slice(0, t);
+for (let t = 1; t <= EYE_NAMES.length; t++) {
+  const names = EYE_NAMES.slice(0, t);
   // T1-T3 stars are big (Sol 9, Arcturus 16): the core pane's width; T4-T8 objects read through the arm / rim
   // openings (T7 / T8: the galaxy's core and inner arms; its outer arms, r 16-19, stand behind the rim, B-114)
   sightline(names, `Eye T${t}`, E[0].b, t <= 3 ? 20 : WINDOW.eye.laterHalf - 2, new Set(["Z"]));
@@ -1211,6 +1337,10 @@ for (let t = 1; t <= 8; t++) {
 
 // ------------------------------------------------------------------------------------------------ manifest
 const ROLE = (machine, ch) => LEGEND[machine][ch];
+const EYE_GROUP = { eye_rail: (s) => (s.voxel[2] > 0 ? "rail-high" : "rail-low"), eye_halo: () => "halo", eye_jet9: () => "collar", eye_crown: () => "crown" };
+// a voxel point of the Eye (rounded to its cell) as an (a,b,c) offset from the controller
+const EYE_CV = [EYE_CTRL.x - E[0].b.CX, EYE_CTRL.y - E[0].b.CY, EYE_CTRL.z - E[0].b.CZ];
+const eyeRel = (v) => abcDelta(...v.map((x, i) => Math.round(x) - EYE_CV[i])).map((x) => x + 0);
 const manifest = {
   generator: "tools/export-structures.js",
   source: "designs/voxel.js",
@@ -1244,9 +1374,25 @@ const manifest = {
         eye_arms2: "T5 second arm pair, optional; counts only with every band below",
         eye_rim: "T6 galactic rim with 4 rim stellar sockets, optional; counts only with every band below",
         eye_rail: "T7 stability rail (tilted 8 deg) with 8 GRB Receptor Ports, groups rail-high / rail-low; optional, counts only with every band below",
-        eye_halo: "T8 shard halo with 8 GRB Receptor Ports at the shard roots, group halo; optional, counts only with every band below" },
+        eye_halo: "T8 shard halo with 8 GRB Receptor Ports at the shard roots, group halo; optional, counts only with every band below",
+        eye_jet9: "T9 collimator stack: five collars, 5 GRB Receptor Ports (group collar), 2 Pellet Injector sockets on the top collar; optional, counts only with every band below",
+        eye_crown: "T10 universal crown: 12 GRB Receptor Ports (group crown); optional, counts only with every band below" },
       // P4: each 'r' socket's receptor group (quasar-p4.md §3.1, §4.1): match a hatch to its group by its (a,b,c) offset
-      receptorGroups: "manifest.pieces.eye_rail / eye_halo .sockets.r[i].group: rail-high (the rail's +z half, raised by the 8 deg tilt), rail-low, halo" },
+      receptorGroups: "manifest.pieces.eye_rail / eye_halo / eye_jet9 / eye_crown .sockets.r[i].group: rail-high (the rail's +z half, raised by the 8 deg tilt), rail-low, halo, collar (one per T9 collar), crown (the T10 crown)",
+      // P5 render geometry (p5-t9-t10.md §2.1, §6.2). Every *Rel is a voxel cell as an (a,b,c) offset from the controller
+      // (as machines.kerr.centre.rel); the Eye's centre is the voxel origin, the render tile's cell.
+      // jet9: the five collars bottom to top (radius = the inner Bastion ring, outerRadius = the outer one; rows y..y+2,
+      // the glass channel on y+2) and the pellet beam's axis from the top collar down to the centre.
+      jet9: { collars: JET9.Y.map((y) => ({ yVoxel: y, radius: +JET9.Rc(y).toFixed(2), outerRadius: +(JET9.Rc(y) + 0.6).toFixed(2), centreRel: eyeRel([0, y, 0]) })),
+        axisTopRel: eyeRel([0, JET9.Y[JET9.Y.length - 1], 0]), axisBottomRel: eyeRel([0, 0, 0]), beamVoxelY: JET9.beamY },
+      // crown: the band's centre-line is an ellipse (radii a along voxel x, b in the tilted plane) tilted by tiltDeg about
+      // the voxel x axis (the controller's left-right axis, a): its second axis is (0, sin t, cos t), so at -10 deg the
+      // front (+z, controller) side sits about 12 lower than the back. spikes: k = 0..11, the order Cosmic Dawn flares
+      // them; base on the centre-line, tip = base + 25.5 along dirAbc.
+      crown: { centreRel: eyeRel(V.EYE.uni.c), centreVoxel: [...V.EYE.uni.c], tiltDeg: V.EYE.uni.tilt, radiiAB: [V.EYE.uni.a, V.EYE.uni.b],
+        outerSize: [2 * V.EYE.uni.a, 2 * V.EYE.uni.b],
+        spikes: CROWN_SPIKES.map((s) => ({ k: s.k, paramDeg: s.paramDeg, elevDeg: s.elevDeg, baseRel: eyeRel(s.base), tipRel: eyeRel(s.tip),
+          dirAbc: abcDelta(...s.d).map((x) => +(x + 0).toFixed(6)) })) } },
     // homogeny-reality.md (PROPOSED). turns: quarter turns about +y taking the controller's outward face (outVoxel) to
     // +z, the piece frame's front. centre.rel: the machine's axis origin (the render centre) from the controller, (a,b,c).
     ...Object.fromEntries(Object.entries(HR).map(([machine, m]) => [machine, { mte: m.mte, controllerVoxel: HR_INFO[machine].ctrlVoxel,
@@ -1300,8 +1446,9 @@ for (const [n, r] of Object.entries(out)) {
   const bom = Object.entries(r.counts).sort((a, b) => b[1] - a[1]).map(([ch, count]) => ({ ch, count, role: ROLE(machine, ch).role, block: ROLE(machine, ch).block }));
   const sk = {};
   for (const s of r.sockets) (sk[s.ch] = sk[s.ch] || []).push({ abc: s.abc, rel: s.rel, voxel: s.voxel,
-    // the Eye's receptor groups (P4): rail-high / rail-low by the rail's tilt (+z half is high), halo on the shards
-    ...(s.ch === "r" && (n === "eye_rail" || n === "eye_halo") ? { group: n === "eye_halo" ? "halo" : s.voxel[2] > 0 ? "rail-high" : "rail-low" } : {}) });
+    // the Eye's receptor groups (P4): rail-high / rail-low by the rail's tilt (+z half is high), halo on the shards;
+    // P5: collar on the T9 collars, crown on the T10 crown
+    ...((s.ch === "r" || s.ch === "k") && EYE_GROUP[n] ? { group: EYE_GROUP[n](s) } : {}) });
   const socketCounts = Object.fromEntries(Object.entries(sk).map(([ch, l]) => [ch, l.length]));
   manifest.pieces[n] = { machine, file: `structures/${n}.txt`, w: r.w, h: r.h, d: r.d, off: r.off,
     blocks: Object.values(r.counts).reduce((a, b) => a + b, 0), bom, socketCounts, sockets: sk,

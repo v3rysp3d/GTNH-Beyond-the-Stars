@@ -47,7 +47,22 @@ public final class FieldState {
         this.rng = rng;
     }
 
-    /** Sets the four stellar gauges; W and Λ go to 0 (every prototype reset writes all six). */
+    // ---- P5 (T9 / T10)
+    /** P5 (T9): the pellet beam, or null before it first fires. Save it. */
+    public Beam beam;
+    /** P5 (T9): the Galactic Flow timer, or null (created on first need). Save it. */
+    public Flow flow;
+    /** P5 (T10): the universe in progress, or null (created on first need). Save it. */
+    public Universe uni;
+    /** The zone of the last lit second (the prototype's S.zone as read by the next second's drift). Save it. */
+    public int zone;
+    /** P5: V's ramp this second (the Infall's 600 s ramp-in; 1 otherwise). Transient. */
+    public double vr = 1;
+    /** P5: the flow's surge A this second, and its warning sign (the event channel). Save the warning. */
+    public double flowA;
+    public int flowWarn;
+
+    /** Sets the four stellar gauges; W, Λ, V and H go to 0 (every prototype reset writes all of them). */
     public void setX(double p, double th, double om, double pi) {
         x[StellarField.P] = p;
         x[StellarField.TH] = th;
@@ -55,6 +70,44 @@ public final class FieldState {
         x[StellarField.PI] = pi;
         x[StellarField.W] = 0;
         x[StellarField.L] = 0;
+        x[StellarField.V] = 0;
+        x[StellarField.H] = 0;
+    }
+
+    /** P5 (T9): the pellet beam (prototype {@code S.beam}). */
+    public static final class Beam {
+
+        /** Beam power, GeV/s, spooled toward {@link #set}. */
+        public double B;
+        /** The setpoint n·e, GeV/s; ρ = B / Π₉; pellets per second; the level read (0-15). */
+        public double set, rho, n, s = 8;
+    }
+
+    /** P5 (T9): the Galactic Flow (prototype {@code S.flow}). */
+    public static final class Flow {
+
+        /** Field-clock second the group arrives (fractional). */
+        public double next;
+        /** True from the 180 s warning until the arrival. */
+        public boolean warned;
+        /** Surge seconds left (240 → 0); seconds since the arrival; the Stable-or-better seconds of the surge. */
+        public int left, tau, ok;
+        /** +1 the high-side filaments, −1 the low side; the group's size (3-12). */
+        public int sign = 1, size;
+        /** Accepted (size ≤ the accept limit, or forced); the Infall's forced flow. */
+        public boolean accepted, forced;
+    }
+
+    /** P5 (T10): one universe (prototype {@code S.uni}). */
+    public static final class Universe {
+
+        /** Its age, seconds; the second Cosmic Dawn hits. */
+        public int t, dawn;
+        public double ySum;
+        public int n;
+        public double rMin = 1;
+        /** Cosmic Dawn is still on track for its bonus. */
+        public boolean dawnOk = true;
     }
 
     /**

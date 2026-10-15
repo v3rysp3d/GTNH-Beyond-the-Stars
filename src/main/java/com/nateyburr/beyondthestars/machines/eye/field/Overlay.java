@@ -61,6 +61,28 @@ public interface Overlay {
         return t.burstDriven() ? t.burstDrift(s, in, 1) : drift(t, in);
     }
 
+    /**
+     * P5: the drift with the second's result (what {@link StellarField#step} calls). The T9 Attractor fires its beam
+     * and runs its flow inside the drift (the prototype's order), and the T10 Universe runs its clock there; both report
+     * into {@code out}. Everything else uses {@link #drift(TierParams, FieldState, StepInputs)}. The Infall and
+     * Inflation override this one.
+     */
+    default double[] drift(TierParams t, FieldState s, StepInputs in, StepResult out) {
+        if (t.attractor) return AttractorField.drift(s, in, 1, false, out);
+        if (t.universe) return UniverseField.drift(s, in, false, out);
+        return drift(t, s, in);
+    }
+
+    /** P5: a Galactic Flow ended this second (the Infall's settle starts after its forced flow). */
+    default void onFlowEnded() {}
+
+    /**
+     * P5: a Breach or Integrity 0 this second, before the clock moves (the prototype's {@code fail} wrapper). The Infall
+     * and Inflation recover here (the soft rule, Q-P5-5) and set {@link StepResult#recovered}; the default does
+     * nothing (the runtime runs its own failure rule).
+     */
+    default void onFail(FieldState s, StepInputs in, StepResult out) {}
+
     /** Noise half-width σ on gauge k (P4: per gauge, and +0.25 on P per companion). */
     default double sigma(TierParams t, int k, StepInputs in) {
         return t.sigma(k, in.companions);
