@@ -106,6 +106,9 @@ public final class BTSFormat {
         final double a = Math.abs(bu);
         if (a >= 1000) return String.format(Locale.ROOT, "%,.0f", bu);
         if (a >= 10) return String.format(Locale.ROOT, "%.1f", bu);
+        // under 1e-4 Java's %g turns scientific with a padded exponent ("1.0e-07"): write it as euSci does ("1.0e-7")
+        if (a > 0 && a < 0.0000995) return String.format(Locale.ROOT, "%.1e", bu)
+            .replace("e-0", "e-");
         if (a > 0 && a < 0.00995) return String.format(Locale.ROOT, "%.2g", bu);
         return String.format(Locale.ROOT, "%.2f", bu);
     }
