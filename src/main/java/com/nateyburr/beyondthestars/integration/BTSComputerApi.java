@@ -269,7 +269,7 @@ public final class BTSComputerApi {
         // P4-88: what J1 at 15 puts on the Eye (min of the stream and J1's out-1 limit), and the standard limit
         m.put("testFireStream", rt.testFireStream());
         m.put("j1Limit", rt.standardJ1Limit());
-        // SMBH (smbh-v1.md §1.3): the Supermassive Link, P5's T9 -> T10 milestone (data only until Eye T9)
+        // SMBH (smbh-v1.md §1.3): the Supermassive Link, P5's T9 -> T10 milestone (it gates Inflation)
         final BurstLink sm = rt.galaxy()
             .supermassiveLink();
         final Map<String, Object> s = new LinkedHashMap<>();

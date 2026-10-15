@@ -1643,13 +1643,13 @@ public final class EyeStarRuntime {
     public static final int SM_DIP_GRACE = BurstLink.WINDOW;
 
     /**
-     * SMBH (smbh-v1.md §1.3): one second of the Supermassive Link, P5's T9 → T10 machine milestone, as data only: a
+     * SMBH (smbh-v1.md §1.3): one second of the Supermassive Link, P5's T9 → T10 machine milestone: a
      * 60 s mean of everything on the Eye's ports, and a streak while the link source (its stream record: a lattice in
      * force and at least 65,536 SM) qualifies and the mean is at least D₁₀ = 96 Bu/t. It resets when the link drops,
      * the lattice is lost, or the hole stays under 65,536 SM for longer than {@link #SM_DIP_GRACE} seconds (QA-B09: a
      * one-second supply gap dips the hole under the line for a second or two, which the 60 s Accretion Buffer is there
      * to ride, so a short dip counts as held). Held after 1,800 s, recorded in the milestones (item NBT) for P5;
-     * nothing gates on it until Eye T9 exists.
+     * Inflation needs it held (EyeMilestones.met(9)).
      */
     private void supermassiveSecond(EyeBursts b) {
         final BurstLink l = galaxy.link9;
@@ -1663,7 +1663,7 @@ public final class EyeStarRuntime {
             lastEvent = "the " + EyeMilestones.SM_LINK_NAME
                 + " is HELD: 30 min unbroken from the hole at "
                 + b.source
-                + " (data for P5's T9 -> T10 milestone)";
+                + " (the core of the T9 -> T10 milestones)";
             logEvent(lastEvent);
         }
         if (l.done && !milestones.smLinkDone) milestones.smLinkDone = true;
@@ -1680,7 +1680,7 @@ public final class EyeStarRuntime {
         final EyeBursts b = galaxy.bursts;
         return String.format(
             Locale.ROOT,
-            "%s (P5, T9 -> T10, data only): %s, 60 s mean %s / %s; source %s",
+            "%s (T9 -> T10 milestone): %s, 60 s mean %s / %s; source %s",
             EyeMilestones.SM_LINK_NAME,
             milestones.smLinkDone ? "HELD"
                 : "streak " + EyeMilestones.clock(l.streak)
