@@ -4,6 +4,7 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.InputHatch;
@@ -257,13 +258,16 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
             .addElement('M', casing(Casings.ReinforcedTemporalStructureCasing))
             // P4 (quasar-p4.md section 3.1): a GRB Receptor Port, or the Galactic Shell these cells held before P4, so
             // builds that stand keep forming. Three cells on the T2 stirring ring. Hologram hint 4.
+            // OPTIONAL: plain shell in every build and preview unless the projector sets bts_optional.
             .addElement(
                 'g',
-                buildHatchAdder(MTEHomogeny.class)
-                    .atLeast(ReceptorHatchElement.<MTEHomogeny>of(MTEHomogeny::addReceptor, MTEHomogeny::receptorCount))
-                    .casingIndex(index)
-                    .hint(4)
-                    .buildAndChain(block(SLBlocks.slCasing, BlockSLCasing.GALACTIC_SHELL)))
+                optionalHatch(
+                    buildHatchAdder(MTEHomogeny.class)
+                        .atLeast(
+                            ReceptorHatchElement.<MTEHomogeny>of(MTEHomogeny::addReceptor, MTEHomogeny::receptorCount))
+                        .casingIndex(index)
+                        .hint(4),
+                    block(SLBlocks.slCasing, BlockSLCasing.GALACTIC_SHELL)))
             // ---- sockets: the hatch first, then the casing it falls back to
             .addElement(
                 'h',

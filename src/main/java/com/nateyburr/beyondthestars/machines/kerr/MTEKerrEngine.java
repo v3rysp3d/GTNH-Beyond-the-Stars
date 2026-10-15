@@ -5,6 +5,7 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofHint;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.tieredBlock;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
@@ -349,13 +350,16 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
                     .casingIndex(shellIndex)
                     .hint(3)
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+            // The utility sockets are OPTIONAL (no Kerr tier needs a hatch there): plain shell in every build and
+            // preview unless the projector sets the bts_optional channel (BTSStructures.optionalHatch).
             .addElement(
                 'u',
-                buildHatchAdder(MTEKerrEngine.class)
-                    .atLeast(KerrHatchElement.Utility, KerrHatchElement.Directive, KerrHatchElement.Receptor)
-                    .casingIndex(shellIndex)
-                    .hint(6)
-                    .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+                optionalHatch(
+                    buildHatchAdder(MTEKerrEngine.class)
+                        .atLeast(KerrHatchElement.Utility, KerrHatchElement.Directive, KerrHatchElement.Receptor)
+                        .casingIndex(shellIndex)
+                        .hint(6),
+                    casing(Casings.ExtremeDensitySpaceBendingCasing)))
             // ---- module slots: hint dots only (check always passes, nothing is placed, trap 4)
             .addElement('1', ofHint(KerrSlot.COMPRESSOR.hintDots))
             .addElement('2', ofHint(KerrSlot.EXTRACTOR.hintDots))

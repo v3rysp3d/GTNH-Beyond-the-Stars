@@ -3,6 +3,7 @@ package com.nateyburr.beyondthestars.machines.reality;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.InputHatch;
@@ -166,14 +167,15 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             // P4, so builds that stand keep forming. Top deck band, outer face, one per region. Hologram hint 10.
             .addElement(
                 'g',
-                buildHatchAdder(MTERealityDiffraction.class)
-                    .atLeast(
-                        ReceptorHatchElement.<MTERealityDiffraction>of(
-                            MTERealityDiffraction::addReceptor,
-                            MTERealityDiffraction::receptorCount))
-                    .casingIndex(index)
-                    .hint(10)
-                    .buildAndChain(block(c3, BlockSLCasing3.REGION_DECK_BAND)))
+                optionalHatch(
+                    buildHatchAdder(MTERealityDiffraction.class)
+                        .atLeast(
+                            ReceptorHatchElement.<MTERealityDiffraction>of(
+                                MTERealityDiffraction::addReceptor,
+                                MTERealityDiffraction::receptorCount))
+                        .casingIndex(index)
+                        .hint(10),
+                    block(c3, BlockSLCasing3.REGION_DECK_BAND)))
             .addElement(
                 'b',
                 buildHatchAdder(MTERealityDiffraction.class).atLeast(RealityHatchElement.Bec)

@@ -5,6 +5,7 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.channelIndex;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.tieredBlock;
 import static gregtech.api.enums.HatchElement.Maintenance;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
@@ -419,21 +420,25 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                     .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
             .addElement(
                 'n',
-                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Sensor, EyeHatchElement.Directive)
-                    .casingIndex(shellIndex)
-                    .hint(6)
-                    .buildAndChain(casing(Casings.ReinforcedSpatialStructureCasing)))
+                optionalHatch(
+                    buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Sensor, EyeHatchElement.Directive)
+                        .casingIndex(shellIndex)
+                        .hint(6),
+                    casing(Casings.ReinforcedSpatialStructureCasing)))
             // ---- P4 (quasar-p4.md §7): plinth face cells of eye_core. Both fall back to the plinth casing, so an
             // Eye built before P4 (deck in every one of these cells) still forms. 'd' = 4 sockets above the
             // controller row for Directive Hatches (Field, Events, Galaxy Transition, Slots) or a Burst Control Hatch
             // (Begin mode); 'p' = the slot bus below it (a private input bus: planet items, companion charts).
+            // 'n' and 'd' are OPTIONAL (UIV/UMV automation parts on a machine built far earlier): plain casing in
+            // every build and preview unless the projector sets the bts_optional channel (BTSStructures.optionalHatch).
             .addElement(
                 'd',
-                buildHatchAdder(MTEEyeOfHarmonyBTS.class)
-                    .atLeast(EyeHatchElement.Directive, EyeHatchElement.BurstControl)
-                    .casingIndex(plinthIndex)
-                    .hint(7)
-                    .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
+                optionalHatch(
+                    buildHatchAdder(MTEEyeOfHarmonyBTS.class)
+                        .atLeast(EyeHatchElement.Directive, EyeHatchElement.BurstControl)
+                        .casingIndex(plinthIndex)
+                        .hint(7),
+                    casing(Casings.ReinforcedTemporalStructureCasing)))
             .addElement(
                 'p',
                 buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.SlotBus)

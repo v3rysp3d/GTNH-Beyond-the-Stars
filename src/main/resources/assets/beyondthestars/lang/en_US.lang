@@ -239,6 +239,7 @@ item.beyondthestars.starChartArcturus.tooltip=Eye of Harmony T3 target (Arcturus
 
 # ---- SINGULARITY LADDER P2: Kerr Ergosphere Engine (Kerr unit; singularity-ladder-build.md §3.1) ----
 beyondthestars.recipe.kerrdensity=Kerr Densification
+channels.beyondthestars.bts_optional=Optional hatch sockets: shows them as hint dots and auto-places those hatches (Directive, Sensor, Burst Control, GRB Receptor Port, BHC Utility)
 beyondthestars.structure.kerr.boltbus=The governor needs at least one input bus in a bolt-bus socket
 beyondthestars.structure.kerr.moduleinput=The module needs at least one input bus (the compressor also takes input hatches)
 beyondthestars.structure.kerr.moduleoutput=The module needs at least one output bus (the compressor also takes output hatches)

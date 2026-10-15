@@ -14,10 +14,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
+import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.constructable.ChannelDataAccessor;
 import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IItemSource;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
+import com.gtnewhorizon.structurelib.structure.IStructureElementChain;
+
+import gregtech.api.util.HatchElementBuilder;
 
 /**
  * D-26 AXIS 4: the shared structure-element guard for the four new production multiblocks.
@@ -100,6 +104,93 @@ public final class BTSStructures {
                 IItemSource source, EntityPlayerMP actor, Consumer<IChatComponent> chatter) {
                 if (standsOnTile(world, x, y, z)) return PlaceResult.SKIP;
                 return base.survivalPlaceBlock(t, world, x, y, z, trigger, source, actor, chatter);
+            }
+        };
+    }
+
+    /**
+     * The StructureLib channel that turns the OPTIONAL hatch sockets on (set it on the Multiblock Structure Projector's
+     * channel screen). Without it every optional socket is plain casing in the hologram, the creative build, survival
+     * auto-place and the NEI preview, so nothing ever suggests the hatch is needed.
+     */
+    public static final String OPTIONAL_HATCH_CHANNEL = "bts_optional";
+
+    /** Registers {@link #OPTIONAL_HATCH_CHANNEL}'s description for the projector (once, at init). */
+    public static void registerChannels() {
+        StructureLibAPI.registerChannelDescription(
+            OPTIONAL_HATCH_CHANNEL,
+            "beyondthestars",
+            "channels.beyondthestars." + OPTIONAL_HATCH_CHANNEL);
+    }
+
+    /** True when the trigger asks for the optional hatch sockets ({@link #OPTIONAL_HATCH_CHANNEL} set). */
+    public static boolean wantsOptionalHatches(ItemStack trigger) {
+        return trigger != null && ChannelDataAccessor.hasSubChannel(trigger, OPTIONAL_HATCH_CHANNEL);
+    }
+
+    /**
+     * A socket for an OPTIONAL hatch: the walk accepts the hatch or the casing, but every build path treats the cell as
+     * the casing unless {@link #OPTIONAL_HATCH_CHANNEL} is set.
+     * <p>
+     * Why: GT's {@code buildHatchAdder(...).atLeast(a, b, c).buildAndChain(casing)} asks for at least one of EACH listed
+     * hatch. The NEI multiblock preview runs survival auto-place with GT's hatch channel on and a creative item source,
+     * so it placed one of every optional hatch and listed them all in its required items; the hologram drew the
+     * hatch's hint dot; and a projector with the hatch channel on pulled the hatches from the player's inventory. For an
+     * optional late-tier part (the GRB Receptor Port on a T1 Kerr) that read as "required".
+     * <p>
+     * With the channel set the socket behaves exactly like {@code buildAndChain}: hint dot, hatch first, casing as the
+     * fallback. It stays an {@link IStructureElementChain}, so NEI's usage index and hatch-dot overlay still see the
+     * hatch.
+     */
+    public static <T> IStructureElement<T> optionalHatch(HatchElementBuilder<T> hatch, IStructureElement<T> casing) {
+        final IStructureElement<T>[] chain = hatch.buildAndChain(casing)
+            .fallbacks();
+        return new IStructureElementChain<T>() {
+
+            @Override
+            public IStructureElement<T>[] fallbacks() {
+                return chain;
+            }
+
+            @Override
+            public boolean spawnHint(T t, World world, int x, int y, int z, ItemStack trigger) {
+                if (wantsOptionalHatches(trigger)) return IStructureElementChain.super.spawnHint(t, world, x, y, z, trigger);
+                return casing.spawnHint(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public boolean placeBlock(T t, World world, int x, int y, int z, ItemStack trigger) {
+                if (wantsOptionalHatches(trigger)) return IStructureElementChain.super.placeBlock(t, world, x, y, z, trigger);
+                return casing.placeBlock(t, world, x, y, z, trigger);
+            }
+
+            @Override
+            public BlocksToPlace getBlocksToPlace(T t, World world, int x, int y, int z, ItemStack trigger,
+                AutoPlaceEnvironment env) {
+                if (wantsOptionalHatches(trigger)) {
+                    return IStructureElementChain.super.getBlocksToPlace(t, world, x, y, z, trigger, env);
+                }
+                return casing.getBlocksToPlace(t, world, x, y, z, trigger, env);
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(T t, World world, int x, int y, int z, ItemStack trigger,
+                AutoPlaceEnvironment env) {
+                if (wantsOptionalHatches(trigger)) {
+                    return IStructureElementChain.super.survivalPlaceBlock(t, world, x, y, z, trigger, env);
+                }
+                return casing.survivalPlaceBlock(t, world, x, y, z, trigger, env);
+            }
+
+            @Override
+            @SuppressWarnings("deprecation")
+            public PlaceResult survivalPlaceBlock(T t, World world, int x, int y, int z, ItemStack trigger,
+                IItemSource source, EntityPlayerMP actor, Consumer<IChatComponent> chatter) {
+                if (wantsOptionalHatches(trigger)) {
+                    return IStructureElementChain.super
+                        .survivalPlaceBlock(t, world, x, y, z, trigger, source, actor, chatter);
+                }
+                return casing.survivalPlaceBlock(t, world, x, y, z, trigger, source, actor, chatter);
             }
         };
     }
