@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "The Eye's §9T9 → T10 machine milestone§r: link a hole of at least§9 65,536 SM§r with a Supermassive Lattice (any tier) to the Eye through the conduit for§9 30 min unbroken§r, with a 60 s mean of at least§9 96 Bu/t§r (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.\n\nIt is met with an §9L1 lattice§r (Eye T8 products) and pack gases: nothing from Eye T9 or later. It gates Eye T10 (see §cInflation§r).\n\nEvery stream already carries its source's lattice tier and mass. The Eye's GUI shows a §9Supermassive Link§r row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Supermassive Link held (tick the box).",
+      "desc:8": "The Eye's §9T9 → T10 machine milestone§r: link a hole of at least§9 65,536 SM§r with a Supermassive Lattice (any tier) to the Eye through the conduit for§9 30 min unbroken§r, with a 60 s mean of at least§9 96 Bu/t§r (burst units per tick; 9.6e14 EU/t) on the Eye's ports. The streak resets when the link drops or the hole leaks under 65,536 SM.\n\nIt is met with an §9L1 lattice§r (Eye T8 products) and pack gases: nothing from Eye T9 or later. It gates Eye T10 (see §cInflation§r).\n\nEvery stream already carries its source's lattice tier and mass. The Eye's GUI shows a §9Supermassive Link§r row (the streak, the mean, and whether the linked hole qualifies), OpenComputers getUnlock() has it, and the quasar's sensor has a Supermassive Link ready channel.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Supermassive Link held.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -60,7 +60,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "Supermassive Link held",
+      "scoreName:8": "bts_smlink",
+      "target:3": 1,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

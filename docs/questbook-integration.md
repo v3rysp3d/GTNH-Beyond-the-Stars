@@ -633,9 +633,9 @@ milestones below it, the products and hosts under those.
 | 48158 | Throats | 564,96 | 48144 | R 1× `conduitThroatMk1`; OR Mk II |
 | 48159 | A Quasar Link | 564,252 | 48145 | R 1× `28125` |
 | 48160 | The Stability Rail | 612,252 | 48159 | R 8× `28125`; OR `bom:eye_rail` |
-| 48161 | Stability Link | 660,252 | 48160 | checkbox |
+| 48161 | Stability Link | 660,252 | 48160 | the Eye completes it (scoreboard, §4.8) |
 | 48163 | The Shard Halo | 804,252 | 48146 | R 8× `28125`; OR `bom:eye_halo` |
-| 48164 | Heavy Link | 852,252 | 48163 | checkbox |
+| 48164 | Heavy Link | 852,252 | 48163 | the Eye completes it (scoreboard, §4.8) |
 | 48166 | Superdense Ergomatter, the Slow Way | 660,348 | 48147, 48167 | F 500 L `btssuperdenseergomatter` |
 | 48167 | A Quasar-Linked Kerr | 564,336 | 48113, 48159 | checkbox |
 | 48168 | A Quasar-Held Vortex | 228,360 | 48142, 48159 (hover-only line) | checkbox |
@@ -1398,6 +1398,25 @@ writes the filter against it.
   "config off".
 
 ---
+
+### 4.8 Quests the Eye completes (B-218)
+
+Fourteen quests record a state of the Eye, not an item: the Stability, Heavy, Deep and Supermassive Links, The Infall,
+Eye T9, Inflation and the P5 counts (Holding the Flow, Twenty EeV, Laniakea, A Wider Pull, Keep It Flat, Cosmic Dawn,
+Last Light). Each has one `bq_standard:scoreboard` task on a dummy objective of ours (`bts_...`), which a player cannot
+tick, and the Eye completes it:
+
+- `EyeQuests` (after every field second of the controller) counts each objective from the Eye's saved state and,
+  when a count or the owner changes and at least once a minute, calls `QuestCredit`;
+- `QuestCredit` credits the controller's owner and the members of the owner's BetterQuesting party: it raises the
+  objective's score (bq_standard's per-UUID copy the panel shows, and the overworld scoreboard when the player's name
+  is known) and completes a quest whose count has reached its target through BetterQuesting's own admin complete
+  (`NetQuestEdit.completeQuests`), online or offline, with the quest sync to an online player;
+- a complete quest is skipped (idempotent), prerequisites are not waited for, nothing is queued (the Eye's state is
+  the record), and without BetterQuesting or without the quest nothing happens.
+
+The generator writes the list into `BTSQuestIds.EYE_QUESTS` and checks it against `EyeQuests.count`. Full write-up and
+the dev-server test: B-218 in [singularity-ladder-questions.md](singularity-ladder-questions.md).
 
 ## 5. Open questions (log as QB-1.. in `singularity-ladder-questions.md`)
 

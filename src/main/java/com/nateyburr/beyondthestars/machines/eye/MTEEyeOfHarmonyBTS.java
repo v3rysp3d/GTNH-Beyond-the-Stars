@@ -1543,6 +1543,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             // structure puts the star out (R-8); a chunk that is not ticking freezes it.
             com.nateyburr.beyondthestars.machines.eye.star.EyeGalaxyBench.liveSecond(this); // P4 bench only
             runtime.second();
+            // B-218: the Eye completes its own milestone quests for its owner (no-op without BetterQuesting)
+            com.nateyburr.beyondthestars.machines.eye.star.EyeQuests.second(runtime, aBaseMetaTileEntity);
             publishDirectives();
             refreshStatusLine();
             // The buffers fill from the sockets and the field, milestones and setpoints move without an inventory
@@ -1692,6 +1694,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             drainSockets();
         }
         runtime.second();
+        com.nateyburr.beyondthestars.machines.eye.star.EyeQuests.second(runtime, getBaseMetaTileEntity());
         publishDirectives();
         debugRenderTick();
     }

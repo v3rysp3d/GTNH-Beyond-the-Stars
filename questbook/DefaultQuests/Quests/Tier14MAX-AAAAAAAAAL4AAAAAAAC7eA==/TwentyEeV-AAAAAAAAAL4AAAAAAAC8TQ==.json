@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Run T9 on §9Superdense pellets for 1 hour§r. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.\n\nWatch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.\n\n§2§lDONE §lWHEN§r T9 has run an hour on Superdense pellets (tick the box).",
+      "desc:8": "Run T9 on §9Superdense pellets for 1 hour§r. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.\n\nWatch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.\n\n§2§lDONE §lWHEN§r T9 has run an hour on Superdense pellets (the Eye counts the minutes).\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -60,7 +60,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "Minutes on Superdense pellets",
+      "scoreName:8": "bts_sd_min",
+      "target:3": 60,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

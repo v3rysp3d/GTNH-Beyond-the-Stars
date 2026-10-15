@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Catch one §9Cosmic Dawn§r: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes §9+12.5 % Universium§r (1,152 L).\n\n§2§lDONE §lWHEN§r a Cosmic Dawn is caught (tick the box).",
+      "desc:8": "Catch one §9Cosmic Dawn§r: the first stars ignite across the crown's twelve spikes. Warned 120 s ahead; P jumps and H climbs for 300 s. Held Stable or better throughout, that universe makes §9+12.5 % Universium§r (1,152 L).\n\n§2§lDONE §lWHEN§r a Cosmic Dawn is caught.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -60,7 +60,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "Cosmic Dawns caught",
+      "scoreName:8": "bts_dawns",
+      "target:3": 1,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

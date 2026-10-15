@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the quest bridge's B-218, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -56,7 +56,7 @@ Most important first. "Recommended" is what we would build if nothing else is de
 | 31 | SMBH: a broken lattice block under a hole over 4,096 SM unforms the quasar (frozen, nothing lost) instead of shedding the hole to the coil cap | Keep: a mis-click must not cost days of growth; taking a lattice down means lowering the setpoint to 4,096 SM first | B-154 |
 | 32 | P5: the wired MAX energy / dynamo hatches and the MAX 4,096 A laser hatches do not exist in RC-2; built on spare ids 28133 / 28134 / 28136 / 28137 | Keep these four ids (frozen once a world holds one) | B-204 |
 | 33 | P5: the Dark Matter Heating Coil cannot sit above Eternal (GT's coil levels end at MAX, 13,501 K) | Keep it as the T9-matter MAX coil at Eternal's heat; a hotter tier needs a mixin | B-206 |
-| 34 | P5: the quests the Eye would tick (The Deep Link, The Infall, Inflation, the flow / universe counts) are checkboxes | Keep for the first P5 playtest; a quest bridge from the Eye's milestones later | B-211 |
+| 34 | ~~P5: the quests the Eye would tick (The Deep Link, The Infall, Inflation, the flow / universe counts) are checkboxes~~ | **Settled** ("Yes to all", 2026-10-16): the Eye completes them itself through a BetterQuesting bridge | B-211, B-218 |
 | 35 | P5: two full MAX Batteries in one GT battery buffer overflow its capacity readout (2^63 - 1 EU each) | Lower to 2^59 EU each if the playtest shows a misreading | B-208 |
 
 ## 2. Settled
@@ -272,7 +272,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-216
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-216, B-218
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -7674,7 +7674,7 @@ branch it waits (one log line), as P4's machine recipes did.
 
 **Suggestion.** The Eye unit uses these names (sent to the integrator on 2026-10-16).
 
-### B-211 Quests the Eye would tick are checkboxes (open) [p5-content]
+### B-211 Quests the Eye would tick are checkboxes (settled: the Eye completes them, B-218) [p5-content]
 
 **Context.** §9.1 has six quests "ticked by the Eye" (The Deep Link, Out of the Zone of Avoidance, Inflation) or by a
 count (Holding the Flow, Twenty EeV, Laniakea, A Wider Pull, Keep It Flat, Cosmic Dawn, Last Light). No machine in the
@@ -7686,6 +7686,9 @@ addon completes a quest today.
 **Open.** A small BetterQuesting bridge call from `EyeMilestones` could complete them.
 
 **Suggestion.** Keep checkboxes for the first P5 playtest; build the bridge with the Eye unit if the owner wants it.
+
+**Settled** ("Yes to all", 2026-10-16) **and built** (B-218): the Eye completes these quests itself, and the earlier
+Eye links (Stability Link, Heavy Link) and the Supermassive Link with them. Their tasks are no longer checkboxes.
 
 ### B-212 The Homogeny T3 link milestone is a quest task only [p5-content]
 
@@ -7740,6 +7743,87 @@ Eternal Singularity, as before).
 - The Universal Compression Field Generator is `slCasing4:6`; the Eye unit puts it in the compression slots.
 - `/btseye gates` prints each P5 part's `modid:name:meta` (the questbook's task form).
 - `/btstooltips` also writes the `.tooltip.shift` lines.
+
+### B-218 The Eye completes its own quests in BetterQuesting [quest bridge]
+
+**Context.** B-211 (settled 2026-10-16, "Yes to all"): the quests the Eye ticks should complete when the player
+achieves them, not be checkboxes a player can tick by hand.
+
+**Built.**
+- **The quests and what completes each** (the Eye's own saved state: item NBT milestones and the unlocked tier):
+
+  | Id | Quest | Objective | Target | Count |
+  |---|---|---|---|---|
+  | 48161 | Stability Link | `bts_stablink` | 1 | the T6 -> T7 link held |
+  | 48164 | Heavy Link | `bts_heavylink` | 1 | the T7 -> T8 link held |
+  | 48201 | The Deep Link | `bts_deeplink` | 1 | the T8 -> T9 link held (`deepLinkSecond`) |
+  | 48203 | Out of the Zone of Avoidance | `bts_infall` | 1 | The Infall succeeded: T9 unlocked (`completeTransition`) |
+  | 48182 | Eye T9: The Great Attractor | `bts_eye_t9` | 1 | the Attractor lit at T9 in galaxy mode outside a transition (or T10 unlocked) |
+  | 48204 | Holding the Flow | `bts_flows` | 1 | Galactic Flows held in full |
+  | 48205 | Twenty EeV | `bts_sd_min` | 60 | minutes of T9 field seconds firing Superdense pellets (new counter) |
+  | 48206 | Laniakea | `bts_galaxies` | 1000 | galaxies held |
+  | 48207 | A Wider Pull | `bts_wide3` | 1 | T9 cycles run with three or more companions (new counter) |
+  | 48198 | Supermassive Link | `bts_smlink` | 1 | the T9 -> T10 link held |
+  | 48208 | Inflation | `bts_inflation` | 1 | Inflation succeeded: T10 unlocked |
+  | 48209 | Keep It Flat | `bts_flat` | 1 | universes run to their last light at mean Y 1.0 or more (new counter) |
+  | 48210 | Cosmic Dawn | `bts_dawns` | 1 | Cosmic Dawns caught |
+  | 48211 | Last Light | `bts_universes` | 10 | universes run to their last light |
+
+  The three new counters are in `EyeMilestones` (item NBT `p5`: `sdSec`, `wide3`, `flat`), counted in
+  `EyeStarRuntime.p5AfterStep` on the unlocked tier outside a transition.
+- **The task.** Each of these quests has one `bq_standard:scoreboard` task (a dummy objective, `>=` the target) in
+  place of the checkbox. Nobody can tick it, and its panel shows the Eye's count ("412 >= 1000 Galaxies held"). The
+  quest text says the Eye completes it (`texts.eye_ticks`). In `questbook/singularity.json` it is
+  `{ "type": "scoreboard", "score", "label", "target" }`; the generator writes the quest list, objectives and targets
+  into `BTSQuestIds.EYE_QUESTS` / `EYE_QUEST_SCORES` / `EYE_QUEST_TARGETS` and fails the build on an objective
+  `EyeQuests.count` does not know, an `EyeQuests` count no task reads, or a scoreboard task beside another task (the
+  bridge completes the whole quest). Three `--selftest` cases cover these.
+- **The credit** (`QuestCredit`, reflection through `BQBridge`; no compile or runtime dependency on BetterQuesting).
+  `EyeQuests.second` runs after every field second of the controller. When a count or the owner changes, and at
+  least once a minute, it credits the controller's owner (`getOwnerUuid`) and every member of the owner's
+  BetterQuesting party (`IPartyDatabase.getParty`, `IParty.getMembers`):
+  1. the count goes into the objective, raised and never lowered: bq_standard's per-UUID score copy (what the task
+     panel shows; sent to the player if online) and, when a name is known, the overworld scoreboard (which the task
+     itself reads while the player is online);
+  2. a quest whose count has reached its target and that the member has not completed is completed through
+     BetterQuesting's own admin complete, `NetQuestEdit.completeQuests(ids, true, uuid)` (the code behind
+     `/bq_admin complete`): quest and task complete for that UUID, online or not, the database marked for saving, the
+     quest sync sent if the player is online, plus one chat line to them and one log line. Prerequisites are not
+     waited for, as with `/bq_admin complete`: the Eye's record is the proof, and a locked retrieval quest before it
+     (HOLD -> CLAIM -> INSTALL missed) must not hold back the chain behind it.
+- **Idempotent.** A complete quest is skipped (calling BetterQuesting's complete on it would reset its claim), so the
+  once-a-second hook makes no repeat completions; a quiet Eye only reads, once a minute.
+- **Offline owner, restarts.** Completion is by UUID, so an offline owner is credited at once; nothing is queued.
+  The Eye's saved state is the record: after a restart, a wrench, a quest reset by an op or a book installed later,
+  the next credit (within a minute) completes whatever is missing.
+- **Without BetterQuesting**, or with the quest not in the world's book, nothing happens. The first reflection
+  failure is logged once and turns the bridge off until the next start.
+- **Ops and the bench.** `/btsquests eye [player|uuid]` lists the 14 quests for one player: complete or open, with
+  the count. `/btseye star <x> <y> <z> p5 count <galaxies|flows|universes|dawns|sdsec|wide|flat> <n>` sets a counter.
+- A box ticked by hand in a playtest world stays ticked (the install keeps completion).
+
+**Test** (headless dev server, port 25822, world `bqtest2`, console only, three boots).
+- `/btseye t10 0 10 0 north gen 9 fill force` (the kit unlocks T10): on the next field second "Questbook: the Eye of
+  Harmony at 0 (0, 10, 0) completed 190/48182 Eye T9: The Great Attractor", then 190/48203 Out of the Zone of
+  Avoidance and 190/48208 Inflation, for the console owner (249b60b8-...).
+- `btseye keep` (the bench chunk tickets; an Eye with unloaded parts is frozen and credits nothing), then
+  `milestones 6 / 7 / 8 done`: 48161, 48164, 48201 completed. `p5 count galaxies 412`: 48206 open at `412 / 1000`;
+  `1000`: completed. `milestones 9 done`: 48198 and 48204. `sdsec 3599`: 48205 open at `59 / 60`; `3600`: completed.
+  `wide 1`, `flat 1`, `dawns 1`: 48207, 48209, 48210. `universes 9`: nothing; `10`: 48211. All 14 complete.
+- Idempotence: 75 s later (past the minute's recheck), still 14 completion lines.
+- Live counting: the Great Attractor lit with Superdense pellets on a Mk I barrel and bench bursts: the Superdense
+  count went from 3602 to 3617 s in 15 s.
+- `/btsquests uninstall all`: the Eye kept ticking without an error (`eye` lists every quest as not in this world's
+  book); `/btsquests install`: progress back from the backup, 14 complete, no new completion.
+- Restart: "Questbook: already up to date", 14 complete, the counters kept (Superdense 3634 s). `/bq_admin reset`
+  of 48211 for the owner: open at `10 / 10`, and 49 s later "completed 190/48211 Last Light" by the minute's recheck.
+- Found on the way and fixed: `EnumChatFormatting.getTextWithoutFormattingCodes` is client-only (NoSuchMethodError
+  on the server; the bridge logged it once and stopped, as designed); an unknown player's BetterQuesting name is their
+  UUID text, which is now treated as no name.
+- Not covered headless: party crediting and the client panel (no second player, no client). `gen-singularity
+  --check` and `--selftest` green; `gradlew build` green.
+
+**Suggestion.** Keep. A later pass could give other machine milestones the same task (Planets Mode, Companions).
 
 ## Where the old question numbers went
 

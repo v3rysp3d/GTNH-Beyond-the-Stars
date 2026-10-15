@@ -17,7 +17,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "Run T9 with §9three companions§r. At T9 a companion may be a galaxy: Triangulum (×2) or the Milky Way (×1, fed Ergomatter). Each galaxy adds half of T9's demand.\n\nSGR 1806-20 + Triangulum + the Milky Way on a§9 500 SM quasar§r supply their own pellets: Magnetar, Ergomatter and Superdense Ergomatter beside 12,500 L/h of Attractor Dark Matter. The demand is 54 Bu/t: below about 400 SM the burst falls short.\n\n§2§lDONE §lWHEN§r T9 runs with three companions (tick the box).",
+      "desc:8": "Run T9 with §9three companions§r. At T9 a companion may be a galaxy: Triangulum (×2) or the Milky Way (×1, fed Ergomatter). Each galaxy adds half of T9's demand.\n\nSGR 1806-20 + Triangulum + the Milky Way on a§9 500 SM quasar§r supply their own pellets: Magnetar, Ergomatter and Superdense Ergomatter beside 12,500 L/h of Attractor Dark Matter. The demand is 54 Bu/t: below about 400 SM the burst falls short.\n\n§2§lDONE §lWHEN§r T9 runs a full cycle with three companions.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -60,7 +60,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "T9 cycles, three companions",
+      "scoreName:8": "bts_wide3",
+      "target:3": 1,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

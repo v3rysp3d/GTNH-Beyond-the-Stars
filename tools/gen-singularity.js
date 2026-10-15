@@ -296,7 +296,10 @@ function scanSource(src) {
     } catch (e) { head = '?'; }
     const manifestFile = path.join(src, 'src/main/resources/assets/beyondthestars/structures/manifest.json');
     const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, 'utf8')) : null;
-    return { items, fluids, mtes, blocks, manifest, head, configFlags };
+    // B-218: the scoreboard objectives the Eye counts (EyeQuests.count's cases); null in a tree without the bridge
+    const eq = java.find(f => f.endsWith(path.join('eye', 'star', 'EyeQuests.java')));
+    const eyeScores = eq ? new Set([...fs.readFileSync(eq, 'utf8').matchAll(/case "(bts_[a-z0-9_]+)"/g)].map(m => m[1])) : null;
+    return { items, fluids, mtes, blocks, manifest, head, configFlags, eyeScores };
 }
 
 // ------------------------------------------------------------------------------------ the pack
@@ -484,6 +487,16 @@ function build(data, opts) {
                     req[`${k}:10`] = { 'Amount:3': st.count, 'FluidName:8': st.name };
                 });
                 nbt = { 'autoConsume:1': 0, 'consume:1': 0, 'groupDetect:1': 0, 'ignoreNBT:1': 1, 'index:3': i, 'requiredFluids:9': req, 'taskID:8': 'bq_standard:fluid' };
+            } else if (t.type === 'scoreboard') {
+                // B-218: a task only a machine completes (QuestCredit): a dummy objective of ours, raised by the Eye
+                if (!/^bts_[a-z0-9_]{1,12}$/.test(t.score || '')) error(`${w}: scoreboard objective '${t.score}' must be bts_ + up to 12 of [a-z0-9_]`);
+                if (!Number.isInteger(t.target) || t.target < 1) error(`${w}: scoreboard target must be a whole number of at least 1`);
+                if (!t.label || String(t.label).length > 32) error(`${w}: scoreboard task needs a label of at most 32 characters`);
+                if (src.eyeScores && !src.eyeScores.has(t.score)) error(`${w}: scoreboard objective '${t.score}' is not one the Eye writes (EyeQuests.count)`);
+                nbt = {
+                    'index:3': i, 'operation:8': 'MORE_OR_EQUAL', 'scoreDisp:8': t.label, 'scoreName:8': t.score, 'target:3': t.target,
+                    'taskID:8': 'bq_standard:scoreboard', 'type:8': 'dummy', 'unitConversion:5': 1.0, 'unitSuffix:8': t.suffix || '',
+                };
             } else if (t.type === 'tbd') {
                 if (checkItems) error(`${w}: task still 'tbd' (${t.what}) but its quest's features are built - write the real task`);
                 nbt = { 'index:3': i, 'taskID:8': 'bq_standard:checkbox' };
@@ -588,6 +601,23 @@ function build(data, opts) {
         }
         if (rec.q.onlyWithout && !editById.has(rec.q.onlyWithout)) error(`${rec.where}: onlyWithout names no edit '${rec.q.onlyWithout}'`);
     }
+
+    // ---- B-218: the quests the Eye completes (one scoreboard task each; BTSQuestIds.EYE_QUESTS)
+    const eyeQuests = [];
+    const scoreUsers = new Map();
+    for (const rec of ours.values()) {
+        const st = (rec.q.tasks || []).filter(t => t.type === 'scoreboard');
+        if (!st.length) continue;
+        // the bridge completes the whole quest, so the scoreboard task must be its only task
+        if (st.length !== rec.q.tasks.length) error(`${rec.where}: a scoreboard task must be the quest's only task (the Eye completes the whole quest)`);
+        for (const t of st) {
+            if (scoreUsers.has(t.score)) error(`${rec.where}: scoreboard objective '${t.score}' is already read by ${scoreUsers.get(t.score)}`);
+            scoreUsers.set(t.score, rec.where);
+            if (!rec.placeholder) eyeQuests.push({ low: rec.q.low, score: t.score, target: t.target });
+        }
+    }
+    if (src.eyeScores) for (const s of src.eyeScores) if (!scoreUsers.has(s)) error(`EyeQuests.count counts '${s}', but no quest's scoreboard task reads it`);
+    eyeQuests.sort((a, b) => a.low - b.low);
 
     // ---- ledger (append-only)
     const ledger = new Map();
@@ -1135,6 +1165,12 @@ function build(data, opts) {
             'Shown only while their pack edit is NOT applied (pack edits off, or drifted).'),
         arr('PLACEHOLDER_QUESTS', [...ours.values()].filter(r => r.placeholder).map(r => r.q.low).sort((a, b) => a - b),
             'Checkbox placeholders in this build: their content is not in the mod yet.'),
+        arr('EYE_QUESTS', eyeQuests.map(e => e.low),
+            'Quests the Eye of Harmony completes itself (B-218, QuestCredit): one scoreboard task each.'),
+        `    /** The scoreboard objective each EYE_QUESTS task reads (EyeQuests.count writes it). */`,
+        wrapArray('    public static final String[] EYE_QUEST_SCORES = ', eyeQuests.map(e => `"${e.score}"`)),
+        '',
+        arr('EYE_QUEST_TARGETS', eyeQuests.map(e => e.target), 'The count at which each EYE_QUESTS quest completes.'),
         `    /** Every pack edit in the bundle, in application order. */`,
         wrapArray('    public static final String[] PACK_EDITS = ', compiledEdits.map(e => `"${e.id}"`)),
         '}',
@@ -1359,6 +1395,10 @@ function selftest(inp) {
         ['an odd glyph', d => { q(d, 48100).desc = ['{u+221a}M']; return d; }, /odd glyph/],
         ['a pack quest naming a hidden chapter', d => { d.packEdits = d.packEdits.filter(x => x.id !== 'E66'); return d; }, /names the hidden chapter/],
         ['a hidden pack chapter that still holds a quest', d => { const e = d.packEdits.find(x => x.id === 'E64'); e.ops = e.ops.filter(o => o.op !== 'move'); return d; }, /still holds/],
+        // B-218: the quests the Eye completes
+        ['a scoreboard objective the Eye does not write', d => { q(d, 48201).tasks[0].score = 'bts_nosuch'; return d; }, /not one the Eye writes/],
+        ['a scoreboard task beside another task', d => { q(d, 48201).tasks.push({ type: 'retrieval', items: ['1x beyondthestars:injectorBarrelMk1'] }); return d; }, /only task/],
+        ['an Eye count no quest reads', d => { q(d, 48211).tasks = [{ type: 'checkbox' }]; return d; }, /no quest's scoreboard task reads it/],
     ];
     let failed = 0;
     for (const [name, mut, expect] of cases) {

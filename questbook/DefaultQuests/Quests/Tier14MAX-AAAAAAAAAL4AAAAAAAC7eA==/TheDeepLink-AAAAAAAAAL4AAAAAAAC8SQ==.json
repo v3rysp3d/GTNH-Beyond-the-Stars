@@ -21,7 +21,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "The T8 → T9 §9machine milestone§r, on a lit Milky Way:\n- linked, with a 60 s mean of at least§9 24 Bu/t§r (2.4e14 EU/t) landing on the Eye's ports, at least half of it into the five §9collar§r ports (no field effect at T8);\n- the beam §9test-firing§r at a 60 s mean ρ ≥ 1;\n- for§9 30 min unbroken§r.\nThe test fire setting forces J1 to the Eye. It needs a§9 250 SM quasar§r: below that the forced burst heats P faster than Space can trim. It burns about 1,200 Superdense pellets.\n\nAlso on the T8 star: 108,000 L of Superdense Ergomatter made at Stable or better, 2 h Resonant, 4 satellite crossings caught.\n\n§5§lAUTOMATE§r The Slots set's bit 4 (Deep Link test fire wanted) to both Burst Control Hatches.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Deep Link held (tick the box).",
+      "desc:8": "The T8 → T9 §9machine milestone§r, on a lit Milky Way:\n- linked, with a 60 s mean of at least§9 24 Bu/t§r (2.4e14 EU/t) landing on the Eye's ports, at least half of it into the five §9collar§r ports (no field effect at T8);\n- the beam §9test-firing§r at a 60 s mean ρ ≥ 1;\n- for§9 30 min unbroken§r.\nThe test fire setting forces J1 to the Eye. It needs a§9 250 SM quasar§r: below that the forced burst heats P faster than Space can trim. It burns about 1,200 Superdense pellets.\n\nAlso on the T8 star: 108,000 L of Superdense Ergomatter made at Stable or better, 2 h Resonant, 4 satellite crossings caught.\n\n§5§lAUTOMATE§r The Slots set's bit 4 (Deep Link test fire wanted) to both Burst Control Hatches.\n\n§2§lDONE §lWHEN§r the Eye's panel shows the Deep Link held.\n\n[note]The Eye completes this quest itself, for the controller's owner and the owner's party, online or not: no box to tick. The task line shows the Eye's count against the target.[/note]",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,
@@ -64,7 +64,14 @@
   "tasks:9": {
     "0:10": {
       "index:3": 0,
-      "taskID:8": "bq_standard:checkbox"
+      "operation:8": "MORE_OR_EQUAL",
+      "scoreDisp:8": "Deep Link held",
+      "scoreName:8": "bts_deeplink",
+      "target:3": 1,
+      "taskID:8": "bq_standard:scoreboard",
+      "type:8": "dummy",
+      "unitConversion:5": 1,
+      "unitSuffix:8": ""
     }
   }
 }

@@ -53,6 +53,18 @@ public final class BTSQuestIds {
     /** Checkbox placeholders in this build: their content is not in the mod yet. */
     public static final long[] PLACEHOLDER_QUESTS = {};
 
+    /** Quests the Eye of Harmony completes itself (B-218, QuestCredit): one scoreboard task each. */
+    public static final long[] EYE_QUESTS = { 48161L, 48164L, 48182L, 48198L, 48201L, 48203L, 48204L, 48205L, 48206L,
+        48207L, 48208L, 48209L, 48210L, 48211L };
+
+    /** The scoreboard objective each EYE_QUESTS task reads (EyeQuests.count writes it). */
+    public static final String[] EYE_QUEST_SCORES = { "bts_stablink", "bts_heavylink", "bts_eye_t9", "bts_smlink",
+        "bts_deeplink", "bts_infall", "bts_flows", "bts_sd_min", "bts_galaxies", "bts_wide3", "bts_inflation",
+        "bts_flat", "bts_dawns", "bts_universes" };
+
+    /** The count at which each EYE_QUESTS quest completes. */
+    public static final long[] EYE_QUEST_TARGETS = { 1L, 1L, 1L, 1L, 1L, 1L, 1L, 60L, 1000L, 1L, 1L, 1L, 1L, 10L };
+
     /** Every pack edit in the bundle, in application order. */
     public static final String[] PACK_EDITS = { "E01", "E02", "E03", "E04", "E05", "E06", "E07", "E10", "E11", "E12",
         "E13", "E14", "E15", "E16", "E17", "E18", "E19", "E20", "E21", "E22", "E23", "E24", "E25", "E26", "E27", "E28",

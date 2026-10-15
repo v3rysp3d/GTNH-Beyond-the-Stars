@@ -369,6 +369,8 @@ at another pack's `DefaultQuests` (default: the RC-2 instance). On its own: `nod
   a stack count below 1; an unknown `{token}` or `@text`;
 - a `bomItems` row whose manifest block no longer matches (`expect`), or a role with no row;
 - a placeholder whose features are now built but still has a `tbd` task;
+- a `scoreboard` task (a quest the Eye completes itself, B-218) whose objective `EyeQuests.count` does not know, an
+  `EyeQuests` count that no task reads, or a scoreboard task beside another task;
 - **pack drift**: an edited quest missing, renamed (`expectName`), out of its `expectChapter`, a
   `replaceText` whose text is gone, a prerequisite or swapped item that is not there;
 - **a prerequisite cycle** through our content or edits (only AND quests are followed). The spec's
