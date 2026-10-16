@@ -134,10 +134,11 @@ vec4 qrGas(vec3 p, float r, float t, float octaves, float fp) {
 
     // the outer half is dusty: lanes that absorb more than they shine
     float dust = smoothstep(0.2, 0.8, xs) * smoothstep(0.42, 0.7, lane);
-    // brighter inward; the inner wall glows (1.5 blocks), flickering when Critical
+    // brighter inward; the inner wall glows (1.5 blocks), wavering when Critical (B-251: up to x1.8 at about 3.5 Hz,
+    // was x2.4 at 6 Hz)
     float wallShape = exp(-((rs - r0) * (rs - r0)) / 2.2) * vert * inner * chunks;
     float wall = wallShape;
-    if (wallShape > 0.01) wall *= 1.0 + 1.4 * ta * btsNoise2(u_Noise, vec2(t * 6.0, dir.x * 3.0));
+    if (wallShape > 0.01) wall *= 1.0 + 0.8 * ta * btsNoise2(u_Noise, vec2(t * 3.5, dir.x * 3.0));
     // the inner wall is dense and hot whatever the filaments do
     dens += 0.7 * wallShape * (0.6 + 0.4 * f);
     float bright = 1.0 - 0.65 * clamp(xs, 0.0, 1.0);

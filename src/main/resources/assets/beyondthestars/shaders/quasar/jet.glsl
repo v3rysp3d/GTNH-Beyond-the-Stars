@@ -9,7 +9,7 @@
 //
 // SMBH (smbh-v1.md §7, R-19): a supermassive jet is fatter (u_JSmbh.y) with brighter knots; Overdrive turns it
 // white-violet with MHDCSM field lines spiralling round it (three tight counter-wound helices), brighter with the
-// level; a shed is the eruption's flare held: a giant knot every 1.4 s and a flickering core.
+// level; a shed is the eruption's flare held: a giant knot every 1.4 s and a wavering core.
 
 #include "lib/noise.glsl"
 #include "lib/tonemap.glsl"
@@ -131,9 +131,10 @@ vec4 qjShade(float z, float u) {
     float bowZ = zEnd - 1.6 + 1.3 * s * s;
     float bow = exp(-((z - bowZ) * (z - bowZ)) / 0.35) * (1.0 - smoothstep(1.0, 1.5, as)) * 0.9;
 
+    // B-251: the purge's pulse up to x1.8 (was x2.3); a shed's core wavers +-5 % at about 3 Hz (was +-10 % at 9 Hz)
     float pulse = 1.0;
-    if (u_JEvent.x > 1.5 && u_JEvent.x < 2.5) pulse += 1.3 * exp(-u_JEvent.y / 0.5);
-    if (shed > 0.5) pulse *= 1.15 + 0.2 * btsValueNoise2(vec2(t * 9.0, u_JSpan.z));
+    if (u_JEvent.x > 1.5 && u_JEvent.x < 2.5) pulse += 0.8 * exp(-u_JEvent.y / 0.5);
+    if (shed > 0.5) pulse *= 1.2 + 0.1 * (btsValueNoise2(vec2(t * 3.0, u_JSpan.z)) - 0.5);
 
     vec3 cCore = vec3(0.86, 0.92, 1.0);
     vec3 cStrand = vec3(0.58, 0.70, 1.0);

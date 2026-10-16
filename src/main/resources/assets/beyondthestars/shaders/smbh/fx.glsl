@@ -49,18 +49,19 @@ vec4 smShade(vec4 misc, float kind) {
         return vec4(btsShoulder(c, 1.6), 1.0);
     }
     if (kind < 0.5) {
-        // a Containment Node: its tier colour, whiter and flickering as Overdrive flares it, amber blinking while the
-        // hold-up is short
+        // a Containment Node: its tier colour, whiter and wavering as Overdrive flares it, amber breathing while the
+        // hold-up is short (B-251: the waver +-10 % at about 4 Hz, was a hard 14 Hz step of +-22 %; the amber once in
+        // 2.1 s between 0.6 and 1 of the leak, was 0.8 Hz between 0.5 and 1)
         float r = length(misc.xy);
         if (r >= 1.0) return vec4(0.0, 0.0, 0.0, -1.0);
         float flare = u_SB.x;
         float core = exp(-r * r / 0.035);
         float halo = 0.4 / (1.0 + r * r / 0.025);
         float edge = 1.0 - smoothstep(0.65, 1.0, r);
-        float flick = 1.0 + flare * 0.45 * (btsHash12(vec2(floor(t * 14.0), i)) - 0.5);
+        float flick = 1.0 + flare * 0.2 * (btsValueNoise2(vec2(t * 4.0, i * 3.1)) - 0.5);
         vec3 col = mix(u_SC.rgb, vec3(1.0), 0.35 * core + 0.45 * flare);
-        float blink = 0.5 + 0.5 * sin(t * 5.0 + i * 0.4);
-        col = mix(col, vec3(1.0, 0.6, 0.12), u_SB.y * (0.5 + 0.5 * blink));
+        float blink = 0.5 + 0.5 * sin(t * 3.0 + i * 0.4);
+        col = mix(col, vec3(1.0, 0.6, 0.12), u_SB.y * (0.6 + 0.4 * blink));
         vec3 c = col * (1.5 * core + halo) * edge * I * (1.0 + 1.6 * flare) * flick;
         return vec4(btsShoulder(c, 1.6), 1.0);
     }
@@ -75,8 +76,9 @@ vec4 smShade(vec4 misc, float kind) {
         b = b * b * b;
         float crack = 1.0;
         if (flare > 0.0) {
-            float h = btsHash12(vec2(floor(t * 20.0), i * 3.0));
-            crack = mix(1.0, 0.45 + 1.3 * step(0.35, h), 0.6 * flare);
+            // B-251: a smooth waver, 0.75 to 1.25 at about 4 Hz (was a hard 20 Hz switch between 0.45 and 1.75)
+            float h = btsValueNoise2(vec2(t * 4.0, i * 3.0));
+            crack = mix(1.0, 0.75 + 0.5 * h, 0.6 * flare);
         }
         vec3 col = mix(u_SC.rgb, vec3(1.0), 0.2 + 0.5 * flare);
         vec3 c = col * prof * ends * (0.3 + 1.1 * b) * crack * u_SC.w * (1.0 + 1.2 * flare);

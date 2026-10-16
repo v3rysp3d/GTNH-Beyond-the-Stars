@@ -24,8 +24,10 @@ import com.nateyburr.beyondthestars.client.render.GpuTimer;
 import com.nateyburr.beyondthestars.client.render.Layers;
 import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.Pulse;
 import com.nateyburr.beyondthestars.client.render.RenderClock;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
+import com.nateyburr.beyondthestars.machines.kerr.KerrHoleRenderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -64,7 +66,8 @@ import gregtech.common.render.BlackholeRenderer;
  * ({@link SmbhFx}), blinking amber while the hold-up is short. <b>Overdrive</b> (by its level): the ring and the jets
  * brighten toward white-violet, MHDCSM field lines spiral round the jets, the nodes flare and the arcs crackle.
  * <b>Unbound</b> (by its doublings n): a darker, wider lensing halo per doubling with a violet rim, the horizon
- * breathing +-3 % at 0.5 Hz, and violet anchor threads from node to node. <b>Intake</b>: while the Growth segment
+ * breathing at most +-2.5 % (from the third doubling) once in 2.4 s, and violet anchor threads from node to node.
+ * <b>Intake</b>: while the Growth segment
  * runs, gas streams in across the ring (as wide as the Growth share) and infall streamers feed the inner disc. A
  * <b>shed</b> holds the eruption's flare up both jets.</li>
  * </ul>
@@ -94,6 +97,17 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
     private static final float SHED_JET_BU = 1000f;
     /** QA-B12: the shed flare's exposure lift, and its period (the shader's giant knot, every 1.4 s). */
     private static final float SHED_EXPOSURE = 1.6f, SHED_PERIOD = 1.4f;
+    /**
+     * B-251: the shed's base glare swells by this much with each giant knot (eased in and out; was a snap to x3.0
+     * decaying in a third of a second), and its shock pulse's reach and light (was 26 blocks at 0.3, starting at full
+     * light every 1.4 s).
+     */
+    private static final float SHED_GLARE_SWELL = 0.5f, SHED_SHELL_REACH = 18f, SHED_SHELL_LIGHT = 0.2f;
+    /**
+     * B-251: Unbound's horizon breathing, at most this fraction of the radius, and its period (s; was 3 % at 0.5 Hz).
+     */
+    private static final float UNBOUND_BREATHE = 0.025f;
+    private static final double UNBOUND_PERIOD = 2.4;
     /**
      * QA-B12: each hole's last lit jet stream (client only): a shed draws its flare at the stream it replaced (at least
      * {@link #SHED_JET_BU}), never dimmer and calmer than the running jet was.
@@ -236,9 +250,11 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         final float age = (float) (now - q.getStartTime());
         final boolean opening = q.getScaling();
         final float growth = growth(opening, age);
-        // Unbound: the horizon breathes, +-3 % at 0.5 Hz
-        final float breathe = un > 0 ? (float) Math.sin(Math.PI * time) : 0f;
-        final double rsFull = s * HALO_PER_SCALE / R_OUT * (1 + 0.03 * breathe * Math.min(1f, un));
+        // Unbound: the horizon breathes, by at most UNBOUND_BREATHE from the third doubling (B-251: Pulse); the halo's
+        // rim breathes with it (breathe, -1..1, is scaled the same way)
+        final float breatheAmp = un > 0 ? Pulse.amp(1f, un / 3f) : 0f;
+        final float breathe = breatheAmp * Pulse.beat(time, UNBOUND_PERIOD, 0);
+        final double rsFull = s * HALO_PER_SCALE / R_OUT * (1 + UNBOUND_BREATHE * breathe);
         final double rs = rsFull * Math.max(growth, 0.02f);
         holeLook(hole, zi, a, event, evAge, evSize, time);
         if (smbh) smbhHole(hole, zi, sm, od, gr);
@@ -252,11 +268,11 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         if (opening && age >= 0 && age < 25) {
             final float f = age / 25f;
             hole.openRadius = (float) (Math.pow(f, 0.6) * R_OUT * toRs);
-            hole.openIntensity = 1.6f * (1 - f) * (1 - f);
+            hole.openIntensity = KerrHoleRenderer.OPEN_FLASH * (1 - f) * (1 - f);
         } else if (!opening && age >= 24 && age < GROW_TICKS) {
             final float f = (age - 24) / (GROW_TICKS - 24);
             hole.hawkRadius = (float) (f * R_OUT * 0.9 * toRs);
-            hole.hawkIntensity = 2.2f * (1 - f);
+            hole.hawkIntensity = KerrHoleRenderer.HAWKING_FLASH * (1 - f);
         }
         hole.stars = world == null ? 0f : Math.min(1f, world.getStarBrightness(partialTicks) * 2f);
         final double holeBound = rsFull * R_OUT * BlackHoleLens.BOUND_PER_OUTER;
@@ -447,8 +463,9 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
         p.thickness = 0.02f + 0.03f * TURB[zi];
         p.streamers = zi == 3 ? 0.35f : zi == 4 ? 0.7f : 0f;
         float expo = zi == 5 ? 0.3f : 1.25f;
-        if (event == TileQuasarHole.EV_ERUPTION) expo *= 1f + (1f + 1.5f * evSize) * (float) Math.exp(-evAge / 0.8);
-        if (event == TileQuasarHole.EV_PURGE) expo *= 1f + 0.6f * (float) Math.exp(-evAge / 0.5);
+        // B-251: an eruption lifts the inner disc by up to x2.7 (was x3.5), a purge by x1.4 (was x1.6)
+        if (event == TileQuasarHole.EV_ERUPTION) expo *= 1f + (0.7f + 1.0f * evSize) * (float) Math.exp(-evAge / 0.8);
+        if (event == TileQuasarHole.EV_PURGE) expo *= 1f + 0.4f * (float) Math.exp(-evAge / 0.5);
         p.exposure = expo;
         p.beaming = 2.5f;
         p.ring = 2.5f;
@@ -662,12 +679,13 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
 
     /**
      * QA-B12: while shedding, a weak shock pulse in phase with each giant knot (the eruption's shell, a fifth of its
-     * reach and a third of its light), so a shed reads from far outside.
+     * reach and a fifth of its light, B-251: eased in and out), so a shed reads from far outside.
      */
     private static void drawShedShell(double cx, double cy, double cz, double rs, float phase, float time,
         int cullFace) {
-        final float radius = (float) (rs * 3 + 26 * (1 - Math.exp(-phase * SHED_PERIOD / 0.6)));
-        final float intensity = 0.3f * (1f - smooth(phase));
+        final float radius = (float) (rs * 3 + SHED_SHELL_REACH * (1 - Math.exp(-phase * SHED_PERIOD / 0.6)));
+        // B-251: eased in and out over each knot, so a new pulse never starts at full light
+        final float intensity = SHED_SHELL_LIGHT * Pulse.hump(phase);
         if (intensity <= 0.005f) return;
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(cullFace);
@@ -682,11 +700,11 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
             if (bu <= 0) continue;
             final float bright = Math.max(0.08f, Math.min(1f, (float) (0.35 + 0.2 * Math.log10(bu))));
             float pulse = 1f;
-            if (event == TileQuasarHole.EV_PURGE) pulse += 1.5f * (float) Math.exp(-evAge / 0.5);
+            if (event == TileQuasarHole.EV_PURGE) pulse += 0.9f * (float) Math.exp(-evAge / 0.5);
             // QA-B12: a shed's glare is bigger and pulses with each giant knot leaving the base (what reads at range)
             double size = 1.0 + rs * 1.1;
             if (shedPhase >= 0) {
-                pulse *= 1.6f + 1.4f * (float) Math.exp(-shedPhase * SHED_PERIOD / 0.35);
+                pulse *= 1.6f + SHED_GLARE_SWELL * Pulse.hump(shedPhase);
                 size *= 2.2;
             }
             GlowSprite.draw(cx, cy + dir * z0, cz, size, 0.80f, 0.90f, 1.0f, 0.6f * bright * pulse, 0.16f, 0.4f);
@@ -786,7 +804,7 @@ public class QuasarHoleRenderer extends TileEntitySpecialRenderer {
             drawDisc(q, t);
             // QA-B12: a shedding hole's jets (0 Bu/t) still show the shed's flare on the LOW path
             final boolean shed = q.getShed() && q.getZone() >= 0;
-            final float pulse = shed ? 1.25f + 0.35f * (float) Math.exp(-((t / 20f) % SHED_PERIOD) / 0.35) : 1f;
+            final float pulse = shed ? 1.25f + 0.15f * Pulse.hump(((t / 20f) % SHED_PERIOD) / SHED_PERIOD) : 1f;
             drawJet(q.getJetTop() > 0 || !shed ? q.getJetTop() : SHED_JET_BU, 1, t, pulse);
             drawJet(q.getJetBottom() > 0 || !shed ? q.getJetBottom() : SHED_JET_BU, -1, t, pulse);
         } finally {

@@ -16,6 +16,7 @@ import com.nateyburr.beyondthestars.client.render.GlowSprite;
 import com.nateyburr.beyondthestars.client.render.GpuTimer;
 import com.nateyburr.beyondthestars.client.render.Layers;
 import com.nateyburr.beyondthestars.client.render.Lod;
+import com.nateyburr.beyondthestars.client.render.Pulse;
 import com.nateyburr.beyondthestars.client.render.RenderClock;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
 
@@ -35,8 +36,9 @@ import gregtech.common.render.BlackholeRenderer;
  * <li>{@code kerrScale} (log mass): the size (the disc ends where GT's halo ended, {@code 1.8 x scale}, inside the
  * cage at every mass) and the disc's temperature, white-hot at 16 SM, gold-white at 64, golden-orange from 256;</li>
  * <li>GT's stability (coverage / 2): full coverage calm; less coverage thickens the disc, raises the turbulence,
- * slides its colour toward deep red and, past 40 % lost, drops plasma streamers into the shadow; no coverage tilts the
- * disc into a precessing wobble and makes it flicker;</li>
+ * slides its colour toward deep red and, past 40 % lost, drops plasma streamers into the shadow; no coverage tips the
+ * disc into a slow precession and makes its light waver (B-251: 4 degrees once in 12 s and +-6 %, was 8 degrees
+ * once in 5 s and a 3.7 Hz flicker down to 65 %);</li>
  * <li>GT's {@code scaling} / {@code startTime}: the hole grows from a point (GT's 40-tick smootherstep) with a white
  * opening ring, and shrinks to a point with a blue-white Hawking flash.</li>
  * </ul>
@@ -54,6 +56,14 @@ public class KerrHoleRenderer extends TileEntitySpecialRenderer {
     static final float R_OUT = 7.5f, R_IN = 1.45f;
     /** GT's opening / collapse animation, ticks. */
     private static final float GROW_TICKS = 40f;
+    /**
+     * B-251: the opening ring's and the Hawking flash's peak intensities (were 1.6 and 2.2), shared with the quasar's
+     * hole.
+     */
+    public static final float OPEN_FLASH = 1.2f, HAWKING_FLASH = 1.5f;
+    /** B-251: a failing hole's disc tilt (radians), its precession period (s), and its light's waver and period. */
+    static final float FAIL_TILT = 0.07f, FAIL_PRECESSION = 12f, FAIL_WAVER = 0.06f;
+    static final double FAIL_WAVER_PERIOD = 1.7;
 
     private final BlackholeRenderer delegate = new BlackholeRenderer();
     private final BlackHoleLens.Params params = new BlackHoleLens.Params();
@@ -126,11 +136,11 @@ public class KerrHoleRenderer extends TileEntitySpecialRenderer {
         if (opening && age >= 0 && age < 25) {
             final float f = age / 25f;
             p.openRadius = (float) (Math.pow(f, 0.6) * R_OUT * toRs);
-            p.openIntensity = 1.6f * (1 - f) * (1 - f);
+            p.openIntensity = OPEN_FLASH * (1 - f) * (1 - f);
         } else if (!opening && age >= 24 && age < GROW_TICKS) {
             final float f = (age - 24) / (GROW_TICKS - 24);
             p.hawkRadius = (float) (f * R_OUT * 0.9 * toRs);
-            p.hawkIntensity = 2.2f * (1 - f);
+            p.hawkIntensity = HAWKING_FLASH * (1 - f);
         }
         p.stars = world == null ? 0f : Math.min(1f, world.getStarBrightness(partialTicks) * 2f);
 
@@ -186,10 +196,9 @@ public class KerrHoleRenderer extends TileEntitySpecialRenderer {
         p.thickness = 0.02f + 0.08f * u;
         p.streamers = smooth((u - 0.4f) / 0.4f);
         final float fail = 1f - smooth(c / 0.05f);
-        p.tilt = 0.14f * fail;
-        p.tiltAzimuth = (float) (2 * Math.PI * time / 5.0);
-        p.exposure = 1.2f
-            * (1f - 0.35f * fail * (0.5f + 0.5f * (float) (Math.sin(time * 23.0) * Math.sin(time * 7.3))));
+        p.tilt = FAIL_TILT * fail;
+        p.tiltAzimuth = (float) (2 * Math.PI * time / FAIL_PRECESSION);
+        p.exposure = 1.2f * (1f + Pulse.amp(FAIL_WAVER, fail) * Pulse.wave(time, FAIL_WAVER_PERIOD, 0));
         p.beaming = 2.5f;
         p.ring = 2.5f;
         p.glow = 0.07f;
