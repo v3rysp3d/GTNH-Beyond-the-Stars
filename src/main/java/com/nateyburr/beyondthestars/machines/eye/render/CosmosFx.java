@@ -716,7 +716,13 @@ final class CosmosFx {
     /**
      * The fixed-function look (renderQuality=low, no GL 2.1, a program that does not bake): pass 0 the black core;
      * pass 1 (additive) the ring's glow, 40 dots per filament and the beam as a quad (the Attractor), or the
-     * membrane as a two-tone disc in the crown's plane and the twelve rays (the Universe). A few hundred quads.
+     * membrane as a two-tone disc in the crown's plane (the plasma's orange before Recombination, the CMB's warm
+     * centre and cold rim after), the crown's glow ring and the twelve rays, flat quads that flare at the Cosmic Dawn
+     * (the Universe). A few hundred quads.
+     * <p>
+     * B-226: pass 1 sets its own state. It left back-face culling and the alpha test as Minecraft had them, so every
+     * quad whose winding faced away was culled: the Universe's disc from below, every ray, the jet and the T9 beam
+     * (a {@link #lineQuad} always winds away from the camera). renderQuality=low then showed only the black core.
      */
     static void drawFixed(Look L, CosmosInput in, boolean universe, int pass) {
         final Tessellator t = Tessellator.instance;
@@ -732,6 +738,10 @@ final class CosmosFx {
             GL11.glDisable(GL11.GL_CULL_FACE);
         }
         if (pass == 0) return;
+        // two-sided and no alpha cut-off for the flat layers (the caller's GlSave restores both)
+        GL11.glDisable(GL11.GL_CULL_FACE);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
+        GL11.glDepthMask(false);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
         final Billboard bb = Billboard.at(L.cx, L.cy, L.cz);
         if (bb == null) return;
@@ -755,26 +765,64 @@ final class CosmosFx {
             }
             return;
         }
-        // the Universe: the membrane as a disc (warm centre, cold rim) in the crown's plane, the rays
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        final float scale = Math.max(0.05f, L.memA[2]);
-        t.startDrawingQuads();
-        for (int i = 0; i < 48; i++) {
-            final double a0 = 2 * Math.PI * i / 48, a1 = 2 * Math.PI * (i + 1) / 48;
-            membraneQuad(t, L, a0, a1, 0.06, 0.6, scale, 1f, 0.6f, 0.3f, 0.45f, 0.7f, 0.6f, 0.65f, 0.45f);
-            membraneQuad(t, L, a0, a1, 0.6, 1.0, scale, 0.7f, 0.6f, 0.65f, 0.45f, 0.25f, 0.4f, 0.9f, 0.0f);
+        // the Universe: the membrane as a disc in the crown's plane (as computeUniverse sized and revealed it): the
+        // plasma's even orange while it is opaque, then the CMB's warm centre and cold rim (L.memB.y, the reveal)
+        if (L.membraneOn) {
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            final float scale = Math.max(0.05f, L.memA[2]);
+            final float rv = clamp01(L.memB[1]), op = Math.max(0f, Math.min(1f, L.memB[0] / 0.55f));
+            final float flash = Math.min(1f, L.memB[2]);
+            // inner, middle and rim colours: plasma (1.0, 0.55, 0.25) mixed toward the CMB's by the reveal
+            final float ir = mix(1f, 1f, rv), ig = mix(0.55f, 0.62f, rv) + 0.2f * flash, ib = mix(0.25f, 0.32f, rv);
+            final float mr = mix(0.95f, 0.70f, rv), mg = mix(0.50f, 0.60f, rv), mb = mix(0.25f, 0.68f, rv);
+            final float rr = mix(0.85f, 0.25f, rv), rg = mix(0.40f, 0.42f, rv), rb = mix(0.20f, 0.92f, rv);
+            final float ai = 0.5f * op, am = 0.45f * op, ar = mix(0.25f, 0f, rv) * op;
+            t.startDrawingQuads();
+            for (int i = 0; i < 48; i++) {
+                final double a0 = 2 * Math.PI * i / 48, a1 = 2 * Math.PI * (i + 1) / 48;
+                membraneQuad(t, L, a0, a1, 0.0, 0.6, scale, ir, ig, ib, ai, mr, mg, mb, am);
+                membraneQuad(t, L, a0, a1, 0.6, 1.0, scale, mr, mg, mb, am, rr, rg, rb, ar);
+            }
+            t.draw();
         }
-        t.draw();
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-        final double tau = Double.isNaN(in.dawnIn) ? -1 : -in.dawnIn;
+        // the crown's glow ring along its inner edge (brighter at Recombination and through the starburst)
+        if (L.crownGlow > 0.003f) {
+            t.startDrawingQuads();
+            for (int i = 0; i < 48; i++) {
+                crownEdge(L, 2 * Math.PI * i / 48, RA);
+                crownEdge(L, 2 * Math.PI * (i + 1) / 48, RB);
+                lineQuad(t, RA, RB, 1.1, 0.80f, 0.75f, 1.0f, 0.5f * L.crownGlow, 0.5f * L.crownGlow);
+            }
+            t.draw();
+        }
+        // the Cosmic Dawn: the twelve rays fire round the crown (0.45 s apart, 3 s each) and then glow with the
+        // starburst, fading by 300 s (cosmos/fx_vert.glsl coRayFlare); faint between dawns, a glint in the warning
+        final double tau = L.rayC[0];
+        final float warn = L.rayC[1], fade = L.rayC[3];
+        final float held = tau > 0 && tau < 300
+            ? (float) (0.55 * Math.pow(1 + tau / 10.0, -5.0 / 3.0) * (1 - smooth(270, 300, tau)))
+            : 0f;
         t.startDrawingQuads();
         for (int k = 0; k < 12; k++) {
             final double lk = tau - 0.45 * k;
             final float fl = lk > 0 && lk < 3 ? (float) Math.sin(Math.PI * lk / 3) : 0f;
-            rayQuad(t, L, k, 0.12f + 0.7f * fl);
+            rayQuad(t, L, k, Math.min(1f, 0.06f + 0.1f * warn + 0.6f * (1.6f * fl + held) * fade));
         }
         t.draw();
         fixedBeam(t, L, CORE, beamTop, 0.35, 1f, 1f, 1f, 0.2f);
+    }
+
+    private static float mix(float a, float b, float f) {
+        return a + (b - a) * f;
+    }
+
+    /** {@code out} = the camera-relative world point on the crown's inner edge at angle {@code a} (its glow ring). */
+    private static void crownEdge(Look L, double a, double[] out) {
+        final double ea = crownA - CROWN_INSET, eb = crownB - CROWN_INSET;
+        final double bx = ea * Math.cos(a), by = crownY + eb * Math.sin(a) * Math.sin(crownTilt),
+            bz = eb * Math.sin(a) * Math.cos(crownTilt);
+        world(L, bx, by, bz, out);
     }
 
     /** One quad of the fixed membrane: radii r0..r1 (of the half-axes) between angles a0..a1, colours inner / outer. */
