@@ -1,8 +1,8 @@
 {
  "about": "P4 golden results (quasar disc, conduit rig, links, Directive bits, Eye T7/T8) from the prototype engine (tools/quasar-golden.js). QuasarSim golden must match every number exactly. Regenerate; do not edit.",
  "engineSha1": "c28c22097debf085fd21226aed3f656c7706d04b",
- "p4Sha1": "8bc2943b9f93db5da721d4469b63bddb3da7b1f2",
- "sourceSha1": "69e8ccad960938ba72cd7173ab1a8792d00eef38",
+ "p4Sha1": "dd436d95d11c01575d0df2d495e6d4d6dae3e4c0",
+ "sourceSha1": "062f72c4602902ae922e914ee7affb509c958148",
  "cases": [
   {
    "name": "T7 standard 64SM s1",
@@ -4212,7 +4212,7 @@
     "eu": 367992797921280000,
     "up": {
      "Magnetar Matter": 922.5,
-     "Ergomatter": 38340
+     "Ergomatter": 37610
     },
     "prod": {
      "Ergomatter": 89348.48466922177,
@@ -4342,7 +4342,7 @@
     "eu": 520137719414784000,
     "up": {
      "Magnetar Matter": 307.5,
-     "Ergomatter": 62705
+     "Ergomatter": 62080
     },
     "prod": {
      "Ergomatter": 26338.517254179613,
@@ -4472,7 +4472,7 @@
     "eu": 390257908383744000,
     "up": {
      "Magnetar Matter": 832.5,
-     "Ergomatter": 41915
+     "Ergomatter": 41260
     },
     "prod": {
      "Ergomatter": 78905.2418939773,
@@ -4603,7 +4603,7 @@
     "eu": 520137719414784000,
     "up": {
      "Magnetar Matter": 307.5,
-     "Ergomatter": 62705
+     "Ergomatter": 62070
     },
     "prod": {
      "Ergomatter": 26326.107271423447,

@@ -3,9 +3,9 @@
 // The P5 block of the P5 play prototype, verbatim (the reference for the Java Eye T9 / T10 maths). It runs on top
 // of the shared ENGINE block (with P5's one changed line) and the P4 block (tools/fixtures/quasar-engine.js).
 // source: designs/p5-prototype.html (design repo GTNH-Addons)
-// source-sha1: 6f9e1d8846343f36464cfd598ceb8d3f43ccf800
+// source-sha1: bb7461b47fbba4b7cbd113d445fdfc0ff8401ae7
 // engine-sha1: c28c22097debf085fd21226aed3f656c7706d04b
-// p4-sha1: 8bc2943b9f93db5da721d4469b63bddb3da7b1f2
+// p4-sha1: dd436d95d11c01575d0df2d495e6d4d6dae3e4c0
 // p5-sha1: f158517cd247cb5fcd12ebac34d017bc1c111bb3
 /*P5-START*/
 /* P5 extension: Eye T9 (the Great Attractor: gauge V, the pellet beam, Galactic Flow, The Infall) and Eye T10 (the

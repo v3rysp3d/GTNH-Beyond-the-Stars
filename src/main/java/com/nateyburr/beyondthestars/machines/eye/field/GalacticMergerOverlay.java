@@ -9,7 +9,8 @@ import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.W;
  * {@code transDrift} / {@code transTick} kind 'gm').
  * <ul>
  * <li>1,800 s: the demand ramps 1.5 → 6 Bu/t ({@link #demand}); the Ergomatter charge feeds 5 L/s
- * ({@link StepResult#ergoCharged}); the galaxy's own minor mergers and crossings are held back.</li>
+ * ({@link StepResult#ergoCharged}), 9,000 L in all (none in the settle); the galaxy's own minor mergers and crossings
+ * are held back.</li>
  * <li>Three pericentre passes at 600, 1,200 and 1,800 s, each warned 60 s ahead with its sign (drawn at the begin):
  * W ±12 and P +5 per s for 5 s, × q.</li>
  * <li>At the first pass (t = 600) the tier becomes T8: Λ appears at 0, its drift (0.4 × 5 L/s) and gain (0.02) ramping
@@ -106,7 +107,8 @@ public final class GalacticMergerOverlay implements Overlay {
 
     @Override
     public void tick(FieldState s, int zone, StepInputs in, StepResult out) {
-        out.ergoCharged = CHARGE_PER_SECOND;
+        // QA-A15: the charge feeds through the 1,800 s event only (9,000 L), not through the settle after it
+        if (st < DURATION) out.ergoCharged = CHARGE_PER_SECOND;
         st++;
         if (st == PASSES[0] && s.tier.n == 7) {
             s.tier = TierParams.T8;
