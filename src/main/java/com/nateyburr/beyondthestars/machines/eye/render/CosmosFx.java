@@ -201,6 +201,12 @@ final class CosmosFx {
     private static final int PROGRAM_POINT_SIZE = 0x8642, POINT_SPRITE = 0x8861;
     /** The flow's group comes first in the Attractor's buffer (never thinned by LOD). */
     private static final int FLOW_MEMBERS = 12;
+    /**
+     * Where the flow's group sits on its filament (0 the core, 1 the far end, 200 blocks) when its 180 s warning
+     * starts, and how far it creeps in by the surge: 0.90 to 0.80 (180 to 160 blocks out), well clear of the stack
+     * and on the filament's visible dust (which fades out beyond 0.86).
+     */
+    static final double FLOW_FAR_U = 0.90, FLOW_CREEP_U = 0.10;
 
     private CosmosFx() {}
 
@@ -428,14 +434,18 @@ final class CosmosFx {
         final double uc;
         float light = 1f, highlight;
         if (t >= 0) {
-            // the warning: seen far out, falling in to about 90 blocks
-            uc = 1 - 0.55 * (1 - Math.min(1, t / CosmosInput.FLOW_WARNING));
+            // the warning: the group holds far out on its filament (160-180 blocks), creeping in, so the whole 180 s
+            // it reads as coming, not as already at the stack. It used to fall to 0.45 (90 blocks) by the surge,
+            // which put it beside the stack's top for most of the warning.
+            uc = FLOW_FAR_U - FLOW_CREEP_U * (1 - Math.min(1, t / CosmosInput.FLOW_WARNING));
             light = smooth(0, 8, CosmosInput.FLOW_WARNING - t);
             highlight = smooth(0, 10, CosmosInput.FLOW_WARNING - t);
         } else {
-            final double tau = -t;
-            uc = declined ? 0.45 - 0.95 * Math.min(1, tau / CosmosInput.FLOW_SURGE_SECONDS)
-                : 0.45 - (0.45 - 0.075) * smooth(0, CosmosInput.FLOW_SURGE_SECONDS, tau);
+            // the surge: from where the warning left it down to the capture (accepted), or past the core and out
+            // (declined)
+            final double tau = -t, from = FLOW_FAR_U - FLOW_CREEP_U;
+            uc = declined ? from - (from + 0.5) * Math.min(1, tau / CosmosInput.FLOW_SURGE_SECONDS)
+                : from - (from - 0.075) * smooth(0, CosmosInput.FLOW_SURGE_SECONDS, tau);
             highlight = 1 - smooth(220, 240, tau);
         }
         if (declined) highlight *= 0.5f;
