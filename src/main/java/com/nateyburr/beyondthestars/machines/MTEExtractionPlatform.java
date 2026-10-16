@@ -123,14 +123,19 @@ public class MTEExtractionPlatform extends MTEExtendedPowerMultiBlockBase<MTEExt
     @Override
     @Nonnull
     public CheckRecipeResult checkProcessing() {
-        cycleCounter++;
-        final boolean bonusCycle = cycleCounter % 4 == 0;
-        this.mOutputItems = bonusCycle
+        final boolean bonusCycle = (cycleCounter + 1) % 4 == 0;
+        final ItemStack[] out = bonusCycle
             ? new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 6L),
                 GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 1L),
                 GTOreDictUnificator.get(OrePrefixes.dust, Materials.Tantalum, 1L) }
             : new ItemStack[] { GTOreDictUnificator.get(OrePrefixes.dust, Materials.Uraninite, 6L),
                 GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, 1L) };
+        // B-230: GT's void protection. With the controller's voiding button on protect (the default), a cycle whose
+        // dust would not fit in the output buses does not start (GT's "item output full"), so nothing is drilled and
+        // thrown away; the cycle count waits with it.
+        if (!canOutputAll(out)) return CheckRecipeResultRegistry.ITEM_OUTPUT_FULL;
+        cycleCounter++;
+        this.mOutputItems = out;
         this.mMaxProgresstime = CYCLE_TICKS;
         this.lEUt = -TierEU.RECIPE_EV;
         this.mEfficiency = 10_000 - (getIdealStatus() - getRepairStatus()) * 1000;
@@ -142,12 +147,20 @@ public class MTEExtractionPlatform extends MTEExtendedPowerMultiBlockBase<MTEExt
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         aNBT.setInteger("btsCycleCounter", cycleCounter);
+        aNBT.setBoolean(BTSVoidProtection.NBT_KEY, true);
     }
 
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
         cycleCounter = aNBT.getInteger("btsCycleCounter");
+        BTSVoidProtection.migrate(this, aNBT);
+    }
+
+    /** B-230: GT's voiding button (protect by default, like GT's own multis). */
+    @Override
+    public boolean supportsVoidProtection() {
+        return true;
     }
 
     @Override

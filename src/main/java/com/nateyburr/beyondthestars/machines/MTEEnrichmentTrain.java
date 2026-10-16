@@ -18,6 +18,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
@@ -180,18 +181,23 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
         if (countMatchingInputs(oneUraninite) < INPUT_URANINITE) {
             return NEEDS_URANINITE;
         }
-        if (!depleteInput(Materials.HydrofluoricAcid.getFluid(ACID_MB))) {
+        if (!depleteInput(Materials.HydrofluoricAcid.getFluid(ACID_MB), true)) {
             return NEEDS_ACID;
         }
+        // M7: YELLOWCAKE, not finished pellets. This machine feeds the fuel line at F-09; it does
+        // not replace it. See the class javadoc for why that distinction is the whole design.
+        final ItemStack[] out = { new ItemStack(BTSItemsFuel.yellowcake, OUTPUT_YELLOWCAKE),
+            GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, OUTPUT_THORIUM) };
+        // B-230: GT's void protection. With the controller's voiding button on protect (the default), a batch whose
+        // Yellowcake and Thorium would not fit in the output buses does not start (GT's "item output full") and
+        // consumes nothing.
+        if (!canOutputAll(out)) return CheckRecipeResultRegistry.ITEM_OUTPUT_FULL;
+        depleteInput(Materials.HydrofluoricAcid.getFluid(ACID_MB));
         for (int i = 0; i < INPUT_URANINITE; i++) {
             depleteInput(oneUraninite);
         }
         updateSlots();
-
-        // M7: YELLOWCAKE, not finished pellets. This machine feeds the fuel line at F-09; it does
-        // not replace it. See the class javadoc for why that distinction is the whole design.
-        this.mOutputItems = new ItemStack[] { new ItemStack(BTSItemsFuel.yellowcake, OUTPUT_YELLOWCAKE),
-            GTOreDictUnificator.get(OrePrefixes.dust, Materials.Thorium, OUTPUT_THORIUM) };
+        this.mOutputItems = out;
         this.mMaxProgresstime = 600;
         this.lEUt = -TierEU.RECIPE_HV;
         this.mEfficiency = 10_000 - (getIdealStatus() - getRepairStatus()) * 1000;
@@ -278,6 +284,24 @@ public class MTEEnrichmentTrain extends MTEExtendedPowerMultiBlockBase<MTEEnrich
     @Override
     public boolean supportsSingleRecipeLocking() {
         return false;
+    }
+
+    /** B-230: GT's voiding button (protect by default, like GT's own multis). */
+    @Override
+    public boolean supportsVoidProtection() {
+        return true;
+    }
+
+    @Override
+    public void saveNBTData(NBTTagCompound aNBT) {
+        super.saveNBTData(aNBT);
+        aNBT.setBoolean(BTSVoidProtection.NBT_KEY, true);
+    }
+
+    @Override
+    public void loadNBTData(NBTTagCompound aNBT) {
+        super.loadNBTData(aNBT);
+        BTSVoidProtection.migrate(this, aNBT);
     }
 
     /**

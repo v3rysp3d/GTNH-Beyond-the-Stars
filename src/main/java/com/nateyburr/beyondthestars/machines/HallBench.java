@@ -49,7 +49,8 @@ public final class HallBench {
     private HallBench() {}
 
     public static final String USAGE = "/btsbuild hall <yellowcake|platform|cascade|fuelfab|purex|batching> x y z "
-        + "[facing] [build|check|status|stock [first|longest|n]|tier <t>|circuit <n>|place x y z <outhatch|inhatch|outbus|inbus>]";
+        + "[facing] [build|check|status|stock [first|longest|n]|tier <t>|circuit <n>|place x y z <outhatch|inhatch|outbus|inbus>"
+        + "|fill|empty|voiding <none|all|legacy>|feed]";
 
     private static ItemStack controller(String kind) {
         switch (kind) {
@@ -198,6 +199,66 @@ public final class HallBench {
             case "stock":
                 out.add(stock(m, subAt + 1 < args.length ? args[subAt + 1].toLowerCase(Locale.ROOT) : "first"));
                 break;
+            case "fill": {
+                // B-230 void protection: every output bus slot holds a full stack of cobblestone, so no output fits
+                int slots = 0;
+                for (MTEHatch bus : m.mOutputBusses) {
+                    final IGregTechTileEntity inv = bus.getBaseMetaTileEntity();
+                    if (inv == null) continue;
+                    for (int i = 0; i < inv.getSizeInventory(); i++) {
+                        inv.setInventorySlotContents(i, new ItemStack(net.minecraft.init.Blocks.cobblestone, 64));
+                        slots++;
+                    }
+                }
+                out.add("fill: " + slots + " output bus slot(s) hold 64 Cobblestone");
+                break;
+            }
+            case "empty": {
+                for (MTEHatch bus : m.mOutputBusses) {
+                    final IGregTechTileEntity inv = bus.getBaseMetaTileEntity();
+                    if (inv == null) continue;
+                    for (int i = 0; i < inv.getSizeInventory(); i++) inv.setInventorySlotContents(i, null);
+                }
+                out.add("empty: the output buses are empty");
+                break;
+            }
+            case "voiding": {
+                // voiding <none|item|fluid|all>: GT's controller button. voiding legacy: load a save from before void
+                // protection (voidingMode all, no B-230 marker) through the machine's own loadNBTData
+                final String mode = subAt + 1 < args.length ? args[subAt + 1].toLowerCase(Locale.ROOT) : "none";
+                if ("legacy".equals(mode)) {
+                    final net.minecraft.nbt.NBTTagCompound nbt = new net.minecraft.nbt.NBTTagCompound();
+                    m.saveNBTData(nbt);
+                    nbt.removeTag(BTSVoidProtection.NBT_KEY);
+                    nbt.setString("voidingMode", gregtech.api.enums.VoidingMode.VOID_ALL.name);
+                    m.loadNBTData(nbt);
+                    out.add("voiding legacy: a save holding VOID_ALL and no marker loads as " + m.getVoidingMode());
+                    break;
+                }
+                m.setVoidingMode(gregtech.api.enums.VoidingMode.fromName(mode));
+                out.add("voiding: " + m.getVoidingMode() + (m.supportsVoidProtection() ? "" : " (no void protection)"));
+                break;
+            }
+            case "feed": {
+                // the Yellowcake Mill's inputs: 64 Uraninite Dust in the first input bus, Hydrofluoric Acid in the
+                // first input hatch
+                if (!m.mInputBusses.isEmpty()) {
+                    m.mInputBusses.get(0)
+                        .getBaseMetaTileEntity()
+                        .setInventorySlotContents(
+                            0,
+                            gregtech.api.util.GTOreDictUnificator
+                                .get(gregtech.api.enums.OrePrefixes.dust, gregtech.api.enums.Materials.Uraninite, 64L));
+                }
+                if (!m.mInputHatches.isEmpty()) {
+                    final MTEHatchInput hatch = m.mInputHatches.get(0);
+                    final FluidStack acid = gregtech.api.enums.Materials.HydrofluoricAcid.getFluid(1L);
+                    acid.amount = hatch.getCapacity();
+                    hatch.setFillableStack(acid);
+                }
+                out.add("feed: 64 Uraninite Dust, a full hatch of Hydrofluoric Acid");
+                break;
+            }
             default:
                 break;
         }
@@ -216,7 +277,7 @@ public final class HallBench {
         final String key = "gt.blockmachines." + m.mName + ".name";
         return String.format(
             Locale.ROOT,
-            "%s [%s = \"%s\"]: %s%s%s, progress %d/%d, max input %d EU/t, energy %d, parallel %s; "
+            "%s [%s = \"%s\"]: %s%s%s, progress %d/%d, max input %d EU/t, energy %d, parallel %s, voiding %s; "
                 + "in: %s; fluids in: %s; out: %s; fluids out: %s; last result: %s",
             m.getLocalName(),
             key,
@@ -229,6 +290,7 @@ public final class HallBench {
             m.getMaxInputEu(),
             base.getStoredEU(),
             m.getMaxParallelRecipes(),
+            m.getVoidingMode(),
             buses(m.mInputBusses),
             tanks(m.mInputHatches),
             buses(m.mOutputBusses),
