@@ -2078,6 +2078,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      */
     @Override
     public void directiveControl(DirectiveSet set, int strength) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        final long now = base == null ? 0 : base.getTimer();
+        if (set == DirectiveSet.EYE_DIAL) {
+            dialHeldIn = strength;
+            dialHeldAt = now;
+        } else if (set == DirectiveSet.EYE_FEED) {
+            feedHeldIn = strength;
+            feedHeldAt = now;
+        }
         if (set == DirectiveSet.EYE_DIAL) {
             final double v = DirectiveSet.controlValue(strength, 1, EyeStarRuntime.DIAL_MAX, EyeStarRuntime.DIAL_STEP);
             if (Math.abs(v - runtime.dialSetpoint()) > 1e-9) runtime.setDial(v);
@@ -2085,6 +2094,24 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             final double v = DirectiveSet.controlValue(strength, 0, EyeStarRuntime.FEED_MAX, 0.001);
             if (Math.abs(v - runtime.feedSetpoint()) > 1e-9) runtime.setFeed(v);
         }
+    }
+
+    /** QA-A24: the redstone a control-set Directive Hatch last drove the dial / feed with, and when (ticks). */
+    private int dialHeldIn, feedHeldIn;
+    private long dialHeldAt = Long.MIN_VALUE / 2, feedHeldAt = Long.MIN_VALUE / 2;
+    /** A hold is shown for this long after the last push (the hatches push once a second). */
+    private static final long HELD_TICKS = 40;
+
+    /**
+     * QA-A24: the redstone strength a control-set Directive Hatch holds the time dial ({@code dial}) or the HSM feed
+     * at now, 0 if none drives it. With two control hatches of one set the last one walked wins each second, so the
+     * GUI and the docs say "one control hatch per set". Server state.
+     */
+    public int directiveHold(boolean dial) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null) return 0;
+        final long at = dial ? dialHeldAt : feedHeldAt;
+        return base.getTimer() - at <= HELD_TICKS ? (dial ? dialHeldIn : feedHeldIn) : 0;
     }
 
     @Override

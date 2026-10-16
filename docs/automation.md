@@ -74,7 +74,10 @@ rig rule with the threshold set to w; on T1, T2 and T4 it asks for exactly the s
 
 **Eye control sets** (the hatch reads redstone instead of emitting): **Eye: control the time dial** (1 → 1.00,
 15 → 3.00, in 0.25 steps; still capped by the Time Dilation generators) and **Eye: control the HSM feed** (1 → 0,
-15 → 1.5 L/s). Strength 0 leaves the GUI's value.
+15 → 1.5 L/s). Strength 0 leaves the GUI's value. While a hatch drives a value it sets it every second, so GUI and
+OpenComputers changes do not stick, and the Eye's Field panel says "Time dial held by a Directive Hatch (redstone N)"
+(or the HSM feed). **One control hatch per set:** with two of the same set, the last one walked wins each second
+(QA-A24).
 
 ### 1.2 Kerr Ergosphere Engine sets
 

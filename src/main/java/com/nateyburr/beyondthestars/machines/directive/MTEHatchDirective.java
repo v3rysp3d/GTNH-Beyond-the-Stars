@@ -103,6 +103,7 @@ public class MTEHatchDirective extends MTEHatch {
             BTSTip.bullet(BTSTip.term("Quasar") + ": Disc, Horizon (with a Supermassive Lattice)."),
             BTSTip.heading("Control sets") + ": redstone " + BTSTip.num("1-15") + " sets a value instead:",
             BTSTip.bullet("the Kerr setpoint, the Eye time dial or its HSM feed."),
+            "One control hatch per set: with two, the last one wins.",
             BTSTip.heading("Outputs") + ": the whole code, one bit, or any bit; invertible.",
             "Window " + BTSTip.num(WINDOW_MIN + "-" + WINDOW_MAX)
                 + " (default "

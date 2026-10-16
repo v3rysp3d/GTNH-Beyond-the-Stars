@@ -121,6 +121,10 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             "eyeRender",
             new BooleanSyncValue(multiblock::isRenderEnabled, multiblock::setRenderEnabled).allowC2S());
         syncManager.syncValue("eyeSockets", new StringSyncValue(this::socketLine));
+        // QA-A24: a control-set Directive Hatch holding the dial / the feed ("dial\u0002feed" strengths, 0: none)
+        syncManager.syncValue(
+            "eyeHeld",
+            new StringSyncValue(() -> multiblock.directiveHold(true) + "\u0002" + multiblock.directiveHold(false)));
         syncManager.syncValue("eyeSensors", new StringSyncValue(this::sensorLines));
         syncManager.syncValue("eyeTrims", new StringSyncValue(this::trimLines));
         // B-115: each buffer against its intake cap (B-108), for the Field panel
@@ -1568,6 +1572,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final StringSyncValue sensors = main.findSyncHandler("eyeSensors", StringSyncValue.class);
         final StringSyncValue trims = main.findSyncHandler("eyeTrims", StringSyncValue.class);
         final StringSyncValue intake = main.findSyncHandler("eyeIntake", StringSyncValue.class);
+        final StringSyncValue heldBy = main.findSyncHandler("eyeHeld", StringSyncValue.class);
         final int w = ROW_W;
         final ListWidget<IWidget, ?> list = new ListWidget<>().size(FIELD_PANEL_W - 8, FIELD_PANEL_H - 8)
             .pos(4, 4)
@@ -1598,6 +1603,30 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     .child(legendCell(key, 0, 58, Alignment.CenterLeft))
                     .child(legendCell(key, 1, 34, Alignment.CenterLeft))
                     .child(legendCell(key, 2, w - 15 - 58 - 34, Alignment.CenterRight)));
+        }
+        // QA-A24: say when a control-set Directive Hatch holds the dial or the feed (GUI and OC changes are undone
+        // each second while it does)
+        for (int k = 0; k < 2; k++) {
+            final int i = k;
+            list.child(IKey.dynamic(() -> {
+                final String[] f = part(heldBy.getStringValue(), 0, 1);
+                final String n = f == null ? "0" : f[i];
+                return "0".equals(n) ? ""
+                    : tr(i == 0 ? "beyondthestars.gui.eye.field.helddial" : "beyondthestars.gui.eye.field.heldfeed", n);
+            })
+                .color(BTSGuiKit.PANEL_TEXT)
+                .asWidget()
+                .size(w, 9)
+                .textAlign(Alignment.CenterLeft)
+                .marginBottom(1)
+                .setEnabledIf(x -> {
+                    final String[] f = part(heldBy.getStringValue(), 0, 1);
+                    return f != null && !"0".equals(f[i]);
+                })
+                .tooltip(
+                    t -> t.addLine(tr("beyondthestars.gui.eye.field.held.tip1"))
+                        .addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.field.held.tip2")))
+                .tooltipShowUpTimer(TOOLTIP_DELAY));
         }
         list.child(divider());
         list.child(panelStat("beyondthestars.gui.eye.field.sockets", () -> {
