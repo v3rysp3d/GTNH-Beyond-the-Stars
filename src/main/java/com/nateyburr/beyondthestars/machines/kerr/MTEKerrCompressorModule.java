@@ -124,8 +124,9 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
      * recipe (SL-K05) takes molten SpaceTime, and the coremod's neutronium-compressor recipe turns 72 L
      * of molten SpaceTime alone into an Eternal Singularity, so with DENSITY searched last a T2 module
      * fed for SL-K05 made Eternal Singularities instead (dev-server test, B-56). A DENSITY match also
-     * hides GT's maps ({@link #shadowsLaterMaps}): while the gate is shut (T1, under 128 SM) the module
-     * waits with "density" and keeps the SL-K05 inputs, and SL-K05 starts once the gate opens.
+     * hides GT's maps ({@link #shadowsLaterMaps}) on a Kerr T2: while the gate is shut (under 128 SM) the module
+     * waits with "density" and keeps the SL-K05 inputs, and SL-K05 starts once the gate opens. On a T1 nothing is
+     * hidden (S-09).
      */
     @Nonnull
     @Override
@@ -136,10 +137,16 @@ public class MTEKerrCompressorModule extends MTEKerrModuleBase<MTEKerrCompressor
             RecipeMaps.neutroniumCompressorRecipes);
     }
 
-    /** SL-K05 inputs wait for the DENSITY gate; they never fall through to GT's maps. */
+    /**
+     * SL-K05 inputs wait for the DENSITY gate; they never fall through to GT's maps. Only once the linked KEE has its
+     * Density Upgrade (S-09): on a Kerr T1 the gate can never open, so a DENSITY match hid GT's compressor maps for
+     * good and the module idled on inputs GT's maps would take.
+     */
     @Override
     protected boolean shadowsLaterMaps(@Nonnull RecipeMap<?> map) {
-        return map == KerrRecipeMaps.DENSITY;
+        if (map != KerrRecipeMaps.DENSITY) return false;
+        final MTEKerrEngine kee = kee();
+        return kee != null && kee.densityInstalled();
     }
 
     /**
