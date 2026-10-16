@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do pass's B-227..B-230, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -276,7 +276,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-226
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-230
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -8081,6 +8081,135 @@ and then glowing with the starburst to 300 s (`coRayFlare`'s numbers). About 250
 
 **Check.** No shader changed. `compileJava`; a browser approximation of the same geometry and colours (before, plasma,
 CMB, Cosmic Dawn) rendered headless. Not seen in a game window.
+
+### B-227 The server's recipe settings reach the client at login [to-do pass, QA PUB finding]
+
+**Finding.** A server whose recipe switches differ from a client's made NEI show the wrong recipes, with nothing to
+say so. Each side builds its recipe maps from its own `config/beyondthestars.cfg` at startup, and NEI reads the
+client's.
+
+**Choice: sync and warn, not reload.** In 1.7.10 neither GT nor NEI syncs recipes, and ours cannot be undone at
+runtime. The BHC swap, the TecTech Eye removal, the Resonance Chamber II-IV rewrites and the Piko / Quantum / Planck
+raise all change GT's own recipes in place at load-complete. `stellarCircuits` also sets GT's circuit ore names in
+preInit, which GT's recipes snapshot as they are built. Only a restart rebuilds GT's maps, so a client cannot be
+switched to the server's values while connected. Crafting always runs on the server, so only NEI can be wrong.
+
+**Built.**
+- `Config.recipeFlags()`: every recipe-affecting key with its value as text. These are
+  `removeBlackHoleCompressorRecipe`, `replaceTecTechEyeOfHarmony`, `latticeNodesUseP5Matter`, `stellarCircuits`,
+  `nacCircuitComponents`, `raiseStockSpecialCircuits` and both raise factors, plus `mteBaseId` (every recipe and NEI
+  page names machine ids). A new recipe key belongs in this list.
+- `BTSConfigSync`: the mod's first network channel (`beyondthestars`, FML's SimpleNetworkWrapper). Tile state rides
+  on vanilla description packets, so there was no channel to reuse. On `PlayerLoggedInEvent` the server sends the
+  map: a version byte, then key / value strings, so keys only one side knows are skipped. The client handler only
+  stores it (no client class on the network thread).
+- `client.BTSConfigSyncClient`: on the first client tick with a player, it compares the server's values with this
+  client's own. Matching values give one log line. Differences give two chat lines (and a log warning): "This
+  server's recipe settings differ from your config: stellarCircuits (server true, yours false), ... NEI shows the
+  recipes of your own config, so it may be wrong for this server until config/beyondthestars.cfg has the server's
+  values and you restart. Crafting itself follows the server." A disconnect clears the stored values. In single
+  player both sides share one config, so nothing is shown.
+- `/btsrecipes sync [key=value ...]` (op): lists what the server sends, round-trips it through the packet's bytes and
+  prints the lines a client with those values would see. INSTALL.md (Server, step 3) says all this.
+
+**Check.** Headless dev server (port 25841): the channel registers with no error.
+- `/btsrecipes sync` gives "PASS packet round trip: 269 bytes, 9 keys" and no line.
+- `/btsrecipes sync stellarCircuits=false mteBaseId=28000 stockSpecialCircuitEnergyFactor=3.0 unknownKey=1` gives the
+  two lines naming exactly those three keys; the unknown key is skipped.
+- No client was started (no windows on this PC). The client half is a stored map, compared on the client tick with
+  the same `differences` / `chatLines` the bench runs.
+
+### B-228 The release jar leaves the dev test tooling out [to-do pass]
+
+**Finding.** About 1.3 MB (uncompressed) of dev-only tooling shipped in the release jar: the recorder, render QA,
+GUI-shot, packet-spy and automation-rig classes in `rendertest/`, the questbook screenshot harness in `devshots/`
+and the four goldens (0.29 MB of JSON that nothing in the game reads).
+
+**Built.** In `build.gradle.kts`:
+- `releaseInputJar` copies the `-dev` jar without those entries, and `reobfJar` reobfuscates that copy. The `-dev`
+  jar, `runClient` and `runServer` keep everything.
+- `verifyReleaseJar` (part of `check`, so `build` and CI run it) fails if the release jar carries any of it, or if a
+  class left in the jar still names (constant pool, slash form) a `rendertest/` or `devshots/` class that is not in
+  it.
+- Kept on purpose: the four ME benches (`IntakeBench`, `MeBusBench`, `MeStockBench`, `MeParts`, 70 KB).
+  `/btseye star intake | mebus` and `/btsquasar mestock` call them, and those benches are documented for server
+  owners. Their few helpers moved from `RenderTest` / `AutoRig` into `MeParts`, so the four name nothing else in the
+  package.
+- `ClientProxy` reaches the four harnesses by name, only when their `-D` switch is set (`bts.rec`, `bts.rendertest`,
+  `bts.guishots`, `bts.qbshots`). A release jar logs one line ("dev tooling, not in this jar") instead.
+- Every op command stays, `/btswarp` and `/btsquests` included; no command class is in the stripped packages.
+
+**Check.**
+- The release jar went from 1,243 entries (11,407,524 bytes uncompressed, 3,422,195 on disk) to 1,174 entries
+  (10,537,362 uncompressed, 3,091,810 on disk). 74 entries came out (55 `rendertest` classes, `QuestbookShots`, the
+  four goldens and their now-empty folders); 5 came in (B-227's four classes and B-230's helper).
+- The `-dev` jar still has all 79 dev entries. A negative test (`MeParts` dropped from the keep list) fails
+  `verifyReleaseJar` with the five dangling references it should find.
+- The reobfuscated release jar boots clean on a copy of the RC-2 pack server (295 mods, Java 17, port 25841, a
+  fresh world): 409 recipes registered, 0 skipped, no stack trace naming the addon, `Done`. There `/btswarp status`,
+  `/btsquests status`, `/btsrecipes sync`, `/btsquasar mestock` (a kept ME bench), `/btsautoplace junction` and
+  `/btsbuild hall platform` all answer. RFG's `runObfServer` is no use for this: it gives the jar only GT's own
+  obfuscated dependencies, and GT's kubatech fails there without the pack's other mods.
+- `build` passes; the goldens are unchanged.
+
+### B-229 The quasar's, crown's and junction's optional sockets place casing [to-do pass]
+
+**Finding.** The quasar's Burst Control (`c`), Stellar Field Sensor (`n`) and Directive (`d`) sockets, the crown's
+GRB Receptor Port (`r`) and the junction's Burst Control (`c`) used plain `buildAndChain`. So the hologram drew their
+hint dots, survival auto-place pulled the hatches from the inventory, and the NEI preview placed and listed one of
+each, which read as required. All of them are `min: 0` in the manifest; none is needed to form.
+
+**Built.**
+- All five go through `BTSStructures.optionalHatch(...)`, like the Kerr's and Eye's. The walk accepts the hatch or
+  the casing; every build path places the casing unless the projector sets `bts_optional`.
+- The element stays an `IStructureElementChain` (axis 4: NEI's usage index and hatch dots still see the hatch). The
+  private hatch lists (axis 3), the tile / item NBT (axis 2) and the sides (axis 1) are untouched.
+- `/btsautoplace` gained `quasar` (tier = coil tier), `crown` (tier = Mk) and `junction`.
+
+**Check** (headless dev server, port 25841). In `survival` the inventory holds only the required hatches; `nei` uses
+a creative source with GT's hatch channel, as BlockRenderer6343 does.
+
+| Machine, mode | Optional sockets | Formed |
+|---|---|---|
+| quasar T1, survival | c 4, d 2, n 2: all shell | yes |
+| quasar T1, nei | c, d, n: all shell (the `e` and `h` sockets take the required energy and gas hatches) | yes |
+| quasar T1, optional | c: 1 Burst Control, d: 1 Directive, n: 1 Stellar Field Sensor | yes |
+| crown Mk I and Mk IV, survival and nei | r: shell | yes |
+| crown Mk I, optional | r: GRB Receptor Port | yes |
+| junction, survival and nei | c 2: casing | yes |
+| junction, optional | c: 1 Burst Control | yes |
+| junction, bare | c and u: casing | no, as before: it names the missing throat-fuel Input Hatch |
+
+`export-structures --check` passes (no shape changed).
+
+*Left as it is:* the quasar's four trim sockets (`t`, `min: 0`) still take a plain Input Hatch in the NEI preview.
+The trim pulse is part of normal play and the hatch is the pack's cheapest. Moving it onto `optionalHatch` too is a
+one-line change.
+
+### B-230 The Extraction Platform and the Yellowcake Mill have GT's void protection [to-do pass]
+
+**Finding.** Both older nuclear-plant machines set their outputs in `checkProcessing` by hand and did not support
+void protection. A full output bus threw each cycle's dust away (and the mill still used up its Uraninite and acid).
+
+**Built.**
+- Both return `supportsVoidProtection() = true`, so the controller GUI has GT's voiding button. It defaults to
+  protect (`VOID_NONE`), like GT's own multis and our halls.
+- Before a cycle starts, `canOutputAll(outputs)` (GT's `VoidProtectionHelper`, which reads the button) must pass;
+  otherwise the machine returns GT's `ITEM_OUTPUT_FULL` ("Not enough item output space").
+- The mill checks both inputs without using them (the acid by simulate) and spends them only after the output check,
+  so a blocked batch consumes nothing. The platform's cycle count (it picks the Tantalum cycle) waits too.
+- A machine saved before this was saved as `VOID_ALL`, which GT would now keep. `BTSVoidProtection` moves a save
+  without our marker (`btsVoidProtection`) to GT's default once. Tile NBT only, like GT's voiding mode (axis 2).
+- `/btsbuild hall ... fill | empty | voiding <none|all|legacy> | feed` drive the test; the status line shows the
+  mode.
+
+**Check** (headless dev server, port 25841).
+- Both build with `VOID_NONE`. With every output slot full, both stay idle with "Not enough item output space": the
+  mill keeps its 64 Uraninite and all its acid, and the platform's progress stays 0.
+- Emptied, the mill runs at once (8 Uraninite and 2,000 L acid a batch, Yellowcake and Thorium out).
+- Set to `all`, the platform runs with the bus still full and voids, as GT's own multis do.
+- `voiding legacy` (a save holding `VOID_ALL` and no marker, loaded through the machine's own `loadNBTData`) loads
+  as `VOID_NONE` on both. The mode survived a server restart.
 
 ## Where the old question numbers went
 
