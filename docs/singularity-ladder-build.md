@@ -2982,9 +2982,9 @@ quasar's BHC family with each tier's colour. No new MTE id, fluid or recipe-resu
 - `/btsquasar [t1..t4] [l1..l4] [saturate] ...`: the quasar with the lattice (creative or `survival`), and Saturation
   set by command.
 - `/btssmbh` (op only): `bench [x y z [facing]]` (L4 lattice, Saturation, a 4,096 SM hole, every upkeep hatch filled,
-  Mk IV crowns on both ports, chunks kept), `mass <M>` (clamped; the setpoint follows), `fill` (the trims get Molten
-  MHDCSM, Molten Universium and Primordial Matter, never Spatially Enlarged Fluid, which would be a Space trim every
-  second: B-160), `drain anchor`, `saturate on|off`, `unbind on|off [force]`, `damage`, `status` (ends with the
+  Mk IV crowns on both ports, chunks kept), `mass <M>` (clamped; the setpoint follows), `fill` (the trims get Excited
+  Stellar Plasma Mixture, Hyperdense Stellar Mixture and Primordial Matter (B-254), never Spatially Enlarged Fluid,
+  which would be a Space trim every second: B-160), `drain anchor`, `saturate on|off`, `unbind on|off [force]`, `damage`, `status` (ends with the
   bench owner's wireless total, a BigInteger: B-162), and (controller unit) `overdrive <o>`, `setpoint <M>`, `shed`,
   `gui [info]`, `oc`.
 

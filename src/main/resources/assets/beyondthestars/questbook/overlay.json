@@ -1,12 +1,12 @@
 {
-  "bundleVersion": "2feabae3d2a6d50570013486523be931a814b41f",
+  "bundleVersion": "27e8db907c4f390eb4c00e03df70de8fdfb14cd0",
   "format": 1,
   "idHigh": 190,
   "packVersion": 2171,
   "source": {
     "data": "questbook/singularity.json",
     "src": ".",
-    "srcHead": "6f65c3f todo-1",
+    "srcHead": "052b4bf todo-7",
     "manifestSha": "7796eeb6b7823f938be225118e9e1e7fa0c89d83"
   },
   "features": {
@@ -9785,7 +9785,7 @@
               "id:8": "minecraft:stick"
             },
             "countAsQuest:1": 1,
-            "desc:8": "The §9Supermassive Lattice§r: an armillary cage round the quasar you already have (179 × 101 × 179). It is the same controller and the same hole, so nothing is lost.\n\n§5§lTHE §lCAGE§r An equatorial ring and two latitude rings, tied to the quasar's cage by struts. The poles stay open, so jets, crowns and mouths dock as before. 8,436 Lattice Frame Casings and§9 48 Containment Nodes§r, all one tier, like coils. The hologram projector builds it on the 'lattice' channel, and NEI previews each tier.\n\n§5§lTHE §lTIERS§r safe limit / top:\n- §9L1§r Superdense Ergomatter and Magnetar Matter: 16,384 / 65,536 SM\n- §9L2§r more of both, condensed: 65,536 / 262,144 SM\n- §9L3§r more again, with Black Dwarf Matter: 262,144 / 4,194,304 SM, and Overdrive\n- §9L4§r Constrained Eternity (Eternity and Magmatter plates): 4,194,304 / 67,108,864 SM, and Unbind\nL1 nodes are an Assembly Line recipe: a Lattice Frame Casing, 4 UMV Field Generators, 4 any-UXV circuits, 2 dense Black Dwarf Matter plates, 8,000 L Superdense Ergomatter and 2,304 L Magnetar Matter. Each higher tier is made from a node of the tier below in the Condensate Assembler. To change tier, take the 48 old nodes out first: the projector does not replace nodes in place.\n\n§5§lTHE §lSETPOINT§r With a lattice, growth stops at the §9mass setpoint§r (default: the safe limit; 4,096 SM up to the top), in the Supermassive Lattice panel. Lowering it below the mass sheds 2 % a second: the excess leaves up both jets, and the crowns make nothing while it does.\n\nA missing lattice block under a hole over 4,096 SM freezes the quasar (nothing is lost) until the lattice is whole. To take a lattice down, set the setpoint to 4,096 SM first.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L1 (HOLD → CLAIM → INSTALL).",
+            "desc:8": "The §9Supermassive Lattice§r: an armillary cage round the quasar you already have (179 × 101 × 179). It is the same controller and the same hole, so nothing is lost.\n\n§5§lTHE §lCAGE§r An equatorial ring and two latitude rings, tied to the quasar's cage by struts. The poles stay open, so jets, crowns and mouths dock as before. 8,436 Lattice Frame Casings and§9 48 Containment Nodes§r, all one tier, like coils. The hologram projector builds it on the 'lattice' channel, and NEI previews each tier.\n\n§5§lTHE §lTIERS§r safe limit / top:\n- §9L1§r Superdense Ergomatter and Magnetar Matter: 16,384 / 65,536 SM\n- §9L2§r Attractor Dark Matter (Eye T9): 65,536 / 262,144 SM\n- §9L3§r Universium (Eye T10): 262,144 / 4,194,304 SM, and Overdrive (on Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture)\n- §9L4§r Constrained Eternity (Eternity and Magmatter plates): 4,194,304 / 67,108,864 SM, and Unbind\nL1 nodes are an Assembly Line recipe: a Lattice Frame Casing, 4 UMV Field Generators, 4 any-UXV circuits, 2 dense Black Dwarf Matter plates, 8,000 L Superdense Ergomatter and 2,304 L Magnetar Matter. Each higher tier is made from a node of the tier below in the Condensate Assembler (with the config latticeNodesUseP5Matter off, L2 and L3 take Superdense Ergomatter, Magnetar and Black Dwarf Matter instead). To change tier, take the 48 old nodes out first: the projector does not replace nodes in place.\n\n§5§lTHE §lSETPOINT§r With a lattice, growth stops at the §9mass setpoint§r (default: the safe limit; 4,096 SM up to the top), in the Supermassive Lattice panel. Lowering it below the mass sheds 2 % a second: the excess leaves up both jets, and the crowns make nothing while it does.\n\nA missing lattice block under a hole over 4,096 SM freezes the quasar (nothing is lost) until the lattice is whole. To take a lattice down, set the setpoint to 4,096 SM first.\n\n§2§lDONE §lWHEN§r you hold 48 Containment Nodes L1 (HOLD → CLAIM → INSTALL).",
             "globalShare:1": 0,
             "icon:10": {
               "Count:3": 1,

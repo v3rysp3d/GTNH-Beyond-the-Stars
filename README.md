@@ -488,7 +488,9 @@ nothing is lost.
   31x (about 3.0 x 10^18 EU/t).
 - **Overdrive (L3+):** a level o from 0 to 100 % in 5 % steps pushes the output toward the cap (about 99x, roughly
   9.7 x 10^18 EU/t at the L4 top). It costs 100,000 x o² L/s each of Excited Stellar Plasma Mixture and Hyperdense Stellar Mixture, drawn from the
-  trim sockets, then the gas sockets. Short upkeep lowers the effective level.
+  trim sockets, then the gas sockets. Short upkeep lowers the effective level. The fluids are the same on L3 and L4,
+  Unbound or not, and whatever `latticeNodesUseP5Matter` says (that flag only changes the L2 / L3 node recipes).
+  Development builds before 0.25.0 burned Molten MHDCSM and Molten Universium here and their GUI said so.
 - **Unbound (L4):** Unbind lets the setpoint pass 67,108,864 SM. Each doubling n past it halves the Overdrive upkeep,
   but needs an anchor of 1,024 x 4^(n²) L/s of Primordial Matter (4,096 L/s at n = 1, 262,144 L/s at n = 2). A short
   anchor only sheds mass; no terrain is ever damaged. Turn it off with `smbhAllowUnbound`.
