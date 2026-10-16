@@ -269,6 +269,8 @@ GT5U.gui.text.beyondthestars.eye.noowner=This Eye has no owner, so it has no wir
 GT5U.gui.text.beyondthestars.eye.noeu=Not enough EU in the owner's wireless network for this run
 beyondthestars.structure.eye.gas=The plinth needs at least one input hatch in a gas socket
 beyondthestars.structure.eye.output=The plinth needs an ME Output Bus and an ME Output Hatch
+beyondthestars.autoplace.eye.unloaded=Auto-place paused: the T%s %s reaches an unloaded chunk at x %s, z %s. Stand nearer the Eye's centre (it needs its whole footprint loaded to run, too).
+beyondthestars.autoplace.eye.outside=Auto-place stopped: the T%s %s would reach y %s, outside the world.
 
 # ---- D-49 star lifecycle: items and tooltips (D-49 content unit; d49-build-plan.md §9) ----
 item.beyondthestars.stellarIgnitionCharge.name=Stellar Ignition Charge

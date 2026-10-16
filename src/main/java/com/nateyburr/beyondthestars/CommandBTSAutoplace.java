@@ -49,8 +49,9 @@ import gregtech.common.misc.GTStructureChannels;
  * Test bench for the optional hatch sockets: runs a machine's survival auto-place the way a player's projector or the
  * NEI multiblock preview does, then says what stands in every socket and whether the machine formed.
  * <p>
- * {@code /btsautoplace <kerr|eye|homogeny|quasar|crown|junction> x y z [tier n] [mode survival|bare|nei|optional|crafting]}
- * (console or op; tier is the Kerr / Homogeny tier, the quasar's coil tier or the crown's Mk):
+ * {@code /btsautoplace <kerr|eye|homogeny|quasar|crown|junction> x y z [tier n]
+ * [mode survival|bare|nei|optional|crafting|proxy|mestock|mebolt] [chunks all|core]} (console or op; tier is the Kerr /
+ * Homogeny tier, the Eye tier 1-10, the quasar's coil tier or the crown's Mk):
  * <ul>
  * <li>{@code survival} (default): GT's hatch channel ON and an inventory that holds every block of the structure and
  * only the hatches the machine REQUIRES (no Directive, Sensor, Burst Control, GRB Receptor Port or BHC Utility
@@ -62,8 +63,15 @@ import gregtech.common.misc.GTStructureChannels;
  * hatches.</li>
  * <li>{@code crafting}: {@code survival} plus Crafting Input Buffers (the only input buses on hand). No item socket may
  * take one (the walk refuses them: they hold patterns, not stock), so the machine must still form (QA-A26).</li>
+ * <li>{@code proxy}: the same with Crafting Input Proxies as the only input buses (B-237).</li>
+ * <li>{@code mestock} (Kerr): {@code survival} with an ME stocking input bus offered before the plain one. No bolt-bus
+ * socket may take it (QA-A32).</li>
+ * <li>{@code mebolt} (Kerr): {@code survival}, then one bolt bus is swapped for an ME stocking input bus by hand; the
+ * walk must name it (QA-A32).</li>
  * </ul>
- * The controller faces north; the footprint's chunks are loaded first. Use a cleared superflat area.
+ * The controller faces north. {@code chunks all} (default) loads every chunk of the footprint first; {@code chunks
+ * core} only the core piece's, like a player whose view does not cover a big Eye (B-236). Use a cleared superflat
+ * area.
  */
 public class CommandBTSAutoplace extends CommandBase {
 
@@ -77,7 +85,7 @@ public class CommandBTSAutoplace extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsautoplace <" + MACHINES.replace(", ", "|")
-            + "> x y z [tier n] [mode survival|bare|nei|optional|crafting]";
+            + "> x y z [tier n] [mode survival|bare|nei|optional|crafting|proxy|mestock|mebolt] [chunks all|core]";
     }
 
     @Override
@@ -95,21 +103,25 @@ public class CommandBTSAutoplace extends CommandBase {
         final int z = parseInt(sender, args[3]);
         int tier = 1;
         String mode = "survival";
+        boolean allChunks = true;
         for (int i = 4; i + 1 < args.length; i += 2) {
-            if (args[i].equalsIgnoreCase("tier")) tier = parseIntBounded(sender, args[i + 1], 1, 9);
+            if (args[i].equalsIgnoreCase("tier")) tier = parseIntBounded(sender, args[i + 1], 1, 10);
             else if (args[i].equalsIgnoreCase("mode")) mode = args[i + 1].toLowerCase();
+            else if (args[i].equalsIgnoreCase("chunks")) allChunks = !args[i + 1].equalsIgnoreCase("core");
         }
-        for (String line : run(world, machine, x, y, z, tier, mode)) {
+        for (String line : run(world, machine, x, y, z, tier, mode, allChunks)) {
             BTSChat.send(sender, line);
             BeyondTheStars.LOG.info("[autoplace] " + line);
         }
     }
 
     /** One audited auto-place; the lines say what was placed in each socket and whether it formed. */
-    static List<String> run(World world, String machine, int x, int y, int z, int tier, String mode) {
+    static List<String> run(World world, String machine, int x, int y, int z, int tier, String mode,
+        boolean allChunks) {
         final List<String> out = new ArrayList<>();
         final ItemStack controller;
         final String[] pieces;
+        String[] footprint = null;
         final List<ItemStack> required = new ArrayList<>();
         switch (machine) {
             case "kerr":
@@ -120,6 +132,8 @@ public class CommandBTSAutoplace extends CommandBase {
             case "eye":
                 controller = BTSMachines.eyeOfHarmony;
                 pieces = new String[] { MTEEyeOfHarmonyBTS.PIECE_CORE };
+                footprint = java.util.Arrays
+                    .copyOf(MTEEyeOfHarmonyBTS.PIECES, Math.min(tier, MTEEyeOfHarmonyBTS.PIECES.length));
                 add(
                     required,
                     ItemList.Hatch_Input_UMV,
@@ -159,9 +173,12 @@ public class CommandBTSAutoplace extends CommandBase {
             return out;
         }
         final ExtendedFacing facing = ExtendedFacing.of(ForgeDirection.NORTH);
+        final String[] loadFor = allChunks && footprint != null ? footprint : pieces;
         out.add(
-            "chunks loaded: " + SLConsoleTest.loadChunks(world, SLConsoleTest.bounds(facing, x, y, z, pieces))
-                + "; mode "
+            "chunks loaded: " + SLConsoleTest.loadChunks(world, SLConsoleTest.bounds(facing, x, y, z, loadFor))
+                + " ("
+                + (loadFor == pieces ? "core" : "whole footprint")
+                + "); mode "
                 + mode
                 + ", tier "
                 + tier);
@@ -205,6 +222,15 @@ public class CommandBTSAutoplace extends CommandBase {
                 add(required, ItemList.Hatch_CraftingInput_Bus_ME, ItemList.Hatch_CraftingInput_Bus_ME_ItemOnly);
                 source = source(required, false);
                 break;
+            case "proxy":
+                add(required, ItemList.Hatch_CraftingInput_Bus_Slave);
+                source = source(required, false);
+                break;
+            case "mestock":
+                // QA-A32: the ME stocking bus is offered first, so a socket that accepts it takes it
+                required.add(0, ItemList.Hatch_Input_Bus_ME.get(1L));
+                source = source(required, false);
+                break;
             default:
                 source = source(required, false);
         }
@@ -228,6 +254,9 @@ public class CommandBTSAutoplace extends CommandBase {
             }
         }
         out.add("auto-place: " + placed + " elements in " + rounds + " rounds, " + end);
+        if (mte instanceof MTEEyeOfHarmonyBTS && !((MTEEyeOfHarmonyBTS) mte).lastAutoPlacePause()
+            .isEmpty()) out.add("  paused: " + ((MTEEyeOfHarmonyBTS) mte).lastAutoPlacePause());
+        if (mode.equals("mebolt") && mte instanceof MTEKerrEngine) out.add(swapBoltBusForMe(world, x, y, z, facing));
 
         // What stands in each socket.
         for (String piece : pieces) {
@@ -269,11 +298,46 @@ public class CommandBTSAutoplace extends CommandBase {
             final MTEMultiBlockBase multi = (MTEMultiBlockBase) mte;
             multi.checkStructure(true, base);
             out.add(multi.mMachine ? "FORMED" : "NOT FORMED");
+            if (multi.mMachine && mte instanceof MTEEyeOfHarmonyBTS) {
+                final MTEEyeOfHarmonyBTS eye = (MTEEyeOfHarmonyBTS) mte;
+                final StringBuilder sb = new StringBuilder("Eye structure T" + eye.structureTier());
+                for (int i = 1; i < Math.min(tier, MTEEyeOfHarmonyBTS.PIECES.length); i++) {
+                    if (!eye.bandStands(i)) sb.append("; ")
+                        .append(MTEEyeOfHarmonyBTS.PIECES[i])
+                        .append(" absent: ")
+                        .append(eye.bandFault(i));
+                }
+                out.add(sb.toString());
+            }
             if (!multi.mMachine) {
                 for (String err : SLConsoleTest.firstErrors(multi, base, 3)) out.add("  " + err);
             }
         }
         return out;
+    }
+
+    /** QA-A32 bench: swaps the first bus in a Kerr bolt-bus socket ('b') for an ME stocking input bus. */
+    private static String swapBoltBusForMe(World world, int x, int y, int z, ExtendedFacing facing) {
+        final ItemStack me = ItemList.Hatch_Input_Bus_ME.get(1L);
+        if (me == null) return "mebolt: no ME stocking input bus in this pack";
+        for (int[] rel : BTSShapes.socketRels(MTEKerrEngine.PIECE_T1, 'b')) {
+            final int[] xyz = new int[3];
+            facing.getWorldOffset(rel, xyz);
+            final int px = x + xyz[0], py = y + xyz[1], pz = z + xyz[2];
+            final TileEntity t = world.getTileEntity(px, py, pz);
+            if (!(t instanceof IGregTechTileEntity)) continue;
+            world.setBlockToAir(px, py, pz);
+            final boolean ok = MTEReactorCoreMk1
+                .placeGtMachine(world, px, py, pz, (short) me.getItemDamage(), ForgeDirection.NORTH);
+            return "mebolt: the bolt bus at (" + px
+                + ", "
+                + py
+                + ", "
+                + pz
+                + ") swapped for an ME stocking input bus: "
+                + ok;
+        }
+        return "mebolt: no bus found in a bolt-bus socket";
     }
 
     private static void add(List<ItemStack> list, ItemList... items) {

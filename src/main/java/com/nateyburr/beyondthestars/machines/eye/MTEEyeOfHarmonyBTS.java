@@ -34,6 +34,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
@@ -929,6 +930,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return mMachine && index >= 0 && index < PIECES.length && bandBuilt[index];
     }
 
+    /** Why piece {@code index} failed its last walk ("" if it stood or was not walked). Server state; bench. */
+    public String bandFault(int index) {
+        return index >= 0 && index < bandFault.length ? bandFault[index] : "";
+    }
+
     /** Lowest tier (generator meta 0-8) of one field type, or -1 if none was walked. */
     public int fieldTier(int type) {
         return fieldMin[type];
@@ -1309,6 +1315,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
      * preview, which builds through here with a creative item source). The pieces go in order, core
      * first, and a band starts only once every piece before it is complete; -1 when all the stack
      * asks for is standing. Hatches and other tiles are never overwritten ({@code noOverwrite}).
+     * <p>
+     * A piece with a cell in an unloaded chunk is not built: the round places nothing (0) and the player is told
+     * where (StructureLib's walk would stop at that cell and call the piece complete, B-236).
      */
     @Override
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
@@ -1317,10 +1326,53 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         final int budget = BTSStructures.survivalBudget(elementBudget);
         for (int i = 0; i < n; i++) {
             final int[] o = off(PIECES[i]);
+            final Object[] pause = autoPlacePause(i);
+            if (pause != null) {
+                final EntityPlayer actor = env == null ? null : env.getActor();
+                final String key = (String) pause[0];
+                final Object[] args = java.util.Arrays.copyOfRange(pause, 1, pause.length);
+                if (actor != null) actor.addChatComponentMessage(new ChatComponentTranslation(key, args));
+                lastAutoPlacePause = BTSText.lang(key, args);
+                return 0;
+            }
             final int built = survivalBuildPiece(PIECES[i], stackSize, o[0], o[1], o[2], budget, env, false, true);
             if (built >= 0) return built;
         }
         return -1;
+    }
+
+    /** The last auto-place pause (encoded text, BTSText), for the bench; not saved. */
+    private String lastAutoPlacePause = "";
+
+    /** Bench: the last {@link #survivalConstruct} pause (an unloaded chunk), resolved; "" if none. */
+    public String lastAutoPlacePause() {
+        return BTSText.resolve(lastAutoPlacePause);
+    }
+
+    /**
+     * B-236: why piece {@code index} cannot be auto-placed now (a lang key and its arguments), or null when every cell
+     * of it is in a loaded chunk. Server side; never loads a chunk.
+     */
+    private Object[] autoPlacePause(int index) {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return null;
+        final int[] o = off(PIECES[index]);
+        final int[] cell = BTSStructures.firstUnloadedCell(
+            getStructureDefinition(),
+            PIECES[index],
+            base.getWorld(),
+            getExtendedFacing(),
+            base.getXCoord(),
+            base.getYCoord(),
+            base.getZCoord(),
+            o[0],
+            o[1],
+            o[2]);
+        if (cell == null) return null;
+        if (cell[1] < 0 || cell[1] > 255) {
+            return new Object[] { "beyondthestars.autoplace.eye.outside", index + 1, BAND_NAMES[index], cell[1] };
+        }
+        return new Object[] { "beyondthestars.autoplace.eye.unloaded", index + 1, BAND_NAMES[index], cell[0], cell[2] };
     }
 
     private int installedBands() {

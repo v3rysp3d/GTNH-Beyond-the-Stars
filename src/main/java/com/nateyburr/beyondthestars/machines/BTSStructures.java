@@ -16,10 +16,13 @@ import net.minecraft.world.World;
 
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.constructable.ChannelDataAccessor;
+import com.gtnewhorizon.structurelib.alignment.enumerable.ExtendedFacing;
 import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IItemSource;
+import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.IStructureElementChain;
+import com.gtnewhorizon.structurelib.structure.IStructureWalker;
 
 import gregtech.api.util.HatchElementBuilder;
 
@@ -331,6 +334,39 @@ public final class BTSStructures {
     public static int channelIndex(ItemStack trigger, String channel, int fallback) {
         if (trigger == null || !ChannelDataAccessor.hasSubChannel(trigger, channel)) return fallback;
         return ChannelDataAccessor.getChannelData(trigger, channel) - 1;
+    }
+
+    /**
+     * The first cell of {@code piece} (built from the controller at {@code x, y, z} with GT's piece offsets
+     * {@code a, b, c}) that is outside the loaded world, as world {x, y, z}; null when every cell is loaded. Never
+     * loads a chunk.
+     * <p>
+     * Why: StructureLib's survival walk stops at the first cell whose chunk is not loaded, and if it placed nothing
+     * before that cell it returns -1, which a survival build reads as "this piece is complete". So a large machine
+     * projected while part of its footprint was unloaded went on to its next piece, and the projector said
+     * "finished" with a band half built (the Eye at T9). A build asks this first and pauses instead. It uses the
+     * same {@code blockExists} test as the walk, so it agrees with it in every world, NEI's preview world included.
+     */
+    public static <T> int[] firstUnloadedCell(IStructureDefinition<T> def, String piece, World world,
+        ExtendedFacing facing, int x, int y, int z, int a, int b, int c) {
+        if (def == null || world == null) return null;
+        final int[][] hit = { null };
+        def.iterate(piece, world, facing, x, y, z, a, b, c, new IStructureWalker<T>() {
+
+            @Override
+            public boolean visit(IStructureElement<T> element, World w, int px, int py, int pz, int pa, int pb,
+                int pc) {
+                return true;
+            }
+
+            @Override
+            public boolean blockNotLoaded(IStructureElement<T> element, World w, int px, int py, int pz, int pa, int pb,
+                int pc) {
+                hit[0] = new int[] { px, py, pz };
+                return false;
+            }
+        });
+        return hit[0];
     }
 
     /**
