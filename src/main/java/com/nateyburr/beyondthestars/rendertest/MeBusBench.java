@@ -126,8 +126,8 @@ public final class MeBusBench {
                     te.readFromNBT(tag);
                 }
                 out.add(
-                    "plain ME controller " + RenderTest
-                        .pos(ctrl) + ", Energy Cell " + RenderTest.pos(above) + " " + ae + " AE");
+                    "plain ME controller " + MeParts
+                        .pos(ctrl) + ", Energy Cell " + MeParts.pos(above) + " " + ae + " AE");
                 break;
             }
             default:
@@ -138,7 +138,7 @@ public final class MeBusBench {
     }
 
     private static MTEHatchInputBusME meBus(World world) {
-        return bus == null ? null : AutoRig.mteAt(world, bus, MTEHatchInputBusME.class);
+        return bus == null ? null : MeParts.mteAt(world, bus, MTEHatchInputBusME.class);
     }
 
     /** "core" (the next transition core), "charge" (a Stellar Ignition Charge) or "cobble". */
@@ -185,7 +185,7 @@ public final class MeBusBench {
         final ItemStack meItem = ItemList.Hatch_Input_Bus_ME.get(1L);
         if (meItem == null
             || !MTEReactorCoreMk1.placeGtMachine(world, bus[0], bus[1], bus[2], (short) meItem.getItemDamage(), face)) {
-            out.add("could not place an ME input bus at " + RenderTest.pos(bus));
+            out.add("could not place an ME input bus at " + MeParts.pos(bus));
             return;
         }
         ctrl = step(bus, face, 1);
@@ -216,15 +216,15 @@ public final class MeBusBench {
         out.addAll(log);
         eye.checkStructure(true, eye.getBaseMetaTileEntity());
         out.add(
-            "ME input bus " + RenderTest.pos(bus)
+            "ME input bus " + MeParts.pos(bus)
                 + " facing "
                 + face
                 + ", creative ME controller "
-                + RenderTest.pos(ctrl)
+                + MeParts.pos(ctrl)
                 + ", drive "
-                + RenderTest.pos(drive)
+                + MeParts.pos(drive)
                 + ", cable "
-                + RenderTest.pos(cable)
+                + MeParts.pos(cable)
                 + "; Eye re-walked: formed "
                 + eye.mMachine
                 + ", input buses "

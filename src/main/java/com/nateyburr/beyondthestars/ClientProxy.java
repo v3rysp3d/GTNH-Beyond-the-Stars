@@ -8,10 +8,6 @@ import com.nateyburr.beyondthestars.machines.eye.render.EyeStarRenderer;
 import com.nateyburr.beyondthestars.machines.eye.render.TileEyeStar;
 import com.nateyburr.beyondthestars.machines.kerr.KerrHoleRenderer;
 import com.nateyburr.beyondthestars.machines.kerr.TileKerrHole;
-import com.nateyburr.beyondthestars.rendertest.GuiShotsClient;
-import com.nateyburr.beyondthestars.rendertest.RecClient;
-import com.nateyburr.beyondthestars.rendertest.RenderTest;
-import com.nateyburr.beyondthestars.rendertest.RenderTestClient;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -45,13 +41,30 @@ public class ClientProxy extends CommonProxy {
             com.nateyburr.beyondthestars.machines.quasar.render.TileQuasarHole.class,
             new com.nateyburr.beyondthestars.machines.quasar.render.QuasarHoleRenderer());
 
-        // Dev-only video recorder (-Dbts.rec=true) or render QA harness (-Dbts.rendertest=true); never in normal play.
-        if (RecClient.ENABLED) RecClient.register();
-        else if (RenderTest.ENABLED) RenderTestClient.register();
-        // Dev-only GUI screenshot harness: only with -Dbts.guishots=true (never in normal play).
-        if (GuiShotsClient.ENABLED) GuiShotsClient.register();
+        // B-227: the server's recipe settings arrive at login; a mismatch is one chat line (NEI shows this client's).
+        com.nateyburr.beyondthestars.client.BTSConfigSyncClient.register();
 
-        // Dev-only questbook screenshot harness: only with -Dbts.qbshots=true (never in normal play).
-        if (Boolean.getBoolean("bts.qbshots")) com.nateyburr.beyondthestars.devshots.QuestbookShots.register();
+        // Dev-only harnesses, never in normal play. The release jar leaves them out (B-228, build.gradle.kts), so they
+        // are reached by name, and only when their switch is set: the video recorder (-Dbts.rec=true) or the render QA
+        // harness (-Dbts.rendertest=true), the GUI screenshot harness (-Dbts.guishots=true) and the questbook
+        // screenshot harness (-Dbts.qbshots=true).
+        if (Boolean.getBoolean("bts.rec")) devTool("rendertest.RecClient");
+        else if (Boolean.getBoolean("bts.rendertest")) devTool("rendertest.RenderTestClient");
+        if (Boolean.getBoolean("bts.guishots")) devTool("rendertest.GuiShotsClient");
+        if (Boolean.getBoolean("bts.qbshots")) devTool("devshots.QuestbookShots");
+    }
+
+    /** Calls a dev harness's static {@code register()}; a release jar, which has none of them, logs one line. */
+    private static void devTool(String name) {
+        final String cls = "com.nateyburr.beyondthestars." + name;
+        try {
+            Class.forName(cls)
+                .getMethod("register")
+                .invoke(null);
+        } catch (ClassNotFoundException e) {
+            BeyondTheStars.LOG.warn("[BTS] " + cls + " is dev tooling and is not in this jar (use the -dev jar).");
+        } catch (ReflectiveOperationException e) {
+            BeyondTheStars.LOG.error("[BTS] could not start " + cls, e);
+        }
     }
 }

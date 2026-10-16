@@ -62,14 +62,13 @@ public final class IntakeBench {
     private static void setup(MTEEyeOfHarmonyBTS eye, double gigalitres, List<String> out) {
         final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
         final World world = base.getWorld();
-        AutoRig.initFluids();
-        final Fluid he = AutoRig.helium, hy = AutoRig.hydrogen;
+        final Fluid he = MeParts.helium(), hy = MeParts.hydrogen();
         final ExtendedFacing al = eye.getExtendedFacing();
         final int[][] h = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'h');
         hatch = SLConsoleTest.worldPos(al, base.getXCoord(), base.getYCoord(), base.getZCoord(), h[0]);
         final net.minecraft.tileentity.TileEntity te = world.getTileEntity(hatch[0], hatch[1], hatch[2]);
         if (!(te instanceof IGregTechTileEntity)) {
-            out.add("no hatch in the first gas socket at " + RenderTest.pos(hatch));
+            out.add("no hatch in the first gas socket at " + MeParts.pos(hatch));
             return;
         }
         final ForgeDirection face = ((IGregTechTileEntity) te).getFrontFacing();
@@ -81,9 +80,9 @@ public final class IntakeBench {
             (short) ItemList.Hatch_Input_ME.get(1L)
                 .getItemDamage(),
             face);
-        final MTEHatchInputME sh = AutoRig.mteAt(world, hatch, MTEHatchInputME.class);
+        final MTEHatchInputME sh = MeParts.mteAt(world, hatch, MTEHatchInputME.class);
         if (sh == null) {
-            out.add("could not place the ME stocking input hatch at " + RenderTest.pos(hatch));
+            out.add("could not place the ME stocking input hatch at " + MeParts.pos(hatch));
             return;
         }
         sh.setSlotConfig(0, new FluidStack(he, 1));
@@ -143,18 +142,18 @@ public final class IntakeBench {
         final boolean inDrive = cells == 2;
         out.addAll(log);
         out.add(
-            "intake rig: ME stocking hatch (He, H) " + RenderTest.pos(hatch)
+            "intake rig: ME stocking hatch (He, H) " + MeParts.pos(hatch)
                 + " facing "
                 + face
                 + ", creative ME controller "
-                + RenderTest.pos(ctrl)
+                + MeParts.pos(ctrl)
                 + ", drive "
-                + RenderTest.pos(drive)
+                + MeParts.pos(drive)
                 + (inDrive ? " (2 cells in)" : " (" + cells + " cells in)")
                 + ", fluid export bus (H) "
-                + RenderTest.pos(busCable)
+                + MeParts.pos(busCable)
                 + " -> Super Tank "
-                + RenderTest.pos(tank));
+                + MeParts.pos(tank));
         eye.checkStructure(true, base);
         out.add("Eye re-walked: formed " + eye.mMachine + ", gas sockets " + eye.gasHatchCount());
     }
@@ -166,10 +165,9 @@ public final class IntakeBench {
     private static void status(MTEEyeOfHarmonyBTS eye, List<String> out) {
         final World world = eye.getBaseMetaTileEntity()
             .getWorld();
-        AutoRig.initFluids();
         final Map<String, Long> buf = eye.bufferSnapshot();
         final StringBuilder sb = new StringBuilder("intake:");
-        for (Fluid f : new Fluid[] { AutoRig.hydrogen, AutoRig.helium }) {
+        for (Fluid f : new Fluid[] { MeParts.hydrogen(), MeParts.helium() }) {
             final Long held = buf.get(f.getName());
             sb.append(' ')
                 .append(f.getName())
@@ -182,7 +180,7 @@ public final class IntakeBench {
                 .append(';');
         }
         if (tank != null) {
-            final MTEBasicTank t = AutoRig.mteAt(world, tank, MTEBasicTank.class);
+            final MTEBasicTank t = MeParts.mteAt(world, tank, MTEBasicTank.class);
             final FluidStack in = t == null ? null : t.getDrainableStack();
             sb.append(" second consumer (Super Tank) ")
                 .append(t == null ? "MISSING" : String.format(Locale.ROOT, "%,d L", in == null ? 0 : in.amount));

@@ -56,7 +56,7 @@ public final class MeStockBench {
             final Object mte = te instanceof IGregTechTileEntity ? ((IGregTechTileEntity) te).getMetaTileEntity()
                 : null;
             if (!(mte instanceof IAlignmentProvider)) {
-                out.add("no multiblock controller at " + RenderTest.pos(p));
+                out.add("no multiblock controller at " + MeParts.pos(p));
                 return out;
             }
             final ExtendedFacing f = ((IAlignmentProvider) mte).getAlignment()
@@ -65,7 +65,7 @@ public final class MeStockBench {
             final StringBuilder sb = new StringBuilder(rest[1] + " '" + rest[2].charAt(0) + "' (" + rels.length + "):");
             for (int i = 0; i < Math.min(8, rels.length); i++) {
                 sb.append(' ')
-                    .append(RenderTest.pos(SLConsoleTest.worldPos(f, x, y, z, rels[i])));
+                    .append(MeParts.pos(SLConsoleTest.worldPos(f, x, y, z, rels[i])));
             }
             out.add(sb.toString());
             return out;
@@ -120,7 +120,7 @@ public final class MeStockBench {
     private static void setup(World world, int[] p, List<Fluid> fluids, long litres, double ae, List<String> out) {
         final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
         if (!(te instanceof IGregTechTileEntity)) {
-            out.add("no GT hatch at " + RenderTest.pos(p));
+            out.add("no GT hatch at " + MeParts.pos(p));
             return;
         }
         final ForgeDirection face = ((IGregTechTileEntity) te).getFrontFacing();
@@ -132,9 +132,9 @@ public final class MeStockBench {
             (short) ItemList.Hatch_Input_ME.get(1L)
                 .getItemDamage(),
             face);
-        final MTEHatchInputME sh = AutoRig.mteAt(world, p, MTEHatchInputME.class);
+        final MTEHatchInputME sh = MeParts.mteAt(world, p, MTEHatchInputME.class);
         if (sh == null) {
-            out.add("could not place the ME stocking input hatch at " + RenderTest.pos(p));
+            out.add("could not place the ME stocking input hatch at " + MeParts.pos(p));
             return;
         }
         for (int i = 0; i < fluids.size(); i++) sh.setSlotConfig(i, new FluidStack(fluids.get(i), 1));
@@ -168,17 +168,17 @@ public final class MeStockBench {
         }
         out.addAll(log);
         out.add(
-            "mestock: ME stocking hatch " + RenderTest.pos(p)
+            "mestock: ME stocking hatch " + MeParts.pos(p)
                 + " facing "
                 + face
                 + ", ME controller (normal) "
-                + RenderTest.pos(ctrl)
+                + MeParts.pos(ctrl)
                 + ", drive "
-                + RenderTest.pos(drive)
+                + MeParts.pos(drive)
                 + " ("
                 + cells
                 + " cells), energy cell "
-                + RenderTest.pos(cellAt)
+                + MeParts.pos(cellAt)
                 + (stored < 0
                     ? " (none yet: setblock " + cellAt[0]
                         + " "
@@ -192,12 +192,12 @@ public final class MeStockBench {
     }
 
     private static void status(World world, int[] p, List<String> out) {
-        final MTEHatchInputME sh = AutoRig.mteAt(world, p, MTEHatchInputME.class);
+        final MTEHatchInputME sh = MeParts.mteAt(world, p, MTEHatchInputME.class);
         if (sh == null) {
-            out.add("no ME stocking input hatch at " + RenderTest.pos(p));
+            out.add("no ME stocking input hatch at " + MeParts.pos(p));
             return;
         }
-        final StringBuilder sb = new StringBuilder("mestock " + RenderTest.pos(p) + ":");
+        final StringBuilder sb = new StringBuilder("mestock " + MeParts.pos(p) + ":");
         try {
             final IEnergyGrid e = sh.getProxy()
                 .getEnergy();

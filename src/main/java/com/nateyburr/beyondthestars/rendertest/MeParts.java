@@ -41,6 +41,9 @@ import appeng.parts.automation.PartUpgradeable;
 import appeng.tile.storage.TileDrive;
 import appeng.util.item.AEFluidStack;
 import appeng.util.item.AEItemStack;
+import gregtech.api.enums.Materials;
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 
 /**
  * DEV-ONLY (the automation photo rigs and the video recorder): small helpers that place real AE2 / AE2FC parts the
@@ -51,6 +54,35 @@ import appeng.util.item.AEItemStack;
 final class MeParts {
 
     private MeParts() {}
+
+    // ---- the few helpers the ME benches share. They live here, not in RenderTest / AutoRig, because the release jar
+    // keeps the ME benches (/btseye star intake | mebus, /btsquasar mestock) and leaves the rest of rendertest out
+    // (build.gradle.kts, B-228): these four classes may name nothing else in the package.
+
+    /** {@code (x, y, z)}. */
+    static String pos(int[] p) {
+        return "(" + p[0] + ", " + p[1] + ", " + p[2] + ")";
+    }
+
+    /** The GT machine of type {@code type} at {@code p}, or null. */
+    static <T> T mteAt(World world, int[] p, Class<T> type) {
+        final TileEntity te = world.getTileEntity(p[0], p[1], p[2]);
+        if (!(te instanceof IGregTechTileEntity)) return null;
+        final IMetaTileEntity mte = ((IGregTechTileEntity) te).getMetaTileEntity();
+        return type.isInstance(mte) ? type.cast(mte) : null;
+    }
+
+    /** GT's helium gas, or null before GT has made it. */
+    static Fluid helium() {
+        final FluidStack s = Materials.Helium.getGas(1L);
+        return s == null ? null : s.getFluid();
+    }
+
+    /** GT's hydrogen gas, or null before GT has made it. */
+    static Fluid hydrogen() {
+        final FluidStack s = Materials.Hydrogen.getGas(1L);
+        return s == null ? null : s.getFluid();
+    }
 
     /** Cable kinds: glass, covered, smart, dense (smart dense) and dense covered. */
     enum Kind {
@@ -167,7 +199,7 @@ final class MeParts {
         cable(world, p, kind, color, player);
         final IPartHost h = host(world, p);
         if (h == null) {
-            log.add(tag + "no cable bus at " + RenderTest.pos(p));
+            log.add(tag + "no cable bus at " + pos(p));
             return null;
         }
         final ItemStack busItem = fluid ? fluidExportBusItem()
@@ -178,12 +210,12 @@ final class MeParts {
                 .maybeStack(1)
                 .orNull();
         if (busItem == null || h.addPart(busItem, side, player) == null) {
-            log.add(tag + "could not add " + (fluid ? "a fluid" : "an") + " export bus at " + RenderTest.pos(p));
+            log.add(tag + "could not add " + (fluid ? "a fluid" : "an") + " export bus at " + pos(p));
             return null;
         }
         final IPart part = h.getPart(side);
         if (!(part instanceof PartSharedItemBus)) {
-            log.add(tag + "the export bus at " + RenderTest.pos(p) + " is " + part);
+            log.add(tag + "the export bus at " + pos(p) + " is " + part);
             return null;
         }
         final PartSharedItemBus<?> bus = (PartSharedItemBus<?>) part;
@@ -197,7 +229,7 @@ final class MeParts {
         log.add(
             tag + (fluid ? "fluid " : "")
                 + "export bus at "
-                + RenderTest.pos(p)
+                + pos(p)
                 + " facing "
                 + side
                 + ": "
@@ -215,7 +247,7 @@ final class MeParts {
         final IPartHost h = host(world, p);
         final Item item = ae2fc("FLUID_STORAGE_BUS");
         if (h == null || item == null || h.addPart(new ItemStack(item), side, player) == null) {
-            log.add(tag + "could not add a fluid storage bus at " + RenderTest.pos(p));
+            log.add(tag + "could not add a fluid storage bus at " + pos(p));
             return false;
         }
         final IPart part = h.getPart(side);
@@ -328,11 +360,11 @@ final class MeParts {
             .maybeStack(1)
             .orNull();
         if (h == null || item == null || h.addPart(item, side, player) == null) {
-            log.add(tag + "could not add an ME terminal at " + RenderTest.pos(p));
+            log.add(tag + "could not add an ME terminal at " + pos(p));
             return false;
         }
         h.markForUpdate();
-        log.add(tag + "ME terminal at " + RenderTest.pos(p) + " facing " + side);
+        log.add(tag + "ME terminal at " + pos(p) + " facing " + side);
         return true;
     }
 
@@ -348,7 +380,7 @@ final class MeParts {
             .maybeStack(1)
             .orNull();
         if (h == null || item == null || h.addPart(item, side, player) == null) {
-            log.add(tag + "could not add a level emitter at " + RenderTest.pos(p));
+            log.add(tag + "could not add a level emitter at " + pos(p));
             return false;
         }
         final IPart part = h.getPart(side);
