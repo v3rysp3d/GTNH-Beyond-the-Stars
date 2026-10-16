@@ -1,0 +1,189 @@
+name: Release
+
+# A pushed version tag (for example 0.25.0) builds the mod and publishes one GitHub Release
+# with only the release jar attached. Run it by hand with "dry run" ticked to build and
+# preview the release notes without publishing anything.
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag (X.Y.Z). With dry run off, the tag must already exist on GitHub.'
+        required: true
+        default: '0.25.0'
+      dry_run:
+        description: 'Dry run: build and preview the notes, publish nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  MOD_ID: beyondthestars
+  MOD_NAME: 'GTNH: Beyond the Stars'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Resolve the tag and mode
+        id: meta
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          INPUT_DRY: ${{ github.event.inputs.dry_run }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            TAG="$GITHUB_REF_NAME"; DRY=false; REF="refs/tags/$TAG"
+          else
+            TAG="$INPUT_TAG"; DRY="$INPUT_DRY"
+            if [ "$DRY" = "true" ]; then REF="$GITHUB_REF"; else REF="refs/tags/$TAG"; fi
+          fi
+          if ! printf '%s' "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$TAG' is not a version tag of the form X.Y.Z"; exit 1
+          fi
+          {
+            echo "tag=$TAG"
+            echo "dry=$DRY"
+            echo "ref=$REF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Tag $TAG, dry run: $DRY, building $REF"
+
+      - name: Checkout (full history, for the changelog)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.meta.outputs.ref }}
+          fetch-depth: 0
+
+      - name: Check the tag is not already released
+        if: steps.meta.outputs.dry != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "::error::A release for $TAG already exists. Delete it first to publish again."; exit 1
+          fi
+
+      - name: Install a virtual display
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y xvfb
+
+      - name: Set up Java 8, 17, 21 and 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: |
+            8
+            17
+            21
+            25
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-read-only: true
+
+      - name: Build
+        env:
+          # Pins the jar name to the tag (beyondthestars-X.Y.Z.jar), never a -dirty or +sha version.
+          VERSION: ${{ steps.meta.outputs.tag }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --build-cache --stacktrace setupCIWorkspace
+          xvfb-run --server-args="-screen 0 1366x768x24" ./gradlew --build-cache --stacktrace build
+
+      - name: Pick the release jar
+        id: jar
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          echo "build/libs:"; ls -l build/libs
+          mapfile -t jars < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-dev.jar' ! -name '*-sources.jar' ! -name '*-api.jar' ! -name '*-preshadow.jar' | sort)
+          if [ "${#jars[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one release jar, found ${#jars[@]}: ${jars[*]}"; exit 1
+          fi
+          want="build/libs/${MOD_ID}-${TAG}.jar"
+          if [ "${jars[0]}" != "$want" ]; then
+            echo "::error::Release jar is ${jars[0]}, expected $want"; exit 1
+          fi
+          unzip -p "$want" mcmod.info | grep -q "\"$TAG\"" || { echo "::error::mcmod.info in $want does not carry version $TAG"; exit 1; }
+          echo "path=$want" >> "$GITHUB_OUTPUT"
+          sha256sum "$want" | tee "$want.sha256"
+
+      - name: Write the release notes
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          JAR: ${{ steps.jar.outputs.path }}
+        run: |
+          set -euo pipefail
+          BLOB="https://github.com/${GITHUB_REPOSITORY}/blob/${TAG}"
+          # Relative links (README.md, docs/...) would break on the release page; point them at the tag.
+          abs_links() { sed -E "s#\]\((\./)?([A-Za-z0-9_./-]+\.(md|png|jpg|gif|html))\)#](${BLOB}/\2)#g"; }
+
+          HEAD_SHA=$(git rev-parse HEAD)
+          PREV=$(git describe --tags --abbrev=0 --match '[0-9]*.[0-9]*.[0-9]*' "${HEAD_SHA}^" 2>/dev/null || true)
+          if [ "$PREV" = "$TAG" ]; then PREV=""; fi
+
+          {
+            if [ -f "docs/release-notes/${TAG}.md" ]; then
+              abs_links < "docs/release-notes/${TAG}.md"
+            else
+              abs_links < INSTALL.md
+            fi
+            echo
+            echo "---"
+            echo
+            echo "**Download:** \`$(basename "$JAR")\` below (one jar for client and server)."
+            echo "SHA-256: \`$(cut -d' ' -f1 "$JAR.sha256")\`"
+            echo
+            if [ -n "$PREV" ]; then
+              COUNT=$(git rev-list --count "${PREV}..${HEAD_SHA}")
+              echo "<details><summary>Changes since ${PREV} (${COUNT} commits)</summary>"
+              echo
+              git log --first-parent --no-decorate --format='%s' "${PREV}..${HEAD_SHA}" \
+                | grep -vE '^(wip|Spotless)\b' \
+                | grep -vE "^Merge (branch )?'?[^ :]+'?( into '?[^ :]+'?)?$" \
+                | awk '{ s=$0; if (length(s) > 160) s=substr(s,1,157) "..."; print "- " s }' \
+                | head -n 200
+              echo
+              echo "</details>"
+              echo
+              echo "**Full changelog:** https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}"
+            fi
+          } > release-notes.md
+          echo "Notes: $(wc -c < release-notes.md) bytes, previous tag: ${PREV:-none}"
+          cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the preview
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-preview-${{ steps.meta.outputs.tag }}
+          path: |
+            ${{ steps.jar.outputs.path }}
+            ${{ steps.jar.outputs.path }}.sha256
+            release-notes.md
+          retention-days: 14
+
+      - name: Publish the release
+        if: steps.meta.outputs.dry != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          JAR: ${{ steps.jar.outputs.path }}
+        run: |
+          gh release create "$TAG" "$JAR" \
+            -R "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "${MOD_NAME} ${TAG}" \
+            --notes-file release-notes.md \
+            --latest

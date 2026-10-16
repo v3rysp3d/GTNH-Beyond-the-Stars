@@ -1,13 +1,105 @@
-
 name: Build and test
 
 on:
-  pull_request:
-    branches: [ master, main ]
   push:
-    branches: [ master, main ]
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
-    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
-    secrets: inherit
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Install a virtual display
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y xvfb
+
+      - name: Checkout (full history, for the version tag)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 8, 17, 21 and 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: |
+            8
+            17
+            21
+            25
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Set up the workspace
+        run: |
+          chmod +x gradlew
+          ./gradlew --build-cache --stacktrace setupCIWorkspace
+
+      - name: Print the version
+        run: ./gradlew --stacktrace -q printVersion
+
+      - name: Assemble
+        run: ./gradlew --build-cache --stacktrace assemble
+
+      - name: Build and check (spotless, checkstyle, tests)
+        run: xvfb-run --server-args="-screen 0 1366x768x24" ./gradlew --build-cache --stacktrace build
+
+      - name: Start a dedicated server once
+        run: |
+          mkdir -p run/server
+          echo "eula=true" > run/eula.txt
+          echo "eula=true" > run/server/eula.txt
+          printf 'level-seed=-6202107849386030209\nonline-mode=true\n' > run/server.properties
+          printf 'level-seed=-6202107849386030209\nonline-mode=true\n' > run/server/server.properties
+          echo "stop" > run/stop.txt
+          timeout 300 ./gradlew --build-cache --stacktrace runServer < run/stop.txt 2>&1 | tee server.log || true
+
+      - name: Check the server started and left no crash report
+        run: |
+          fail=0
+          if ! grep -q 'Done (' server.log; then
+            echo "::error::The server did not finish starting (no 'Done (' line in server.log)"
+            fail=1
+          fi
+          for d in run/crash-reports run/server/crash-reports; do
+            if [ -d "$d" ] && [ -n "$(ls -A "$d")" ]; then
+              echo "::error::Crash report found in $d"
+              for f in "$d"/*; do echo "== $f"; cat "$f"; done
+              fail=1
+            fi
+          done
+          [ "$fail" = 0 ] && echo "Server started; no crash reports."
+          exit $fail
+
+      - name: No pre-release dependencies
+        run: '! grep -P -- "-pre(?!shadow)" dependencies.gradle*'
+
+      - name: Upload the jars
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-libs
+          path: build/libs/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload the server log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-log
+          path: server.log
+          retention-days: 14
+          if-no-files-found: ignore
