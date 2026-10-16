@@ -25,6 +25,8 @@ public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
+        // B-227: the mod's network channel; the server sends its recipe settings to each player at login.
+        BTSConfigSync.register();
 
         BTSItems.register();
         SLItems.register();

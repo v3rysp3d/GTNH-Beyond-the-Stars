@@ -1,6 +1,8 @@
 package com.nateyburr.beyondthestars;
 
 import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import net.minecraftforge.common.config.Configuration;
 
@@ -156,6 +158,26 @@ public class Config {
     public static boolean renderReality = true;
     /** Renders v2 (§10): the conduit's burst streams, the Wormhole Mouths and the crowns' heat. Client only. */
     public static boolean renderConduit = true;
+
+    /**
+     * B-227: every key that changes what the recipe maps hold (and so what NEI shows), with its value as text, plus
+     * {@code mteBaseId} (the machine ids every recipe and NEI page names). The server sends this map to each player at
+     * login ({@link BTSConfigSync}); a client whose own values differ says so in chat. A new recipe-affecting key
+     * belongs here too.
+     */
+    public static Map<String, String> recipeFlags() {
+        final Map<String, String> m = new LinkedHashMap<>();
+        m.put("mteBaseId", Integer.toString(mteBaseId));
+        m.put("removeBlackHoleCompressorRecipe", Boolean.toString(removeBlackHoleCompressorRecipe));
+        m.put("replaceTecTechEyeOfHarmony", Boolean.toString(replaceTecTechEyeOfHarmony));
+        m.put("latticeNodesUseP5Matter", Boolean.toString(latticeNodesUseP5Matter));
+        m.put("stellarCircuits", Boolean.toString(stellarCircuits));
+        m.put("nacCircuitComponents", Boolean.toString(nacCircuitComponents));
+        m.put("raiseStockSpecialCircuits", Boolean.toString(raiseStockSpecialCircuits));
+        m.put("stockSpecialCircuitEnergyFactor", Float.toString(stockSpecialCircuitEnergyFactor));
+        m.put("stockSpecialCircuitMaterialFactor", Float.toString(stockSpecialCircuitMaterialFactor));
+        return m;
+    }
 
     public static void synchronizeConfiguration(File configFile) {
         Configuration configuration = new Configuration(configFile);

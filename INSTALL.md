@@ -33,9 +33,11 @@ This is a playtest build: expect balance changes between builds, and play on a c
 
 1. Stop the server and back up the world.
 2. Remove older `beyondthestars-*.jar` files from `mods/`, put the new jar in, start the server.
-3. Every player needs the same jar. Copy the server's `config/beyondthestars.cfg` to every client as well: the recipe
-   switches are read on each side and are not synced, so a client with different settings shows recipes the server
-   does not have.
+3. Every player needs the same jar. Copy the server's `config/beyondthestars.cfg` to every client as well: each side
+   builds its recipes from its own config, so a client with different recipe switches shows recipes in NEI that the
+   server does not have (crafting always follows the server). At login the server sends its recipe switches, and a
+   client whose values differ gets a chat line naming each one (server value, client value). `/btsrecipes sync`
+   lists what the server sends.
 4. Check `logs/fml-server-latest.log` for the same lines as above. The questbook installs when the server starts.
 5. Every `/bts...` command needs operator permission. Several are testing tools (instant builds, free machines, a time
    warp), so give operator rights only to people you trust with them.

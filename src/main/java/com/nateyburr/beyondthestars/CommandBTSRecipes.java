@@ -26,6 +26,7 @@ import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -84,8 +85,45 @@ public class CommandBTSRecipes extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsrecipes [status | dump [file name, written to config/beyondthestars/] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]"
+        return "/btsrecipes [status | sync [key=value ...] | dump [file name, written to config/beyondthestars/] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]"
             + " | chain <build|plan <family>|make <family>|gt <umv|uxv|max>|status|stop> x y z]";
+    }
+
+    /**
+     * B-227 bench: {@code /btsrecipes sync [key=value ...]}. Lists the recipe settings this server sends at login, puts
+     * them through the login packet's bytes and back, and compares the result with a client config made of this
+     * server's values and the overrides: the lines are the ones such a client would see in chat.
+     */
+    static List<String> syncBench(String[] args) {
+        final List<String> out = new ArrayList<>();
+        final Map<String, String> server = Config.recipeFlags();
+        out.add(EnumChatFormatting.AQUA + "Recipe settings sent to each player at login (" + server.size() + "):");
+        for (Map.Entry<String, String> e : server.entrySet()) out.add("  " + e.getKey() + " = " + e.getValue());
+        final io.netty.buffer.ByteBuf buf = io.netty.buffer.Unpooled.buffer();
+        new BTSConfigSync.Message(server).toBytes(buf);
+        final int bytes = buf.readableBytes();
+        final BTSConfigSync.Message back = new BTSConfigSync.Message();
+        back.fromBytes(buf);
+        out.add(
+            (back.flags.equals(server) ? EnumChatFormatting.GREEN + "PASS" : EnumChatFormatting.RED + "FAIL")
+                + " packet round trip: "
+                + bytes
+                + " bytes, "
+                + back.flags.size()
+                + " keys");
+        final Map<String, String> client = new LinkedHashMap<>(server);
+        for (int i = 1; i < args.length; i++) {
+            final int eq = args[i].indexOf('=');
+            if (eq > 0) client.put(args[i].substring(0, eq), args[i].substring(eq + 1));
+        }
+        final List<String> lines = BTSConfigSync.chatLines(BTSConfigSync.differences(back.flags, client));
+        if (lines.isEmpty())
+            out.add("A client with " + (args.length > 1 ? "those values" : "this config") + " sees no line.");
+        else {
+            out.add("A client with those values sees:");
+            out.addAll(lines);
+        }
+        return out;
     }
 
     @Override
@@ -97,7 +135,7 @@ public class CommandBTSRecipes extends CommandBase {
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1)
-            return getListOfStringsMatchingLastWord(args, "status", "dump", "circuits", "nac", "chain");
+            return getListOfStringsMatchingLastWord(args, "status", "sync", "dump", "circuits", "nac", "chain");
         return null;
     }
 
@@ -106,6 +144,15 @@ public class CommandBTSRecipes extends CommandBase {
         final String sub = args.length > 0 ? args[0].toLowerCase() : "status";
         if ("status".equals(sub)) {
             status(sender, collect());
+            return;
+        }
+        if ("sync".equals(sub)) {
+            // B-227: what this server sends each player at login, and (with key=value overrides standing in for a
+            // client's config) the chat lines that client would see.
+            for (String line : syncBench(args)) {
+                sender.addChatMessage(new ChatComponentText(line));
+                BeyondTheStars.LOG.info("[BTS] sync: " + line.replaceAll("§.", ""));
+            }
             return;
         }
         if ("circuits".equals(sub)) {
