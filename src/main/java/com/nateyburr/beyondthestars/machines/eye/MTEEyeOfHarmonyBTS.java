@@ -401,12 +401,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addElement(
                 'h',
                 buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Gas, EyeHatchElement.Items)
+                    // QA-A26: auto-place never fits a Crafting Input Buffer in an item socket (the walk refuses one)
+                    .hatchItemFilterAnd(t -> MTEEyeOfHarmonyBTS::notCraftingBuffer)
                     .casingIndex(plinthIndex)
                     .hint(1)
                     .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
             .addElement(
                 'o',
-                buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Output)
+                buildHatchAdder(MTEEyeOfHarmonyBTS.class)
+                    .atLeast(EyeHatchElement.OutputBus, EyeHatchElement.OutputHatch)
                     .casingIndex(plinthIndex)
                     .hint(2)
                     .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
@@ -467,6 +470,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             .addElement(
                 'p',
                 buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.SlotBus)
+                    .hatchItemFilterAnd(t -> MTEEyeOfHarmonyBTS::notCraftingBuffer)
                     .casingIndex(plinthIndex)
                     .hint(8)
                     .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing)))
@@ -503,10 +507,23 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 'i',
                 optionalHatch(
                     buildHatchAdder(MTEEyeOfHarmonyBTS.class).atLeast(EyeHatchElement.Pellet)
+                        .hatchItemFilterAnd(t -> MTEEyeOfHarmonyBTS::notCraftingBuffer)
                         .casingIndex(shellIndex)
                         .hint(10),
                     block(sl, BlockSLCasing.BASTION)))
             .build();
+    }
+
+    /**
+     * QA-A26: false for a Crafting Input Buffer. The item sockets (Items, SlotBus, Pellet) match every input bus, but
+     * their adders refuse a buffer (it holds patterns, not stock), so without this filter auto-place fitted one from
+     * the player's inventory and the walk then failed on it.
+     */
+    static boolean notCraftingBuffer(ItemStack stack) {
+        if (stack == null || !(stack.getItem() instanceof gregtech.common.blocks.ItemMachines)) return true;
+        final int id = stack.getItemDamage();
+        return id < 0 || id >= gregtech.api.GregTechAPI.METATILEENTITIES.length
+            || !(gregtech.api.GregTechAPI.METATILEENTITIES[id] instanceof MTEHatchCraftingInputME);
     }
 
     private static IStructureElement<MTEEyeOfHarmonyBTS> casing(Casings casing) {
@@ -1179,8 +1196,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return false;
     }
 
-    /** ME outputs only: they are the Eye's only output path, so they join GT's output lists. */
-    public boolean addOutputME(IGregTechTileEntity te, int casingIndex) {
+    /**
+     * ME outputs only: they are the Eye's only output path, so they join GT's output lists. The ME output bus
+     * (EyeHatchElement.OutputBus).
+     */
+    public boolean addOutputBusME(IGregTechTileEntity te, int casingIndex) {
         if (te == null) return false;
         final IMetaTileEntity mte = te.getMetaTileEntity();
         if (mte instanceof MTEHatchOutputBusME) {
@@ -1188,6 +1208,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             mOutputBusses.add((MTEHatchOutputBusME) mte);
             return true;
         }
+        return false;
+    }
+
+    /** The ME output hatch (EyeHatchElement.OutputHatch). */
+    public boolean addOutputHatchME(IGregTechTileEntity te, int casingIndex) {
+        if (te == null) return false;
+        final IMetaTileEntity mte = te.getMetaTileEntity();
         if (mte instanceof MTEHatchOutputME) {
             ((MTEHatchOutputME) mte).updateTexture(casingIndex);
             mOutputHatches.add((MTEHatchOutputME) mte);

@@ -124,12 +124,25 @@ public enum EyeHatchElement implements IHatchElement<MTEEyeOfHarmonyBTS> {
             return t.slotBusCount();
         }
     },
-    /** Plinth output sockets: ME output bus and ME output hatch only (long-sized outputs). */
-    Output(MTEEyeOfHarmonyBTS::addOutputME, MTEHatchOutputBusME.class, MTEHatchOutputME.class) {
+    /**
+     * Plinth output sockets ({@code o}): the ME output bus. The Eye needs one ME output bus AND one ME output hatch, so
+     * the bus and the hatch are two elements with their own counts: GT's {@code atLeast(OutputBus, OutputHatch)} then
+     * places one of each in the two sockets. As one element counting both, auto-place and the NEI preview stopped
+     * after the bus and paved the second socket with casing, and the Eye did not form.
+     */
+    OutputBus(MTEEyeOfHarmonyBTS::addOutputBusME, MTEHatchOutputBusME.class) {
 
         @Override
         public long count(MTEEyeOfHarmonyBTS t) {
-            return t.outputBusCount() + t.outputHatchCount();
+            return t.outputBusCount();
+        }
+    },
+    /** Plinth output sockets ({@code o}): the ME output hatch (long-sized fluid outputs). See {@link #OutputBus}. */
+    OutputHatch(MTEEyeOfHarmonyBTS::addOutputHatchME, MTEHatchOutputME.class) {
+
+        @Override
+        public long count(MTEEyeOfHarmonyBTS t) {
+            return t.outputHatchCount();
         }
     };
 

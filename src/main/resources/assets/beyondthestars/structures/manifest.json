@@ -288,7 +288,7 @@
    "o": {
     "role": "me_output_socket",
     "kind": "energy (plinth)",
-    "block": "EyeHatchElement.Output (MTEHatchOutputBusME, MTEHatchOutputME), else fallback",
+    "block": "EyeHatchElement.OutputBus (MTEHatchOutputBusME) and OutputHatch (MTEHatchOutputME), else fallback",
     "fallback": "Q",
     "min": "1 bus + 1 hatch",
     "hint": 2
@@ -3691,7 +3691,7 @@
      "ch": "o",
      "count": 2,
      "role": "me_output_socket",
-     "block": "EyeHatchElement.Output (MTEHatchOutputBusME, MTEHatchOutputME), else fallback"
+     "block": "EyeHatchElement.OutputBus (MTEHatchOutputBusME) and OutputHatch (MTEHatchOutputME), else fallback"
     },
     {
      "ch": "p",

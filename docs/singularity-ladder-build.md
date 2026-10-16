@@ -970,7 +970,7 @@ by cell (a table of voxel coordinates), not by guessing.
 | `x` | Kerr extractor | `output` at 334° and 346° | as `c` | 1 in + 1 out |
 | `k` | Kerr extractor | `output` at 340° | slCasing2:1, the module core | 1 |
 | `h` | Eye | 5 plinth `gas` | `EyeHatchElement.Gas` (MTEHatchInput, private → buffer) | 1 |
-| `o` | Eye | 2 plinth `energy` | `EyeHatchElement.Output` (MTEHatchOutputBusME, MTEHatchOutputME) | 1 bus + 1 hatch |
+| `o` | Eye | 2 plinth `energy` | `EyeHatchElement.OutputBus` (MTEHatchOutputBusME) and `OutputHatch` (MTEHatchOutputME) | 1 bus + 1 hatch |
 | `m` | Eye | plinth `maint` | Maintenance | 1 |
 | `s` | Eye | 6 beam-band + 5 jet-crescent `beamhatch` | `EyeHatchElement.Stellar` (MTEHatchInput, private → buffer) | 0 (T2+ only use them) |
 
@@ -1433,7 +1433,7 @@ from the table, or if a table entry's cell holds another kind. The manifest list
 | `x` | `kerr_extractor` (334°, 346°) | 2 | as `c` | `N` | 1 in + 1 out | 5 |
 | `k` | `kerr_extractor` (340°) | 1 | the module core block, NEW slCasing2:1 Kerr Extractor Module | none | 1 | |
 | `h` | `eye_core` (plinth) | 5 | `EyeHatchElement.Gas` (MTEHatchInput, private) | `Q` | 1 | 1 |
-| `o` | `eye_core` (plinth; the mockup's `energy` cells) | 2 | `EyeHatchElement.Output` (MTEHatchOutputBusME, MTEHatchOutputME) | `Q` | 1 bus + 1 hatch | 2 |
+| `o` | `eye_core` (plinth; the mockup's `energy` cells) | 2 | `EyeHatchElement.OutputBus` (MTEHatchOutputBusME) and `OutputHatch` (MTEHatchOutputME) | `Q` | 1 bus + 1 hatch | 2 |
 | `m` | `eye_core` (plinth) | 1 | Maintenance | `Q` | 1 | 3 |
 | `s` | `eye_beam` | 6 | `EyeHatchElement.Stellar` (MTEHatchInput, private) | `R` | 0 | 4 |
 | `t` | `eye_jet` | 5 | `EyeHatchElement.Stellar` | `S` | 0 | 4 |
@@ -1619,7 +1619,7 @@ Shared edits, each append-only:
 | `W` / `X` / `Y` | `TTCasingsContainer.SpacetimeCompressionFieldGenerators` / `TimeAccelerationFieldGenerator` / `StabilisationFieldGenerators`, metas 0-8 in any mix; the lowest of each type counts (Q-29) |
 | `R` / `S` / `T` | slCasing 10 / 11 / 12 (Beam Band, Jet Crescent, Galactic Shell) |
 | `h` | `EyeHatchElement.Gas` (any `MTEHatchInput`), hint 1, else `Q`. At least 1. |
-| `o` | `EyeHatchElement.Output` (`MTEHatchOutputBusME`, `MTEHatchOutputME`), hint 2, else `Q`. At least 1 of each. |
+| `o` | `EyeHatchElement.OutputBus` (`MTEHatchOutputBusME`) and `OutputHatch` (`MTEHatchOutputME`), two elements so auto-place fits one of each (QA-A26), hint 2, else `Q`. At least 1 of each. |
 | `m` | Maintenance, hint 3, else `Q` |
 | `s` / `t` | `EyeHatchElement.Stellar`, hint 4, else `R` / `S`. Optional. |
 | `A` | **Window band pane** (my answer 2026-10-13, render E-9; B-86): `ofChain(Casings.QuantumGlass, Casings.ReinforcedSpatialStructureCasing)` over `U`: the core band's outer shell in its front ring segments (z > 0, \|x\| ≤ 26), at \|y\| ≤ 2 from the star. Open (`' '`): the band's lining behind the pane (371 cells) and, in front of it, the T4 / T5 arm and T6 rim cells within \|x\| ≤ 10 (422 / 371 / 213) and, since B-114, the 42 cells of the T7 rail's front clamp (Bastion, rim to rail at 90°) in the band. Glass first; an Eye built before the window still forms. 339 pane cells. |

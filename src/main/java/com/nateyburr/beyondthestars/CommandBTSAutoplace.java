@@ -49,7 +49,7 @@ import gregtech.common.misc.GTStructureChannels;
  * Test bench for the optional hatch sockets: runs a machine's survival auto-place the way a player's projector or the
  * NEI multiblock preview does, then says what stands in every socket and whether the machine formed.
  * <p>
- * {@code /btsautoplace <kerr|eye|homogeny|quasar|crown|junction> x y z [tier n] [mode survival|bare|nei|optional]}
+ * {@code /btsautoplace <kerr|eye|homogeny|quasar|crown|junction> x y z [tier n] [mode survival|bare|nei|optional|crafting]}
  * (console or op; tier is the Kerr / Homogeny tier, the quasar's coil tier or the crown's Mk):
  * <ul>
  * <li>{@code survival} (default): GT's hatch channel ON and an inventory that holds every block of the structure and
@@ -60,6 +60,8 @@ import gregtech.common.misc.GTStructureChannels;
  * any hatch. No optional hatch may appear.</li>
  * <li>{@code optional}: {@code nei} plus the {@code bts_optional} channel: the optional sockets take their
  * hatches.</li>
+ * <li>{@code crafting}: {@code survival} plus Crafting Input Buffers (the only input buses on hand). No item socket may
+ * take one (the walk refuses them: they hold patterns, not stock), so the machine must still form (QA-A26).</li>
  * </ul>
  * The controller faces north; the footprint's chunks are loaded first. Use a cleared superflat area.
  */
@@ -74,7 +76,8 @@ public class CommandBTSAutoplace extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsautoplace <" + MACHINES.replace(", ", "|") + "> x y z [tier n] [mode survival|bare|nei|optional]";
+        return "/btsautoplace <" + MACHINES.replace(", ", "|")
+            + "> x y z [tier n] [mode survival|bare|nei|optional|crafting]";
     }
 
     @Override
@@ -197,6 +200,10 @@ public class CommandBTSAutoplace extends CommandBase {
             case "nei":
             case "optional":
                 source = source(Collections.emptyList(), true);
+                break;
+            case "crafting":
+                add(required, ItemList.Hatch_CraftingInput_Bus_ME, ItemList.Hatch_CraftingInput_Bus_ME_ItemOnly);
+                source = source(required, false);
                 break;
             default:
                 source = source(required, false);

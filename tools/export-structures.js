@@ -201,7 +201,7 @@ const LEGEND = {
     S: { role: "jet_crescent", kind: "ring3", block: "NEW slCasing:11 Jet Crescent Casing" },
     T: { role: "galactic_shell", kind: "galactic", block: "NEW slCasing:12 Galactic Shell Plating (T4-T6 bands, D-49 R-12)" },
     h: { role: "gas_socket", kind: "gas", block: "EyeHatchElement.Gas (MTEHatchInput, private -> H/He buffers), else fallback", fallback: "Q", min: 1, hint: 1 },
-    o: { role: "me_output_socket", kind: "energy (plinth)", block: "EyeHatchElement.Output (MTEHatchOutputBusME, MTEHatchOutputME), else fallback", fallback: "Q", min: "1 bus + 1 hatch", hint: 2 },
+    o: { role: "me_output_socket", kind: "energy (plinth)", block: "EyeHatchElement.OutputBus (MTEHatchOutputBusME) and OutputHatch (MTEHatchOutputME), else fallback", fallback: "Q", min: "1 bus + 1 hatch", hint: 2 },
     m: { role: "maintenance_socket", kind: "maint", block: "HatchElement.Maintenance, else fallback", fallback: "Q", min: 1, hint: 3 },
     s: { role: "stellar_socket_beam", kind: "beamhatch on the beam band", block: "EyeHatchElement.Stellar (MTEHatchInput, private -> stellar buffers), else fallback", fallback: "R", min: 0, hint: 4 },
     t: { role: "stellar_socket_jet", kind: "beamhatch on the jet crescent", block: "EyeHatchElement.Stellar, else fallback", fallback: "S", min: 0, hint: 4 },
