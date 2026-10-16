@@ -3,6 +3,7 @@ package com.nateyburr.beyondthestars.client.render;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
 
@@ -68,7 +69,7 @@ public final class KitSelfTest {
     /** The kit programs whose two profiles the self test compiles. */
     private static final String[] PROGRAMS = { "bts_selftest", "bts_glow", "bts_points", "bts_blackhole", "bts_qring",
         "bts_qjet", "bts_qfx", "bts_star", "bts_starhalo", "bts_starlines", "bts_galpts", "bts_galdisc", "bts_galsky",
-        "bts_galplan", "bts_mvol", "bts_beam", "bts_mfx" };
+        "bts_galplan", "bts_mvol", "bts_beam", "bts_mfx", "bts_cosky", "bts_copts", "bts_cofx", "bts_smbh" };
 
     private static PointBatch stars;
     private static boolean checked;
@@ -299,6 +300,14 @@ public final class KitSelfTest {
         for (BTSShaders.Program p : BTSShaders.all()) {
             BeyondTheStars.LOG
                 .info("[BTS render kit] bake {}: {}", p.label(), p.usable() ? "OK" : "OFF (fixed-function path)");
+            // a program of ours that the compile check above does not cover (add it to PROGRAMS)
+            if (p.label()
+                .startsWith("bts_")
+                && !Arrays.asList(PROGRAMS)
+                    .contains(p.label())) {
+                BeyondTheStars.LOG
+                    .warn("[BTS render kit] {} is registered but not in the self test's compile list", p.label());
+            }
         }
         BeyondTheStars.LOG.info("[BTS render kit] self test compile check: {} failure(s)", failed);
     }

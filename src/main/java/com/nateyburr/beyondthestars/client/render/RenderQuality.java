@@ -129,9 +129,7 @@ public final class RenderQuality {
 
     private static Lod.Tier effective(Object key, State s, Lod.Tier lod, BTSShaders.Program[] programs) {
         if (quality() == Quality.LOW || !glCapable() || s.glFailed) return Lod.Tier.FIXED;
-        for (BTSShaders.Program p : programs) {
-            if (p != null && !p.usable()) return Lod.Tier.FIXED;
-        }
+        if (!allUsable(programs)) return Lod.Tier.FIXED;
         if (lod == Lod.Tier.L0 && (quality() == Quality.MEDIUM || s.highFrame != RenderFrame.frame())) {
             return Lod.Tier.L1;
         }
@@ -148,10 +146,21 @@ public final class RenderQuality {
         if (hidden() || quality() == Quality.LOW || !glCapable()) return false;
         final State s = STATES.get(key);
         if (s != null && s.glFailed) return false;
+        return allUsable(programs);
+    }
+
+    /**
+     * True when every program bakes. Every one is asked, not just up to the first dead one: a program bakes (and logs
+     * that it is off) only when asked, so stopping at the first failure left the later ones silent. With
+     * {@code -Dbts.render.failShaders=true} the Universe's {@code bts_copts} failed first and {@code bts_cofx} never
+     * logged. {@code usable()} is a field read once a program has baked.
+     */
+    private static boolean allUsable(BTSShaders.Program[] programs) {
+        boolean all = true;
         for (BTSShaders.Program p : programs) {
-            if (p != null && !p.usable()) return false;
+            if (p != null && !p.usable()) all = false;
         }
-        return true;
+        return all;
     }
 
     /** {@code renderBackgroundLensing}, at HIGH, with no shaderpack in use (§4.3). */
