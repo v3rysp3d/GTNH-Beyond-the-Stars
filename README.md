@@ -7,8 +7,10 @@ that power your base and hold the bigger machines stable. Every one of them is a
 multiblock with its own questbook chapter.
 
 - **Mod id:** `beyondthestars` · **Minecraft** 1.7.10 · **Pack:** GTNH 2.9.0-RC-2 only
-- **Version:** 0.24.x playtest builds (untagged builds show a version such as `0.24.1-master.308+ff2493fa3f`)
-- **Status:** playtest. Back up your world before you install it, and expect balance changes between builds.
+- **Version:** 0.25.0, our first public release: `beyondthestars-0.25.0.jar` from the tagged release on GitHub. Builds
+  between releases show a version such as `0.25.0-master.12+1a2b3c4d5e`.
+- **Status:** first public release, still a playtest. Back up your world before you install it, and expect balance
+  changes between releases.
 - **Installing:** read [INSTALL.md](INSTALL.md) first. With the default config an already built TecTech Eye of
   Harmony stops working, and a few pack recipes change.
 
@@ -861,6 +863,7 @@ start; your values are kept. A stale `interimBlackDwarfAtEyeT4` key from older b
 | Key | Default | Range | Meaning |
 |---|---|---|---|
 | `removeBlackHoleCompressorRecipe` | `true` | | The Kerr replaces the BHC: remove the BHC controller recipe and point every recipe that consumes one at the Kerr controller. Placed BHCs keep working |
+| `enableEyeT9T10` | `true` | | Eye of Harmony T9 (the Great Attractor) and T10 (the Universe). Off caps every Eye at T8 |
 | `replaceTecTechEyeOfHarmony` | `true` | | Our Eye replaces TecTech's (recipes, NEI page, controller recipe); also enables the Resonance Chamber II-IV rewrites, Eternity on Ergomatter and the Godforge magmatter re-cost |
 | `stellarCircuits` | `true` | | The Sidereal / Empyrean / Omega circuits: recipes, ore names, rack entries. Off: the items stay registered but are hidden, have no recipe and say "Disabled by config" |
 | `nacCircuitComponents` | `true` | | Our NAC recipes and item-to-component conversions. Off: the NAC never pulls our items in. The component list itself is the same either way, so client and server always agree |
@@ -915,7 +918,7 @@ than 15 % of the footprint is solid; add `force` to override.
 |---|---|
 | `/btswarp <2-1000>`, `/btswarp status`, `/btswarp off` | **Time warp.** The whole server runs up to N ticks per real tick through the normal tick code. Off at every server start and stop |
 | `/btskit ...` | Gives a machine's controller(s), hatches, consumables and a bill of materials: `kerr`, `eye`, `quasar [coil 1-4]`, `lattice [node 1-4]`, `conduit`, `homogeny`, `diffraction`, `refab`, or a plant tier `1-5` |
-| `/btskerr [t1\|t2]`, `/btseye [t1..t8] [fill]`, `/btsquasar [t1..t4] [l1..l4] [saturate] [seed]`, `/btshr <homogeny\|diffraction\|refab> [t1..t3] [fill]`, `/btsbuild [1-5]` | Builds a complete, formed machine in front of you. `fill` stocks it (on the Eye, also 10^18 wireless EU) |
+| `/btskerr [t1\|t2]`, `/btseye [t1..t10] [fill]`, `/btsquasar [t1..t4] [l1..l4] [saturate] [seed]`, `/btshr <homogeny\|diffraction\|refab> [t1..t3] [fill]`, `/btsbuild [1-5]` | Builds a complete, formed machine in front of you. `fill` stocks it (on the Eye, also 10^18 wireless EU). On the console form, `/btseye t9\|t10 <x y z> ... fill stdrig` also keeps the Eye running unattended on the standard rig: a bench quasar, the trim valves and the stock, saved with the Eye |
 | `/btskerr`, `/btseye star`, `/btsquasar`, `/btsconduit`, `/btssmbh`, `/btshr bench` subcommands | Test benches: read state, set mass or feed, purge, trim, open / close, inject streams, force milestones, build the standard automation rigs (`autorig`), keep a far build's chunks loaded (`keep`) |
 | `/btsconduit crowns x y z <1-4> [stack]` | Docks a crown of that Mk on each of a quasar's jet ports |
 | `/btsrecipes chain ...`, `/btsrecipes nac ...`, `/btshr becnet ...` | Builds a rig of stock machines (the circuit chain, a Nanochip Assembly Complex, a BEC network) and runs recipes through it |
@@ -942,14 +945,16 @@ The full argument lists are in each command's usage line (type the command with 
 
 ## Known issues and playtest notes
 
-**Not reachable in survival yet (registered, visible in NEI, testable with bench commands):**
+**Everything is reachable in survival.** A few things work differently from what you might expect:
 
-- The UXV parts redesign. Until it lands, our recipes take twice as many UMV parts (see
-  [BEC integration](#bec-condensate-assembler-integration)). Nothing of ours before Eye T10 needs the pack's UXV
-  components.
+- RC-2's UXV components need Universium, which only Eye T10 makes. So wherever one of our recipes before T10 would
+  name one, it takes two of the UMV part instead (see [BEC integration](#bec-condensate-assembler-integration)).
+  After T10 the pack's own UXV recipes are open as usual.
 - The Dark Matter Heating Coil works at GT's MAX coil level (13,501 K, the same as Eternal): GT's coil levels end
   there. The multiblock hologram places GT's own coils, so place these by hand.
-- The quests the Eye would tick (The Deep Link, The Infall, Inflation and the flow and universe counts) are checkboxes.
+- The Eye completes its own milestone quests for its owner and their BetterQuesting party (the links, The Infall,
+  Inflation, the flow, galaxy and universe counts): their task shows the Eye's count, nobody can tick them, and a
+  missed one is caught up within a minute. Only while the Eye's chunks are loaded.
 
 **Renders (client only):**
 
@@ -958,6 +963,9 @@ The full argument lists are in each command's usage line (type the command with 
 - Under Angelica, a Reality machine's render can stay invisible until its controller block has been on screen once.
 - A shaderpack under Angelica has not been tried in a full session. If one breaks a render, `renderQuality=low` brings
   the old one back; tell us which pack.
+- Eye T9 and T10 at `renderQuality=low` (or when their shaders fail) now draw a simple look: the beam and the filament
+  dots at T9; at T10 the background-radiation disc in the crown's plane, the crown's glow and the twelve rays at Cosmic
+  Dawn. Before this build T10 showed only the black core. Not yet checked in a game window.
 - Measured only on a fast PC. Your FPS near a quasar at `high` and at `low` is useful data.
 - The quasar's ring can't be seen from outside the machine (its walls hide it); the jets and the glow at each cap show
   its state.
@@ -966,8 +974,17 @@ The full argument lists are in each command's usage line (type the command with 
 
 - The Kerr Density Upgrade installs on a plain right-click, and it is permanent.
 - Chunk-load the whole footprint of every big machine. While any chunk of the Eye's footprint is unloaded the Eye is
-  frozen (nothing runs, nothing is lost), as the Kerr and the Quasar are. T1 is 102 x 80 blocks, T6 158 x 149, T8
-  196 x 218, and the controller stands at one end, so a loader on its chunk alone is not enough.
+  frozen (nothing runs, nothing is lost), as the Kerr and the Quasar are. T1 is 102 x 80 blocks, T6 158 x 149, T8 to
+  T10 196 x 218, and the controller stands at one end, so a loader on its chunk alone is not enough.
+- GregTech's rain rule applies to our hatches: on an open-air build, a hatch or bus with open sky above it can catch
+  fire or explode in rain or a thunderstorm (GT's `machineRainExplosions` and `machineThunderExplosions`). That breaks
+  the structure; the machine stops safely and re-forms once you replace what it broke. Roof the exposed hatches or build
+  where there is no weather.
+- Eye T9's beam needs its loop wired: the V sensor (analog, window 30) or the Flow set's bits 1 and 2 into the Pellet
+  Injector's Burst Control Hatch. A hatch that has never had a signal fires at its centre, open loop, and V wanders off
+  now and then. If the beam fires nothing while V climbs, the GUI, the Flow set's bit 4 and the event line say why.
+- A new universe at Eye T10 waits for bursts on the crown before it begins; a universe lost to a Breach names the gauge
+  that broke and what it was short of.
 - A Magnetar Collapse can be begun with a quasar too small to hold it. The GUI warns you in red; it does not stop you.
 - The intake caps at Eye T7 / T8 are large with companions or planets (tens to hundreds of billions of litres of
   H / He).
@@ -995,7 +1012,7 @@ unless the game is started with `-Dbts.rendertest=true`, `-Dbts.qbshots=true` or
 
 Open an issue on this repository: <https://github.com/v3rysp3d/GTNH-Beyond-the-Stars/issues>. Please include:
 
-- the jar's file name (the version string, for example `0.24.1-master.308+ff2493fa3f`);
+- the jar's file name (the version string, for example `0.25.0` or `0.25.0-master.12+1a2b3c4d5e`);
 - your GTNH version, Java version, and whether Angelica or a shaderpack is installed;
 - `logs/fml-client-latest.log` (or the server log), and any `[BTS]` / `[BTS render]` warnings in it;
 - for a machine problem, a screenshot of its GUI, and the output of `/btsquests` or `/btsrecipes status` if it is a
