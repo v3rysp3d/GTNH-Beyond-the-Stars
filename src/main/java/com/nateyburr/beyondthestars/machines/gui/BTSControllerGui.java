@@ -156,7 +156,8 @@ public abstract class BTSControllerGui<T extends MTEMultiBlockBase> extends MTEM
                 BTSText.lang(b.langKey())) + "] " + BTSText.resolve(subject()) + " | " + BTSText.resolve(rightChip()))
                     .replaceAll("\u00a7.", ""));
         final CheckRecipeResult result = multiblock.getCheckRecipeResult();
-        if (!infoPage && result != null) {
+        // QA-A34: only where the player's GUI shows GT's recipe-result line
+        if (!infoPage && result != null && multiblock.shouldDisplayCheckRecipeResult()) {
             out.add(
                 "  (last recipe check: " + result.getDisplayString()
                     .replaceAll("§.", "") + ")");
