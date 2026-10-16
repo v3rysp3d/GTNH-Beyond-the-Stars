@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-250, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-250, the calm-renders pass's B-251..B-252, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -126,6 +126,10 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - See in a game window: the Galaxy / Planets toggle's second click, the Field panel's "held by a Directive Hatch"
   rows, the fluid names in the Eye's checklists and buffer rows, the Kerr Hole panel's "Rails hold" row and the
   KEE's "–" bolt stock right after a restart. [B-239, B-240, B-241, B-244, B-246]
+- See in a game window: the calmer pulses (an unstable Sol, the Core Collapse swell, the overfed magnetar spinning
+  up, a helium flash and a magnetar warning, a failing Kerr, a quasar shed and Critical, an Overdrive lattice, the
+  T9 collars, a held Reality anchor, the Crown). Checked so far only in a browser comparison and with glslang.
+  [B-251, B-252]
 
 **For the P4 merge** (done, B-110).
 
@@ -279,7 +283,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-250
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-252
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -8612,6 +8616,83 @@ with its controller at y 64 reaches y -1.
 | Quasar at y 64 | 0, "would reach y -1, outside the world" | not formed |
 | Homogeny T2 / Crown Mk IV, `chunks controller` | 0, pause lines | not formed |
 | Homogeny T2, whole footprint; Eye T3 | 28,597; 27,571 | FORMED; FORMED (T3) |
+
+### B-251 Every pulsing render calmed [render, designer feedback]
+
+Feedback on the pulsing renders: the instability reads, but the bounce looks cartoonish; make it bounce with smaller
+intensity. (The pulsar's bounce went in B-219 and stays as it is: a steady body and a slow lighthouse sweep.)
+
+**Audit.** Every render that pulsed, bounced, wobbled, flashed or strobed, old to new (severity 1 = the worst the
+state gets; frequencies in Hz):
+
+| Effect | Where | Before | After |
+|---|---|---|---|
+| Lit star wobble (T1-T3, protostar, bounce, fixed-look galaxies) | `EyeStarRenderer` | radius +-pulse (Sol 18 %, Arcturus 23 %), 0.99 + 2.77 | +-4 % x eased severity, 0.31 + 0.50 |
+| Overfed magnetar (Magnetar Collapse) | `EyeStarRenderer` | radius +-55 %, 0.99 + 2.77 | +-4 %, 0.31 + 0.50 |
+| Core Collapse swell | `EyeStarRenderer` | radius down 8.3 %, light +-25 %, 0.7 | down 4 %, light +-12 %, 0.34 |
+| Helium flash warning | `EyeStarFx`, `surface.glsl` | white +0.08 at 1 to 3.2, racing (B-252); boil x7 | +0.035 at 0.63; boil x3 |
+| Magnetar warning, magnetosphere | `EyeStarFx` | x(1.2 +- 0.6) at 2 to 4, racing | x(1.15 + 0.2 ramp +- 0.1), 0.71 |
+| Magnetar warning, rim shells (fixed look) | `EyeStarRenderer` | edge 0.35 to 0.6, 2 | 0.42 to 0.56, 0.71 |
+| Field-line crackle (neutron star, magnetar) | `star/lines.glsl` | hard switch 0.4 / 1.7 at 20 | smooth 0.7 to 1.3, ~4 |
+| Corona flicker | `star/halo.glsl` | +-25 % x unrest, ~9 | +-12 %, ~3 |
+| Bounce / supernova / glitch flashes | `EyeStarFx` | 0.9 over 10 ticks / 2.4 over 18 / crust 0.35, beams to 0.35 | 0.55 over 8 / 1.5 over 14 / 0.22, beams to 0.5 |
+| Helium flash hit | `EyeStarFx` | surface white 0.15 | 0.12 |
+| Galaxy disc light (T7, T8) | `GalaxyFx` | +-0.6 pulse (to 7 %) on any unrest, 0.35 | +-6 % x eased severity, 0.22 + 0.36 |
+| Magnetar Collapse core flash | `galaxy/disc.glsl` | bulge x5 | x3.5 |
+| Kerr, no coverage | `KerrHoleRenderer.look` | tilt 8 degrees, precession 5 s; light down to 65 % at 3.7 x 1.2 | 4 degrees, 12 s; light +-6 %, 0.59 + 0.95 |
+| Kerr / quasar opening ring, Hawking flash | `KerrHoleRenderer`, `QuasarHoleRenderer` | 1.6 / 2.2 | 1.2 / 1.5 |
+| Quasar Unbound horizon (and the halo's rim) | `QuasarHoleRenderer` | +-3 % at 0.5 from the first doubling | +-2.5 % at 0.42, eased up to the third |
+| Quasar shed: base glare / shock pulse | `QuasarHoleRenderer` | snap to x3.0 every 1.4 s / 26 blocks starting at 0.3 | x(1.6 + 0.5) eased in and out / 18 blocks, 0.2, eased |
+| Quasar shed: fixed-look jets / v2 jet core | `QuasarHoleRenderer`, `quasar/jet.glsl` | snap +0.35 / +-10 % at ~9 | eased +0.15 / +-4 % at ~3 |
+| Quasar eruption / purge | `QuasarHoleRenderer`, `quasar/jet.glsl` | disc x(2 + 1.5 size), purge x1.6, glare +1.5, jet +1.3 | x(1.7 + 1.0 size), x1.4, +0.9, +0.8 |
+| Quasar field-line crackle | `quasar/fx.glsl` | hard switch 0.35 / 1.75 at 24 | smooth 0.7 to 1.3, ~4 |
+| Quasar Critical inner wall | `quasar/ring.glsl` | x(1 to 2.4), ~6 | x(1 to 1.8), ~3.5 |
+| Lattice nodes / arcs (Overdrive, hold-up) | `smbh/fx.glsl` | node +-22 % in hard 14 Hz steps; arcs 0.45 / 1.75 at 20; amber 0.5 to 1 at 0.8 | +-10 % smooth ~4; 0.75 to 1.25 smooth ~4; 0.6 to 1 at 0.48 |
+| T9 / T10 collars' running pulse | `cosmos/fx.glsl` | 0.25 to 1 of the glow, 0.8 | 0.45 to 1, 0.8 |
+| Cosmic Dawn ray width | `cosmos/fx_vert.glsl` | x3.2 at the peak | x2.3 |
+| Reality Diffraction anchor | `RealityRender` | 0.1 to 1, 0.51 | 0.5 to 1, 0.30 |
+| Burst Thermaliser Crown heat bloom | `ConduitRender.renderCrown` | +-10 %, 1.43 | +-4 %, 0.63 + 1.0 |
+
+Left as they are: the steady neutron star and magnetar (B-219's glow flicker, at most 4 %) and the pulsar beams; the
+Universe's size with the H gauge (+-4 %, no time wave); Inflation, the Big Rip and Big Crunch, the crunch spot and
+last light (one-off progressions, eased, not bouncy); Recombination's glow and the Dawn rays' light; the Attractor's
+streams; the Homogeny, Reality and Conduit flows and every travelling pulse along a jet or beam; the quasar's knots,
+Harmonic Lock ripple, eruption shell and blow-out; granulation, spots and prominences.
+
+**Built.**
+- `client/render/Pulse` (client only), the one place the limits live: `SIZE` 4 % of the radius and `GLOW` 12 % of a
+  whole object's light at severity 1, `amp(max, severity)` eased by smoothstep so mild unrest barely shows,
+  `wave` / `beat` with periods of 1.2 s or more, `hump` for repeating cues that ease in and out. New renders use it.
+- Instability now shows mostly through what was already there: boiling cells, spots, the corona and field lines, the
+  disc's turbulence and colour. Size moves at most 4 %, and only at the worst state.
+- Render cost: the same. Three hard hash steps became one value-noise read each (lines, quasar field, lattice).
+- Axes: render code and shaders only, client side (`Pulse` is `@SideOnly(CLIENT)`; nothing server-side references
+  it). No NBT, no hatch list, no element change. `EyeStarLook` (shared) changed only in two comments.
+
+**Check.** `gradlew build` passes. glslang: all 21 programs compile and link in both profiles (GLSL 1.20 and 3.30
+core), 126 of 126. A browser comparison (headless Edge, the same formulas and constants) runs every changed effect
+old and new side by side. Not yet seen in a game window (section 3).
+
+### B-252 Spins, boils and beads no longer jump when their rate changes [render]
+
+**Finding** (while auditing B-251). Several patterns were drawn as `time x rate` with a rate that follows a synced
+value, so every change of the rate moved the pattern by `time x delta`:
+- The Eye's spin, `now x spin` in world ticks: the overfed magnetar spins up from 2.4 to 24 degrees a tick and a new
+  look goes out about once a second, each one jumping its beams and field lines by `now x 0.072` degrees (hundreds of
+  degrees late in a world); the Core Collapse swell's face did the same. The slow kinds' surface turn (0.15 x a spin
+  wrapped at 360 degrees) also jumped 54 degrees on every turn.
+- The granules' boil (`time x u_Surf.z`) and the field lines' beads (`time x u_LineFx.y`): the rate follows the unrest
+  and a warning's 15 s ramp, so they jumped at each new look and raced through the ramp. The helium flash and
+  magnetar warnings' own throbs (`sin(time x f(ramp))`) raced the same way: with the shader clock at 1,800 s their
+  2 to 4 Hz read as a random strobe.
+
+**Built.** `Pulse.Phase` integrates a rate over world ticks (a second pass at the same tick reads the same value; it
+starts from the old `time x rate`, so a steady rate draws as before). `EyeStarFx` keeps a spin, a boil and a bead
+clock per star; both render paths read `EyeStarFx.spinDegrees` (wrapped at 20 turns, where every layer's multiple of
+the spin lands on a whole turn). The shaders now read the phase: `star/surface.glsl` `boil = u_Surf.z`,
+`star/lines.glsl` `sin(s x 40 - u_LineFx.y + ...)`. The warnings' throbs have a fixed slow period (B-251).
+
+**Check.** As B-251.
 
 ## Where the old question numbers went
 
