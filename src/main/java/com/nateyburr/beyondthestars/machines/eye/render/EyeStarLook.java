@@ -81,8 +81,9 @@ public final class EyeStarLook {
     /** Degrees per tick of the layers' rotation (scaled per layer as the Forge of the Gods does). */
     public final float spin;
     /**
-     * Unrest, a fraction of the radius (instability, flares): the stars' radius wobble; on the steady neutron star
-     * and magnetar (B-219) only a glow flicker of at most 4 %.
+     * Unrest (instability, flares), 0.02 calm to 0.18 at a lit star's worst: the renderer reads it as a severity
+     * (B-251: the stars breathe by at most 4 % of the radius, the rest shows as boiling, spots and corona); on the
+     * steady neutron star and magnetar (B-219) only a glow flicker of at most 4 %.
      */
     public final float pulse;
     /**
@@ -466,7 +467,7 @@ public final class EyeStarLook {
      * round 4 (D4: the round-3 swell, radius 16 and paler than Arcturus, read as Arcturus): the radius eases out from
      * Arcturus's 15 to {@link #SWELL_PEAK} (19.4 at half way), the tint reaches {@link #SWELL_RGB} at gamma 0.6 by half
      * way, the surface turns 3x Arcturus's speed at half way and faster after, and the pulse is 0.15 at half way (the
-     * renderer runs the swell's pulse as a 0.7 Hz throb, see {@code EyeStarRenderer}).
+     * renderer runs the swell's pulse as a slow throb of at most 4 % of the radius, see {@code EyeStarRenderer}).
      */
     public static EyeStarLook swell(float f) {
         final float c = Math.max(0, Math.min(1, f));

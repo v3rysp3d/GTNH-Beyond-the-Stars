@@ -1,5 +1,8 @@
 package com.nateyburr.beyondthestars.machines.eye.render;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL20;
 
@@ -8,6 +11,7 @@ import com.gtnewhorizon.gtnhlib.client.renderer.vao.IVertexArrayObject;
 import com.nateyburr.beyondthestars.client.render.BTSShaders;
 import com.nateyburr.beyondthestars.client.render.Meshes;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.Pulse;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -49,6 +53,12 @@ final class EyeStarFx {
     static final float CLEARANCE = 20.4f;
     /** The magnetic axis leans this far off the spin axis (radians), as the fixed-function beams. */
     private static final double MAG_TILT = Math.toRadians(20);
+    /** B-251: the helium flash warning's white swell (at the hit's edge) and its period, s. */
+    static final float HE_WARN_FLASH = 0.035f;
+    static final double HE_WARN_PERIOD = 1.6;
+    /** B-251: a magnetar warning's magnetosphere swing and its period, s. */
+    static final float MAG_WARN_SWING = 0.1f;
+    static final double MAG_WARN_PERIOD = 1.4;
 
     // ------------------------------------------------------------------ programs
 
@@ -249,7 +259,7 @@ final class EyeStarFx {
         final float aux = tile.getAux();
         final int n = tile.getTierN();
         final float unrest = clamp01((pulse - 0.02f) / 0.16f);
-        final double spinRad = Math.toRadians((now * tile.getSpin()) % 360.0);
+        final double spinRad = Math.toRadians(spinDegrees(tile, now));
         final boolean slow = kind == EyeStarLook.STAR || kind == EyeStarLook.SWELL || kind == EyeStarLook.PROTOSTAR;
         final double turnRad = slow ? spinRad * 0.15 : spinRad;
         L.turn[0] = (float) Math.cos(turnRad);
@@ -324,8 +334,8 @@ final class EyeStarFx {
                     // a glitch: the crust slips, a flash, the beams stutter
                     if (ev == EyeStarLook.EV_GLITCH && hitAge >= 0 && hitAge < 1.5f) {
                         final float g = hitAge / 1.5f;
-                        L.fx[2] = 0.35f * (1 - g) * (1 - g);
-                        L.beam[0] *= 0.35f + 0.65f * g;
+                        L.fx[2] = 0.22f * (1 - g) * (1 - g);
+                        L.beam[0] *= 0.5f + 0.5f * g;
                         set(L.shell, R * (1.2f + 3 * g), 0.6f, 0.04f * (1 - g), 4);
                         set3(L.shellCol, 0.7f, 0.85f, 1f);
                     }
@@ -336,7 +346,8 @@ final class EyeStarFx {
                     set3(L.shellCol, 1f, 0.8f, 0.55f);
                     set(L.shell2, sr * 0.82f, 0.3f * sr, 0.025f * (1 - f), 5);
                     set3(L.shell2Col, 0.45f, 0.6f, 1f);
-                    L.flash[0] = age < 10 ? 0.9f * (float) (1 - age / 10) : 0f;
+                    // B-251: the bounce's flash 0.55 over 8 ticks (was 0.9 over 10)
+                    L.flash[0] = age < 8 ? 0.55f * (float) (1 - age / 8) : 0f;
                 }
                 break;
             }
@@ -349,8 +360,9 @@ final class EyeStarFx {
                 set3(L.shellCol, 0.55f, 0.72f, 1f);
                 set(L.shell2, sr * 0.8f, 0.75f * sr, 0.03f * (1 - f), 5);
                 set3(L.shell2Col, 0.5f, 0.65f, 1f);
-                final float early = clamp01(1 - age / 18);
-                set(L.flash, 2.4f * early * early + 0.15f * (1 - f), 0, 0, 80);
+                // B-251: the supernova's white flash 1.5 over 14 ticks (was 2.4 over 18); the shell carries the rest
+                final float early = clamp01(1 - age / 14);
+                set(L.flash, 1.5f * early * early + 0.15f * (1 - f), 0, 0, 80);
                 set(L.glow, 1.2f * (1 - f), 3.0f, 0, 1.4f);
                 L.reach = sr + 6;
                 break;
@@ -397,6 +409,42 @@ final class EyeStarFx {
             L.glow[0] *= f;
             L.surf2[2] *= f;
         }
+        // B-251: the granules' boil and the field lines' beads run on clocks of their own, so a rate that follows
+        // the unrest or a warning's ramp speeds them up smoothly (time x rate jumped at every new look and raced
+        // through a 15 s warning)
+        final Phases ph = phases(tile);
+        L.surf[2] = (float) ph.boil.at(now, L.surf[2] / 20.0, time * L.surf[2], 3600.0);
+        L.lineFx[1] = (float) ph.beads.at(now, L.lineFx[1] / 20.0, time * L.lineFx[1], 3600.0 * 2 * Math.PI);
+    }
+
+    /** One star's own clocks (render thread). */
+    private static final class Phases {
+
+        final Pulse.Phase spin = new Pulse.Phase(), boil = new Pulse.Phase(), beads = new Pulse.Phase();
+    }
+
+    private static final Map<TileEyeStar, Phases> PHASES = new WeakHashMap<>();
+
+    private static Phases phases(TileEyeStar tile) {
+        Phases p = PHASES.get(tile);
+        if (p == null) PHASES.put(tile, p = new Phases());
+        return p;
+    }
+
+    /** The spin's wrap, degrees (B-251). */
+    static final double SPIN_WRAP = 7200.0;
+
+    /**
+     * B-251: the surface's turn, degrees, at world tick {@code now}, integrated from the synced spin (degrees per
+     * tick). {@code now x spin} jumped by {@code now x delta} (tens of thousands of degrees late in a world) at every
+     * new look while the spin changed: the overfed magnetar's beams and the swelling giant's face teleported once a
+     * second. Both render paths read it.
+     */
+    static double spinDegrees(TileEyeStar tile, double now) {
+        final double spin = tile.getSpin();
+        // wrapped at 20 turns: every layer turns at a multiple of the spin that lands on a whole turn there (0.15,
+        // 0.2, 0.3, 0.5, 0.8, 1.1)
+        return phases(tile).spin.at(now, spin, (now * spin) % SPIN_WRAP, SPIN_WRAP);
     }
 
     /**
@@ -422,6 +470,8 @@ final class EyeStarFx {
         L.surf2[3] = detail;
         starLook(L, 1, R, 0, 0, -1, 0, 0, 0, time, detail);
         L.loops = false;
+        // the calm sun's boil rate is steady: its phase is the shader clock times it (B-251: the shader reads a phase)
+        L.surf[2] *= time;
         L.reach = Math.min(CLEARANCE, R * 4f);
     }
 
@@ -482,16 +532,18 @@ final class EyeStarFx {
             set3(L.haloTint, lerp(0.78f, 1f, p), lerp(0.86f, 0.42f, p), lerp(1f, 0.16f, p));
         }
         L.star[1] = t;
-        // the helium flash: the warning boils the cells and the star throbs, the hit sends a front across it
+        // the helium flash: the warning boils the cells harder and the face brightens in a slow swell, the hit sends
+        // a front across it. B-251: was a 7x boil and a white throb of 0.08 at 1 to 3.2 Hz (its frequency followed
+        // the ramp, so it raced); now a 3x boil and 0.035 at 0.6 Hz
         if (ev == EyeStarLook.EV_HELIUM_FLASH) {
             if (warnF > 0) {
-                L.surf[2] *= 1 + 6 * warnF;
-                L.fx[2] = 0.08f * warnF * (0.5f + 0.5f * (float) Math.sin(time * (6 + 14 * warnF)));
+                L.surf[2] *= 1 + 2 * warnF;
+                L.fx[2] = HE_WARN_FLASH * warnF * (0.5f + 0.5f * Pulse.beat(time, HE_WARN_PERIOD, 0));
             }
             if (hitAge >= 0 && hitAge < 3) {
                 final float f = hitAge / 3;
                 L.fx[1] = f;
-                L.fx[2] = 0.15f * (1 - f) * (1 - f);
+                L.fx[2] = 0.12f * (1 - f) * (1 - f);
                 set(L.shell, R * (1.02f + 0.22f * (float) Math.sqrt(f)), 0.9f, 0.07f * (1 - f), 4);
                 set3(L.shellCol, 1f, 0.75f, 0.45f);
             }
@@ -521,9 +573,10 @@ final class EyeStarFx {
             set3(L.shellCol, 0.75f, 0.5f, 1f);
         }
         if (warn) {
-            // a warning pulses the magnetosphere at 2 Hz, faster as the flare nears (a shell here cost a quarter of
-            // the budget at the hero view for almost nothing seen)
-            L.flash[1] *= 1.2f + 0.6f * (float) Math.sin(time * 2 * Math.PI * (2 + 2 * warnF));
+            // a warning brightens the magnetosphere, more as the flare nears, breathing slowly (a shell here cost a
+            // quarter of the budget at the hero view for almost nothing seen). B-251: was x(1.2 +- 0.6) at 2 to 4 Hz,
+            // its frequency following the ramp (so it raced); now x(1.15 + 0.2 warnF +- 0.1) at 0.7 Hz
+            L.flash[1] *= 1.15f + 0.2f * warnF + MAG_WARN_SWING * Pulse.beat(time, MAG_WARN_PERIOD, 0);
         }
         // the field: twisted by the unrest of a warning or an overfed star, crackling
         float twist = 0.6f + 2.2f * Math.max(warnLevel, overfed);

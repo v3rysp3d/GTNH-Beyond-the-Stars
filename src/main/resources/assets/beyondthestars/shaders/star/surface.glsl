@@ -13,7 +13,8 @@ uniform vec3 u_Eye;
 uniform vec4 u_Star;
 // xyz the magnetic axis (world, unit), w hot spots 0..
 uniform vec4 u_Mag;
-// x granulation contrast, y granule frequency (cells per radius), z boil rate, w activity (spots, faculae) 0..1
+// x granulation contrast, y granule frequency (cells per radius), z boil phase (the rate integrated on the CPU, B-251:
+// time x rate jumped whenever the rate moved), w activity (spots, faculae) 0..1
 uniform vec4 u_Surf;
 // x limb u1, y limb u2, z exposure, w detail 0..3 (the LOD's octaves)
 uniform vec4 u_Surf2;
@@ -107,7 +108,7 @@ vec4 starSurface(vec3 rd) {
         // ---- main sequence (Sol, Sirius A) and giant (Arcturus, the swell): convection cells
         float fq = u_Surf.y;
         float cont = u_Surf.x;
-        float boil = t * u_Surf.z;
+        float boil = u_Surf.z;
         if (det > 0.5) {
             float fade = 1.0 - smoothstep(0.18, 0.55, fp * fq);
             if (fade > 0.0) {

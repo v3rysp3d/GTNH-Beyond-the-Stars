@@ -18,6 +18,7 @@ import com.nateyburr.beyondthestars.client.render.Blackbody;
 import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.Meshes;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.Pulse;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -334,8 +335,10 @@ final class GalaxyFx {
 
         set(L.gal0, reach, lerp(a.scale, b.scale, m), lerp(a.cot, b.cot, m), lerp(a.a2, b.a2, m));
         set(L.gal1, lerp(a.a4, b.a4, m), lerp(a.floc, b.floc, m), PATTERN_TURNS, lerp(a.young, b.young, m));
-        final float pulse = tile.getPulse();
-        final float throb = 1f + 0.6f * pulse * (float) Math.sin(time * 2.2);
+        // B-251: the disc's light breathes by at most +-6 % at the worst unrest, once in about 4.5 s (was +-0.6 x the
+        // pulse, up to +-7 % on any unrest, at 0.35 Hz)
+        final float sev = Pulse.severity(tile.getPulse(), 0.02f, 0.12f);
+        final float throb = 1f + Pulse.amp(0.06f, sev) * Pulse.wave(time, 4.5, 0);
         set(L.gal2, pattern, time, form, (0.9f + 0.15f * tile.getAux()) * throb);
         set(L.rot, v0, rc, lerp(a.dust, b.dust, m), lerp(a.r0, b.r0, m));
         set(

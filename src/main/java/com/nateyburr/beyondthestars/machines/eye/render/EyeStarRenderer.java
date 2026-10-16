@@ -29,6 +29,7 @@ import com.nateyburr.beyondthestars.client.render.GpuTimer;
 import com.nateyburr.beyondthestars.client.render.Layers;
 import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.Pulse;
 import com.nateyburr.beyondthestars.client.render.RenderClock;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
 import com.nateyburr.beyondthestars.machines.eye.star.EyeTransition;
@@ -136,11 +137,19 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         MAG_OUTER_EDGE = 0.5f, MAG_QUIET_EDGE = 0.3f;
     private static final float MAG_INNER_R = 0xC0 / 255f, MAG_INNER_G = 0x80 / 255f, MAG_INNER_B = 1f;
     private static final float MAG_OUTER_R = 0x7A / 255f, MAG_OUTER_G = 0x4C / 255f, MAG_OUTER_B = 1f;
-    /** An event warning pulses both magnetar shells' edges between these, at 2 Hz (radians per tick). */
-    private static final float WARN_LOW = 0.35f, WARN_HIGH = 0.6f;
-    private static final double WARN_RATE = 2 * Math.PI * 2 / 20;
-    /** The Core Collapse swell throbs at 0.7 Hz (radians per tick, round 4 D4). */
-    private static final double SWELL_RATE = 2 * Math.PI * 0.7 / 20;
+    /**
+     * An event warning breathes both magnetar shells' edges between these, once in {@link #WARN_PERIOD} seconds
+     * (B-251: was 0.35 to 0.6 at 2 Hz).
+     */
+    private static final float WARN_LOW = 0.42f, WARN_HIGH = 0.56f;
+    private static final double WARN_PERIOD = 1.4;
+    /**
+     * The Core Collapse swell's slow throb, period in seconds (B-251: was 0.7 Hz, the radius down by up to 8 % and the
+     * brightness +-25 %; now 0.35 Hz, at most {@link Pulse#SIZE} and {@link Pulse#GLOW}, growing with the swell).
+     */
+    private static final double SWELL_PERIOD = 2.9;
+    /** A lit star's breathing, period in seconds (B-251: was two sines at 1.0 and 2.8 Hz, +-pulse of the radius). */
+    private static final double WOBBLE_PERIOD = 3.2;
     /**
      * Polar beams (neutron star, magnetar, D7): half-width in blocks, additive alpha at the root (0 at the tip), tilt
      * off the spin axis; the tip stands one block inside {@link #CLEARANCE}.
@@ -183,15 +192,19 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
         float radius = star.easedRadius(now);
         float gamma = star.getGamma();
         final float pulse = star.getPulse();
+        final double sec = now / 20.0;
         if (pulse > 0 && kind == EyeStarLook.SWELL) {
-            // D4: a 0.7 Hz throb; the radius only shrinks (by up to a third of the pulse) so the swell's peak never
-            // reaches a block, and the brightness swings by the full pulse
-            final double s = Math.sin(now * SWELL_RATE);
-            radius *= 1f - pulse / 3f * (float) (0.5 + 0.5 * s);
-            gamma *= 1f + pulse * (float) s;
+            // D4, B-251: a slow throb that grows with the swell; the radius only shrinks (by at most Pulse.SIZE) so
+            // the swell's peak never reaches a block, and the brightness swings by at most Pulse.GLOW
+            final float sev = Pulse.severity(pulse, 0.05f, 0.25f);
+            final float s = Pulse.beat(sec, SWELL_PERIOD, 0);
+            radius *= 1f - Pulse.amp(Pulse.SIZE, sev) * (0.5f + 0.5f * s);
+            gamma *= 1f + Pulse.amp(Pulse.GLOW, sev) * s;
         } else if (pulse > 0 && !steadyBody(star, kind)) {
-            // wobble: two incommensurate sines, so an unstable star breathes rather than ticks
-            radius *= 1f + pulse * (float) (0.6 * Math.sin(now * 0.31) + 0.4 * Math.sin(now * 0.87 + 1.3));
+            // B-251: an unstable star breathes by at most Pulse.SIZE of its radius at the worst unrest (was +-pulse:
+            // up to 18 % on a lit star and 55 % on the overfed magnetar, at 1 to 2.8 Hz); the v2 look shows the rest
+            // of its unrest as boiling cells, spots and a wavering corona
+            radius *= 1f + Pulse.amp(Pulse.SIZE, unrest(pulse)) * Pulse.wave(sec, WOBBLE_PERIOD, 0);
         }
         final int rgb = star.getRgb();
         final float r = ((rgb >> 16) & 255) / 255f, g = ((rgb >> 8) & 255) / 255f, b = (rgb & 255) / 255f;
@@ -204,7 +217,7 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             coreAlpha = 1f - f;
             gamma *= 1f + f;
         }
-        final double spin = now * star.getSpin();
+        final double spin = EyeStarFx.spinDegrees(star, now);
         final double cx = x + 0.5, cy = y + 0.5, cz = z + 0.5;
 
         base.translation((float) cx, (float) cy, (float) cz);
@@ -266,6 +279,14 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
             RenderQuality.glCheckEnd(star, glCheck, "the Eye's centre");
             GpuTimer.end();
         }
+    }
+
+    /**
+     * The look's pulse as a severity 0..1 (B-251): the calm floor of every look is 0.02, a lit star's worst unrest
+     * 0.18; the overfed magnetar's 0.55 clamps at 1.
+     */
+    static float unrest(float pulse) {
+        return Pulse.severity(pulse, 0.02f, 0.18f);
     }
 
     /**
@@ -964,12 +985,14 @@ public class EyeStarRenderer extends TileEntitySpecialRenderer {
 
     /**
      * D3: the magnetosphere (4.5 blocks, C080FF) always; on an event warning the outer shell (7 blocks, 7A4CFF) as
-     * well, both edges pulsing between {@link #WARN_LOW} and {@link #WARN_HIGH} at 2 Hz so the warning reads from a
-     * distance; and a flare every 4-8 s running from the magnetosphere out to the outer shell.
+     * well, both edges breathing between {@link #WARN_LOW} and {@link #WARN_HIGH} (B-251: slowly, not at 2 Hz) so the
+     * warning reads from a distance; and a flare every 4-8 s running from the magnetosphere out to the outer shell.
      */
     private static void magnetarShells(Tessellator t, TileEyeStar star, double now, double cx, double cy, double cz) {
         final boolean warn = star.getAux() > 0.5f;
-        final float p = warn ? WARN_LOW + (WARN_HIGH - WARN_LOW) * (float) (0.5 + 0.5 * Math.sin(now * WARN_RATE)) : 0f;
+        final float p = warn
+            ? WARN_LOW + (WARN_HIGH - WARN_LOW) * (0.5f + 0.5f * Pulse.beat(now / 20.0, WARN_PERIOD, 0))
+            : 0f;
         final float innerEdge = warn ? p : MAG_QUIET_EDGE;
         FixedShapes
             .rimShell(t, cx, cy, cz, MAG_INNER_RADIUS, MAG_INNER_R, MAG_INNER_G, MAG_INNER_B, RIM_CENTRE, innerEdge);

@@ -159,7 +159,8 @@ vec4 starHalo(vec3 rd) {
         float rays = clamp(0.45 + u_Corona.x * ((str - 0.45) * 2.6 + (str2 - 0.5) * 0.6), 0.0, 2.0);
         float eq = 0.45 + 0.55 * (1.0 - lat * lat);
         float fade = 1.0 - smoothstep(u_Glow.w * 0.55, u_Glow.w, x);
-        float fl = 1.0 + u_Corona.y * 0.5 * (btsNoise2(u_Noise, vec2(t * 9.0, 3.0)) - 0.5);
+        // B-251: the corona wavers by up to +-12 % with the unrest at about 3 Hz (was +-25 % at 9 Hz)
+        float fl = 1.0 + u_Corona.y * 0.24 * (btsNoise2(u_Noise, vec2(t * 3.0, 3.0)) - 0.5);
         float c = u_Glow.z * rays * eq * pow(max(x, 1.0), -2.4) * fade * fl * smoothstep(0.98, 1.06, x);
         em += u_HaloTint * c * clearFade;
     }

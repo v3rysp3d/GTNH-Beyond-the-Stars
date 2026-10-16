@@ -10,7 +10,7 @@ uniform vec4 u_Lines;
 uniform vec4 u_Lines2;
 // rgb colour, w intensity
 uniform vec4 u_LineCol;
-// x crackle 0..1, y bead speed
+// x crackle 0..1, y bead phase (radians; the bead speed integrated on the CPU, B-251)
 uniform vec4 u_LineFx;
 
 vec3 slShade(vec4 misc) {
@@ -25,13 +25,15 @@ vec3 slShade(vec4 misc) {
     vec3 c = u_LineCol.rgb;
     float a;
     if (u_Lines.x < 0.5) {
-        float beads = 0.6 + 0.4 * sin(s * 40.0 - t * u_LineFx.y + i * 1.7);
+        float beads = 0.6 + 0.4 * sin(s * 40.0 - u_LineFx.y + i * 1.7);
         float crackle = u_LineFx.x;
         float flick = 1.0;
         float spark = 0.0;
         if (crackle > 0.0) {
-            float h = btsHash12(vec2(floor(t * 20.0), i * 7.0));
-            flick = mix(1.0, 0.4 + 1.3 * step(0.45, h), crackle);
+            // B-251: each line's light wavers smoothly, 0.7 to 1.3 at about 4 Hz (was a hard 20 Hz switch between
+            // 0.4 and 1.7); the sparks carry the crackle
+            float h = btsNoise2(u_Noise, vec2(t * 4.0, i * 7.0));
+            flick = mix(1.0, 0.7 + 0.6 * h, crackle);
             float n = btsNoise2(u_Noise, vec2(s * 36.0 + i * 13.0, t * 8.0 + i));
             spark = crackle * pow(n, 6.0) * 7.0;
         }
