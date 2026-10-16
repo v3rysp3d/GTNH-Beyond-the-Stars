@@ -46,7 +46,8 @@ vec3 coFxPlace(vec3 P, vec2 uv, out vec4 info) {
         float sl = length(side);
         side = sl > 1e-5 ? side / sl : vec3(0.0, 1.0, 0.0);
         float fl = coRayFlare(k);
-        float hw = max(u_FxB.z * (1.0 - 0.55 * s) * (1.0 + 1.4 * fl), u_FxD.x * 1.5 * length(p - u_Cam));
+        // a firing ray widens by up to x2.3 at its peak (B-251: was x3.2); its light carries the flare
+        float hw = max(u_FxB.z * (1.0 - 0.55 * s) * (1.0 + 0.8 * fl), u_FxD.x * 1.5 * length(p - u_Cam));
         info = vec4(s, P.x * 2.2, k, fl);
         return p + side * (P.x * hw * 2.2);
     }

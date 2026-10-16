@@ -111,7 +111,8 @@ vec4 galDisc(vec3 rdCam) {
     vec2 bulgeAx = vec2(1.0, 0.0);
     vec3 invBar = vec3(1.0 / max(u_Bulge.z, 0.2), 1.0 / (0.3 * max(u_Bulge.z, 0.2)), 1.0 / (0.22 * max(u_Bulge.z, 0.2)));
     vec2 barAx = vec2(cos(u_Gal2.x), sin(u_Gal2.x));
-    float flashB = 1.0 + 1.2 * u_Ev.z + 4.0 * u_Flash.z;
+    // B-251: the Magnetar Collapse's core flash lifts the bulge x3.5 at its peak (was x5)
+    float flashB = 1.0 + 1.2 * u_Ev.z + 2.5 * u_Flash.z;
     float bulgeAmp = u_Bulge.y * flashB / (rb * 1.7725);
     float barAmp = u_Bulge.w * flashB / (0.6 * max(u_Bulge.z, 0.2) * 1.7725);
     vec3 bulgeCol = mix(vec3(1.0, 0.72, 0.45), vec3(1.0, 0.86, 0.66), 0.4) * mix(vec3(1.0), vec3(1.0, 0.7, 0.95), u_Ev.z);

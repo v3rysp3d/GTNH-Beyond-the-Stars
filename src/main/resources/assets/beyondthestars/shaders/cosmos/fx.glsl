@@ -87,9 +87,10 @@ vec4 coFxShade(vec3 mp, vec4 info) {
     float prof = exp(-x * x / 0.18) + 0.25 * exp(-x * x / 1.2);
     float glow;
     if (ring < 4.5) {
-        // the pulse runs down the collimator stack (top collar first), brighter as the beam spools
+        // the pulse runs down the collimator stack (top collar first), brighter as the beam spools (B-251: between
+        // 0.45 and 1 of the glow, was 0.25 and 1)
         float w = 0.5 + 0.5 * sin(u_FxA.z * BTS_TAU * 2865.0 / CO_HOUR + ring * 1.3);
-        glow = u_FxA.w * (0.25 + 0.75 * w * w * w) * u_FxA.y;
+        glow = u_FxA.w * (0.45 + 0.55 * w * w * w) * u_FxA.y;
     } else {
         glow = u_FxB.w;
     }

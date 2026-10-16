@@ -17,6 +17,7 @@ import com.nateyburr.beyondthestars.client.render.Layers;
 import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.MachineFx;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.Pulse;
 import com.nateyburr.beyondthestars.client.render.RenderClock;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
 import com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown;
@@ -292,7 +293,8 @@ public final class ConduitRender {
         final GlSave save = Layers.emissive();
         try {
             GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
-            final float flick = 0.9f + 0.1f * (float) Math.sin(time * 9.0);
+            // B-251: the heat bloom wavers +-4 % once in 1.6 s (was +-10 % at 1.4 Hz)
+            final float flick = 1f + 0.04f * Pulse.wave(time, 1.6, 0);
             // SMBH (R-19): the Mk IV crown swallows a supermassive jet: white-violet instead of orange
             final boolean eh = mk >= 4;
             // the heat column rising into the cup

@@ -17,6 +17,7 @@ import com.nateyburr.beyondthestars.client.render.Lod;
 import com.nateyburr.beyondthestars.client.render.MachineFrame;
 import com.nateyburr.beyondthestars.client.render.MachineFx;
 import com.nateyburr.beyondthestars.client.render.NoiseTex;
+import com.nateyburr.beyondthestars.client.render.Pulse;
 import com.nateyburr.beyondthestars.client.render.RenderClock;
 import com.nateyburr.beyondthestars.client.render.RenderQuality;
 
@@ -205,7 +206,8 @@ public final class RealityRender {
                 final double pr = polarE(DECK_A, DECK_B, a);
                 s.frame.at(x, y, z, (pr + 2.6) * Math.cos(a), DIFF_Y[j + 1] - 2, (pr + 2.6) * Math.sin(a), P0);
                 final boolean held = (mask >> region & 1) != 0;
-                final float pulse = held ? 0.55f + 0.45f * (float) Math.sin(time * 3.2 + region) : 0.12f;
+                // B-251: a held anchor breathes between 0.5 and 1 once in 3.3 s (was 0.1 to 1 at 0.5 Hz)
+                final float pulse = held ? 0.75f + 0.25f * Pulse.beat(time, 3.3, region) : 0.12f;
                 GlowSprite.draw(P0[0], P0[1], P0[2], 3.2, 1f, 0.18f, 0.16f, pulse * (0.4f + 0.6f * act), 0.2f, 0.5f);
                 // the blade beyond it glows in its region's colour
                 s.frame.at(x, y, z, (pr + 8) * Math.cos(a), DIFF_Y[j + 1], (pr + 8) * Math.sin(a), P0);
