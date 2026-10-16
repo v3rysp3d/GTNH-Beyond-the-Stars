@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-247, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-250, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -279,7 +279,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-247
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-250
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -8518,6 +8518,100 @@ not loaded at all. The paths were read from the code; `gradlew build` passes.
 `BTSControllerGui.benchDump` printed GT's "(last recipe check: ...)" line for every machine, though the Eye's star
 charts and the KEE hide it in the player's GUI. It now honours `shouldDisplayCheckRecipeResult()`. Seen headless: the
 KEE's `/btskerr gui` dump no longer has the empty "(last recipe check: )" line; a Kerr module's still has its own.
+
+### B-248 A server can switch the test commands off [to-do pass]
+
+**Finding.** Fourteen of our nineteen commands are builders, benches or cheats (`/btskit`, `/btswarp`, the instant
+builders, the plant switches), and a server owner had no way to take them away from operators.
+
+**Built.**
+- `enableTestCommands` (new `commands` section of `config/beyondthestars.cfg`, default `true`). Off: `/btskit`,
+  `/btshr`, `/btsbuild`, `/btsclock`, `/btsautoplace`, `/btstooltips`, `/btssupply`, `/btssafety`, `/btsmilestone`,
+  `/btstree`, `/btsquasar`, `/btsconduit`, `/btssmbh` and `/btswarp` are not registered, so they are unknown commands.
+- Always registered: `/btsquests` (INSTALL.md sends owners to `install` and `uninstall all`), `/btsrecipes` (`status`,
+  `sync`, `dump`, `circuits`; INSTALL.md names `sync`), `/btsmigrate`, `/btskerr` and `/btseye`. With the switch off,
+  `/btskerr` runs only `migrate` (docs/migration.md tells owners to use it), `/btseye` only `gates` and `bec` typed
+  exactly so (`/btseye gates 0` would read as a build), and `/btsrecipes` refuses `nac` and `chain` (they raise rigs).
+  A refused verb says the switch is off and what is left; the usage lines and tab completion show only what runs.
+- Default `true`: our own headless benches and every existing setup keep working, the commands are op-only either way,
+  and a flipped default would change a running server at its next update without a word.
+- README's config table and Commands section and INSTALL.md step 5 say it.
+- Axes: server side only (the commands); the key is not a recipe flag, so it is not in the login sync. No NBT, hatch
+  list or element.
+
+**Check** (headless dev server, port 25881). `help <name>` for all nineteen:
+
+| Switch | Result |
+|---|---|
+| on | 19 usage lines |
+| off | 14 "Unknown command"; usage for `/btsmigrate`, `/btsquests`, `/btskerr migrate [x y z]`, `/btseye gates \| /btseye bec`, `/btsrecipes [status \| sync \| dump \| circuits]` |
+
+Off, also: `/btskit eye`, `/btswarp 10`, `/btsautoplace ...` unknown; `/btsquests status`, `/btsrecipes status`,
+`sync` (PASS round trip), `circuits` (every section PASS), `/btseye gates`, `/btseye bec` and `/btskerr migrate 0 64 0`
+("No Kerr Ergosphere Engine controller found there") ran; `/btskerr t1 ...`, `/btskerr release`, `/btseye t2 ...`,
+`/btseye gates 0` and `/btsrecipes chain status ...` refused with the switch line.
+
+### B-249 Every structure error names its hatch, not "hatch_type_..." [to-do pass]
+
+**Finding.** B-243 fixed the Kerr only. The other machines' generic structure errors still printed GT's raw default
+keys: an Eye Sensor socket read "Any of: hatch_type_sensor / hatch_type_directive / Reinforced Spatial Structure
+Casing", the quasar's gas socket "hatch_type_gas", the Homogeny's receptor socket "hatch_type_grb receptor port".
+
+**Cause.** `IHatchElement.getDescriptionLangKey()` defaults to `hatch_type_<name in lower case>`, a key no lang file
+has (GT's `getDisplayName` registers its own fallback, but the error and the NEI hint list use the key). The Kerr's
+and the plant's elements override it; the Eye, Quasar, Crown and Conduit enums, the shared GRB Receptor socket and the
+Reality machines' BEC Hatch and six Region Anchors kept the default.
+
+**Built.**
+- Each overrides `getDescriptionLangKey` (`beyondthestars.hatch.<machine>.<socket>`, the B-243 pattern) and
+  `getDisplayName`; 28 new en_US.lang lines name them GT-style, with the rule in brackets where it matters ("Trim
+  Hatch (a plain input hatch)", "Slot Bus (any input bus)").
+- `checkHatchLangKeys`, part of `gradlew check`: reads the sources, fails if a hatch element has no
+  `getDescriptionLangKey` of its own, or a key it names (an enum's prefix + each constant, or a written-out key) is not
+  in en_US.lang. Now: 12 hatch elements, 43 keys. Tried with one lang line removed and one override renamed: it named
+  both.
+- Axes: the lang file is read on both sides (the walk's error text is made where it is shown). The elements match the
+  same hatches as before; no hatch list, no NBT.
+
+**Check** (headless, a stone block put in a socket, then the console `check` re-walk):
+
+| Socket | Before | After |
+|---|---|---|
+| Eye Sensor `n` | Any of: hatch_type_sensor / hatch_type_directive / Reinforced Spatial Structure Casing | Any of: Stellar Field Sensor Hatch / Directive Hatch / Reinforced Spatial Structure Casing |
+| Quasar gas `h` | Any of: hatch_type_gas / Eddington Wall Casing | Any of: Gas Feed Hatch (any input hatch) / Eddington Wall Casing |
+| Homogeny receptor `g` | Any of: hatch_type_grb receptor port / Galactic Shell Plating | Any of: GRB Receptor Port / Galactic Shell Plating |
+| Kerr bolt bus `b` (B-243) | | Any of: Bolt Bus (a plain input bus) / Extreme Density Space-Bending Casing |
+
+### B-250 Every big machine's auto-place pauses at an unloaded chunk [to-do pass]
+
+**Finding.** B-236 made only the Eye pause. The Kerr, its modules, the Quasar Engine, the Homogeny, the Burst
+Thermaliser Crown, both Reality machines, the conduit elements and the nuclear plant still took StructureLib's -1 at an
+unloaded cell as "piece complete" (B-236's cause). A cell below y 0 or above y 255 counts as unloaded too: a quasar
+with its controller at y 64 reaches y -1.
+
+**Built.**
+- `BTSStructures.autoPlacePaused(machine, piece, a, b, c, env)`: `firstUnloadedCell` on the piece; when it finds one
+  the round places nothing and the player gets "Auto-place paused: the Quasar Engine reaches an unloaded chunk at x
+  41983, z 10003. Stand nearer its controller (it needs its whole footprint loaded to form, too)." (or "...would reach
+  y -1, outside the world."). One line before each `survivalBuildPiece` in the machines above; the plant's eleven
+  pieces go through one `survivalPieceLoaded`. The Eye keeps its own band-named line.
+- `/btsautoplace ... chunks controller` loads only the 3 x 3 chunks round the controller, prints a pause from any
+  machine, and names each socket's first cell.
+- Left as they are: the older single-piece plant buildings (Cascade Hall, Enrichment Train and the rest), a few
+  chunks at most.
+- Axes: build paths only, server side. No NBT, no hatch list, elements unchanged.
+
+**Check** (headless, survival mode):
+
+| Run | Placed | Result |
+|---|---|---|
+| Kerr T1, `chunks controller` | 0, STALLED with the pause line (x 23024, z 10014) | not formed |
+| the same Kerr, whole footprint | 10,892, finished | FORMED |
+| Quasar at y 100, `chunks controller` | 0, STALLED, pause at x 41983, z 10003 | not formed |
+| the same quasar, whole footprint | 51,983, finished | FORMED |
+| Quasar at y 64 | 0, "would reach y -1, outside the world" | not formed |
+| Homogeny T2 / Crown Mk IV, `chunks controller` | 0, pause lines | not formed |
+| Homogeny T2, whole footprint; Eye T3 | 28,597; 27,571 | FORMED; FORMED (T3) |
 
 ## Where the old question numbers went
 
