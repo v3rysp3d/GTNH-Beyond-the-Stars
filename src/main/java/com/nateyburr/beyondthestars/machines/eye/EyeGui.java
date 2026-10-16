@@ -1417,7 +1417,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final StringBuilder sb = new StringBuilder();
         for (MTEEyeOfHarmonyBTS.IntakeRow r : multiblock.intakeRows()) {
             if (sb.length() > 0) sb.append('\n');
-            sb.append(BTSText.lit(r.name))
+            sb.append(r.text)
                 .append((char) 2)
                 .append(r.held)
                 .append((char) 2)
@@ -1709,7 +1709,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             final int i = k;
             list.child(BTSGuiKit.panelBar(w, () -> {
                 final String[] f = part(intake.getStringValue(), i, 2);
-                return f == null ? "" : f[0];
+                return f == null ? "" : BTSText.resolve(f[0]);
             }, () -> {
                 final String[] f = part(intake.getStringValue(), i, 2);
                 if (f == null) return 0;
@@ -1731,7 +1731,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     final String[] f = part(intake.getStringValue(), i, 2);
                     if (f == null) return;
                     final long held = parseLong(f[1]), cap = parseLong(f[2]);
-                    t.addLine(f[0]);
+                    t.addLine(BTSText.resolve(f[0]));
                     t.addLine(
                         EnumChatFormatting.GRAY + tr(
                             cap < 0 ? "beyondthestars.gui.eye.field.buffer.tipnp"

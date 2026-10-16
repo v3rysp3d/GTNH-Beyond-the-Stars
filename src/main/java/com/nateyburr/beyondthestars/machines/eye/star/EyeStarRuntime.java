@@ -4420,10 +4420,11 @@ public final class EyeStarRuntime {
         final int p = Math.max(1, parallel(n));
         for (Map.Entry<Fluid, Long> need : ignitionNeeds(want, p).entrySet()) {
             final long have = host.buffer(need.getKey());
-            final String name = fluidName(need.getKey());
+            // QA-A27: the client names the fluid in its own language
+            final String name = BTSText.fluid(need.getKey());
             c.add(
                 have >= need.getValue(),
-                BTSText.lit(name),
+                name,
                 BTSText.lit(BTSFormat.haveNeed(have, need.getValue()) + " L"),
                 BTSChecklist.frac(have, need.getValue()),
                 BTSText.lang(
@@ -4493,10 +4494,11 @@ public final class EyeStarRuntime {
         }
         for (Map.Entry<Fluid, Long> need : baseRelightNeeds(base).entrySet()) {
             final long have = host.buffer(need.getKey());
-            final String name = fluidName(need.getKey());
+            // QA-A27: the client names the fluid in its own language
+            final String name = BTSText.fluid(need.getKey());
             c.add(
                 have >= need.getValue(),
-                BTSText.lit(name),
+                name,
                 BTSText.lit(BTSFormat.haveNeed(have, need.getValue()) + " L"),
                 BTSChecklist.frac(have, need.getValue()),
                 BTSText.lang(
@@ -4554,7 +4556,7 @@ public final class EyeStarRuntime {
         final long have = host.buffer(wdm);
         c.add(
             have >= need,
-            BTSText.lit(fluidName(wdm)),
+            BTSText.fluid(wdm),
             BTSText.lit(BTSFormat.haveNeed(have, need) + " L"),
             BTSChecklist.frac(have, need),
             BTSText.lang("beyondthestars.gui.eye.batch.charge.tip", BTSFormat.exact(have), BTSFormat.exact(need)));
@@ -4668,10 +4670,11 @@ public final class EyeStarRuntime {
                 continue;
             }
             final long have = host.buffer(need.getKey());
-            final String name = fluidName(need.getKey());
+            // QA-A27: the client names the fluid in its own language
+            final String name = BTSText.fluid(need.getKey());
             c.add(
                 have >= need.getValue(),
-                BTSText.lit(name),
+                name,
                 BTSText.lit(BTSFormat.haveNeed(have, need.getValue()) + " L"),
                 BTSChecklist.frac(have, need.getValue()),
                 BTSText.lang(

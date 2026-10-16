@@ -1,14 +1,18 @@
 package com.nateyburr.beyondthestars.machines.gui;
 
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 /**
  * Controller GUI cleanup (controller-gui-spec.md §4.5, §6): text the SERVER builds and the CLIENT translates. A text is
  * a run of segments joined by {@link #SEG}; a segment is a literal, or a lang reference {@code \u0003key\u0004arg…}
  * whose arguments are literals or, with a {@link #KEY} prefix, lang keys translated too. So every new player-facing
  * word goes through {@code en_US.lang} although the row is decided on the server, and a translated client shows its
- * own language. Fluid and item names are sent already localised (the server's {@code getLocalizedName}, as the GUIs
- * did before), and the runtime sentences the scanner shares stay English (spec Q6).
+ * own language. A fluid goes as its registry name ({@link #fluid}, QA-A27) and the client names it; item names are
+ * sent already localised (the server's {@code getLocalizedName}), and the runtime sentences the scanner shares stay
+ * English (spec Q6).
  */
 public final class BTSText {
 
@@ -20,6 +24,8 @@ public final class BTSText {
     public static final char KEY = '\u0005';
     /** Separates segments. */
     public static final char SEG = '\u0006';
+    /** Prefix of a segment or argument that is a fluid's registry name: the reader's side names it (QA-A27). */
+    public static final char FLUID = '\u000F';
 
     private BTSText() {}
 
@@ -45,11 +51,26 @@ public final class BTSText {
         for (Object a : args) {
             sb.append(ARG);
             final String s = String.valueOf(a);
-            if (!s.isEmpty() && s.charAt(0) == KEY) sb.append(KEY)
+            if (!s.isEmpty() && (s.charAt(0) == KEY || s.charAt(0) == FLUID)) sb.append(s.charAt(0))
                 .append(lit(s.substring(1)));
             else sb.append(lit(s));
         }
         return sb.toString();
+    }
+
+    /**
+     * QA-A27: a fluid's name, as a text of its own or an argument for {@link #lang}: the reader's side looks the fluid
+     * up by its registry name and calls its own {@code getLocalizedName} (GT's material fluids name themselves from
+     * their material, so a lang key alone would not do).
+     */
+    public static String fluid(Fluid fluid) {
+        return fluid == null ? "?" : FLUID + lit(fluid.getName());
+    }
+
+    /** The displayed name of the fluid with this registry name (the name itself if it is not registered). */
+    private static String fluidName(String name) {
+        final Fluid f = FluidRegistry.getFluid(name);
+        return f == null ? name : f.getLocalizedName(new FluidStack(f, 1));
     }
 
     /** An argument for {@link #lang} that the client translates. */
@@ -71,7 +92,7 @@ public final class BTSText {
     /** The displayed string of an encoded text (client side; works on the server too, in its own language). */
     public static String resolve(String enc) {
         if (enc == null || enc.isEmpty()) return "";
-        if (enc.indexOf(LANG) < 0 && enc.indexOf(SEG) < 0) return enc;
+        if (enc.indexOf(LANG) < 0 && enc.indexOf(SEG) < 0 && enc.indexOf(FLUID) < 0) return enc;
         final StringBuilder out = new StringBuilder();
         int start = 0;
         while (start <= enc.length()) {
@@ -84,6 +105,7 @@ public final class BTSText {
     }
 
     private static String segment(String seg) {
+        if (!seg.isEmpty() && seg.charAt(0) == FLUID) return fluidName(seg.substring(1));
         if (seg.isEmpty() || seg.charAt(0) != LANG) return seg;
         final String[] parts = seg.substring(1)
             .split(String.valueOf(ARG), -1);
@@ -91,7 +113,9 @@ public final class BTSText {
         final Object[] args = new Object[parts.length - 1];
         for (int i = 1; i < parts.length; i++) {
             final String a = parts[i];
-            args[i - 1] = !a.isEmpty() && a.charAt(0) == KEY ? StatCollector.translateToLocal(a.substring(1)) : a;
+            args[i - 1] = a.isEmpty() ? a
+                : a.charAt(0) == KEY ? StatCollector.translateToLocal(a.substring(1))
+                    : a.charAt(0) == FLUID ? fluidName(a.substring(1)) : a;
         }
         return StatCollector.translateToLocalFormatted(parts[0], args);
     }

@@ -1569,10 +1569,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         for (EyeRecipe.FluidAmount in : recipe.inputs) {
             if (in.fluid == null || in.amount <= 0) continue;
             final long have = buffer(in.fluid);
-            final String name = in.fluid.getLocalizedName(new FluidStack(in.fluid, 1));
+            // QA-A27: the client names the fluid in its own language
+            final String name = BTSText.fluid(in.fluid);
             c.add(
                 have >= in.amount,
-                BTSText.lit(name),
+                name,
                 BTSText.lit(BTSFormat.haveNeed(have, in.amount) + " L"),
                 BTSChecklist.frac(have, in.amount),
                 BTSText.lang("beyondthestars.gui.eye.planet.input.tip", name, fmt(have), fmt(in.amount)));
@@ -2163,14 +2164,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     /** B-115: one buffer against its intake cap, for the GUI and the scanner. */
     public static final class IntakeRow {
 
-        /** The fluid's localised name (its registry name when the fluid is gone). */
+        /** The fluid's localised name on the server (its registry name when the fluid is gone): scanner, bench. */
         public final String name;
+        /** QA-A27: the name as GUI text the client translates ({@link BTSText#fluid}). */
+        public final String text;
         public final long held;
         /** The litres the sockets fill it to now; -1: not pulled. */
         public final long cap;
 
-        IntakeRow(String name, long held, long cap) {
+        IntakeRow(String name, String text, long held, long cap) {
             this.name = name;
+            this.text = text;
             this.held = held;
             this.cap = cap;
         }
@@ -2195,6 +2199,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             (cap == null ? leftovers : out).add(
                 new IntakeRow(
                     fluid == null ? e.getKey() : fluid.getLocalizedName(new FluidStack(fluid, 1)),
+                    fluid == null ? BTSText.lit(e.getKey()) : BTSText.fluid(fluid),
                     held == null ? 0 : held,
                     cap == null ? -1 : Math.min(BUFFER_CAP, cap)));
         }
