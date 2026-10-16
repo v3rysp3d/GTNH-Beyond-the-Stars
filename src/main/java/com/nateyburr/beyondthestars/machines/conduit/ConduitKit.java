@@ -30,7 +30,6 @@ import com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarGeometry;
 import com.nateyburr.beyondthestars.machines.quasar.QuasarKit;
-import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPort;
 
@@ -609,7 +608,8 @@ public final class ConduitKit {
         else if (m instanceof MTEBurstThermaliserCrown) out.addAll(((MTEBurstThermaliserCrown) m).statusLines());
         else if (m instanceof MTEHatchGRBReceptor) {
             final MTEHatchGRBReceptor r = (MTEHatchGRBReceptor) m;
-            final BurstReading reading = BurstHost.read(java.util.Collections.singletonList(r), r.getHost());
+            // QA-B61: the stored copy; the scanner must not name the host or forget sources
+            final BurstReading reading = r.lastReading();
             out.add(
                 String.format(
                     Locale.ROOT,

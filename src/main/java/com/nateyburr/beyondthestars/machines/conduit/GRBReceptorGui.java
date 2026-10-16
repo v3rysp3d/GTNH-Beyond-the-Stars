@@ -42,11 +42,12 @@ public class GRBReceptorGui extends BTSHatchGui<MTEHatchGRBReceptor> {
 
     @Override
     protected void addReadout(ParentWidget<?> box, PanelSyncManager syncManager) {
-        // one reading a sync: the server reads the port once for all four values (reading() forgets stale sources)
+        // one reading a sync for all four values: the port's stored copy of last second (QA-B61: the GUI never runs
+        // the host's read, which forgets stale sources and starts the post-load warm-up)
         final BurstReading[] last = { BurstReading.EMPTY };
         host = new StringSyncValue(machine::getHost);
         total = new DoubleSyncValue(() -> {
-            last[0] = machine.reading();
+            last[0] = machine.lastReading();
             return Math.round(last[0].total * 100) / 100.0;
         });
         linked = new BooleanSyncValue(() -> last[0].linked());

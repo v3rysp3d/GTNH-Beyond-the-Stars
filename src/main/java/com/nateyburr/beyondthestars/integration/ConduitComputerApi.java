@@ -121,9 +121,13 @@ public final class ConduitComputerApi {
         return out;
     }
 
-    /** {@code bts_receptor.getDelivery()}: total, bySource, linked, link source, paused. */
+    /**
+     * {@code bts_receptor.getDelivery()}: total, bySource, linked, link source, paused, host. The port's stored copy of
+     * last second (QA-B61): reading through {@link BurstHost#read} named the port's host on every call, so a script
+     * polling a port kept a broken host's name alive.
+     */
     public static Map<String, Object> delivery(MTEHatchGRBReceptor r) {
-        final BurstReading reading = BurstHost.read(java.util.Collections.singletonList(r), r.getHost());
+        final BurstReading reading = r.lastReading();
         final Map<String, Object> out = new LinkedHashMap<>();
         out.put("total", reading.total);
         final Map<String, Object> by = new LinkedHashMap<>();

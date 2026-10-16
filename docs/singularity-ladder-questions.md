@@ -8240,6 +8240,31 @@ any later shape change. No shape, quest or cost table changed.
 shape files; `gradlew build` and `export-structures --check` pass. The T1 throat-tip Region Crystal (the other open
 part of QA-B44) waits for its ruling.
 
+### B-233 The receptor's GUI, scanner and OpenComputers no longer change it [to-do pass, QA-B61]
+
+**Finding.**
+- `MTEHatchGRBReceptor.reading()` is the host's per-second read: it forgets stale sources and starts the post-load
+  warm-up. The receptor GUI's sync and the scanner called it too.
+- OpenComputers `bts_receptor.getDelivery()` and the `/btsconduit status` scanner read through `BurstHost.read`, which
+  also calls `poll(host)`. A script polling a port every second kept the name of a broken host alive for ever.
+- `lifetimeBuS` was not saved, although the comment by the port's `markDirty` said it was. The receptor GUI's
+  "Lifetime ... Bu·s received" went back to 0 on every restart.
+
+**Built.**
+- The host read stores its result. `lastReading()` hands that copy to the GUI, the scanner and `getDelivery()`; none of
+  them names the host any more.
+- A port that no host has read for two seconds (a stand-alone port, or its host is not formed) works out its own copy
+  once a second without side effects: it forgets nothing and does not start the warm-up, which stay the host's.
+- `btsReceptorLife` saves the lifetime in tile NBT (axis 2: the port keeps no item NBT, as before).
+- Element chains (axis 4): the streams, the sources a port remembers and the host-side reads are unchanged.
+
+**Check** (headless dev server, port 25871, `/btsconduit rig`).
+- Both stand-alone receptors (out 2 and out 3) read 0.44 Bu/t, linked, from the self-worked copy.
+- With the remote crown's controller removed and the port polled every second (scanner and `statusLines`), the port
+  said "in Burst Thermaliser Crown Mk I" for 3 s, then "in no machine". Before, the scanner's poll kept the name.
+- `btsReceptorLife` read 47.9 and 10.6 before a restart and 48.5 and 10.8 after it (the ports ran a moment longer).
+- OpenComputers itself was not run: `getDelivery()` now reads the same `lastReading()` copy as the scanner.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |

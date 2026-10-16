@@ -21,6 +21,7 @@ import com.cleanroommc.modularui.screen.UISettings;
 import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
@@ -53,6 +54,10 @@ import gregtech.api.render.TextureFactory;
  * gone, is forgotten and felt in full; so is a paused one silent for {@link #FORGET_PAUSED_TICKS} while another running
  * source feeds the port (P4-83). After a load, every remembered source pauses the host for
  * {@link #RESTORE_WARMUP_TICKS} until it arrives again, so a restart never reads one empty second (P4-92).
+ * <p>
+ * <b>QA-B61.</b> Only the host's once-a-second {@link #reading} changes that memory. The GUI, the scanner and
+ * OpenComputers read {@link #lastReading}, the copy that read stored; a port no host reads works out its own copy once
+ * a second without changing anything ({@link #onPostTick}).
  */
 public class MTEHatchGRBReceptor extends MTEHatch {
 
@@ -105,6 +110,12 @@ public class MTEHatchGRBReceptor extends MTEHatch {
     private final Map<String, Rec> recs = new LinkedHashMap<>();
     private String host = "";
     private long lastPoll = Long.MIN_VALUE / 2;
+    /** The last second's reading, for the GUI, the scanner and OC (QA-B61). */
+    private BurstReading lastReading = BurstReading.EMPTY;
+    /** The world tick of the last host {@link #reading}. */
+    private long lastRead = Long.MIN_VALUE / 2;
+
+    // ---- saved: the lifetime counter (tile NBT)
     private double lifetimeBuS;
 
     // ---- saved (positions only, for Q-8 across a restart)
@@ -190,8 +201,10 @@ public class MTEHatchGRBReceptor extends MTEHatch {
     }
 
     /**
-     * Last second at this port: total, per source, linked sources, and Q-8's pause. Also forgets sources that are
-     * running (or gone) but no longer arrive. Server thread.
+     * The host's read, once a second: last second at this port (total, per source, linked sources, and Q-8's pause).
+     * Also forgets sources that are running (or gone) but no longer arrive, starts the post-load warm-up, and stores
+     * the result for {@link #lastReading}. Hosts only ({@link BurstHost#read}); everything else reads
+     * {@link #lastReading}. Server thread.
      */
     public BurstReading reading() {
         final long now = now();
@@ -200,6 +213,22 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             restored = false;
             warmUntil = now + RESTORE_WARMUP_TICKS;
         }
+        final BurstReading out = compute(now, true);
+        lastReading = out;
+        lastRead = now;
+        return out;
+    }
+
+    /**
+     * The last second's reading as the host saw it, or as the port worked it out itself when no host reads it. No side
+     * effects: the GUI, the scanner and OpenComputers use this (QA-B61). Server thread.
+     */
+    public BurstReading lastReading() {
+        return lastReading;
+    }
+
+    /** The reading at {@code now}; {@code commit} lets it forget stale records and sources (the host read only). */
+    private BurstReading compute(long now, boolean commit) {
         final boolean warming = now < warmUntil;
         final BurstReading out = new BurstReading();
         out.ports = 1;
@@ -207,7 +236,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             .iterator(); it.hasNext();) {
             final Rec r = it.next();
             if (now - r.tick > FRESH_TICKS) {
-                it.remove();
+                if (commit) it.remove();
                 continue;
             }
             out.add(r.source, r.bu, r.linkable);
@@ -222,14 +251,14 @@ public class MTEHatchGRBReceptor extends MTEHatch {
                 // QA-B20: never during the warm-up: restored sources carry tick 0, and the first to arrive would
                 // make the port forget the others at once
                 if (!warming && !out.bySource.isEmpty() && now - e.getValue() > FORGET_PAUSED_TICKS) {
-                    it.remove();
+                    if (commit) it.remove();
                     continue;
                 }
                 if (!out.paused) {
                     out.paused = true;
                     out.pausedBy = e.getKey();
                 }
-            } else if (now - e.getValue() > FRESH_TICKS) {
+            } else if (now - e.getValue() > FRESH_TICKS && commit) {
                 it.remove();
             }
         }
@@ -256,7 +285,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         final List<String> out = new ArrayList<>();
         final String h = getHost();
         out.add("GRB Receptor Port" + (h.isEmpty() ? " (in no machine: it only records)" : " in " + h));
-        final BurstReading r = reading();
+        final BurstReading r = lastReading();
         out.add(
             "Last second: " + com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(r.total)
                 + (r.linked() ? ", LINKED" : ""));
@@ -317,6 +346,9 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             benchSecond();
             boolean lit = false;
             final long now = now();
+            // QA-B61: no host read for two seconds (a stand-alone port, or its host is not formed): keep the copy the
+            // GUI shows current without forgetting anything or starting the warm-up, which stay the host's to do
+            if (now - lastRead > FRESH_TICKS) lastReading = compute(now, false);
             for (Rec r : recs.values()) lit |= now - r.tick <= FRESH_TICKS && r.bu > 1e-9;
             aBaseMetaTileEntity.setActive(lit);
             if (lit) aBaseMetaTileEntity.markDirty(); // the remembered sources and lifetime are saved (P4-85)
@@ -358,6 +390,7 @@ public class MTEHatchGRBReceptor extends MTEHatch {
         final NBTTagList list = new NBTTagList();
         for (BurstSource s : known.keySet()) list.appendTag(new NBTTagIntArray(s.toArray()));
         aNBT.setTag("btsReceptorKnown", list);
+        aNBT.setDouble("btsReceptorLife", lifetimeBuS);
     }
 
     @Override
@@ -370,6 +403,8 @@ public class MTEHatchGRBReceptor extends MTEHatch {
             if (s != null) known.put(s, 0L);
         }
         restored = !known.isEmpty(); // the warm-up starts at the first reading (P4-92)
+        final double life = aNBT.getDouble("btsReceptorLife");
+        lifetimeBuS = Double.isFinite(life) ? Math.max(0, life) : 0;
     }
 
     @Override
