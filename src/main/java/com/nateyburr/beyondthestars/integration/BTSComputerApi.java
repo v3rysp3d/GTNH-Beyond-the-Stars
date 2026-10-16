@@ -385,12 +385,37 @@ public final class BTSComputerApi {
             .requestBegin();
     }
 
-    /** P4 {@code bts_eye.setFeed8(v)}: the T8 Ergomatter feed (0-10 L/s per parallel); returns it. */
-    public static double eyeSetFeed8(MTEEyeOfHarmonyBTS eye, double v) {
-        eye.starRuntime()
-            .setF8(v);
-        return eye.starRuntime()
-            .f8Setpoint();
+    /** The answer of the retired {@code setFeed8} (D-55: the Milky Way has no Ergomatter feed). */
+    public static final String NO_FEED8 = "Milky Way has no feed since 0.26.0";
+
+    /**
+     * D-55 {@code bts_eye.getUniverseYield()}: the universe's two yield toggles and what the next batch yields under
+     * them and the slot bus's whitelist (stars: star matters that yield; planets, planetTotal; filtered flags; line).
+     */
+    public static Map<String, Object> eyeUniverseYield(MTEEyeOfHarmonyBTS eye) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        final com.nateyburr.beyondthestars.machines.eye.star.UniverseYield.Selection s = rt.universeSelection();
+        final Map<String, Object> m = new LinkedHashMap<>();
+        m.put("stars", s.starsOn);
+        m.put("planets", s.planetsOn);
+        m.put("starMatters", s.stars.size());
+        m.put("planetCount", s.planets.size());
+        m.put("planetTotal", s.planetTotal);
+        m.put("starsFiltered", s.starsFiltered);
+        m.put("planetsFiltered", s.planetsFiltered);
+        m.put("line", com.nateyburr.beyondthestars.machines.eye.star.UniverseYield.summary(s));
+        m.put(
+            "last",
+            rt.attractor()
+                .lastYield());
+        return m;
+    }
+
+    /** D-55 {@code bts_eye.setUniverseYield(stars, planets)}: sets both toggles; returns the yield line. */
+    public static String eyeSetUniverseYield(MTEEyeOfHarmonyBTS eye, boolean stars, boolean planets) {
+        final EyeStarRuntime rt = eye.starRuntime();
+        rt.setUniverseYield(stars, planets);
+        return com.nateyburr.beyondthestars.machines.eye.star.UniverseYield.summary(rt.universeSelection());
     }
 
     /** P4 {@code bts_eye.setMode("galaxy" | "planets")}: returns the mode now (the GUI's switch). */

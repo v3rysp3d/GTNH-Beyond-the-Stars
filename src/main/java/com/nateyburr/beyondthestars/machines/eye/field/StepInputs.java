@@ -30,8 +30,6 @@ public final class StepInputs {
     public double gHi, gLo, gHalo;
     /** The bursts on the Eye's ports this second, Bu/t, unnormalised (the Magnetar Collapse's shock cancel). */
     public double gEye;
-    /** T8: the Ergomatter feed f8 available this second, L/s per parallel (the setpoint when the buffer is full). */
-    public double f8;
     /** Galaxy mode: companions running beside the galaxy (each adds +0.25 to the noise on P). */
     public int companions;
 

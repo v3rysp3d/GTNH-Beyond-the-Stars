@@ -34,7 +34,6 @@ import com.nateyburr.beyondthestars.machines.eye.field.FieldReadout;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRig;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldRng;
 import com.nateyburr.beyondthestars.machines.eye.field.FieldState;
-import com.nateyburr.beyondthestars.machines.eye.field.GalacticMergerOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
 import com.nateyburr.beyondthestars.machines.eye.field.MagnetarCollapseOverlay;
 import com.nateyburr.beyondthestars.machines.eye.field.Overlay;
@@ -807,17 +806,6 @@ public final class EyeStarRuntime {
         host.markDirty();
     }
 
-    /** P4: the T8 Ergomatter feed setpoint, L/s per parallel (0-10). */
-    public double f8Setpoint() {
-        return galaxy.f8Set;
-    }
-
-    /** P4: sets the T8 feed (the GUI's and OpenComputers' clamping setter). */
-    public void setF8(double v) {
-        galaxy.setF8Quiet(v);
-        host.markDirty();
-    }
-
     /** P4: the mode (galaxy or planets). Changing it puts a lit T7 / T8 field out (the other one lights). */
     public EyeGalaxy.Mode mode() {
         return galaxy.mode;
@@ -1116,6 +1104,8 @@ public final class EyeStarRuntime {
         lastP = p;
         lastFeed = in.feed;
 
+        // D-55: no Raw Star Matter is earned in a cycle that ends inside a transition
+        final boolean transBefore = trans != null;
         final StepResult out = StellarField.step(fs, trans != null ? trans : Overlay.NONE, in);
         lastOut = out;
         // milestones for tier n count only once n is unlocked (plan §7.1): not during the settle or imprint that
@@ -1176,7 +1166,7 @@ public final class EyeStarRuntime {
                 }
                 if (ledger != null) ledger.hsm += out.hsmToDraw;
             }
-            // ---- P4: the T8 Ergomatter feed, the satellite crossing, the countdowns, the planet runs, the links
+            // ---- P4: the satellite crossing, the countdowns, the planet runs, the links
             galaxyAfterStep(T, out, m, p);
             p5AfterStep(out, p);
             watchFlash(fs.tier.n, out);
@@ -1193,6 +1183,9 @@ public final class EyeStarRuntime {
                     // P4: the companions' products (the galaxy's mean Y and r, each companion's own upkeep r)
                     if (out.companionCycle) companionProducts(fs.tier, out);
                 }
+                // D-55: Raw Star Matter at every lit tier (T2-T10, planets mode a quarter), each Eye-minute; T5 and
+                // T10 too, beside their batches (no transition, no companion earns it; T1 makes it as its product)
+                if (!transBefore && !out.transitionSuccess) rawStarMatter(fs.tier, out);
                 if (ledger != null) ledger.cycles++;
                 chargeCycle();
             }
@@ -1275,16 +1268,13 @@ public final class EyeStarRuntime {
      * and the γs normalised by D·m·p; at T7 (and through the Magnetar Collapse) the halo is a test fire, counted for
      * the
      * Heavy Link and dumped from the field; {@code gEye} is the raw Bu/t per parallel (the collapse shock's cancel).
-     * The
-     * T8 feed f₈ is what the buffer can pay this second, capped by the setpoint; companions only in galaxy mode outside
-     * a
-     * transition.
+     * Companions only in galaxy mode outside a transition (D-55: the Milky Way has no feed to measure).
      */
     private void galaxyInputs(TierParams T, double m, int p) {
         final EyeBursts b = galaxy.bursts;
         final boolean bursty = T.burstDriven() || galaxyTransition();
         if (!bursty && T.n != 6) {
-            in.beta = in.gHi = in.gLo = in.gHalo = in.gEye = in.f8 = 0;
+            in.beta = in.gHi = in.gLo = in.gHalo = in.gEye = 0;
             in.companions = 0;
             galaxy.beta = galaxy.gHi = galaxy.gLo = galaxy.gHalo = galaxy.gEye = 0;
             galaxy.demand = galaxy.normDemand = 0;
@@ -1302,11 +1292,6 @@ public final class EyeStarRuntime {
         in.gHalo = (b.halo - dump) / dn;
         if (T.universe) in.gHi = in.gLo = in.gHalo = 0; // W, Λ and V retire at T10
         in.gEye = b.total() / p;
-        in.f8 = 0;
-        if (T.ergoFeed && trans == null) {
-            final Fluid ergo = SLQuasarFluids.ergomatter;
-            in.f8 = ergo == null ? 0 : Math.max(0, Math.min(galaxy.f8Set, host.buffer(ergo) / (m * p)));
-        }
         in.companions = T.galaxy && trans == null ? galaxy.companions.length : 0;
         galaxy.beta = in.beta;
         galaxy.gHi = in.gHi;
@@ -1317,11 +1302,13 @@ public final class EyeStarRuntime {
         galaxy.normDemand = normDemand(T);
     }
 
-    /** The Magnetar Collapse's overfeed (WDM + BDM) and the Galactic Merger's Ergomatter charge, × p, carried. */
+    /**
+     * The Magnetar Collapse's overfeed (WDM + BDM), × p, carried. D-55: the Galactic Merger has no charge; bursts alone
+     * hold it.
+     */
     private void takeCharges(StepResult out, int p) {
         if (out.wdmCharged > 0) take(wdmFluid(), galaxy.owe("charge:wdm", out.wdmCharged * p));
         if (out.bdmCharged > 0) take(bdmFluid(), galaxy.owe("charge:bdm", out.bdmCharged * p));
-        if (out.ergoCharged > 0) take(SLQuasarFluids.ergomatter, galaxy.owe("charge:ergo", out.ergoCharged * p));
     }
 
     /** Takes up to {@code litres} from the buffer; returns what came. */
@@ -1362,15 +1349,12 @@ public final class EyeStarRuntime {
     }
 
     /**
-     * After a lit second that did not fail: the T8 feed drawn, the satellite crossing's events and bonus, the
+     * After a lit second that did not fail: the satellite crossing's events and bonus, the
      * countdowns, planets mode's runs, the companions' set, and the two link milestones.
      */
     private void galaxyAfterStep(TierParams T, StepResult out, double m, int p) {
-        if (out.ergoFed && out.ergoToDraw > 0) {
-            take(SLQuasarFluids.ergomatter, galaxy.owe("feed:ergo", out.ergoToDraw));
-        }
         if (out.crossingWarned) lastEvent = "satellite crossing in 120 s: a dwarf galaxy plunges through the disc (P is"
-            + " pushed for 300 s; stay Stable to catch it; lower the feed at high f8)";
+            + " pushed for 300 s; stay Stable to catch it)";
         if (out.crossingHit) lastEvent = "satellite crossing: the dwarf galaxy is in the disc (300 s)";
         if (out.crossingCaught) {
             if (T.n == 8 && unlockedTier >= 8) milestones.crossings++;
@@ -1626,6 +1610,15 @@ public final class EyeStarRuntime {
      */
     private void p5AfterStep(StepResult out, int p) {
         final EyeAttractor a = attractor;
+        // D-55: the universe's field factor for its planets (restarted when a new universe begins its clock)
+        if (fs.tier.universe && trans == null && fs.uni != null) {
+            if (!out.universeDone && fs.uni.t == 1) {
+                a.uniZf = 0;
+                a.uniZn = 0;
+            }
+            a.uniZf += GalaxyField.PLANET_ZONE_FACTOR[Math.max(0, Math.min(4, out.zone))];
+            a.uniZn++;
+        }
         if (out.flowWarned) {
             final FieldState.Flow f = fs.flow;
             lastEvent = String.format(
@@ -1705,9 +1698,89 @@ public final class EyeStarRuntime {
                 out.universeMeanY,
                 out.universeDawnOk ? ", Cosmic Dawn caught (+12.5 %)" : "");
             logEvent(lastEvent);
+            universeYield(out, p);
             chargeUniverse(p);
         }
         if (out.uniChargedInTick) chargeUniverse(p);
+    }
+
+    /**
+     * D-55: one cycle's Raw Star Matter ({@link RawStarMatterYield}): N × 50,000 L × p × the cycle's mean Y × r_min, a
+     * quarter in planets mode, none at T1 (its product already is Raw Star Matter). Out of the output hatches with a
+     * carry; what they cannot hold is voided, as every Eye output.
+     */
+    private void rawStarMatter(TierParams T, StepResult out) {
+        final double litres = RawStarMatterYield.cycle(T, cycP, out.cycleMeanY, out.cycleRMin);
+        if (litres <= 0) return;
+        emitFluid(rspmFluid(), litres);
+        lastRspm = litres;
+        rspmMade += litres;
+        if (ledger != null) ledger.rspm += litres;
+    }
+
+    /** D-55: the last cycle's Raw Star Matter, litres (0 none yet); the litres made since the controller loaded. */
+    double lastRspm, rspmMade;
+
+    /** D-55: the last cycle's Raw Star Matter byproduct, litres (GUI). */
+    public double lastRawStarMatter() {
+        return lastRspm;
+    }
+
+    /**
+     * D-55: a finished universe's yield ({@link UniverseYield}): the star matter × p × mean Y × r_min, and every
+     * planet the filter lets through at parallel 2^(10 − k), each parallel rolled at (1 − 0.05·R) × the batch's field
+     * factor. Fluids go to the output hatches (overflow voided), items to the ME output bus. No H/He, no EU.
+     */
+    private void universeYield(StepResult out, int p) {
+        final EyeAttractor a = attractor;
+        final UniverseYield.Selection sel = UniverseYield.select(a.uniStars, a.uniPlanets, host.slotBusItems());
+        final double k = Math.max(1, p) * out.universeMeanY * out.universeRMin;
+        double starLitres = 0;
+        for (UniverseYield.Row row : sel.stars) {
+            final Fluid f = row.fluid();
+            if (f == null) continue;
+            final double litres = row.litres * k;
+            emitFluid(f, litres);
+            starLitres += litres;
+        }
+        final double field = a.uniZn > 0 ? a.uniZf / a.uniZn : 1;
+        long runs = 0, ok = 0;
+        for (EyeRecipe r : sel.planets) {
+            final long par = UniverseYield.planetParallel(r);
+            final double chance = UniverseYield.planetChance(r, field);
+            long won = 0;
+            for (long i = 0; i < par; i++) if (PLANET_RNG.nextDouble() < chance) won++;
+            planetOutputs(r, won);
+            runs += par;
+            ok += won;
+        }
+        a.uniZf = 0;
+        a.uniZn = 0;
+        a.lastYield = String.format(
+            Locale.ROOT,
+            "%s: %,.0f L of star matter, %,d of %,d planet parallels succeeded (field factor %.2f)",
+            UniverseYield.summary(sel),
+            starLitres,
+            ok,
+            runs,
+            field);
+        if (ledger != null) {
+            ledger.uniStarMatter += starLitres;
+            ledger.uniPlanetRuns += ok;
+        }
+        logEvent("universe yield: " + a.lastYield);
+    }
+
+    /** D-55: the universe's yield toggles (GUI, OpenComputers); saved with the Eye (tile and item NBT). */
+    public void setUniverseYield(boolean stars, boolean planets) {
+        attractor.uniStars = stars;
+        attractor.uniPlanets = planets;
+        host.markDirty();
+    }
+
+    /** D-55: what the next universe yields under the toggles and the slot bus, as one line (GUI, scanner, OC). */
+    public UniverseYield.Selection universeSelection() {
+        return UniverseYield.select(attractor.uniStars, attractor.uniPlanets, host.slotBusItems());
     }
 
     /** P5: a new universe owes its Dark Matter charge (9,216 L × p); taken now if the buffer holds it. */
@@ -2323,7 +2396,7 @@ public final class EyeStarRuntime {
             if (up.fluid == SLFluids.antipolarizationAgent) creditAgent(got);
             r = Math.min(r, need <= 0 ? 1 : got / (double) need);
         }
-        // P4: fractional upkeep (Triangulum's Molten Magnetar Matter, 7.5 L a cycle × p), drawn with a carry
+        // P4: fractional upkeep, drawn with a carry (none since D-55: Triangulum's Magnetar Matter is gone)
         for (Map.Entry<Fluid, Double> up : star.exactUpkeep.entrySet()) {
             r = Math.min(r, drawExact("up:", up.getKey(), up.getValue() * p));
         }
@@ -2519,7 +2592,7 @@ public final class EyeStarRuntime {
     /**
      * D-54: the buffered litres a base relight needs at parallel {@code p}: its charge (T4: the Core Collapse's HSM
      * neutron seed, 5,000 L; T7: the Magnetar Collapse's charge, WDM + BDM; T10: one universe's Dark Matter) PLUS
-     * the new star's first cycle (upkeep, T7's fractional Magnetar Matter, T4's HSM feed at {@code feed} for one
+     * the new star's first cycle (upkeep, a fractional upkeep if any, T4's HSM feed at {@code feed} for one
      * cycle), so the relit star never starts at r = 0. All × p. T4 also takes one Stellar Ignition Charge (an item).
      */
     public static Map<Fluid, Long> baseRelightNeeds(StarDef base, int p, double feed) {
@@ -2542,7 +2615,7 @@ public final class EyeStarRuntime {
         for (Map.Entry<Fluid, Double> up : base.exactUpkeep.entrySet()) {
             if (up.getKey() != null) out.merge(up.getKey(), (long) Math.ceil(up.getValue() * p), Long::sum);
         }
-        if (base.feed != null && !base.tier.ergoFeed) {
+        if (base.feed != null) {
             out.merge(base.feed, (long) Math.ceil(feed * StellarField.CYCLE_SECONDS * p), Long::sum);
         }
         return out;
@@ -2702,9 +2775,9 @@ public final class EyeStarRuntime {
      * same time); in planets mode the slot bus's planets, {@link #PLANET_INTAKE_RUNS} runs each at full parallel,
      * added up (the slots run at once).</li>
      * </ul>
-     * A star's share includes its fractional upkeep (T7's Molten Magnetar Matter, {@link StarDef#exactUpkeep}) and, for
-     * the T8 Ergomatter feed, INTAKE_CYCLES cycles at {@link GalaxyField#F8_MAX}. The galaxy transitions' charges
-     * (the Magnetar Collapse's WDM + BDM overfeed, the Galactic Merger's Ergomatter) come in through
+     * A star's share includes its fractional upkeep ({@link StarDef#exactUpkeep}; none since D-55) and T4's HSM feed
+     * for INTAKE_CYCLES cycles at its maximum. The galaxy transitions' charges (the Magnetar Collapse's WDM + BDM
+     * overfeed; D-55: the Galactic Merger has none) come in through
      * {@link #transitionNeeds}. Fluids not listed are not pulled at all (they stay in the hatch or the network). The
      * controller adds the planet in the slot. Buffers already above their cap (worlds from before B-108) keep what they
      * hold and are only drawn
@@ -2839,7 +2912,7 @@ public final class EyeStarRuntime {
         for (EyeRecipe.FluidAmount up : def.upkeep) {
             cap.merge(up.fluid, up.amount * p * INTAKE_CYCLES, Math::max);
         }
-        // P4: fractional upkeep (T7's Molten Magnetar Matter 7.5 L a cycle × p)
+        // P4: fractional upkeep (none since D-55)
         for (Map.Entry<Fluid, Double> up : def.exactUpkeep.entrySet()) {
             if (up.getKey() != null) {
                 cap.merge(up.getKey(), sat(Math.ceil(up.getValue() * p) * INTAKE_CYCLES), Math::max);
@@ -2851,9 +2924,8 @@ public final class EyeStarRuntime {
             }
         }
         if (def.feed != null) {
-            // T4's HSM feed at FEED_MAX; P4's T8 Ergomatter feed at F8_MAX (f8 · p litres a second, cycles at the dial)
-            final double rate = def.tier.ergoFeed ? GalaxyField.F8_MAX : FEED_MAX;
-            cap.merge(def.feed, (long) Math.ceil(rate * StellarField.CYCLE_SECONDS * p) * INTAKE_CYCLES, Math::max);
+            // T4's HSM feed at FEED_MAX (feed · p litres a second, cycles at the dial)
+            cap.merge(def.feed, (long) Math.ceil(FEED_MAX * StellarField.CYCLE_SECONDS * p) * INTAKE_CYCLES, Math::max);
         }
         for (EyeRecipe.FluidAmount ch : def.charge) {
             cap.merge(ch.fluid, ch.amount * p * INTAKE_CHARGES, Math::max);
@@ -3132,12 +3204,7 @@ public final class EyeStarRuntime {
      * neutron star's 144 L × p is reserved from it ({@link #collapseSpaceTimeReserve}).
      */
     public Map<Fluid, Long> transitionNeeds(EyeTransition.Type type) {
-        return transitionNeeds(
-            type,
-            Math.max(1, parallel(type.from)),
-            destParallel(type.from + 1),
-            feedSet,
-            galaxy.f8Set);
+        return transitionNeeds(type, Math.max(1, parallel(type.from)), destParallel(type.from + 1), feedSet);
     }
 
     /**
@@ -3145,16 +3212,13 @@ public final class EyeStarRuntime {
      * {@code feed} (the NEI transition page uses p = 1 and the default feed).
      */
     public static Map<Fluid, Long> transitionNeeds(EyeTransition.Type type, int pd, double feed) {
-        return transitionNeeds(type, pd, pd, feed, GalaxyField.F8_DEFAULT);
+        return transitionNeeds(type, pd, pd, feed);
     }
 
     /** The Magnetar Collapse's charge per parallel: 300 s of WDM 61.44 + BDM 15.36 L/s. */
     public static final long MC_WDM = Math
         .round(MagnetarCollapseOverlay.WDM_PER_SECOND * MagnetarCollapseOverlay.OVERFEED_SECONDS),
         MC_BDM = Math.round(MagnetarCollapseOverlay.BDM_PER_SECOND * MagnetarCollapseOverlay.OVERFEED_SECONDS);
-    /** The Galactic Merger's Ergomatter charge per parallel: 1,800 s at 5 L/s. */
-    public static final long GM_ERGO = Math
-        .round(GalacticMergerOverlay.CHARGE_PER_SECOND * GalacticMergerOverlay.DURATION);
     /** P4: the shard halo's Receptor Ports the Galactic Merger needs (all of them, §5.3). */
     public static final int HALO_PORTS = 8;
     /** P5: the universal crown's Receptor Ports Inflation needs (all 12, §6.3). */
@@ -3168,9 +3232,10 @@ public final class EyeStarRuntime {
 
     /**
      * As above with P4's two: the charge of a galaxy transition is taken per second at the parallel of the object it
-     * leaves ({@code ps}); the new object's first cycle at its own ({@code pd}); {@code f8} is the T8 feed setpoint.
+     * leaves ({@code ps}); the new object's first cycle at its own ({@code pd}). D-55: the Galactic Merger needs no
+     * fluid (bursts alone hold it).
      */
-    public static Map<Fluid, Long> transitionNeeds(EyeTransition.Type type, int ps, int pd, double feed, double f8) {
+    public static Map<Fluid, Long> transitionNeeds(EyeTransition.Type type, int ps, int pd, double feed) {
         final Map<Fluid, Long> need = new LinkedHashMap<>();
         final StarDef dest = StarDef.byKey(type.dest);
         switch (type) {
@@ -3179,8 +3244,7 @@ public final class EyeStarRuntime {
                 need.merge(bdmFluid(), MC_BDM * ps, Long::sum);
                 break;
             case GALACTIC_MERGER:
-                need.merge(SLQuasarFluids.ergomatter, GM_ERGO * ps, Long::sum);
-                break;
+                break; // D-55: no Ergomatter charge
             case INFALL:
                 need.merge(SLQuasarFluids.superdenseErgomatter, INFALL_SDE * ps, Long::sum);
                 break;
@@ -3212,8 +3276,7 @@ public final class EyeStarRuntime {
                 need.merge(up.getKey(), (long) Math.ceil(up.getValue() * pd), Long::sum);
             }
             if (dest.feed != null) {
-                final double rate = dest.tier.ergoFeed ? f8 : feed;
-                need.merge(dest.feed, (long) Math.ceil(rate * StellarField.CYCLE_SECONDS * pd), Long::sum);
+                need.merge(dest.feed, (long) Math.ceil(feed * StellarField.CYCLE_SECONDS * pd), Long::sum);
             }
         }
         return need;
@@ -3968,7 +4031,7 @@ public final class EyeStarRuntime {
             final int p = Math.max(1, cycP > 0 ? cycP : parallel(star.n()));
             for (EyeRecipe.FluidAmount up : star.upkeep) if (host.buffer(up.fluid) < up.amount * p) return true;
             if (star.feed != null && host.buffer(star.feed)
-                < (long) Math.ceil((star.tier.ergoFeed ? galaxy.f8Set : feedSet) * StellarField.CYCLE_SECONDS * p))
+                < (long) Math.ceil(feedSet * StellarField.CYCLE_SECONDS * p))
                 return true;
             for (Map.Entry<Fluid, Double> up : star.exactUpkeep.entrySet()) {
                 if (host.buffer(up.getKey()) < Math.ceil(up.getValue() * p)) return true;
@@ -4243,10 +4306,26 @@ public final class EyeStarRuntime {
         }
         legacyPay.clear();
         lastEvent = sb
-            .append("owed (a T5 salvage made while unformed or picked up, or a run started on an older version)")
+            .append(
+                "owed (a T5 salvage made while unformed or picked up, a run started on an older version, or a"
+                    + " buffer the Eye no longer takes since 0.26.0)")
             .toString();
         com.nateyburr.beyondthestars.BeyondTheStars.LOG.info("[BTS] Eye {}", lastEvent);
         host.markDirty();
+    }
+
+    /**
+     * D-55: a buffer the Eye no longer takes (Ergomatter, Molten Magnetar Matter in a save from before 0.26.0) is owed
+     * back: paid to the output hatches with the other owed outputs once the Eye stands formed ({@link #payLegacy}).
+     */
+    public void oweRetired(Fluid fluid, long litres) {
+        if (fluid == null || litres <= 0) return;
+        legacyPay.merge(fluid.getName(), litres, Long::sum);
+        com.nateyburr.beyondthestars.BeyondTheStars.LOG.info(
+            "[BTS] Eye: {} L of {} in the buffers is no longer an Eye input (0.26.0); it is paid to the output hatches"
+                + " once the Eye is formed",
+            litres,
+            fluid.getName());
     }
 
     /** The owed outputs, e.g. "960 L Black Dwarf Matter". */
@@ -4706,9 +4785,7 @@ public final class EyeStarRuntime {
         if (unlockedTier >= 6 || (star != null && star.n() >= 6)) {
             out.add(
                 "Galaxy: mode " + galaxy.mode.key
-                    + ", T8 feed setpoint "
-                    + f2(galaxy.f8Set)
-                    + " L/s, companions "
+                    + ", companions "
                     + companionNames()
                     + "; receptor ports rail-high "
                     + host.receptorPorts(0)
@@ -4859,13 +4936,28 @@ public final class EyeStarRuntime {
             }
             out.add(t.toString());
         }
+        if (RawStarMatterYield.perMinute(T) > 0) {
+            out.add(
+                String.format(
+                    Locale.ROOT,
+                    "Raw Star Matter byproduct: %,.0f L x p x mean Y x r per Eye-minute%s; last cycle %,.0f L, %,.0f L"
+                        + " since this controller loaded",
+                    RawStarMatterYield.perMinute(T),
+                    T.planets() ? " (planets mode: a quarter)" : "",
+                    lastRspm,
+                    rspmMade));
+        }
+        if (T.universe) {
+            out.add("Universe yield: " + UniverseYield.summary(universeSelection()));
+            if (!attractor.lastYield.isEmpty()) out.add("  last universe: " + attractor.lastYield);
+        }
         if (T.n >= 6 || galaxyTransition()) galaxyLines(out, T);
         if (rig != null) out.add(
             "Debug rig: " + rig.name()
                 .toLowerCase(Locale.ROOT) + " (replaces the Field sockets)");
     }
 
-    /** P4 scanner lines: the bursts, β and the γs, the link, the T8 feed and crossing, companions, slots. */
+    /** P4 scanner lines: the bursts, β and the γs, the link, the T8 crossing, companions, slots. */
     private void galaxyLines(List<String> out, TierParams T) {
         out.add(galaxy.bursts.line());
         if (T.burstDriven() || galaxyTransition()) out.add(galaxy.inputLine());
@@ -4888,15 +4980,12 @@ public final class EyeStarRuntime {
         if (T.n >= 8 || galaxy.bursts.supermassiveSource() || milestones.smLinkBest > 0) {
             out.add(supermassiveLinkLine());
         }
-        if (T.ergoFeed) {
+        if (T.shear) {
             final int[] c = crossings();
             out.add(
                 String.format(
                     Locale.ROOT,
-                    "Ergomatter feed f8: setpoint %.2f L/s, this second %.2f L/s per parallel; satellite crossings %d"
-                        + " (caught %d)%s",
-                    galaxy.f8Set,
-                    in.f8,
+                    "Tidal shear drift 2.0/s (no feed since 0.26.0); satellite crossings %d (caught %d)%s",
                     c[0],
                     c[1],
                     crossingCountdown() >= 0 ? ", NEXT IN " + crossingCountdown() + " s"
@@ -4971,6 +5060,9 @@ public final class EyeStarRuntime {
         public double product, hsm;
         /** P5: Gated Pellets drawn. */
         public double pellets;
+        /** D-55: Raw Star Matter made (every tier), the universes' star matter and their planet parallels won. */
+        public double rspm, uniStarMatter;
+        public long uniPlanetRuns;
         public int hash = FNV_OFFSET;
         /** Core Collapse: begin second (−1 none), the bounce, the SpaceTime buffer at the begin and at the bounce. */
         public long collapseBeginT = -1;

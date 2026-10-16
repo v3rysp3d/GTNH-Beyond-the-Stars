@@ -3,9 +3,9 @@
 // The P4 block of the quasar play prototype, verbatim (the reference for the Java quasar / conduit / Eye T7-T8
 // maths). It runs on top of the shared ENGINE block in tools/fixtures/star-lifecycle-engine.js.
 // source: designs/quasar-p4-prototype.html (design repo GTNH-Addons)
-// source-sha1: 062f72c4602902ae922e914ee7affb509c958148
+// source-sha1: 1c4b13da07591d0ddf19bffb4490b55e2687234b
 // engine-sha1: c28c22097debf085fd21226aed3f656c7706d04b
-// p4-sha1: dd436d95d11c01575d0df2d495e6d4d6dae3e4c0
+// p4-sha1: 5b5943f839b5742c0969668ebdae21bc8f6e0c69
 /*P4-START*/
 /* P4 extension: Eye T7/T8 tiers, the Magnetar Collapse and Galactic Merger, the Quasar Engine disc, and the
    Einstein-Rosen Conduit. Uses the D-49 engine above through its additive hooks only (T.d, T.bx, T.sigK, T.perSec,
@@ -29,7 +29,10 @@ const rigLines = (t8,planets) => planets ? [
   'J2 rail-high : rail-low ← sensor W, analog, window ±w, k = 2',
   'Eye Space trim: Field bit 1 (P > +5) → Space valve, 10 units of 100 L/s (one binary valve, no proportional control)',
   'Collapse assist (T6 → T7): Transition bit 3 (purge now) → quasar purge; bit 4 (hold) blocks the regulator purge'];
-function f8of(S){ return S.trans && S.trans.kind==='gm' ? 5 : S.cfg.f8; }
+// D-55 (2026-10-17): the Milky Way has no Ergomatter feed. Λ drifts at the old default feed's rate, 0.4 × 5 = 2.0 per s,
+// and the product is the old default output; nothing is drawn for it. The constant is a tuning knob.
+const F8=5;
+function f8of(S){ return F8; }
 
 /* ---- companions (multi-object) and planets mode, ruling 2026-10-13 ---- */
 // A companion is an earlier tier's object run inside the galaxy's field. It pays its own upkeep, runs at parallel
@@ -68,7 +71,7 @@ function galaxyTier(n,comp){
       if(tr && tr.kind==='mc' && tr.phase===3){ const rho=Math.min(1,tr.st/600); return {P:3*(b-rho), W:1.5*S.prec*rho}; }
       return {P:3*(b-1), W:1.5*S.prec}; },
     bx:(S,k)=> k==='W' ? 6*(S.g.gLo-S.g.gHi) : 0,
-    prod:{name:'Ergomatter',base:600}, up:[['Magnetar Matter',7.5],...cu],
+    prod:{name:'Ergomatter',base:600}, up:cu,   // D-55: no Magnetar Matter upkeep; GRB stability alone holds it
     ctrl:E=>spaceRig(E), rig:()=>rigLines(false),
     perSec:S=>{ S.cyc.bSum+=S.g.beta; },
     cycOut:(S,cy,mY)=>{ if(S.trans) return 0; compOut(S,cy,mY); return 600*mY*cy.rMin*Math.min(cy.bSum/Math.max(1,cy.n),1.5); }});
@@ -80,10 +83,10 @@ function galaxyTier(n,comp){
     prod:{name:'Superdense Ergomatter',base:0}, up:cu,
     tde:{every:[1800,3600], warn:120, dur:300},
     ctrl:E=>spaceRig(E), rig:()=>rigLines(true),
-    perSec:(S,m)=>{ S.cyc.bSum+=S.g.beta; if(!S.trans){ const f=S.cfg.f8*m; add(S.L.up,'Ergomatter',f); S.cyc.f8+=f; } tdePost(S); },
+    perSec:(S,m)=>{ S.cyc.bSum+=S.g.beta; if(!S.trans) S.cyc.f8+=F8*m; tdePost(S); },   // D-55: drawn from nowhere
     cycOut:(S,cy,mY)=>{ if(S.trans) return 0; compOut(S,cy,mY); return T8_RATIO*cy.f8*mY*cy.rMin; }});
 }
-const T8_RATIO = 1.0;   // revision 2026-10-13: Eye T8 makes Superdense Ergomatter 1 : 1 from the Ergomatter fed (was 0.5)
+const T8_RATIO = 1.0;   // D-55: Superdense Ergomatter 300 L a cycle × Y × r (the old 1 : 1 output of the default 5 L/s feed)
 function planetsTier(n){
   return {n, star:`${PLANET_SLOTS[n]} planets`, stage:'Planets mode: a calmer, lighter field (one gauge, no events)', gauges:['P'], sig:0.5, sigK:{P:0.5}, g:{P:-0.01},
     d:S=>({P:1*(S.g.beta-1)}), trims:{Space:{cap:10,fx:{P:-2}}}, prod:{name:'Planet runs',base:0}, up:[], slots:PLANET_SLOTS[n],
@@ -99,19 +102,19 @@ function nucleusFailText(S,reason){
     return `Planets-mode field breached: ${reason}. The planet runs in flight fail and their inputs are spent. Nothing else is lost: Relight re-forms the field.`; }
   return S.tier===7
     ? `Triangulum lost: ${reason}. The galaxy's nucleus is gone. In the mod you rerun the Magnetar Collapse from a lit magnetar (charge again, no core); here Relight skips it.`
-    : `The Milky Way is lost: ${reason}. In the mod you rerun the Galactic Merger from a lit Triangulum (charge again, no core); here Relight skips it.`;
+    : `The Milky Way is lost: ${reason}. In the mod you rerun the Galactic Merger from a lit Triangulum (no core); here Relight skips it.`;
 }
 function transFailText(S,reason){
   const tr=S.trans;
   if(tr.kind==='mc') return `Magnetar Collapse failed (${reason}). The magnetar is lost and the charge (WDM 18,432 L + BDM 4,608 L) is spent. The Intergalactic Upgrade Core stays in escrow.`;
-  return `Galactic Merger failed (${reason}). Triangulum is lost and the Ergomatter charge is spent. The Supermassive Seed Core stays in escrow.`;
+  return `Galactic Merger failed (${reason}). Triangulum is lost. The Supermassive Seed Core stays in escrow.`;
 }
 /* ---- satellite crossing (T8): exact 120 s countdown, a decaying P kick for 300 s, caught if Stable or better throughout.
    This was the T8 tidal disruption event; the TDE proper moves to T9, whose object is the central black hole. ---- */
 function tdeTick(S,E,q){
   const td=S.tde; if(!td || S.trans) return 0;
   const T=TIERS[S.tier];
-  if(!td.warned && td.left===0 && S.t>=td.next-T.tde.warn){ td.warned=true; S.mark|=1; log(S,'Event channel: satellite crossing in 120 s (a dwarf galaxy reaches the disc plane). Ready the Space rig, or lower the feed.','warn'); }
+  if(!td.warned && td.left===0 && S.t>=td.next-T.tde.warn){ td.warned=true; S.mark|=1; log(S,'Event channel: satellite crossing in 120 s (a dwarf galaxy reaches the disc plane). Ready the Space rig.','warn'); }
   if(td.warned && td.left===0 && S.t>=td.next){ td.left=T.tde.dur; td.tau=0; td.ok=true; td.warned=false; S.mark|=2; log(S,'Satellite crossing: the dwarf galaxy plunges through the disc. Its gas heats P by 12·(1 + τ/10)^(−5/3) per s for 300 s.','warn'); }
   if(td.left>0) E.P=(E.P||0)+12*Math.pow(1+td.tau/10,-5/3)*q;
   return 0;
@@ -122,7 +125,7 @@ function tdePost(S){
   td.tau++; td.left--;
   if(td.left===0){
     td.n++;
-    if(td.ok){ const y=T8_RATIO*S.cfg.f8*60*S.cfg.r; td.caught++; add(S.L.prod,'Superdense Ergomatter',y); S.mark|=8;
+    if(td.ok){ const y=T8_RATIO*F8*60*S.cfg.r; td.caught++; add(S.L.prod,'Superdense Ergomatter',y); S.mark|=8;
       log(S,`Crossing caught: Stable or better for all 300 s. Bonus cycle +${fmtL(y)} Superdense Ergomatter.`,'ok'); }
     else log(S,'Crossing missed: the field left Stable during the 300 s. No bonus.','warn');
     td.next=S.t+1+uni(S,TIERS[8].tde.every);
@@ -174,7 +177,7 @@ function transTick(S){
     return;
   }
   // Galactic Merger
-  if(tr.st<1800) add(L.up,'Ergomatter',5);   // QA-A15: the 9,000 L charge feeds through the event only, not the settle
+  // D-55: no Ergomatter charge; the merger is held by bursts alone (demand 1.5 → 6 Bu/t)
   tr.st++;
   if(tr.st===600 && S.tier===7){ S.tier=8; S.x.L=0; S.tde=null; log(S,'First pass: the second nucleus is bound. Λ (tidal shear) appears at 0, its drift ramping in over 600 s.','gold'); }
   if(tr.st>1800){
@@ -192,7 +195,7 @@ function beginGM(S){
   const sg=()=>S.rng()<0.5?-1:1;
   S.trans={kind:'gm', phase:1, st:0, streak:0, passes:[600,1200,1800], signs:[sg(),sg(),sg()]};
   S.ev={next:1e15,left:0,warned:false,sign:1}; S.tde=null;
-  log(S,'Galactic Merger begun: Supermassive Seed Core in escrow. Demand ramps 1.5 → 6 Bu/t over 1,800 s; the Ergomatter charge feeds at 5 L/s. Three warned pericentre passes.','gold');
+  log(S,'Galactic Merger begun: Supermassive Seed Core in escrow. Demand ramps 1.5 → 6 Bu/t over 1,800 s; bursts alone hold it. Three warned pericentre passes.','gold');
 }
 function demandNow(S){
   const tr=S.trans;
@@ -348,7 +351,7 @@ function newWorld(tier,CFG,QC,K){
 /* ---- Directive Hatches (28127): 4-bit codes, read as one analog strength (Degasser style) or one bit per face ---- */
 function readyToBegin(W){ const S=W.S, C=W.CFG; if(S.trans || S.state!=='LIT' || S.zone<0 || S.zone>1) return false;
   if(S.tier===6) return W.link.done && C.coreMC && C.bufMC;
-  if(S.tier===7 && !TIERS[7].slots) return W.link8.done && C.coreGM && C.bufGM;
+  if(S.tier===7 && !TIERS[7].slots) return W.link8.done && C.coreGM;   // D-55: no Ergomatter charge to buffer
   return false; }
 // Transition set (bit n has value 2^(n−1)): bit 1 ready to begin, bit 2 running, bit 3 purge now, bit 4 hold the regulator's purges
 function transBits(W){

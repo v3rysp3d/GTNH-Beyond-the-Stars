@@ -54,6 +54,8 @@ import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
+import com.nateyburr.beyondthestars.fluids.SLFluids;
+import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
@@ -2425,6 +2427,22 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         }
     }
 
+    /**
+     * D-55 (0.26.0): the Eye no longer takes Ergomatter (the Milky Way's feed, the Galactic Merger's charge) or Molten
+     * Magnetar Matter (Triangulum's upkeep). What an older save holds of them moves, once, to the owed outputs that
+     * are paid to the output hatches as soon as the Eye stands formed ({@link EyeStarRuntime#oweRetired}), so nothing
+     * is lost silently. Only a fluid no recipe of the Eye takes any more is moved.
+     */
+    private void retireBuffers() {
+        for (Fluid fluid : new Fluid[] { SLQuasarFluids.ergomatter, SLFluids.magnetarMatter }) {
+            if (fluid == null || EyeRecipeRegistry.isInputFluid(fluid)) continue;
+            final long held = buffer(fluid);
+            if (held <= 0) continue;
+            buffers.remove(fluid.getName());
+            runtime.oweRetired(fluid, held);
+        }
+    }
+
     /** Debug/creative: fill every Eye input buffer to {@code litres}. */
     public void debugFillBuffers(long litres) {
         for (Fluid fluid : EyeRecipeRegistry.inputFluids()) {
@@ -2780,6 +2798,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
             }
         }
+        retireBuffers();
         autoOff = aNBT.getString("btsEyeAutoOff");
         footprintBands = aNBT.getInteger("btsEyeFootprint");
         lastRun = aNBT.getString("btsEyeLastRun");

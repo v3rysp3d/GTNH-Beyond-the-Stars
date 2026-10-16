@@ -72,7 +72,8 @@ import gregtech.api.modularui2.GTGuiTextures;
  * <p>
  * P4 (merged from master, B-115): the galaxy tiers' rows on T6-T8 (the bursts on the GRB Receptor Ports and beta
  * against the demand, the Stability / Heavy Link streak, the event countdowns, the planet slots or companions), the T6
- * / T7 milestones and transition conditions, and a Galaxy panel (mode, the T8 Ergomatter feed f8, Begin). B-115 also
+ * / T7 milestones and transition conditions, and a Galaxy panel (mode, Begin; D-55: at T10 the universe's two yield
+ * toggles in place of the retired T8 Ergomatter feed). B-115 also
  * puts each buffer against its intake cap (B-108) on the Field panel.
  */
 public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
@@ -129,7 +130,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         syncManager.syncValue("eyeTrims", new StringSyncValue(this::trimLines));
         // B-115: each buffer against its intake cap (B-108), for the Field panel
         syncManager.syncValue("eyeIntake", new StringSyncValue(this::intakeLines));
-        // ---- P4: the Galaxy panel (T7 / T8: mode, the Ergomatter feed f8, Begin)
+        // ---- P4: the Galaxy panel (T7 / T8: mode, Begin; D-55: T10's yield toggles)
         syncManager.syncValue(
             "eyePlanets",
             new BooleanSyncValue(
@@ -137,7 +138,26 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 v -> rt().setMode(v ? EyeGalaxy.Mode.PLANETS : EyeGalaxy.Mode.GALAXY)).allowC2S());
         // QA-A16: the mode toggle asks for a second click while switching would put a lit field out
         syncManager.syncValue("eyeModeLive", new BooleanSyncValue(() -> rt().modeSwitchPutsOut()));
-        syncManager.syncValue("eyeF8", new DoubleSyncValue(() -> rt().f8Setpoint(), v -> rt().setF8(v)).allowC2S());
+        // D-55: the universe's yield toggles (shown at T10: the burning Universe or its chart in the slot)
+        syncManager.syncValue(
+            "eyeUniStars",
+            new BooleanSyncValue(
+                () -> rt().attractor()
+                    .universeStars(),
+                v -> rt().setUniverseYield(
+                    v,
+                    rt().attractor()
+                        .universePlanets())).allowC2S());
+        syncManager.syncValue(
+            "eyeUniPlanets",
+            new BooleanSyncValue(
+                () -> rt().attractor()
+                    .universePlanets(),
+                v -> rt().setUniverseYield(
+                    rt().attractor()
+                        .universeStars(),
+                    v)).allowC2S());
+        syncManager.syncValue("eyeUni", new BooleanSyncValue(this::universeShown));
         syncManager.syncValue("eyeReady", new BooleanSyncValue(() -> rt().galaxyReady()));
         syncManager.syncValue("eyeBeginMsg", new StringSyncValue(() -> beginMsg));
         syncManager.registerServerSyncedAction("eyeBegin", packet -> beginMsg = rt().requestBegin());
@@ -152,6 +172,14 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     private static double round2(double v) {
         return Math.round(v * 100) / 100.0;
+    }
+
+    /** D-55: the yield toggles show while the Universe burns or its chart is in the controller slot. */
+    private boolean universeShown() {
+        final EyeStarRuntime rt = rt();
+        if (rt.live() && rt.star() != null && rt.star().tier.universe) return true;
+        final StarDef want = StarDef.byChart(multiblock.getControllerSlot());
+        return want != null && want.tier.universe;
     }
 
     /** The Feed stepper shows only while the star burning, or the chart selected, is the T4 neutron star (Q9). */
@@ -508,6 +536,16 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 .lang("beyondthestars.gui.eye.cycle.tip", BTSFormat.f2(upR), Math.round(next), BTSFormat.eu(euCycle)),
             upR < 1 ? BTSText.cat(BTSText.lit("§c"), BTSText.lang("beyondthestars.gui.eye.cycle.short")) : "");
         yParallelRow(rows, r);
+        // D-55: the Raw Star Matter byproduct (T2-T10; planets mode a quarter)
+        final double rspm = com.nateyburr.beyondthestars.machines.eye.star.RawStarMatterYield.perMinute(star.tier);
+        if (rspm > 0) {
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.eye.rspm"),
+                BTSText.lit(BTSFormat.litres(rt.lastRawStarMatter()) + " L"),
+                BTSText.lang("beyondthestars.gui.eye.rspm.tip1", BTSFormat.litres(rspm)),
+                BTSText.lang("beyondthestars.gui.eye.rspm.tip2"),
+                star.tier.planets() ? BTSText.lang("beyondthestars.gui.eye.rspm.tip3") : "");
+        }
         galaxyRows(rows, star);
         if (star.n() == 4) {
             rows.stat(
@@ -800,6 +838,17 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 BTSGuiKit.WARN,
                 BTSText.lang("beyondthestars.gui.eye.p5.universe.waiting", rt.waitReason()),
                 BTSText.lang("beyondthestars.gui.eye.p5.universe.waiting.tip"));
+        }
+        if (fs != null && fs.tier.universe && rt.burning()) {
+            // D-55: what a finished universe yields (the toggles and the slot bus's whitelist)
+            rows.stat(
+                BTSText.lang("beyondthestars.gui.eye.p5.yield"),
+                BTSText.lit(
+                    com.nateyburr.beyondthestars.machines.eye.star.UniverseYield.summary(rt.universeSelection())),
+                BTSText.lang("beyondthestars.gui.eye.p5.yield.tip1"),
+                BTSText.lang("beyondthestars.gui.eye.p5.yield.tip2"),
+                a.lastYield()
+                    .isEmpty() ? "" : BTSText.lang("beyondthestars.gui.eye.p5.yield.last", a.lastYield()));
         }
         if (fs != null && fs.tier.universe
             && fs.uni != null
@@ -1443,7 +1492,14 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final StringBuilder sb = new StringBuilder();
         for (String l : rt.slotLines()) sb.append(BTSText.lit(l))
             .append('\n');
-        if (rt.mode() == EyeGalaxy.Mode.GALAXY) {
+        if (universeShown()) {
+            // D-55: what the next universe yields (the toggles and the slot bus's whitelist)
+            sb.append(
+                BTSText.lang(
+                    "beyondthestars.gui.eye.galaxy.yield",
+                    com.nateyburr.beyondthestars.machines.eye.star.UniverseYield.summary(rt.universeSelection())))
+                .append('\n');
+        } else if (rt.mode() == EyeGalaxy.Mode.GALAXY) {
             sb.append(BTSText.lang("beyondthestars.gui.eye.companions", rt.companionNames()))
                 .append('\n');
         }
@@ -1772,14 +1828,16 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
     /**
      * P4: the Galaxy panel (176 x 196, text at 1.0): the mode (galaxy / planets; switching puts a lit T7 / T8 field
-     * out and lights the other), the T8 Ergomatter feed f8 (the kit stepper), Begin (enabled while Galaxy Transition
+     * out and lights the other), at T10 the universe's two yield toggles (D-55), Begin (enabled while Galaxy Transition
      * bit 1 is on, the answer beside it), then the slots or companions with what the next transition waits for, and
      * the standard rig in brief.
      */
     private ModularPanel buildGalaxyPanel(PanelSyncManager main, ModularPanel parent) {
         final BooleanSyncValue planets = main.findSyncHandler("eyePlanets", BooleanSyncValue.class);
         final BooleanSyncValue modeLive = main.findSyncHandler("eyeModeLive", BooleanSyncValue.class);
-        final DoubleSyncValue f8 = main.findSyncHandler("eyeF8", DoubleSyncValue.class);
+        final BooleanSyncValue uniStars = main.findSyncHandler("eyeUniStars", BooleanSyncValue.class);
+        final BooleanSyncValue uniPlanets = main.findSyncHandler("eyeUniPlanets", BooleanSyncValue.class);
+        final BooleanSyncValue uni = main.findSyncHandler("eyeUni", BooleanSyncValue.class);
         // QA-A16: two clicks within MODE_ARM_MS while a lit field would go out (the first arms it, client side only)
         final long[] armedAt = { 0L };
         final BooleanSupplier armed = () -> modeLive.getBoolValue()
@@ -1837,28 +1895,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                         .color(BTSGuiKit.PANEL_TEXT)
                         .asWidget()
                         .size(w - 20, 9)));
-        list.child(
-            Flow.row()
-                .size(w, 16)
-                .marginBottom(2)
-                .child(
-                    BTSGuiKit.stepper(
-                        "beyondthestars.gui.eye.galaxy.f8",
-                        f8,
-                        EyeGalaxy.F8_STEP,
-                        GalaxyField.F8_MIN,
-                        GalaxyField.F8_MAX,
-                        4,
-                        "%.1f",
-                        28,
-                        t -> {
-                            for (int i = 1; i <= 4; i++) t.addLine(
-                                (i == 1 ? "" : EnumChatFormatting.GRAY.toString())
-                                    + tr("beyondthestars.gui.eye.galaxy.f8.tip" + i));
-                        },
-                        tr("beyondthestars.gui.eye.galaxy.f8.minus"),
-                        tr("beyondthestars.gui.eye.galaxy.f8.plus"),
-                        "")));
+        list.child(yieldToggle(uniStars, uni, "beyondthestars.gui.eye.galaxy.unistars", w));
+        list.child(yieldToggle(uniPlanets, uni, "beyondthestars.gui.eye.galaxy.uniplanets", w));
         list.child(
             Flow.row()
                 .size(w, 16)
@@ -1911,6 +1949,36 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             .topRel(0)
             .size(GALAXY_PANEL_W, GALAXY_PANEL_H)
             .child(list);
+    }
+
+    /** D-55: one of the universe's yield toggles (a button and its state), shown at T10 only. */
+    private IWidget yieldToggle(BooleanSyncValue v, BooleanSyncValue shown, String key, int w) {
+        return Flow.row()
+            .size(w, 16)
+            .childPadding(4)
+            .crossAxisAlignment(Alignment.CrossAxis.CENTER)
+            .marginBottom(2)
+            .child(
+                new ButtonWidget<>().size(16, 16)
+                    .overlay(GTGuiTextures.OVERLAY_BUTTON_CYCLIC)
+                    .onMousePressed(btn -> {
+                        v.setBoolValue(!v.getBoolValue());
+                        return true;
+                    })
+                    .tooltip(t -> {
+                        t.addLine(tr(key + ".tip1"));
+                        for (int i = 2; i <= 4; i++) t.addLine(EnumChatFormatting.GRAY + tr(key + ".tip" + i));
+                    })
+                    .tooltipShowUpTimer(TOOLTIP_DELAY))
+            .child(
+                IKey.dynamic(
+                    () -> tr(
+                        key,
+                        tr(v.getBoolValue() ? "beyondthestars.gui.eye.galaxy.on" : "beyondthestars.gui.eye.galaxy.off")))
+                    .color(BTSGuiKit.PANEL_TEXT)
+                    .asWidget()
+                    .size(w - 20, 9))
+            .setEnabledIf(x -> shown.getBoolValue());
     }
 
     private static long parseLong(String s) {

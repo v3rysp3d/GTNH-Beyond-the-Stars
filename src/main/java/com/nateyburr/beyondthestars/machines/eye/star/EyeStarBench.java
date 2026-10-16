@@ -83,7 +83,7 @@ public final class EyeStarBench {
         + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
         + "gui [info|galaxy] | "
         + "P4: burst <Bu/t> [high] [halo] [quasar <mean>] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
-        + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear | "
+        + "mode galaxy|planets | set mcshock <v> | slots <planet keys and chart names...> | slots clear | buses clear | "
         + "P5: p5 status|pellets <mag|erg|sup> [n] [mk <1-3>]|refill <grade|off>|accept <n|auto>|beam <c|auto> [k]|"
         + "deeplink [reset]|flow <n> [low|high]|uni|stdrig on [mass M]|off|status|count <counter> <n>";
 
@@ -149,9 +149,8 @@ public final class EyeStarBench {
                 else if ("feed".equals(a5)) rt.setFeed(Double.parseDouble(args[6]));
                 else if ("shock".equals(a5)) rt.setBounceShock(Double.parseDouble(args[6]));
                 else if ("mcshock".equals(a5)) rt.setCollapseShock(Double.parseDouble(args[6]));
-                else if ("f8".equals(a5)) rt.setF8(Double.parseDouble(args[6]));
                 else {
-                    out.add("set dial|feed|shock|mcshock|f8 <v>");
+                    out.add("set dial|feed|shock|mcshock <v>");
                     return out;
                 }
                 out.add(

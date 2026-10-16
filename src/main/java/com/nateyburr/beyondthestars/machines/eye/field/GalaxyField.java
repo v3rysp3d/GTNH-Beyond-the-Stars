@@ -2,7 +2,7 @@ package com.nateyburr.beyondthestars.machines.eye.field;
 
 /**
  * P4: the constants of the Eye's galaxy tiers (quasar-p4.md §4; the prototype's P4 block,
- * designs/quasar-p4-prototype.html): the burst demand D_T, the T7 / T8 products and upkeep, the minor merger, the
+ * designs/quasar-p4-prototype.html): the burst demand D_T, the T7 / T8 products, the minor merger, the
  * satellite crossing, planets mode and companions. Pure (no Minecraft or GT types). The golden test
  * (tools/quasar-golden.js) pins every number here to the prototype's.
  */
@@ -54,7 +54,10 @@ public final class GalaxyField {
     public static final double W_DRIFT = 1.5;
     /** W burst authority: +6·(γ_lo − γ_hi). */
     public static final double W_PER_GAMMA = 6;
-    /** Λ drift 0.4 per L/s of the Ergomatter feed f₈. */
+    /**
+     * Λ drift 0.4 × {@link #F8}: 2.0 per s at T8 (D-55, 2026-10-17: the old default feed's drift, now fixed; no
+     * Ergomatter is drawn). Kept as the product of the two so the golden test stays bit-identical to the prototype.
+     */
     public static final double L_PER_F8 = 0.4;
     /** Λ burst authority: −10·γ_halo. */
     public static final double L_PER_HALO = -10;
@@ -65,12 +68,15 @@ public final class GalaxyField {
     public static final double T7_ERGOMATTER = 600;
     /** T7: the over-delivery cap on β̄. */
     public static final double BETA_CAP = 1.5;
-    /** T7: Molten Magnetar Matter upkeep per cycle (the T6 "touch"). */
-    public static final double T7_MAGNETAR_UPKEEP = 7.5;
-    /** T8: Superdense Ergomatter per litre of Ergomatter fed (revision 2026-10-13: 1 : 1). */
+    /** T8: Superdense Ergomatter per litre of the fixed equivalent feed {@link #F8} (1 : 1). */
     public static final double T8_RATIO = 1.0;
-    /** T8: the Ergomatter feed f₈ range and default, L/s per parallel. */
-    public static final double F8_MIN = 0, F8_MAX = 10, F8_DEFAULT = 5;
+    /**
+     * T8: the Milky Way's fixed equivalent feed, L/s per parallel (D-55: the old default; drawn from nowhere). It sets
+     * Λ's drift ({@link #L_PER_F8} × this) and the product, {@link #T8_SUPERDENSE} a cycle. Tunable.
+     */
+    public static final double F8 = 5;
+    /** T8: Superdense Ergomatter per 60 s cycle at p = 1, before × mean Y × r (300 L). */
+    public static final double T8_SUPERDENSE = T8_RATIO * F8 * 60;
 
     // ------------------------------------------------------------------ events
 
@@ -96,9 +102,9 @@ public final class GalaxyField {
         return CROSSING_KICK * StrictMath.pow(1 + tau / CROSSING_TAU, CROSSING_EXP);
     }
 
-    /** Caught crossing: +1 cycle of Superdense Ergomatter, T8_RATIO × f₈ × 60 × r (× p). */
-    public static double crossingBonus(double f8, double r, double p) {
-        return T8_RATIO * f8 * 60 * r * p;
+    /** Caught crossing: +1 cycle of Superdense Ergomatter, 300 L × r × p (T8_RATIO × F8 × 60 × r × p). */
+    public static double crossingBonus(double r, double p) {
+        return T8_RATIO * F8 * 60 * r * p;
     }
 
     // ------------------------------------------------------------------ planets mode and companions
@@ -141,7 +147,8 @@ public final class GalaxyField {
     /**
      * The earlier objects a galaxy can run as companions (prototype {@code COMP}): the product per cycle at
      * parallel 1, and the upkeep per cycle at parallel 1 (× the companion's parallel, × r). Names are the
-     * prototype's display names (the runtime maps them to fluids).
+     * prototype's display names (the runtime maps them to fluids). D-55: the two galaxies (T9 only) have no upkeep;
+     * the Attractor's bursts hold them.
      */
     public enum Companion {
 
@@ -157,11 +164,10 @@ public final class GalaxyField {
         MAGNETAR(6, "SGR 1806-20 (T6)", "Magnetar Matter", 15,
             new String[] { "White Dwarf Matter", "Black Dwarf Matter", "Antipolarization Agent" },
             new double[] { 60, 15, 3000 }),
-        /** P5 (Q-P5-7): at T9 a galaxy may ride the Attractor's flow. Triangulum, ×2 at T9. */
-        TRIANGULUM(7, "Triangulum (T7)", "Ergomatter", 600, new String[] { "Magnetar Matter" }, new double[] { 7.5 }),
-        /** P5: the Milky Way, ×1 at T9, fed Ergomatter like a T8. */
-        MILKY_WAY(8, "Milky Way (T8)", "Superdense Ergomatter", 300, new String[] { "Ergomatter" },
-            new double[] { 300 });
+        /** P5 (Q-P5-7): at T9 a galaxy may ride the Attractor's flow. Triangulum, ×2 at T9 (D-55: no upkeep). */
+        TRIANGULUM(7, "Triangulum (T7)", "Ergomatter", 600, new String[0], new double[0]),
+        /** P5: the Milky Way, ×1 at T9 (D-55: no Ergomatter feed, no upkeep). */
+        MILKY_WAY(8, "Milky Way (T8)", "Superdense Ergomatter", 300, new String[0], new double[0]);
 
         public final int tier;
         public final String label;

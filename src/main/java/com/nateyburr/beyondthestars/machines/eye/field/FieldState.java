@@ -162,7 +162,10 @@ public final class FieldState {
         public double hsm;
         /** P4 (T7/T8): the sum of β over the cycle's seconds (T7's product takes min(β̄, 1.5)). */
         public double bSum;
-        /** P4 (T8): Ergomatter fed this cycle, litres (the product is 1.0 × this × mean Y × r). */
+        /**
+         * P4 (T8): the fixed equivalent feed summed over the cycle, F8 × m × p a second (D-55: nothing is drawn); the
+         * product is 1.0 × this × mean Y × r.
+         */
         public double f8;
 
         public Cycle(double eyeT) {

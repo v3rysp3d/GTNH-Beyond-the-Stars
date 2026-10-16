@@ -3,10 +3,10 @@
 // The P5 block of the P5 play prototype, verbatim (the reference for the Java Eye T9 / T10 maths). It runs on top
 // of the shared ENGINE block (with P5's one changed line) and the P4 block (tools/fixtures/quasar-engine.js).
 // source: designs/p5-prototype.html (design repo GTNH-Addons)
-// source-sha1: bb7461b47fbba4b7cbd113d445fdfc0ff8401ae7
+// source-sha1: de458e9e9fc798e81863f4e7717a79f58ee5053c
 // engine-sha1: c28c22097debf085fd21226aed3f656c7706d04b
-// p4-sha1: dd436d95d11c01575d0df2d495e6d4d6dae3e4c0
-// p5-sha1: f158517cd247cb5fcd12ebac34d017bc1c111bb3
+// p4-sha1: 5b5943f839b5742c0969668ebdae21bc8f6e0c69
+// p5-sha1: 8b55f1a42822e0f906eeb74c70adbbe68f8fed92
 /*P5-START*/
 /* P5 extension: Eye T9 (the Great Attractor: gauge V, the pellet beam, Galactic Flow, The Infall) and Eye T10 (the
    Universe: gauge H, one universe per batch, Recombination, Cosmic Dawn, Inflation). Uses the D-49 engine and the P4
@@ -29,8 +29,9 @@ const holdRating=C=>Math.max(0,Math.min(GFLOW.max,Math.floor(4*(rhoMax(C)-2))));
 const centreFor=C=>clamp(PI9/(PELLETS[C.grade].e*INJ[C.inj].cap),0,1);   // the injector centre that fires rho = 1 at V = 0
 
 // galaxy companions at T9 (proposal Q-P5-7): Triangulum and the Milky Way may ride the Attractor's flow
-COMP[7]={name:'Triangulum (T7)', out:['Ergomatter',600], up:[['Magnetar Matter',7.5]], galaxy:true};
-COMP[8]={name:'Milky Way (T8)', out:['Superdense Ergomatter',300], up:[['Ergomatter',300]], galaxy:true};
+// D-55: the galaxies run on the Attractor's bursts alone (no Magnetar Matter, no Ergomatter upkeep)
+COMP[7]={name:'Triangulum (T7)', out:['Ergomatter',600], up:[], galaxy:true};
+COMP[8]={name:'Milky Way (T8)', out:['Superdense Ergomatter',300], up:[], galaxy:true};
 
 function newFlow(S){ return {next:S.t+uni(S,GFLOW.every), warned:false, left:0, tau:0, sign:1, size:0, ok:0, accepted:false, forced:false}; }
 function beamTick(S){

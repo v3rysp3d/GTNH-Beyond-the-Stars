@@ -1,8 +1,8 @@
 {
  "about": "P4 golden results (quasar disc, conduit rig, links, Directive bits, Eye T7/T8) from the prototype engine (tools/quasar-golden.js). QuasarSim golden must match every number exactly. Regenerate; do not edit.",
  "engineSha1": "c28c22097debf085fd21226aed3f656c7706d04b",
- "p4Sha1": "dd436d95d11c01575d0df2d495e6d4d6dae3e4c0",
- "sourceSha1": "062f72c4602902ae922e914ee7affb509c958148",
+ "p4Sha1": "5b5943f839b5742c0969668ebdae21bc8f6e0c69",
+ "sourceSha1": "1c4b13da07591d0ddf19bffb4490b55e2687234b",
  "cases": [
   {
    "name": "T7 standard 64SM s1",
@@ -25,9 +25,7 @@
     "charges": 0,
     "cycles": 240,
     "eu": 149052545040384000,
-    "up": {
-     "Magnetar Matter": 1807.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 171008.9912443533
     },
@@ -142,9 +140,7 @@
     "charges": 0,
     "cycles": 240,
     "eu": 149052545040384000,
-    "up": {
-     "Magnetar Matter": 1807.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 171834.6521467079
     },
@@ -259,9 +255,7 @@
     "charges": 0,
     "cycles": 240,
     "eu": 149052545040384000,
-    "up": {
-     "Magnetar Matter": 1807.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 170164.84532551837
     },
@@ -379,9 +373,7 @@
     "charges": 0,
     "cycles": 239,
     "eu": 596210180161536000,
-    "up": {
-     "Ergomatter": 71995
-    },
+    "up": {},
     "prod": {
      "Superdense Ergomatter": 82112.5
     },
@@ -503,9 +495,7 @@
     "charges": 0,
     "cycles": 240,
     "eu": 596210180161536000,
-    "up": {
-     "Ergomatter": 72000
-    },
+    "up": {},
     "prod": {
      "Superdense Ergomatter": 83038.75
     },
@@ -627,9 +617,7 @@
     "charges": 0,
     "cycles": 240,
     "eu": 596210180161536000,
-    "up": {
-     "Ergomatter": 72000
-    },
+    "up": {},
     "prod": {
      "Superdense Ergomatter": 82262.5
     },
@@ -751,9 +739,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 74835510165504000,
-    "up": {
-     "Magnetar Matter": 907.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 92928.72855694203
     },
@@ -871,9 +857,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 74835510165504000,
-    "up": {
-     "Magnetar Matter": 907.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 88081.60401014886
     },
@@ -991,9 +975,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 74835510165504000,
-    "up": {
-     "Magnetar Matter": 907.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 76133.07849308086
     },
@@ -1112,9 +1094,7 @@
     "charges": 0,
     "cycles": 117,
     "eu": 75453985456128000,
-    "up": {
-     "Magnetar Matter": 915
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 52864.72604275985
     },
@@ -1235,9 +1215,7 @@
     "charges": 0,
     "cycles": 21,
     "eu": 104522324115456000,
-    "up": {
-     "Magnetar Matter": 1267.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 8379.613984729078
     },
@@ -1356,9 +1334,7 @@
     "charges": 0,
     "cycles": 0,
     "eu": 103285373534208000,
-    "up": {
-     "Magnetar Matter": 1252.5
-    },
+    "up": {},
     "prod": {},
     "trims": {},
     "runs": {},
@@ -1472,9 +1448,7 @@
     "charges": 0,
     "cycles": 30,
     "eu": 19172734009344000,
-    "up": {
-     "Magnetar Matter": 232.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 20906.80837735466
     },
@@ -1593,9 +1567,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 74835510165504000,
-    "up": {
-     "Magnetar Matter": 907.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 127185
     },
@@ -1716,9 +1688,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 299342040662016000,
-    "up": {
-     "Ergomatter": 36000
-    },
+    "up": {},
     "prod": {
      "Superdense Ergomatter": 44002.5
     },
@@ -1843,9 +1813,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 299342040662016000,
-    "up": {
-     "Ergomatter": 36000
-    },
+    "up": {},
     "prod": {
      "Superdense Ergomatter": 44001.25
     },
@@ -1967,9 +1935,7 @@
     "charges": 0,
     "cycles": 0,
     "eu": 27831388078080000,
-    "up": {
-     "Magnetar Matter": 337.5
-    },
+    "up": {},
     "prod": {},
     "trims": {},
     "runs": {},
@@ -2083,9 +2049,7 @@
     "charges": 0,
     "cycles": 98,
     "eu": 91534343012352000,
-    "up": {
-     "Magnetar Matter": 1110
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 24571.85466651434
     },
@@ -2202,9 +2166,7 @@
     "charges": 0,
     "cycles": 0,
     "eu": 27831388078080000,
-    "up": {
-     "Magnetar Matter": 337.5
-    },
+    "up": {},
     "prod": {},
     "trims": {},
     "runs": {},
@@ -2318,9 +2280,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 74835510165504000,
-    "up": {
-     "Magnetar Matter": 907.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 76822.29164571907
     },
@@ -2436,9 +2396,7 @@
     "charges": 0,
     "cycles": 0,
     "eu": 27831388078080000,
-    "up": {
-     "Magnetar Matter": 337.5
-    },
+    "up": {},
     "prod": {},
     "trims": {},
     "runs": {},
@@ -2552,9 +2510,7 @@
     "charges": 0,
     "cycles": 0,
     "eu": 51333449121792000,
-    "up": {
-     "Magnetar Matter": 622.5
-    },
+    "up": {},
     "prod": {},
     "trims": {
      "Space": 1000
@@ -2670,9 +2626,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 74835510165504000,
-    "up": {
-     "Magnetar Matter": 907.5
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 89042.16923657533
     },
@@ -2793,9 +2747,7 @@
     "charges": 0,
     "cycles": 120,
     "eu": 299342040662016000,
-    "up": {
-     "Ergomatter": 36000
-    },
+    "up": {},
     "prod": {
      "Superdense Ergomatter": 44696.25
     },
@@ -2894,37 +2846,32 @@
    }
   },
   {
-   "name": "T8 140SM f8 10 s3",
+   "name": "T8 140SM s3",
    "spec": {
     "secs": 7200,
     "tier": 8,
     "seed": 3,
     "qc": {
      "M0": 140
-    },
-    "cfg": {
-     "f8": 10
     }
    },
    "expect": {
     "zoneT": [
-     4934,
-     2201,
-     65,
+     6483,
+     709,
+     8,
      0,
      0
     ],
-    "ySum": 8401,
+    "ySum": 8816.75,
     "yN": 7200,
     "fails": 0,
     "charges": 0,
     "cycles": 120,
     "eu": 299342040662016000,
-    "up": {
-     "Ergomatter": 72000
-    },
+    "up": {},
     "prod": {
-     "Superdense Ergomatter": 85210
+     "Superdense Ergomatter": 44683.75
     },
     "trims": {
      "Space": 46000
@@ -2935,12 +2882,12 @@
      0,
      0,
      0,
-     6.548932586970006,
-     7.294502453646225
+     4.249994137832325,
+     0.8031016491871437
     ],
     "A": 0,
     "I": 100,
-    "lock": 15,
+    "lock": 289,
     "t": 7200,
     "eyeT": 7200,
     "tier": 8,
@@ -2993,8 +2940,8 @@
      "streak": 0,
      "best": 0,
      "done": false,
-     "mean": 3.2340737611113437,
-     "frac": 0.7494575380950568,
+     "mean": 4.470228975990012,
+     "frac": 0.6797220165785075,
      "n": 7200
     },
     "link8": {
@@ -3002,7 +2949,7 @@
      "best": 0,
      "done": false,
      "mean": 5.612532256019073,
-     "frac": 0.42377636090322174,
+     "frac": 0.20352725435190036,
      "n": 7200
     },
     "unlocked7": true,
@@ -3013,10 +2960,10 @@
     "beginT": -1,
     "beginKind": "",
     "hash": {
-     "eye": 420810691,
+     "eye": 278768811,
      "quasar": 292027118,
-     "bursts": 3819906727,
-     "directive": 3188150114
+     "bursts": 172396346,
+     "directive": 3003385061
     }
    }
   },
@@ -3287,7 +3234,6 @@
     "cycles": 120,
     "eu": 74835510165504000,
     "up": {
-     "Magnetar Matter": 907.5,
      "White Dwarf Matter": 7260,
      "Black Dwarf Matter": 1815,
      "Antipolarization Agent": 363000
@@ -3419,8 +3365,7 @@
      "Black Dwarf Matter": 3630,
      "Antipolarization Agent": 726000,
      "Hyperdense Stellar Mixture": 40307.520000000026,
-     "Molten SpaceTime": 139392,
-     "Ergomatter": 35995
+     "Molten SpaceTime": 139392
     },
     "prod": {
      "Magnetar Matter (companion)": 3752.875,
@@ -3550,9 +3495,7 @@
     "charges": 0,
     "cycles": 150,
     "eu": 373559075536896000,
-    "up": {
-     "Ergomatter": 45000
-    },
+    "up": {},
     "prod": {
      "Superdense Ergomatter": 45267.1875
     },
@@ -3681,8 +3624,7 @@
     "eu": 131735236902912000,
     "up": {
      "White Dwarf Matter": 20591.999999999953,
-     "Black Dwarf Matter": 5147.999999999988,
-     "Magnetar Matter": 1530
+     "Black Dwarf Matter": 5147.999999999988
     },
     "prod": {
      "Magnetar Matter": 654.6875,
@@ -3813,8 +3755,7 @@
     "eu": 131735236902912000,
     "up": {
      "White Dwarf Matter": 20591.999999999953,
-     "Black Dwarf Matter": 5147.999999999988,
-     "Magnetar Matter": 1530
+     "Black Dwarf Matter": 5147.999999999988
     },
     "prod": {
      "Magnetar Matter": 654.5625,
@@ -3945,8 +3886,7 @@
     "eu": 131735236902912000,
     "up": {
      "White Dwarf Matter": 20591.999999999953,
-     "Black Dwarf Matter": 5147.999999999988,
-     "Magnetar Matter": 1530
+     "Black Dwarf Matter": 5147.999999999988
     },
     "prod": {
      "Magnetar Matter": 655.0625,
@@ -4081,8 +4021,7 @@
     "eu": 95245194756096000,
     "up": {
      "White Dwarf Matter": 20591.999999999953,
-     "Black Dwarf Matter": 5147.999999999988,
-     "Magnetar Matter": 1087.5
+     "Black Dwarf Matter": 5147.999999999988
     },
     "prod": {
      "Magnetar Matter": 654.6875,
@@ -4210,10 +4149,7 @@
     "charges": 0,
     "cycles": 239,
     "eu": 367992797921280000,
-    "up": {
-     "Magnetar Matter": 922.5,
-     "Ergomatter": 37610
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 89348.48466922177,
      "Superdense Ergomatter": 34085
@@ -4340,10 +4276,7 @@
     "charges": 0,
     "cycles": 239,
     "eu": 520137719414784000,
-    "up": {
-     "Magnetar Matter": 307.5,
-     "Ergomatter": 62080
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 26338.517254179613,
      "Superdense Ergomatter": 60897.5
@@ -4470,10 +4403,7 @@
     "charges": 0,
     "cycles": 239,
     "eu": 390257908383744000,
-    "up": {
-     "Magnetar Matter": 832.5,
-     "Ergomatter": 41260
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 78905.2418939773,
      "Superdense Ergomatter": 38296.25
@@ -4601,10 +4531,7 @@
     "charges": 0,
     "cycles": 239,
     "eu": 520137719414784000,
-    "up": {
-     "Magnetar Matter": 307.5,
-     "Ergomatter": 62070
-    },
+    "up": {},
     "prod": {
      "Ergomatter": 26326.107271423447,
      "Superdense Ergomatter": 65223.75

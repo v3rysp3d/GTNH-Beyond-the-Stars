@@ -174,11 +174,11 @@ public final class BTSEnvironments {
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeBegin(e) };
         }
 
-        @Callback(doc = "function(v:number):number -- the T8 Ergomatter feed f8 (0-10 L/s per parallel); returns it")
+        @Callback(
+            doc = "function(v:number):boolean, string -- retired in 0.26.0: the Milky Way has no Ergomatter feed;"
+                + " always returns false and a message")
         public Object[] setFeed8(Context c, Arguments a) {
-            if (limited("setFeed8")) return RATE_LIMITED;
-            final MTEEyeOfHarmonyBTS e = eye();
-            return e == null ? GONE : new Object[] { BTSComputerApi.eyeSetFeed8(e, a.checkDouble(0)) };
+            return new Object[] { false, BTSComputerApi.NO_FEED8 };
         }
 
         @Callback(doc = "function(mode:string):string -- galaxy or planets (puts a lit T7 / T8 field out); returns it")
@@ -260,6 +260,24 @@ public final class BTSEnvironments {
         public Object[] getUniverse(Context c, Arguments a) {
             final MTEEyeOfHarmonyBTS e = eye();
             return e == null ? GONE : new Object[] { BTSComputerApi.eyeUniverse(e) };
+        }
+
+        @Callback(
+            doc = "function():table -- the T10 universe's yield: stars, planets (the two toggles), starMatters,"
+                + " planetCount, planetTotal, starsFiltered, planetsFiltered (by the slot bus), line, last")
+        public Object[] getUniverseYield(Context c, Arguments a) {
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE : new Object[] { BTSComputerApi.eyeUniverseYield(e) };
+        }
+
+        @Callback(
+            doc = "function(stars:boolean, planets:boolean):string -- switches the universe's star-matter and planet"
+                + " yields on or off (saved with the Eye); returns the yield line")
+        public Object[] setUniverseYield(Context c, Arguments a) {
+            if (limited("setUniverseYield")) return RATE_LIMITED;
+            final MTEEyeOfHarmonyBTS e = eye();
+            return e == null ? GONE
+                : new Object[] { BTSComputerApi.eyeSetUniverseYield(e, a.checkBoolean(0), a.checkBoolean(1)) };
         }
     }
 

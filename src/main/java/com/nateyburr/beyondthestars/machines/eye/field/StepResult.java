@@ -49,14 +49,11 @@ public final class StepResult {
     public double cycleMeanY, cycleRMin;
     /** Galaxy mode: the companions produce this cycle (false during a transition, like the galaxy's own product). */
     public boolean companionCycle;
-    /** T8: the Ergomatter feed ran this second; {@link #ergoToDraw} litres to draw (f8 · m · p). */
-    public boolean ergoFed;
-    public double ergoToDraw;
 
     // ---- P4 (T8) satellite crossing
     /** The 120 s countdown began / the crossing hit / it ended (caught or missed) this second. */
     public boolean crossingWarned, crossingHit, crossingCaught, crossingMissed;
-    /** Caught: the bonus cycle of Superdense Ergomatter, litres (1.0 × f8 × 60 × r × p). */
+    /** Caught: the bonus cycle of Superdense Ergomatter, litres (300 × r × p). */
     public double crossingBonus;
 
     /** T5: the batch completed. Emit {@link #batchProduct}, then start the next batch (or go IDLE). */
@@ -82,8 +79,6 @@ public final class StepResult {
     public boolean countdown;
     /** Magnetar Collapse: the overfeed charge taken this second, litres (WDM 61.44 + BDM 15.36 in phase 1). */
     public double wdmCharged, bdmCharged;
-    /** Galactic Merger: the Ergomatter charge taken this second, litres (5). */
-    public double ergoCharged;
     /** Magnetar Collapse: the magnetar collapsed this second (the tier is now T7; halo capture begins). */
     public boolean collapsed;
     /** Galactic Merger: the first pass bound the second nucleus this second (the tier is now T8). */
@@ -126,6 +121,8 @@ public final class StepResult {
     /** A universe ran to its last light: Universium base + the dawn's bonus, litres; its mean Y. */
     public boolean universeDone, universeDawnOk;
     public double universeBase, universeBonus, universeMeanY;
+    /** D-55: the finished universe's lowest r (its yield is × p × mean Y × this, as its Universium). */
+    public double universeRMin = 1;
     /** A universe collapsed: a Big Rip (H above 0) or a Big Crunch; the fraction run; Universium salvaged, litres. */
     public boolean universeCollapsed, universeRip;
     public double universeFraction, universeSalvage;

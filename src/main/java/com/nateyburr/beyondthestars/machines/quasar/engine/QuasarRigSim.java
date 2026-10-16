@@ -134,7 +134,6 @@ public final class QuasarRigSim {
         if (tier == 6) {
             c.unlocked7 = false;
             c.coreGM = false; // no Supermassive Seed Core yet: no Heavy Link test fire right after the collapse
-            c.bufGM = false;
         }
         final QuasarSim.QCfg qc = new QuasarSim.QCfg();
         qc.M0 = M0;

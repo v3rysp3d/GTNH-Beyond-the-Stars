@@ -119,7 +119,7 @@ function cases() {
   add('T7 junctions unwired s3', { tier: 7, seed: 3, rig: { aim: false }, secs: 3600 });
   add('T7 all binary (two-level) s1', { tier: 7, seed: 1, k: { twoLevel: true } });
   add('T8 all binary (two-level) 120SM s2', { tier: 8, seed: 2, qc: { M0: 120 }, k: { twoLevel: true } });
-  add('T8 140SM f8 10 s3', { tier: 8, seed: 3, qc: { M0: 140 }, cfg: { f8: 10 } });
+  add('T8 140SM s3', { tier: 8, seed: 3, qc: { M0: 140 } });   // D-55: was 'T8 140SM f8 10 s3' (the Milky Way has no feed)
   add('T7 planets 64SM s1', { tier: 7, seed: 1, cfg: { mode: 'planets' } });
   add('T8 planets 64SM s2', { tier: 8, seed: 2, cfg: { mode: 'planets' } });
   add('T7 + 1 companion s3', { tier: 7, seed: 3, cfg: { comp: [6] } });
