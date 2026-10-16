@@ -133,7 +133,10 @@ public class MTEHatchStellarFieldSensor extends MTEHatch {
                     "Threshold") + ": " + BTSTip.num("15") + " above (or below) it, else " + BTSTip.num("0") + "."),
             BTSTip.bullet(BTSTip.term("Analog") + ": " + BTSTip.num("0-15") + " across the range."),
             "Window (default " + BTSTip.num("120") + ") sets the analog range.",
-            "Invert gives " + BTSTip.num("15") + " minus the output.");
+            "Invert gives " + BTSTip.num("15") + " minus the output.",
+            // QA-A28: a dark star is not inverted
+            "A dark star (or no hole) reads " + BTSTip.num("0") + " in every mode, Invert too;",
+            "a Directive Hatch's Status bits show a dark star.");
     }
 
     // ------------------------------------------------------------------ the Eye's side

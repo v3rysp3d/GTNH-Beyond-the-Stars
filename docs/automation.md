@@ -152,10 +152,15 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
   buses on **Signal pulse**: a bit stays on until the Eye's next pickup a second later, so "active with signal" pushes
   2-4 items. Extra copies of the loaded chart go back out through the ME output bus (B-72); a spare core stays in the
   bus until the next transition wants it.
-- Kerr bolt buses: plain input buses only (as before).
+- Kerr bolt buses: plain input buses only (as before). Auto-place never fits an ME stocking bus there, and one placed
+  by hand fails the walk with "Bolt bus: plain input buses only" (QA-A32).
+- The Eye's item sockets (plinth `h`, slot bus `p`, the collar's `i`) refuse Crafting Input Buffers and Crafting Input
+  Proxies: they hold patterns, not stock (QA-A26, B-237).
 - The Directive Hatch and the Stellar Field Sensor Hatch emit redstone on every side and accept GT redstone covers,
   so an AE2 export bus with a redstone card, a GT cover, an SFM Redstone Receiver, a comparator or OpenComputers'
   Redstone I/O can all sit against them (or read them over GT wireless redstone).
+- A Stellar Field Sensor Hatch on a dark star (or a quasar with no hole) reads 0 in every mode, **Invert included**
+  (QA-A28). To act on a dark star, use the Directive Hatch's Status bits.
 
 ---
 
