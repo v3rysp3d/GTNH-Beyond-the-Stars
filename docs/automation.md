@@ -121,7 +121,9 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 | **Tachyon** (the Core Collapse's dose, 100 L/s; the time dial's payment) | Export bus of Tachyon Rich Temporal Fluid into a Field hatch on Transition bit 4 | Transition hatch, Bit 4 mode → regulator | `getDirective("EYE_TRANSITION").bits` | Fluid node on bit 4 |
 | **Time dial** | Static; or a level emitter → a control-set Directive Hatch (two presets) | Control-set hatch: redstone 1-15 → dial | `eye.setDial(v)` | Redstone emitter (analog) into a control hatch |
 | **T4 HSM feed** | As the dial | Control-set hatch: 1-15 → 0-1.5 L/s | `eye.setFeed(v)` | As the dial |
-| **Outputs** | ME output bus / hatch (the only output path) | — | — | — |
+| **Outputs** | ME output bus / hatch (the only output path); since 0.26.0 this includes every tier's Raw Star Matter byproduct (N × 50,000 L an Eye-minute from T2) and the Universe's yield | — | — | — |
+| **Universe yield filter** (T10, D-55) | An ME interface (or an export bus) keeps the wanted planet items and T2-T8 star charts in the slot bus; it is a whitelist and is never used up (empty = everything) | A conveyor cover or export bus on a redstone condition swaps the items | transposer into the slot bus; `eye.getUniverseYield()` shows what yields | Item node into the slot bus |
+| **Universe yield toggles** (star matter, planets) | The toggles are settings (Galaxy panel, saved with the Eye); AE2 narrows the yield through the filter instead (one T2-T8 chart keeps only its matter, one planet item only its planet) | As AE2 (the slot bus contents) | `eye.setUniverseYield(stars, planets)` | As AE2 |
 | **Alarm** | — | Status bit 4 → lamp, siren, backup | `getField().zone`, `integrity` | Redstone condition on bit 4 |
 
 ### 2.2 The Kerr
@@ -432,10 +434,9 @@ Analog with the window w, or a threshold (15 above / below), with invert.
 | **J2** (aim W) | Two-level: Field [4] / [8] | Sensor W straight to J2 | `setRatio` from `getField().W` | as J1 | as J1 |
 | **J3** (halo Λ, T8) | Two-level: Events [1] / [2]; Slots [8] → its 75 % preset at T7 | Sensor Λ straight to J3 | `setRatio` from `getField().L` | as J1 | as J1 |
 | **Eye Space trim** (P, T7+) | Export bus on Field [1] into a Field hatch (one valve, 10 units) | Field [1] → regulator | `eye.trim("space", 10)` while P > 5 | Fluid node on bit 1 | `EyeStarRuntime` trims; `requestTrim` |
-| **Ergomatter feed f₈** (T8) | ME stocking hatch in a gas socket; f₈ is a GUI setpoint | — | `eye.setFeed8(f)` (lower it on `getEvent().kind == "crossing"`) | — | `setF8` |
 | **Throat fuel** | ME stocking hatches in each element's fuel hatches; a level emitter on SpaceTime / Ergomatter orders crafting | Disc [8] → a lamp or a backup | `mouth.getUpkeep()`, `setFuel(mode)` | Fluid node on a level condition | `MTEConduitElement` upkeep |
 | **The core** | ME interface / export bus pushes it into a plinth input bus on Transition [4] | Transition [4] → export bus | `eye.getTransition().coreWanted`, transposer | Item node on bit 3 | `takeFromPlinthBuses` → escrow |
-| **The charge** (WDM + BDM, or Ergomatter 9,000 L) | Level maintainers; Status [1] says short | Status [1] → export bus | `getBuffers()` | Fluid node on bit 1 | `transitionFluidsShort` |
+| **The charge** (the Magnetar Collapse's WDM + BDM; the Galactic Merger has none since 0.26.0) | Level maintainers; Status [1] says short | Status [1] → export bus | `getBuffers()` | Fluid node on bit 1 | `transitionFluidsShort` |
 | **The galaxy chart** | Export bus pushes ONE chart into a plain plinth bus on Transition [1] | Transition [1] → conveyor | transposer on `getTransition().ready` | Item node on bit 1 | plinth-bus chart pickup |
 | **Begin** | — | Galaxy Transition [1] → the Eye's Burst Control Hatch (Begin) | `eye.beginTransition()` | Redstone emitter on bit 1 | `requestBegin` |
 | **Link test fire** | Slots [8] → a toggle bus feeding J1 15 and J3's 75 % preset | Slots [8] → both Burst Control Hatches | `junction.setRatio` on both | Redstone on bit 4 | `testFireWanted` |
@@ -454,7 +455,7 @@ call returns nil and "rate limited: one call per 20 ticks (1 s, the field's step
 | Component | Methods |
 |---|---|
 | `bts_quasar` | `getDisc()` (state, E, phi, lambda, a, M, cap, integrity, zone, Yq, stability, b, power), `getBurst()` (total Bu/t and totalEUt, top, bottom, docks, vented), `getFeed()`, `setFeed(f)`, `setGas(name)`, `setField(b)`, `trim(kind, units)`, `purge()`, `getLinks()` (host, Bu/t, σ, streak), `getMilestones()`, `getDirective(w)` |
-| `bts_eye` (T7+ additions) | `getField()` adds W, L, beta, the gammas and D; `getEvent()`, `getUnlock()` (kind, streak, best, mean, frac, linked, source, ready, testFireWanted, quasarStream, testFireStream, testFireShare, j1Limit, supermassiveLink {streak, best, held, mean, need, sourceMass, sourceLattice, sourceQualifies}: P5's T9 -> T10 data), `beginTransition()`, `setFeed8(f)`, `setMode(mode)`, `trim(kind, units)`, `getSlots()` |
+| `bts_eye` (T7+ additions) | `getField()` adds W, L, beta, the gammas and D; `getEvent()`, `getUnlock()` (kind, streak, best, mean, frac, linked, source, ready, testFireWanted, quasarStream, testFireStream, testFireShare, j1Limit, supermassiveLink {streak, best, held, mean, need, sourceMass, sourceLattice, sourceQualifies}: P5's T9 -> T10 data), `beginTransition()`, `setMode(mode)`, `trim(kind, units)`, `getSlots()`, `getUniverseYield()`, `setUniverseYield(stars, planets)` (D-55); `setFeed8(f)` is kept but answers `false, "Milky Way has no feed since 0.26.0"` |
 | `bts_mouth`, `bts_mirror` | `getLink()`, `getThroat()`, `getUpkeep()`, `setFuel(mode)`, `isOpen()` |
 | `bts_junction` | as a mouth, plus `getFlow()` (with `limit`), `setRatio(c)`, `setGain(k)`, `setOut3(p)`, `setLimit(bu)` (out 1's limit, 0 = none; the Eye's J1: 7.5 Bu/t per parallel, P4-88), `setMode(mode)` |
 | `bts_crown` | `getPower()`, `getStream()`, `getMk()` |

@@ -843,8 +843,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             // D-55: what a finished universe yields (the toggles and the slot bus's whitelist)
             rows.stat(
                 BTSText.lang("beyondthestars.gui.eye.p5.yield"),
-                BTSText.lit(
-                    com.nateyburr.beyondthestars.machines.eye.star.UniverseYield.summary(rt.universeSelection())),
+                BTSText
+                    .lit(com.nateyburr.beyondthestars.machines.eye.star.UniverseYield.summary(rt.universeSelection())),
                 BTSText.lang("beyondthestars.gui.eye.p5.yield.tip1"),
                 BTSText.lang("beyondthestars.gui.eye.p5.yield.tip2"),
                 a.lastYield()
@@ -1974,7 +1974,9 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 IKey.dynamic(
                     () -> tr(
                         key,
-                        tr(v.getBoolValue() ? "beyondthestars.gui.eye.galaxy.on" : "beyondthestars.gui.eye.galaxy.off")))
+                        tr(
+                            v.getBoolValue() ? "beyondthestars.gui.eye.galaxy.on"
+                                : "beyondthestars.gui.eye.galaxy.off")))
                     .color(BTSGuiKit.PANEL_TEXT)
                     .asWidget()
                     .size(w - 20, 9))

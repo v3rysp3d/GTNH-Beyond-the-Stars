@@ -4030,9 +4030,8 @@ public final class EyeStarRuntime {
             if (cycR < 1 - 1e-9) return true;
             final int p = Math.max(1, cycP > 0 ? cycP : parallel(star.n()));
             for (EyeRecipe.FluidAmount up : star.upkeep) if (host.buffer(up.fluid) < up.amount * p) return true;
-            if (star.feed != null && host.buffer(star.feed)
-                < (long) Math.ceil(feedSet * StellarField.CYCLE_SECONDS * p))
-                return true;
+            if (star.feed != null
+                && host.buffer(star.feed) < (long) Math.ceil(feedSet * StellarField.CYCLE_SECONDS * p)) return true;
             for (Map.Entry<Fluid, Double> up : star.exactUpkeep.entrySet()) {
                 if (host.buffer(up.getKey()) < Math.ceil(up.getValue() * p)) return true;
             }

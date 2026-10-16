@@ -65,8 +65,7 @@ public final class QuasarSim {
     public static final class Cfg {
 
         public long seed = 1;
-        public double m = 1, r = 1, feed = 0.694,
-            shock = MagnetarCollapseOverlay.PROTOTYPE_SHOCK;
+        public double m = 1, r = 1, feed = 0.694, shock = MagnetarCollapseOverlay.PROTOTYPE_SHOCK;
         public int tt = 1, ts = 1;
         public boolean unlocked7 = true, unlocked8, coreMC = true, bufMC = true, coreGM = true;
         /** Planets mode at T7/T8 (else galaxy mode). */

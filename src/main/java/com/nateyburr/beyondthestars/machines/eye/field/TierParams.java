@@ -24,7 +24,8 @@ import java.util.List;
  * <p>
  * <b>P4 (quasar-p4.md §4).</b> T7 Triangulum and T8 Milky Way are burst-driven: Θ, Ω, Π and the shield retire; P is
  * driven by β (bursts against the demand D_T), W by the precession sense and the rail's high/low banks, Λ (T8) by the
- * fixed drift 0.4 × 5 (D-55: no Ergomatter feed) and the halo. {@link #PLANETS7} / {@link #PLANETS8} are planets mode's lighter one-gauge field
+ * fixed drift 0.4 × 5 (D-55: no Ergomatter feed) and the halo. {@link #PLANETS7} / {@link #PLANETS8} are planets mode's
+ * lighter one-gauge field
  * (3 / 6 slots). {@link #of(int)} returns the galaxy table for 7 and 8; {@link #of(int, boolean)} picks the mode.
  */
 public enum TierParams {

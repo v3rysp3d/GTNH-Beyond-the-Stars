@@ -20,7 +20,8 @@ import java.util.Map;
  * <b>P4 (T7/T8, planets mode; quasar-p4.md §4).</b> Two more gauges, W (rail warp) and Λ (tidal shear), and the
  * prototype's additive hooks in its order: a transition's forced event terms ({@link Overlay#addEvents}) after its
  * drift, then the T8 satellite crossing; per-gauge σ; the burst terms ({@link TierParams#burstTerm}) after the event
- * term; the minor merger's precession flip; per second after the transition, the β sum, the T8 fixed equivalent feed and
+ * term; the minor merger's precession flip; per second after the transition, the β sum, the T8 fixed equivalent feed
+ * and
  * the crossing's end; at the cycle end the galaxy product (0 while a transition runs). RNG draws added by P4: one
  * {@code uni} for the crossing when a T8 lights (after the event's), one when a crossing ends. Pow / cbrt use
  * {@link StrictMath} (fdlibm, as V8).

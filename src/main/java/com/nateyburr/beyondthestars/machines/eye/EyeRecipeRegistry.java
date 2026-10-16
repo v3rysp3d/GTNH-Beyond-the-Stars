@@ -335,8 +335,7 @@ public final class EyeRecipeRegistry {
         final Fluid ergo = SLQuasarFluids.ergomatter;
         final Fluid superdense = SLQuasarFluids.superdenseErgomatter;
         if (ergo == null || superdense == null || wdm == null || bdm == null) {
-            BeyondTheStars.LOG.error(
-                "[BTS] Eye T7/T8 skipped: Ergomatter or Superdense Ergomatter is not registered.");
+            BeyondTheStars.LOG.error("[BTS] Eye T7/T8 skipped: Ergomatter or Superdense Ergomatter is not registered.");
             return;
         }
         galaxyDef(
@@ -768,8 +767,7 @@ public final class EyeRecipeRegistry {
         desc.add(" star's first cycle (x p)");
         for (FluidStack f : fluids) if (f.getFluid() == null) return;
         final double product = to.tier.feed ? StellarField.WDM_PER_HSM * 0.694 * StellarField.CYCLE_SECONDS
-            : to.tier.shear ? GalaxyField.T8_SUPERDENSE
-                : to.productBase();
+            : to.tier.shear ? GalaxyField.T8_SUPERDENSE : to.productBase();
         GTValues.RA.stdBuilder()
             .itemInputs(to.chart.copy(), new ItemStack(core, 1, 0))
             .fluidInputs(fluids.toArray(new FluidStack[0]))
@@ -1140,7 +1138,9 @@ public final class EyeRecipeRegistry {
                 }
                 for (EyeRecipe.FluidAmount o : r.fluidOutputs) {
                     if (fluids.size() < 18 && o.fluid != null) fluids.add(
-                        new FluidStack(o.fluid, (int) Math.max(1, Math.min(Integer.MAX_VALUE, Math.round(o.amount * expect)))));
+                        new FluidStack(
+                            o.fluid,
+                            (int) Math.max(1, Math.min(Integer.MAX_VALUE, Math.round(o.amount * expect)))));
                 }
                 names.add(r.name);
                 to++;
