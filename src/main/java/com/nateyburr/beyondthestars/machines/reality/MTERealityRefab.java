@@ -408,15 +408,25 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
         return (int) ((long) i * mMaxProgresstime / steps.length);
     }
 
-    /** No EU on a tick that does not advance (the node's Assembler-pays rule, mirrored: we pay only for progress). */
+    /**
+     * No EU on a tick that does not advance (the node's Assembler-pays rule, mirrored: we pay only for progress).
+     * QA-B64: GT calls this before {@link #incrementProgressTime}, so the tick is advanced here and {@code stalled}
+     * describes this tick. Deciding it in {@code incrementProgressTime} billed each tick by the one before it: the
+     * first tick after a stall was free and the first stalled tick paid.
+     */
     @Override
     public boolean onRunningTick(ItemStack aStack) {
+        advance();
         if (stalled) return true;
         return super.onRunningTick(aStack);
     }
 
+    /** The progress was set by {@link #advance} in {@link #onRunningTick}; GT's +1 per tick does not apply. */
     @Override
-    protected void incrementProgressTime() {
+    protected void incrementProgressTime() {}
+
+    /** One tick of the craft: moves {@code mProgresstime} as far as nanites and regions allow, sets {@code stalled}. */
+    private void advance() {
         stalled = true;
         if (steps == null || reqFluids == null) {
             wait = "the craft lost its recipe data; break and replace the input to restart";

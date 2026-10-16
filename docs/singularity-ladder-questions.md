@@ -8265,6 +8265,20 @@ part of QA-B44) waits for its ruling.
 - `btsReceptorLife` read 47.9 and 10.6 before a restart and 48.5 and 10.8 after it (the ports ran a moment longer).
 - OpenComputers itself was not run: `getDelivery()` now reads the same `lastReading()` copy as the scanner.
 
+### B-234 The Refab bills the tick it is on, not the one before [to-do pass, QA-B64]
+
+**Finding.** GT's `runMachine` calls `onRunningTick` (which pays the EU) before `incrementProgressTime`. The Refab
+decided `stalled` inside `incrementProgressTime`, so each tick was billed by the previous tick's result: the first
+tick that advanced after a stall was free, and the first stalled tick paid.
+
+**Built.** The advance moved into `advance()`, which `onRunningTick` calls first. `stalled` therefore describes the tick
+being paid, and EU is drawn only on ticks that advance (or accrue sub-ticks). `incrementProgressTime` does nothing,
+since `advance()` already set the progress. Nothing new is saved; the craft's tile NBT is unchanged.
+
+**Check** (offline). The call order was read from GT 5.09.54.205's `MTEMultiBlockBase.runMachine` bytecode
+(`onRunningTick`, then `incrementProgressTime`, then the completion check). No other caller of
+`incrementProgressTime` exists. `gradlew build` passes. Not run live: a stall needs a BEC network and nanite gates.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |
