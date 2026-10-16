@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-250, the calm-renders pass's B-251..B-252, the to-do 7 pass's B-253..B-255, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-250, the calm-renders pass's B-251..B-252, the to-do 7 pass's B-253..B-255, D-55's B-256..B-262, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -8776,6 +8776,145 @@ dead fluids and a converter recipe in NEI for a case no survival world has. Neit
 
 **Documented.** README known issues and the 0.25.0 release notes: empty any White Hole Matter before updating a
 development world; the log line is expected once and then gone.
+
+### B-256 Raw Star Matter at every Eye tier (D-55 A) [design change, built]
+
+**Ruling** (D-55, 2026-10-17): "each tier block should give raw stellar plasma in increasing amounts". Raw stellar
+plasma is the pack's Raw Star Matter (Condensed Raw Stellar Plasma Mixture).
+
+**Built.** Every lit tier N from T2 makes **N x 50,000 L an Eye-minute x p x the cycle's mean Y x r_min**
+(`RawStarMatterYield`, tunable): T2 100,000, T3 150,000 ... T10 500,000 L at p 1 and Y 1.
+- T1 is unchanged: its product already is exactly this, so it is not doubled.
+- The hook is the runtime's cycle end (`EyeStarRuntime.rawStarMatter`), which fires every 60 Eye-s on every tier, so
+  T5 earns it every minute through its 7,200 s batch and T10 beside its universe batch. The field and its goldens do
+  not see it (FieldSim / QuasarSim untouched).
+- Planets mode earns a quarter (its 0.25 demand). Companions earn nothing extra. A cycle that ends inside a transition
+  earns nothing (the Core Collapse, the Magnetar Collapse, the Galactic Merger, The Infall, Inflation and the rest),
+  nor does the second a transition completes.
+- It leaves by the output hatches with a carry, like every Eye output; what they cannot hold is voided as today.
+- Shown in: the GUI (a "Raw Star Matter" row with the last cycle's litres and the formula in its tooltip), the
+  scanner / bench status line, every star page in NEI (an extra fluid output and a "+RSPM ... L/min x p x Y x r"
+  line; T5's page per batch), the chart tooltips (T2-T9; the Universe's in its own text), README and the questbook
+  (T7, T8, the Universe).
+- T2's upkeep is 25,000 L Raw Star Matter a cycle; its byproduct (100,000 L at Y 1) covers it four times. That is
+  intended.
+
+**Check** (headless dev server, port 25841, bench `ledger`): T2 at p 64, 600 s: 79,624,000 L = 10 cycles x 100,000 x
+64 x mean Y 1.244. T5 at p 8, 600 s into a batch: 25,008,333 L = 10 x 250,000 x 8 x 1.250, mid-batch. T7 7,200 s:
+53,003,125 L (350,000 x 120 x 1.262). T8 7,200 s: 56,781,667 L (400,000 x 120 x 1.183). T10, 140 cycles: 84,887,500 L
+(500,000 x 140 x 1.213). Planets mode T7 at p 2: 87,500 L x p x Y a cycle.
+
+### B-257 The galaxy tiers run on GRB stability alone (D-55 B) [design change, built]
+
+**Ruling** (D-55): "Lets remove the feed of ergomatter and magnetar matter and just require stability from the grb".
+
+**Removed** (every Ergomatter and Molten Magnetar Matter input to the Eye):
+1. Triangulum's Molten Magnetar Matter upkeep (7.5 L a cycle, `GalaxyField.T7_MAGNETAR_UPKEEP`, the star's
+   `exactUpkeep`). T7 has no fluid upkeep now; r is 1 whenever the cycle's EU is paid, as at T9 and T10.
+2. The Milky Way's Ergomatter feed f8 (0-10 L/s). Λ drifts at the fixed old default, 0.4 x 5 = **2.0 per s**, still
+   held by halo bursts (J3's aim unchanged). The product is **Superdense Ergomatter 300 L a cycle x p x mean Y x
+   r_min** (exactly the old default output) and a caught satellite crossing pays **300 L x r x p**. `GalaxyField.F8`
+   (5) stays as the fixed equivalent feed, drawn from nowhere, so the maths stays bit-identical with the prototype.
+   The GUI's f8 stepper, the feed's intake and buffer draw and the bench's `set f8` are gone; OpenComputers
+   `setFeed8` stays by name and answers `false, "Milky Way has no feed since 0.26.0"`.
+3. The Galactic Merger's Ergomatter charge (5 L/s for 1,800 s, `EyeStarRuntime.GM_ERGO`). Bursts alone hold it
+   (the demand ramp 1.5 -> 6 Bu/t stays); a failure loses Triangulum only. Its readiness no longer asks for a buffer.
+4. The upkeep of T9's galaxy companions (Triangulum 7.5 L Magnetar Matter, the Milky Way 300 L Ergomatter). Their
+   products are unchanged.
+
+**Kept:** the Magnetar Collapse charge (White and Black Dwarf Matter), The Infall's Superdense Ergomatter charge,
+Inflation's and every universe's Attractor Dark Matter charge, the T9 pellet beam and its pellets, T6's Antipolarization
+Agent.
+
+**Code.** `TierParams` F.ERGO / `ergoFeed` became F.SHEAR / `shear` (Λ, the fixed-feed product, the crossing).
+`StepInputs.f8`, `StepResult.ergoFed / ergoToDraw / ergoCharged` and `GalacticMergerOverlay.CHARGE_PER_SECOND` are
+gone; `FieldState.Cycle.f8` stays as the fixed feed's sum (its NBT key too). `EyeGalaxy` no longer writes
+`btsEyeF8`; an older save's key is ignored. The prototypes changed first (B-261).
+
+**Check** (dev server, the bench's standard galaxy rig): a T8 Milky Way held 7,200 s with no Ergomatter anywhere in
+its buffers: 0 failures, zones 5,269 / 1,931 / 0 / 0 / 0, 2 crossings caught, product 43,186 L (= 120 x 300 x 1.183
++ 2 x 300). A T7 held 7,200 s with no Magnetar Matter buffered: 0 failures, 90,539 L Ergomatter. The Galactic Merger
+on a T8 Eye with no Ergomatter: begun by the rig's Begin edge, completed in 1,920 s, 0 failures.
+
+### B-258 The Universe yields what it holds (D-55 C) [design change, built]
+
+**Ruling** (D-55): "any universe has stars and planets and blackholes, these need to supply ergo matter, superdense,
+all items from all planets (with a filter) and similar".
+
+**Built** (`UniverseYield`, every number tunable). Each completed 7,200 s universe, beside its Molten Universium:
+- **Star matter**, per batch, x the batch's p x mean Y x r_min (the factors Universium uses): Excited Stellar Plasma
+  300,000 L, Raw Hyperdense Stellar Plasma 75,000, White Dwarf Matter 18,420, Black Dwarf Matter 4,608, Molten
+  Magnetar Matter 1,800, Ergomatter 72,000, Superdense Ergomatter 36,000 (each lower object's companion-table rate x
+  120 cycles). The fluid is each object's own product (`StarDef.ofTier(k).product`). Raw Star Matter comes from B-256
+  every Eye-minute; Attractor Dark Matter is the batch's own charge and is not yielded.
+- **Planets**: every registered planet recipe (43 in RC-2, the Deep Dark included) runs once at parallel 2^(10 - k),
+  each parallel rolled at (1 - 0.05 R) x the batch's field factor (Resonant / Stable 1, Strained 0.5, Critical 0,
+  averaged over the batch's field seconds: `EyeAttractor.uniZf / uniZn`, tile NBT, restarted with each universe).
+  Items go to the ME output bus and fluids to the output hatches, by planets mode's own path; no H/He, no EU.
+- A collapsed universe yields none of it. Overflow follows the existing rules.
+- NEI: the Universe page lists the star matter and Raw Star Matter per batch; one more page per 81 items lists every
+  planet's expected yield at field factor 1.
+
+**Check** (dev server, a kit T10 on the standard rig, `/btswarp 100`): universe 1, empty slot bus: 12,313 L
+Universium (mean Y 1.21) and "7 star matters, all 43 planets: 615,001 L of star matter (507,828 x 1.21), 12,298 of
+14,144 planet parallels succeeded (field factor 1.00)".
+
+### B-259 The Universe's filter and its two toggles [design change, built]
+
+- **The slot bus is the filter** (T10 has no companions or planets mode, so it is free): a whitelist, never consumed.
+  Empty = everything. A planet item in it (planets mode's items, `EyeRecipeRegistry.lookup`) limits the planets to
+  those in it; a star chart of T2..T8 limits the star matter to those charts' matters. Sol's chart, T9's and T10's do
+  nothing (Raw Star Matter always comes).
+- **Two toggles** on the Galaxy panel at T10 (shown while the Universe burns or its chart is in the slot), "Star matter
+  yield: on/off" and "Planet yield: on/off": synced, saved in tile and item NBT (`btsEyeUniStarsOff`,
+  `btsEyeUniPlanetsOff`, written only when off), and OpenComputers `getUniverseYield()` / `setUniverseYield(stars,
+  planets)`. The GUI's Yield row and the panel say what the next universe gives ("Yield: 2 star matters, 3 of 43
+  planets (filtered by slot bus)").
+- **Automation.** AE2 and redstone work through the slot bus (an input bus: an interface or a conveyor). The toggles
+  themselves are settings with a GUI and an OpenComputers route but **no redstone route**: everything a redstone
+  signal could want is reachable through the filter except "no star matter at all" (a chart always keeps its own).
+  If a redstone off-switch is wanted, a control-set Directive Hatch mode is the natural place.
+
+**Check** (the same T10, universe 2, slot bus Sirius A + Triangulum charts, the Deep Dark, Mars, Moon): "2 star
+matters, 3 of 43 planets (filtered by slot bus): 455,442 L of star matter (372,000 x 1.224), 1,037 of 1,088 planet
+parallels succeeded" (Moon 512 + Mars 512 + Deep Dark 64). The toggles were not driven on the server (no client, no
+OpenComputers in the dev pack); their code path is the same selection with the rows dropped.
+
+### B-260 Old worlds: Ergomatter and Magnetar Matter already in an Eye [migration]
+
+**Choice: eject once, to the owed outputs.** On load (tile or item NBT) an Eye's buffer of Ergomatter or Molten
+Magnetar Matter, which no Eye recipe takes any more, moves to `legacyPay`, the owed outputs the Eye already pays to its
+output hatches once it stands formed (the pre-D-49 run and T5 salvage path), with a log line; the GUI's owed row lists
+it until then. Simpler and safer than keeping a drain button: nothing new in the GUI, nothing lost, and no buffer
+the Eye could never use again. Only a fluid that is no longer an Eye input is moved.
+
+**Check** (dev server): 9,000 L Ergomatter and 750 L Magnetar Matter set in a T7's buffers, then the bench `wrench`
+(item NBT round trip): both logged as "no longer an Eye input", listed as owed, and credited to the output hatches on
+the next second.
+
+**Axes.** Client / server: nothing client-side reads the buffers but the synced GUI rows. Tile vs item NBT: the toggles
+are persistent (both), the universe's field factor and last yield are tile-only. Plant-wide hatch lists: unchanged.
+Element chains: the conduit's Ergomatter fuel is the conduit's own and unchanged.
+
+### B-261 Prototypes, fixtures and goldens for D-55 [B-37 discipline]
+
+- `designs/quasar-p4-prototype.html` and the P4 block of `designs/p5-prototype.html` changed first and the same way:
+  `f8of` returns the constant F8 = 5; no Ergomatter / Magnetar Matter upkeep or charge in the ledger for T7, T8, the
+  merger or the T9 galaxy companions; the crossing bonus is T8_RATIO x F8 x 60 x r; the merger's readiness no longer
+  needs a buffer; the f8 slider and the merger's buffer button are gone from the P4 page.
+- Fixtures refreshed (`--refresh-fixture`), the case 'T8 140SM f8 10 s3' is now 'T8 140SM s3', goldens regenerated.
+  Only the ledgers' upkeep entries and the replaced case changed.
+- `--check --java`: fieldsim 78 / 78, quasar 38 / 38, p5 46 / 46, smbh 31 / 31. gen-singularity `--check`,
+  export-structures `--check` and gen-sl-textures `--check` clean. `gradlew build` (with `checkHatchLangKeys` and
+  `verifyReleaseJar`) passes.
+
+### B-262 The D-55 smoke test [dev server]
+
+Headless `runServer` on port 25841, flat world, the console fed through `run/server/cmds.txt`, no client. Load:
+"Recipe registration complete: 409 registered, 0 skipped", 43 planet recipes converted, no Eye NEI page skipped, no
+stack trace from our code. The runs are in B-256 to B-260. **Not seen:** a client GUI (the toggles, the rows, the NEI
+pages drawn), the items arriving in a real ME network (the kit's ME output bus has no network; the path is planets
+mode's), OpenComputers calls.
 
 ## Where the old question numbers went
 
