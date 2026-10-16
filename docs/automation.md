@@ -94,7 +94,11 @@ OpenComputers changes do not stick, and the Eye's Field panel says "Time dial he
 below 100 %), 8 not formed.
 
 **Kerr: control the mass setpoint** — redstone 1 → 2 SM, 15 → the tier's top (64 SM at T1, 512 SM at T2), linear,
-whole SM.
+whole SM. A setpoint the rails cannot hold with the bolts on hand is held at the least mass they can (S-07: the bleed
+3.2 / M² a tick against the rails' bolts a tick of the lightest bolt in the buses; Neutronium bolts hold 8 SM on Mk I
+rails, 6 on Mk II, 4 on Mk III, SpaceTime bolts 2 on any). The Directive line then says "held at X SM (the rails
+cannot hold less)" and the Hole panel shows "Rails hold X SM and up". Exactly 2 SM (strength 1) still asks for a
+collapse (QA-A03).
 
 ---
 
@@ -127,7 +131,7 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 | **Bolts** | Export bus (or interface) into a plain bolt bus on Hole bit 3 (ME stocking buses are refused: the governor cannot take from shadow stacks) | Hole bit 3 → export bus / conveyor | `kerr.getState().boltStockSeconds`, transposer | Item node into the bolt bus on bit 3 |
 | **Open the hole** | Push a Black Hole Seed into a bolt bus on Hole bit 1; Auto (on by default) opens it | Hole bit 1 → export bus | `kerr.open()` (needs a Seed, 1 SM of bolts and containment power in place) | Item node on bit 1 |
 | **Collapse** | Push a Collapser into a bolt bus and set the setpoint to 2 SM (Auto uses it then) | Control-set hatch at strength 1 (2 SM) with a Collapser in a bolt bus | `kerr.collapse()` (needs a Collapser) | Item node |
-| **Mass setpoint** | Level emitter → control-set hatch | Control-set hatch: 1-15 → 2 .. 64 / 512 SM | `kerr.setSetpoint(n)` | Analog redstone emitter → control hatch |
+| **Mass setpoint** | Level emitter → control-set hatch | Control-set hatch: 1-15 → 2 .. 64 / 512 SM (held at least at what the rails hold, but 2) | `kerr.setSetpoint(n)` | Analog redstone emitter → control hatch |
 | **Containment power** | — (energy / laser hatches) | Status bit 1 → backup generator | `getState().powerOk` | Redstone condition on Status bit 1 |
 | **Kerr modules** | Standard GT hatches: ME stocking buses and hatches, ME output | GT covers as on any multi | `bts_kerr_module.getState()` (link, parallel, speed, progress) | Item / fluid nodes |
 

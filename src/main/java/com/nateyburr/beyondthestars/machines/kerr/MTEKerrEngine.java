@@ -258,6 +258,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     private double boltsPerTick;
     /** Refreshed every second: bolt stock, seeds, collapsers, slot lines. */
     private double boltStockSm;
+    /** S-07: the lightest governor bolt in the bolt buses, SM (0: none), refreshed every second. Not saved. */
+    private double lightestBoltSm;
     private int seeds;
     private int collapsers;
     private final String[] slotLines = new String[KerrSlot.VALUES.length];
@@ -1076,9 +1078,33 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         return Math.max(SETPOINT_MIN, Math.min(maxSetpoint(), wanted));
     }
 
-    /** The setpoint the governor holds: the stored one, capped at {@link #maxSetpoint()}. */
+    /**
+     * The setpoint the governor holds: the stored one, capped at {@link #maxSetpoint()}, and (S-07) raised to
+     * {@link #holdFloor()} unless it is exactly {@link #SETPOINT_MIN}, which asks for a collapse (QA-A03).
+     */
     public int effectiveSetpoint() {
-        return Math.min(setpoint, maxSetpoint());
+        final int sp = Math.min(setpoint, maxSetpoint());
+        if (sp <= SETPOINT_MIN) return sp;
+        return Math.min(maxSetpoint(), Math.max(sp, holdFloor()));
+    }
+
+    /**
+     * S-07: the least mass, whole SM, that the governor can hold with these rails and bolts: the bleed
+     * {@code BLEED_K x bleedFactor / M^2} must not outrun {@code boltCap()} bolts a tick of the lightest bolt in the
+     * bolt buses (Neutronium if there are none). Below it a setpoint only evaporates the hole: Neutronium bolts on Mk
+     * I rails hold 8 SM and up (7.16), on Mk II 6, on Mk III 4; SpaceTime bolts on any rails hold 2.
+     */
+    public int holdFloor() {
+        final int cap = boltCap();
+        if (cap <= 0) return SETPOINT_MIN;
+        final double bolt = lightestBoltSm > 0 ? lightestBoltSm : BOLT_MASSES[0];
+        final double m = Math.sqrt(BLEED_K * bleedFactor() / (cap * bolt));
+        return Math.max(SETPOINT_MIN, (int) Math.ceil(m - 1e-9));
+    }
+
+    /** True while the governor holds more than the stored setpoint because the rails cannot hold less (S-07). */
+    public boolean heldAtFloor() {
+        return effectiveSetpoint() > Math.min(setpoint, maxSetpoint());
     }
 
     public int getSetpoint() {
@@ -1364,7 +1390,15 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
 
     @Override
     public String directiveControlLine(DirectiveSet set) {
-        return set == DirectiveSet.KERR_SETPOINT ? "mass setpoint " + setpoint + " SM" : "";
+        if (set != DirectiveSet.KERR_SETPOINT) return "";
+        // S-07: a setpoint under what the rails can hold is held at the floor, and the line says so
+        if (heldAtFloor()) {
+            return "mass setpoint " + setpoint
+                + " SM, held at "
+                + effectiveSetpoint()
+                + " SM (the rails cannot hold less)";
+        }
+        return "mass setpoint " + setpoint + " SM";
     }
 
     /**
@@ -1452,6 +1486,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     /** Every second: bolt stock, seed and collapser counts, and the module slots. */
     private void refreshReadouts() {
         double stock = 0;
+        double lightest = 0;
         int s = 0;
         int c = 0;
         final ItemStack seed = ItemList.Black_Hole_Opener.get(1L);
@@ -1462,12 +1497,15 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             for (int slot = 0; slot < inv.getSizeInventory(); slot++) {
                 final ItemStack stack = inv.getStackInSlot(slot);
                 if (stack == null) continue;
-                stock += boltMass(stack) * stack.stackSize;
+                final double bolt = boltMass(stack);
+                stock += bolt * stack.stackSize;
+                if (bolt > 0 && (lightest <= 0 || bolt < lightest)) lightest = bolt;
                 if (seed != null && GTUtility.areStacksEqual(stack, seed, true)) s += stack.stackSize;
                 if (collapser != null && GTUtility.areStacksEqual(stack, collapser, true)) c += stack.stackSize;
             }
         }
         boltStockSm = stock;
+        lightestBoltSm = lightest;
         seeds = s;
         collapsers = c;
         int linked = 0;

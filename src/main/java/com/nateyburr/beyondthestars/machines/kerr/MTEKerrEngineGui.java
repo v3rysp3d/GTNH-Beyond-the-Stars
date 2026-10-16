@@ -99,6 +99,8 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
         syncManager
             .syncValue("kerrSetpoint", new IntSyncValue(multiblock::getSetpoint, multiblock::setSetpoint).allowC2S());
         syncManager.syncValue("kerrMaxSetpoint", new IntSyncValue(multiblock::maxSetpoint));
+        // S-07: the least mass these rails and bolts hold (a lower setpoint, but 2, is held there)
+        syncManager.syncValue("kerrFloor", new IntSyncValue(multiblock::holdFloor));
         syncManager.syncValue("kerrDensity", new BooleanSyncValue(multiblock::isDensityInstalled));
         syncManager.syncValue("kerrSeeds", new IntSyncValue(multiblock::getSeeds));
         syncManager.syncValue("kerrCollapsers", new IntSyncValue(multiblock::getCollapsers));
@@ -510,7 +512,8 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
             .tooltip(
                 t -> t.addLine(tr(K + "setpoint.tip1"))
                     .addLine(EnumChatFormatting.GRAY + tr(K + "setpoint.tip2"))
-                    .addLine(EnumChatFormatting.GRAY + tr(K + "setpoint.tip3")))
+                    .addLine(EnumChatFormatting.GRAY + tr(K + "setpoint.tip3"))
+                    .addLine(EnumChatFormatting.GRAY + tr(K + "setpoint.tip4")))
             .tooltipShowUpTimer(TOOLTIP_DELAY);
     }
 
@@ -638,6 +641,7 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
         final IntSyncValue collapsers = main.findSyncHandler("kerrCollapsers", IntSyncValue.class);
         final BooleanSyncValue auto = main.findSyncHandler("kerrAuto", BooleanSyncValue.class);
         final IntSyncValue linked = main.findSyncHandler("kerrLinked", IntSyncValue.class);
+        final IntSyncValue floor = main.findSyncHandler("kerrFloor", IntSyncValue.class);
         final int w = HOLE_PANEL_W - 8;
         final int half = (w - 4) / 2;
 
@@ -670,6 +674,13 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
                 keyValue(
                     () -> tr(K + "setpoint"),
                     () -> tr(K + "panel.range", MTEKerrEngine.SETPOINT_MIN, clampSetpoint(Integer.MAX_VALUE, max)),
+                    w))
+            // S-07: what the rails can hold with the bolts in the buses; a setpoint below it (but 2) is held there
+            .child(
+                keyValue(
+                    () -> tr(K + "panel.floor"),
+                    () -> floor.getIntValue() <= MTEKerrEngine.SETPOINT_MIN ? tr(K + "panel.floor.any")
+                        : tr(K + "panel.floor.v", floor.getIntValue()),
                     w))
             // The slider runs 0..1 over the tier's CURRENT range (it follows a Density Upgrade going in
             // while the panel is open); it snaps to whole SM and sends only actual changes.
