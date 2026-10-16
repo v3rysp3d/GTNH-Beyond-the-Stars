@@ -8240,6 +8240,24 @@ any later shape change. No shape, quest or cost table changed.
 shape files; `gradlew build` and `export-structures --check` pass. The T1 throat-tip Region Crystal (the other open
 part of QA-B44) waits for its ruling.
 
+### B-232 A crown pays nothing for the second after its jet stops [to-do pass, QA-B60]
+
+**Finding.** The crown summed its jet records over `FlowBook.SHOW`, a 40-tick window. A quasar that stopped sending
+(removed, unformed, unloaded) left its last record in that window for one more crown second, so the crown paid one
+extra second of EU. A lower crown's overflow had the same extra second.
+
+**Built.** The crown no longer keeps a record book. It adds what each jet packet and each overflow hand-up gives into
+a counter, and its once-a-second payout takes the counter and clears it. Each packet is paid in exactly one second,
+whatever the phase between the quasar and the crown. The cap check while a jet docks reads the same counter, as it
+read the 20-tick sum before. A bench run of many seconds in one tick still fills the crown only up to its cap. Server
+state only; nothing new is saved.
+
+**Check** (headless dev server, port 25871, `/btssmbh bench`, Mk IV crown on the top port).
+- Steady running: the lifetime grew 3.89e19 EU over 222 ticks (11-12 crown seconds) at about 1.6e17 EU/t. That is one
+  payout a second, not two and none missed.
+- With the quasar controller removed between ticks 4,264 and 4,284, the lifetime stepped once (the packet sent before
+  the removal) and then stayed flat for every read up to tick 4,385. The old window paid a second step 20 ticks later.
+
 ### B-233 The receptor's GUI, scanner and OpenComputers no longer change it [to-do pass, QA-B61]
 
 **Finding.**
@@ -8278,6 +8296,26 @@ since `advance()` already set the progress. Nothing new is saved; the craft's ti
 **Check** (offline). The call order was read from GT 5.09.54.205's `MTEMultiBlockBase.runMachine` bytecode
 (`onRunningTick`, then `incrementProgressTime`, then the completion check). No other caller of
 `incrementProgressTime` exists. `gradlew build` passes. Not run live: a stall needs a BEC network and nanite gates.
+
+### B-235 A crown says when its source is shedding [to-do pass, QA-B68]
+
+**Finding.** While a quasar sheds its hole (smbh-v1.md §2.5) its jets carry 0 Bu/t. The crown then showed 0 Bu/t and
+0 EU/t with no reason, which read as broken.
+
+**Built.**
+- `JetPacket` carries a `shed` flag, set from `MTEQuasarEngine.isShedding()`.
+- A docked crown reads the flag from the packet. A remote crown checks each source in its receptor's reading, since a
+  shedding quasar's 0 Bu/t stream still reaches it.
+- The crown GUI shows a warning row "Source shedding: makes nothing", whose tooltip names the quasar and says 0 EU/t.
+  The scanner and `getInfoData` print the same line, and OpenComputers `bts_crown.getStream()` has `shedding`.
+- The header chip already shows EU/t beside Bu/t ("cap 524,288 Bu/t (5.2e18 EU/t)", since QA-B24), so the chip needed no
+  change.
+- Server state only; the row is gone two seconds after the shed ends.
+
+**Check** (headless dev server, port 25871, `/btssmbh bench`, `mass 16384`, then `setpoint 4096`). While the quasar
+said "SHEDDING to 4,096 SM (setpoint lowered)", the crown read "Stream 0.00 Bu/t", "Power: 0 EU/t" and "Source
+shedding: makes nothing (the quasar at 0, 80, 0 (dim 0) sheds its hole)". After the shed ended, the line was gone and
+the crown read 1.7e17 EU/t again.
 
 ## Where the old question numbers went
 

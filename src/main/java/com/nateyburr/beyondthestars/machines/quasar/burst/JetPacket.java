@@ -29,6 +29,11 @@ public final class JetPacket {
      */
     public final int lattice;
     public final double mass;
+    /**
+     * QA-B68: the source's hole is shedding mass (smbh-v1.md §2.5), so the jet carries nothing while it lasts. A dock
+     * shows why it makes nothing instead of reading as broken.
+     */
+    public final boolean shed;
 
     public JetPacket(BurstSource source, JetPort port, double buPerTick, boolean linkable, long tick) {
         this(source, port, buPerTick, linkable, tick, 0, 0);
@@ -36,8 +41,14 @@ public final class JetPacket {
 
     public JetPacket(BurstSource source, JetPort port, double buPerTick, boolean linkable, long tick, int lattice,
         double mass) {
+        this(source, port, buPerTick, linkable, tick, lattice, mass, false);
+    }
+
+    public JetPacket(BurstSource source, JetPort port, double buPerTick, boolean linkable, long tick, int lattice,
+        double mass, boolean shed) {
         this.lattice = lattice;
         this.mass = mass;
+        this.shed = shed;
         this.source = source;
         this.port = port;
         this.buPerTick = buPerTick;

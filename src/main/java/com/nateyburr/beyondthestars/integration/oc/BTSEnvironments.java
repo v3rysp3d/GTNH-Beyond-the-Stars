@@ -722,7 +722,7 @@ public final class BTSEnvironments {
             return k == null ? GONE : new Object[] { k.getEUt() };
         }
 
-        @Callback(doc = "function():table -- Mk, stream, used, EU/t, clipped, stacked, lifetime EU")
+        @Callback(doc = "function():table -- Mk, stream, used, EU/t, clipped, stacked, shedding, lifetime EU")
         public Object[] getStream(Context c, Arguments a) {
             final MTEBurstThermaliserCrown k = crown();
             return k == null ? GONE : new Object[] { ConduitComputerApi.crown(k) };

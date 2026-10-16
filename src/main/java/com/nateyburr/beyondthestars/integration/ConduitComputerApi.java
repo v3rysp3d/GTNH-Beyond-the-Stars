@@ -105,7 +105,7 @@ public final class ConduitComputerApi {
         return out;
     }
 
-    /** {@code bts_crown.getPower()} etc.: Mk, stream, used, EU/t, clipped, stacked. */
+    /** {@code bts_crown.getStream()}: Mk, stream, used, EU/t, clipped, stacked, shedding, lifetime EU. */
     public static Map<String, Object> crown(MTEBurstThermaliserCrown c) {
         final Map<String, Object> out = new LinkedHashMap<>();
         out.put("mk", c.getMk());
@@ -114,6 +114,11 @@ public final class ConduitComputerApi {
         out.put("eut", c.getEUt());
         out.put("clipped", c.getClipped());
         out.put("stacked", c.stacked() != null);
+        // QA-B68: the source quasar's hole is shedding, so the crown makes nothing
+        out.put(
+            "shedding",
+            !c.getShedSource()
+                .isEmpty());
         out.put(
             "lifetimeEU",
             c.getLifetimeEU()

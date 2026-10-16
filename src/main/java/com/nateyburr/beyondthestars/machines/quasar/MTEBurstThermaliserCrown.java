@@ -47,13 +47,13 @@ import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.QuietTileUpdate;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitRender;
 import com.nateyburr.beyondthestars.machines.conduit.ConduitThroats;
-import com.nateyburr.beyondthestars.machines.conduit.FlowBook;
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.gui.BTSFormat;
 import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstDocks;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstHost;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstReading;
+import com.nateyburr.beyondthestars.machines.quasar.burst.BurstSource;
 import com.nateyburr.beyondthestars.machines.quasar.burst.IBurstDock;
 import com.nateyburr.beyondthestars.machines.quasar.burst.JetPacket;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstRouting;
@@ -129,13 +129,20 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     private final ArrayList<MTEHatchGRBReceptor> receptors = new ArrayList<>();
 
     // ---- run
-    private final FlowBook book = new FlowBook();
+    /**
+     * QA-B60: the jets and a lower crown's overflow taken since the last crown second. Each packet counts in exactly
+     * one second, so a jet that stops pays nothing the next second (a 40-tick record window paid one more).
+     */
+    private double pendingJets, pendingOverIn;
     private final BurstHost remote = new BurstHost();
     private final QuietTileUpdate quietTileUpdate = new QuietTileUpdate();
     private UUID owner;
     private double lastStream, lastUsed, lastOver, lastClipped, lastRemote, lastJets, lastOverIn;
     private String stackLine = "";
     private String dockNote = "";
+    /** QA-B68: the quasar whose hole is shedding (docked jet or remote feed) last second, or "" when none. */
+    private String shedSource = "";
+    private long shedTick = Long.MIN_VALUE / 2;
     /** Client: the Mk and the burst taken / thermalised last second, as last sent (renders v2 §10, never saved). */
     private int renderMk;
     private float renderStream, renderUsed;
@@ -401,6 +408,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         final long now = world.getTotalWorldTime();
         if (!mMachine) {
             lastStream = lastUsed = lastOver = lastClipped = 0;
+            pendingJets = pendingOverIn = 0;
             activeNow = (false);
             if (aTick % 100 == 0) sendRenderDataToClient(this);
             return;
@@ -409,7 +417,6 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         BurstDocks.register(world, intake[0], intake[1], intake[2], this);
         second(now);
         aBaseMetaTileEntity.markDirty(); // the lifetime EU changes every second (P4-85)
-        book.prune(now);
         activeNow = (lastUsed > 1e-9);
         sendRenderDataToClient(this);
     }
@@ -468,8 +475,17 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         final BurstReading r = remote.second(receptors, crownKey(), "Burst Thermaliser Crown Mk " + roman(mk), 0, 0);
         // QA-B45: a crown has nothing to freeze: what arrived is power, even while another source is paused
         lastRemote = r.total;
-        lastJets = book.sum("jet|", now, FlowBook.SHOW);
-        lastOverIn = book.sum("over|", now, FlowBook.SHOW);
+        lastJets = pendingJets;
+        lastOverIn = pendingOverIn;
+        pendingJets = pendingOverIn = 0;
+        // QA-B68: a remote source whose hole is shedding sends 0 Bu/t through the conduit; name it like a docked one
+        for (BurstSource src : r.bySource.keySet()) {
+            final MTEQuasarEngine q = src.resolve();
+            if (q != null && q.isShedding()) {
+                shedSource = src.label();
+                shedTick = now;
+            }
+        }
         final double s = lastJets + lastRemote + lastOverIn;
         final double cap = BurstRouting.crownCap(mk);
         final double used = Math.min(s, cap);
@@ -499,7 +515,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
 
     /** A lower crown hands its overflow up the stack. */
     void addOverflow(String from, double bu, long now) {
-        book.add("over|" + from, bu, now);
+        pendingOverIn += Math.max(0, bu);
     }
 
     /** The crown stacked on this one (same facing, formed), or null. */
@@ -566,11 +582,15 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         dockNote = "docked on the " + jet.port.label.toLowerCase(Locale.ROOT)
             + " jet port of the quasar at "
             + jet.source.label();
+        if (jet.shed) {
+            shedSource = jet.source.label();
+            shedTick = now;
+        }
         final MTEBurstThermaliserCrown above = stacked();
         final double cap = BurstRouting.crownCap(mk) + (above == null ? 0 : BurstRouting.crownCap(above.mk));
-        final double used = book.sum("jet|", now, FlowBook.SECOND) + lastRemote;
+        final double used = pendingJets + lastRemote;
         final double taken = Math.max(0, Math.min(jet.buPerTick, cap - used));
-        book.add("jet|" + jet.source.label() + "|" + jet.port.key, taken, now);
+        pendingJets += taken;
         return taken;
     }
 
@@ -641,6 +661,18 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         return stackLine;
     }
 
+    /**
+     * QA-B68: the quasar (docked or remote) whose hole was shedding in the last two seconds, so the crown makes
+     * nothing from it, or "".
+     */
+    public String getShedSource() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        final long now = base == null || base.getWorld() == null ? 0
+            : base.getWorld()
+                .getTotalWorldTime();
+        return mMachine && now - shedTick <= JetPacket.STALE_TICKS ? shedSource : "";
+    }
+
     /** The dock note while it is fresh (3 s), or "" (no jet port docked). */
     public String getDockNote() {
         final IGregTechTileEntity base = getBaseMetaTileEntity();
@@ -678,6 +710,8 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
                 "Power: %.3e EU/t (%s) to the wireless network",
                 getEUt(),
                 BTSFormat.euWords(getEUt())) + (owner == null ? " - NO OWNER (place it yourself)" : ""));
+        final String shed = getShedSource();
+        if (!shed.isEmpty()) out.add("Source shedding: makes nothing (the quasar at " + shed + " sheds its hole)");
         if (lastOver > 1e-9) out.add("Overflow " + MTEQuasarEngine.buEu(lastOver) + " to the crown above");
         if (lastClipped > 0.005) out.add("Clipped " + MTEQuasarEngine.buEu(lastClipped) + " (over the cap)");
         if (!stackLine.isEmpty()) out.add(stackLine);

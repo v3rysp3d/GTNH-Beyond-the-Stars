@@ -762,6 +762,11 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return q.hole == QuasarState.Hole.OPEN || q.hole == QuasarState.Hole.REFORM;
     }
 
+    /** QA-B68: the hole is shedding mass (smbh-v1.md §2.5): the jets carry nothing while it lasts. Server state. */
+    public boolean isShedding() {
+        return mMachine && q.shed;
+    }
+
     /** One disc second. */
     private void second(IGregTechTileEntity base) {
         if (secondsSinceLoad < Integer.MAX_VALUE) secondsSinceLoad++;
@@ -897,8 +902,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                 continue;
             }
             jetDock[i] = dock.dockLabel();
-            final double got = dock
-                .acceptJet(new JetPacket(source, port, bu, linkable, now, getLatticeInForce(), getMass()));
+            final double got = dock.acceptJet(
+                new JetPacket(source, port, bu, linkable, now, getLatticeInForce(), getMass(), isShedding()));
             jetRefused[i] = got < 0; // misaligned: the whole jet vents (P4-94); a cap's clip does not
             if (jetRefused[i]) vented += bu;
             jetTaken[i] = Math.max(0, Math.min(bu, got));

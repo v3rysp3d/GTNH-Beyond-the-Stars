@@ -95,6 +95,10 @@ public class CrownGui extends BTSControllerGui<MTEBurstThermaliserCrown> {
                     + BTSFormat.euWords(c.getEUt())
                     + ")"),
             BTSText.lang(K + "power.tip"));
+        final String shed = c.getShedSource();
+        if (!shed.isEmpty()) {
+            rows.note(BTSRows.ICON_WARN, BTSGuiKit.WARN, BTSText.lang(K + "shed"), BTSText.lang(K + "shed.tip", shed));
+        }
         if (!owner) {
             rows.check(
                 BTSChecklist.State.BAD,
