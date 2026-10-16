@@ -80,6 +80,12 @@ final class CosmosFx {
     static final float MEMBRANE_A = 68f, MEMBRANE_B = 64f;
     /** The crown's glow sits this far inside its centre line; a Cosmic Dawn ray starts this far out along its spike. */
     static final float CROWN_INSET = 4.5f, RAY_FROM = 18f, RAY_LENGTH = 40f;
+    /**
+     * The Big Crunch's white-hot spot: a glow of this radius (blocks) at the crown's centre, drawn this far toward the
+     * camera so the collimator stack (collars up to 11.2 blocks round the axis) cannot hide it, and never smaller on
+     * screen than {@link #SPOT_MIN_PX} pixels.
+     */
+    static final float SPOT_RADIUS = 20f, SPOT_PULL = 16f, SPOT_MIN_PX = 14f;
     /** How the Attractor and the Universe rank for LOD: bounding radius, blocks. */
     static final float ATTRACTOR_BOUND = 60f, UNIVERSE_BOUND = 85f;
 
@@ -236,6 +242,8 @@ final class CosmosFx {
         boolean beamOn, membraneOn, ringsOn;
         /** The crown's glow (0: not drawn). */
         float crownGlow;
+        /** The Big Crunch's white-hot spot at the crown's centre (0: not drawn). */
+        float spot;
         /** The share of each point buffer drawn (LOD). */
         float density;
         /** The L3 sprite's colour. */
@@ -492,6 +500,9 @@ final class CosmosFx {
                 : in.phase == CosmosInput.PHASE_CRUNCH ? 2 : in.phase == CosmosInput.PHASE_LAST_LIGHT ? 3 : 0
             : 0;
         final float fk = fate == 0 ? 0f : clamp01(in.endAge / 3.0);
+        // the Big Crunch's white-hot spot: it grows as the surface falls in (which leaves it a few blocks across,
+        // inside the collimator stack), holds while it vanishes, and flashes out in the last half second
+        L.spot = fate == 2 ? smooth(0.3, 0.85, fk) * (1f - smooth(3.0, 3.5, in.endAge)) : 0f;
         if (fate == 1) scale *= 1f + 2.5f * fk * fk;
         if (fate == 2) scale *= (float) Math.pow(1 - fk, 1.5);
         L.membraneOn = show && scale > 0.01f;
@@ -540,9 +551,10 @@ final class CosmosFx {
         world(L, 0, CORE * 1.02, 0, L.beamBottom);
         world(L, 0, beamTop, 0, L.beamTop);
         L.density = detail >= 3 ? 1f : detail == 2 ? 0.5f : 0.15f;
+        // the L3 sprite: warm, white-hot through the crunch
         L.glow[0] = 1f;
-        L.glow[1] = 0.72f;
-        L.glow[2] = 0.55f;
+        L.glow[1] = mix(0.72f, 0.97f, L.spot);
+        L.glow[2] = mix(0.55f, 0.92f, L.spot);
     }
 
     // ================================================================== draws
@@ -589,6 +601,29 @@ final class CosmosFx {
         if (L.membraneOn) drawPoints(L, WEB_POINTS, false);
         drawCrown(L);
         drawRays(L);
+        if (L.spot > 0.003f) {
+            GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+            spotAt(L, SPOT);
+            GlowSprite.draw(SPOT[0], SPOT[1], SPOT[2], SPOT[3], 1f, 0.97f, 0.92f, 2f * L.spot, 0.2f, 0.5f);
+        }
+    }
+
+    /** x, y, z (camera-relative) and radius of the crunch's spot, as {@link #spotAt} placed it. */
+    private static final double[] SPOT = new double[4];
+
+    /**
+     * The Big Crunch's spot: the crown's centre pulled {@link #SPOT_PULL} toward the camera along the line of sight
+     * (the same place on screen, but in front of the stack's blocks), its radius scaled to keep its size on screen,
+     * floored at {@link #SPOT_MIN_PX} pixels so it still reads from the crown and cosmos views (170-230 blocks).
+     */
+    private static void spotAt(Look L, double[] out) {
+        world(L, 0, crownY, 0, out);
+        final double d = Math.sqrt(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]);
+        final double pull = Math.min(SPOT_PULL, 0.5 * d), k = d > 1e-3 ? (d - pull) / d : 1;
+        out[0] *= k;
+        out[1] *= k;
+        out[2] *= k;
+        out[3] = Math.max(SPOT_RADIUS * k, SPOT_MIN_PX * (d - pull) / Math.max(1e-3, Lod.pixelsPerBlockAtUnit()));
     }
 
     private static void drawSky(Look L) {
@@ -713,7 +748,8 @@ final class CosmosFx {
         final double[] p = L.beamTop;
         if (universe) {
             world(L, 0, crownY, 0, p);
-            GlowSprite.draw(p[0], p[1], p[2], crownA * 0.9, L.glow[0], L.glow[1], L.glow[2], 0.7f, 0.18f, 0.5f);
+            GlowSprite
+                .draw(p[0], p[1], p[2], crownA * 0.9, L.glow[0], L.glow[1], L.glow[2], 0.7f + L.spot, 0.18f, 0.5f);
         } else {
             GlowSprite.draw(L.cx, L.cy, L.cz, EINSTEIN * 2.2, L.glow[0], L.glow[1], L.glow[2], 0.6f, 0.1f, 0.5f);
         }
@@ -821,6 +857,11 @@ final class CosmosFx {
         }
         t.draw();
         fixedBeam(t, L, CORE, beamTop, 0.35, 1f, 1f, 1f, 0.2f);
+        // the Big Crunch's white-hot spot
+        if (L.spot > 0.003f) {
+            spotAt(L, SPOT);
+            GlowSprite.drawFixed(t, SPOT[0], SPOT[1], SPOT[2], SPOT[3], 1f, 0.97f, 0.92f, 0.9f * L.spot);
+        }
     }
 
     private static float mix(float a, float b, float f) {
