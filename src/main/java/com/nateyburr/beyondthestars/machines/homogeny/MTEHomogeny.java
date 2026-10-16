@@ -1284,9 +1284,19 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
             .addInfo("Automation: ME input and output hatches work.")
             .beginVariableStructureBlock(t1[0], t3[0], t1[1], t3[1], t1[2], t3[2], false)
             .addController("Tip of the volute's discharge throat")
-            .addCasingInfoExactly("Stirring Band Casing", bom(PIECE_T1, 'A'), false)
+            // QA-B44: a socket left without its hatch is the casing it falls back to, so these three are ranges. The
+            // top end keeps the one hatch of each kind the machine needs to form.
+            .addCasingInfoRange(
+                "Stirring Band Casing",
+                bom(PIECE_T1, 'A'),
+                bom(PIECE_T1, 'A') + bom(PIECE_T1, 'o') - 1,
+                false)
             .addCasingInfoExactly("Shear Helix Coil", bom(PIECE_T1, 'B'), false)
-            .addCasingInfoExactly("Feed Vessel Casing", bom(PIECE_T1, 'C') + bom(PIECE_T2, 'C'), false)
+            .addCasingInfoRange(
+                "Feed Vessel Casing",
+                bom(PIECE_T1, 'C') + bom(PIECE_T2, 'C'),
+                bom(PIECE_T1, 'C') + bom(PIECE_T2, 'C') + bom(PIECE_T1, 'h') + bom(PIECE_T2, 'h') - 1,
+                false)
             .addCasingInfoExactly("Vortex Inlet", bom(PIECE_T1, 'D') + bom(PIECE_T2, 'D'), false)
             .addCasingInfoExactly("Bastion Plate", bom(PIECE_T1, 'O') + bom(PIECE_T2, 'O') + bom(PIECE_T3, 'O'), false)
             .addCasingInfoExactly(
@@ -1297,14 +1307,20 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
                 "Quantum Glass",
                 bom(PIECE_T1, 'Z') + bom(PIECE_T1, 'K') + bom(PIECE_T2, 'K') + bom(PIECE_T2, 'Z') + bom(PIECE_T3, 'K'),
                 false)
-            .addCasingInfoExactly("Reinforced Temporal Structure Casing", bom(PIECE_T1, 'M'), false)
+            .addCasingInfoRange(
+                "Reinforced Temporal Structure Casing",
+                bom(PIECE_T1, 'M'),
+                bom(PIECE_T1, 'M') + bom(PIECE_T1, 'e') - 1,
+                false)
             .addCasingInfoExactly(
                 "Region Crystal (or lens glass at the throat tip)",
                 bom(PIECE_T1, 'E') + bom(PIECE_T3, 'E'),
                 false)
             .addOtherStructurePart(
                 "T2 stirring ring",
-                bom(PIECE_T2, 'G') + bom(PIECE_T2, 'g') + " Galactic Shell Plating, 3 more vessels")
+                bom(PIECE_T2, 'G') + "-"
+                    + (bom(PIECE_T2, 'G') + bom(PIECE_T2, 'g'))
+                    + " Galactic Shell Plating, 3 more vessels")
             .addOtherStructurePart(
                 "T3 outer ring + tail",
                 bom(PIECE_T3, 'F') + " Eternity Shell Casing, " + bom(PIECE_T3, 'P') + " Casimir Plate")

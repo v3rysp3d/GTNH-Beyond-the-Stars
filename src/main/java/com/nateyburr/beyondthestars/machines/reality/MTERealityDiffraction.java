@@ -680,6 +680,13 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         return fallback[k];
     }
 
+    /** The anchor sockets in the shape; each is Region Anchor Casing while it holds no hatch. */
+    private static int anchorSockets() {
+        int n = 0;
+        for (char c : ANCHOR_CHARS) n += bom(PIECE, c);
+        return n;
+    }
+
     @Override
     protected MultiblockTooltipBuilder createTooltip() {
         final int[] s = size();
@@ -714,15 +721,21 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
             .addInfo(BTSTip.warn("Entanglement Medium is 0 K: use cryo-proof pipes."))
             .beginStructureBlock(s[0], s[1], s[2], false)
             .addController("Base ring, front")
-            .addCasingInfoExactly("Region Deck Band", bom(PIECE, 'A') + bom(PIECE, 'g'), false)
+            // QA-B44: an empty socket is the casing it falls back to, so these are ranges: up to 6 receptor ports in
+            // the deck band, 6 anchor sockets (none is needed to form) and the spare energy socket.
+            .addCasingInfoRange("Region Deck Band", bom(PIECE, 'A'), bom(PIECE, 'A') + bom(PIECE, 'g'), false)
             .addCasingInfoExactly("Phase Ring Casing", bom(PIECE, 'H'), false)
             .addCasingInfoExactly("Region Crystal", bom(PIECE, 'E'), false)
-            .addCasingInfoExactly("Region Anchor Casing", bom(PIECE, 'I'), false)
+            .addCasingInfoRange("Region Anchor Casing", bom(PIECE, 'I'), bom(PIECE, 'I') + anchorSockets(), false)
             .addCasingInfoExactly("Harmonic Lining", bom(PIECE, 'J'), false)
             .addCasingInfoExactly("Quantum Glass", bom(PIECE, 'K') + bom(PIECE, 'Z'), false)
             .addCasingInfoExactly("Spatially Transcendent Gravitational Lens Block", bom(PIECE, 'L'), false)
             .addCasingInfoExactly("Coherence-Preserving Plasma Conduit", bom(PIECE, 'N'), false)
-            .addCasingInfoExactly("Electromagnetically-Isolated Casing", bom(PIECE, 'Q'), false)
+            .addCasingInfoRange(
+                "Electromagnetically-Isolated Casing",
+                bom(PIECE, 'Q'),
+                bom(PIECE, 'Q') + bom(PIECE, 'e') - 1,
+                false)
             .addMiscHatch("1", "BEC Hatch", "base ring, facing a BEC conduit", 1)
             .addInputHatch("1", "Base ring: Entanglement Medium", 2)
             .addInputHatch("6", "One under each blade: the Region Anchors", 3)

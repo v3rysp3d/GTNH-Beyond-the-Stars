@@ -8211,6 +8211,35 @@ void protection. A full output bus threw each cycle's dust away (and the mill st
 - `voiding legacy` (a save holding `VOID_ALL` and no marker, loaded through the machine's own `loadNBTData`) loads
   as `VOID_NONE` on both. The mode survived a server restart.
 
+### B-231 The Homogeny, Diffraction and Refab casing counts include the empty sockets [to-do pass, QA-B44]
+
+**Finding.** The structure half of the three tooltips printed "exactly" counts of the casing letters only. But a
+socket with no hatch in it is the casing it falls back to, so a build that fills only the required hatches holds more
+of those casings than the tooltip said. Homogeny: 5 more Feed Vessels, 1 more Stirring Band and 1 more Reinforced
+Temporal casing. Diffraction and Refab: 1 more EM-Isolated casing each. The Diffraction's Region Deck Band line had the
+opposite fault: it counted the 6 receptor-port cells as deck band even when ports sit there.
+
+**Built.** The affected lines are ranges now (GT's `addCasingInfoRange`). The low end has every socket fitted; the
+high end leaves only the hatches the machine needs to form. The other lines stay exact.
+
+| Machine | Line | Was | Now |
+|---|---|---|---|
+| Homogeny | Stirring Band Casing | 3,200 | 3,200-3,201 |
+| Homogeny | Feed Vessel Casing | 1,380 | 1,380-1,385 |
+| Homogeny | Reinforced Temporal Structure Casing | 2,430 | 2,430-2,431 |
+| Homogeny | T2 stirring ring: Galactic Shell Plating | 7,112 | 7,109-7,112 |
+| Diffraction | Region Deck Band | 11,344 | 11,338-11,344 |
+| Diffraction | Region Anchor Casing (no anchor hatch is needed to form) | 12 | 12-18 |
+| Diffraction | Electromagnetically-Isolated Casing | 5,756 | 5,756-5,757 |
+| Refab | Electromagnetically-Isolated Casing | 3,230 | 3,230-3,231 |
+
+The counts come from the shapes at class load (`bom` of the casing letter plus its socket letters), so they follow
+any later shape change. No shape, quest or cost table changed.
+
+**Check** (offline). The socket letters and the hatches each `checkMachine` requires were read from the code and the
+shape files; `gradlew build` and `export-structures --check` pass. The T1 throat-tip Region Crystal (the other open
+part of QA-B44) waits for its ruling.
+
 ## Where the old question numbers went
 
 | Old | Now | Old | Now | Old | Now |

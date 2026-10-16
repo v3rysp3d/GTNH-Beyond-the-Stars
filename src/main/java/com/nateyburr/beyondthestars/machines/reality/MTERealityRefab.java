@@ -790,7 +790,12 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
             .addCasingInfoExactly("Quantum Glass", bom(PIECE, 'K') + bom(PIECE, 'Z'), false)
             .addCasingInfoExactly("Spatially Transcendent Gravitational Lens Block", bom(PIECE, 'L'), false)
             .addCasingInfoExactly("Condensate Guidance Coil", bom(PIECE, 'V'), false)
-            .addCasingInfoExactly("Electromagnetically-Isolated Casing", bom(PIECE, 'Q'), false)
+            // QA-B44: the second input-bus socket is EM-Isolated Casing while it holds no bus, so this is a range.
+            .addCasingInfoRange(
+                "Electromagnetically-Isolated Casing",
+                bom(PIECE, 'Q'),
+                bom(PIECE, 'Q') + bom(PIECE, 'i') - 1,
+                false)
             .addMiscHatch("1", "BEC Hatch", "foot, facing a BEC conduit", 1)
             .addInputBus("1", "Foot", 2)
             .addOutputBus("1", "Cap, by the Reality Focus", 3)
