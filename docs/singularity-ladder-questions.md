@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do pass's B-227..B-230, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-247, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -123,6 +123,9 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
 - `FieldSim.main` still calls `System.exit`, so FML warns once when the bench loads it. Harmless. [B-37 item 10]
 - See in a game window: T9 and T10 at renderQuality=low (the fixed look's disc, crown ring, rays and beam), and the
   Eye GUI's new beam and universe warning rows. [B-226, B-221, B-222, B-224]
+- See in a game window: the Galaxy / Planets toggle's second click, the Field panel's "held by a Directive Hatch"
+  rows, the fluid names in the Eye's checklists and buffer rows, the Kerr Hole panel's "Rails hold" row and the
+  KEE's "–" bolt stock right after a restart. [B-239, B-240, B-241, B-244, B-246]
 
 **For the P4 merge** (done, B-110).
 
@@ -276,7 +279,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-230
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-247
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -8316,6 +8319,205 @@ since `advance()` already set the progress. Nothing new is saved; the craft's ti
 said "SHEDDING to 4,096 SM (setpoint lowered)", the crown read "Stream 0.00 Bu/t", "Power: 0 EU/t" and "Source
 shedding: makes nothing (the quasar at 0, 80, 0 (dim 0) sheds its hole)". After the shed ended, the line was gone and
 the crown read 1.7e17 EU/t again.
+
+### B-236 An Eye auto-placed with part of its footprint unloaded pauses instead of "finishing" [to-do pass]
+
+**Finding.** Survival auto-place of an Eye T9 reported "finished" after 40,279 blocks with whole bands missing, so the
+Eye formed as structural T3 (the first missing block at the controller's (12, 39, -28), a Galactic Shell Plating of the
+spiral arms). Reproduced headless: `/btsautoplace eye 2000 60 2000 tier 9` with only the core's chunks loaded placed
+exactly 40,279 elements and ended "finished (-1)"; `/btseye check` then gave structure T3, with the spiral arms, rim,
+rail, halo and crown absent.
+
+**Cause.** StructureLib's survival walker stops at the first cell whose chunk is not loaded (`blockNotLoaded` returns
+false), and if it placed nothing before that cell in the round it returns -1, which every survival build reads as
+"this piece is complete". The Eye then went on to its next piece, and the projector said "finished". A T9 footprint
+is 196 x 218 blocks, so a player's view distance easily leaves part of it unloaded. Not the element budget, the hints
+or the band's shape: with the whole footprint loaded every band builds.
+
+**Built.**
+- `BTSStructures.firstUnloadedCell(...)`: walks a piece with the same `blockExists` test as StructureLib (so it agrees
+  with it in every world, NEI's preview world included) and returns the first unloaded cell, or null. It never loads a
+  chunk.
+- The Eye's `survivalConstruct` asks it before each piece. A piece with an unloaded cell is not built: the round places
+  nothing and the player is told, in their own language, "Auto-place paused: the T4 spiral arms reaches an unloaded
+  chunk at x 8012, z 7972. Stand nearer the Eye's centre (it needs its whole footprint loaded to run, too)." A cell
+  above y 255 or below 0 says so instead. Once the chunks are loaded, the next use carries on.
+- `/btsautoplace` takes Eye tiers 1-10, loads the whole footprint by default (`chunks core` loads only the core's, as
+  before), and prints the Eye's structural tier and the first fault of every band that is absent.
+- Axes: build paths only (server side; the hologram and creative builds never walk unloaded cells this way). No tile
+  or item NBT. No hatch list. The elements are unchanged.
+
+**Check** (headless dev server, port 25861, survival mode: an endless source of every block and only the required
+hatches).
+
+| Run | Placed | Result |
+|---|---|---|
+| T9, core chunks only (before) | 40,279, "finished (-1)" | structure T3 |
+| T9, core chunks only (after) | 27,571, "STALLED" with the pause line for the T4 spiral arms | structure T3 |
+| the same Eye after `/btseye check` loaded the footprint | 48,933 more (76,504 in all), finished | structure T9 |
+| T4 / T5 / T6 / T7 / T8, whole footprint | 33,708 / 39,568 / 50,557 / 65,947 / 69,656 | T4 / T5 / T6 / T7 / T8 |
+| T9, whole footprint: survival, optional, proxy | 76,504 each | T9 |
+| T10, whole footprint: survival and nei | 105,247 each | T10 |
+
+*Left as it is:* the other machines (Kerr, quasar, Homogeny, crown) have the same StructureLib behaviour, but their
+footprints are a few chunks across; the helper is ready if one ever needs it.
+
+### B-237 The Eye's item sockets refuse a Crafting Input Proxy too [to-do pass]
+
+**Finding.** QA-A26 made the Eye's item sockets (plinth `h`, slot bus `p`, the T9 collar's `i`) refuse Crafting Input
+Buffers in the walk and filter them out of every build path, but a Crafting Input Proxy (GT's
+`MTEHatchCraftingInputSlave`) still passed both. Reproduced headless: `/btsautoplace eye ... mode proxy` (proxies as
+the only input buses) put one in `h` and one in `p`, and the Eye formed with them.
+
+**Choice: refuse it.** A proxy mirrors a buffer's patterns and holds no stock of its own, so it is the same thing as
+the buffer for these sockets: the ignition charges, the slot bus's charts and the pellets are stock the Eye takes. No
+reason to treat it differently was found.
+
+**Built.** `MTEEyeOfHarmonyBTS.isPatternBus` (buffer or proxy) is used by the three adders and by the auto-place filter
+`notCraftingBuffer`. Axes: the walk and the build paths agree; no NBT; the private lists only.
+
+**Check** (headless). Mode `proxy` at T9: `h` holds the input hatch and casing, `p` casing; FORMED, structure T9.
+Mode `crafting` at T1: no buffer placed, FORMED.
+
+### B-238 The Galactic Merger takes 9,000 L of Ergomatter, not 10,500 [to-do pass, QA-A15]
+
+**Finding.** `GalacticMergerOverlay.tick` set the 5 L/s charge every second, including the settle after the last
+pass, so a merger took 9,000 L plus 5 L for each settle second (up to 10,500 L). The spec (quasar-p4.md §5.3) and
+`GM_ERGO` say 9,000.
+
+**Built.** The charge is taken only while `st < DURATION` (1,800 s). The shortfall handling is unchanged (still
+forgiven; how a short charge should count is the open QA-A15 ruling). Λ's drift uses the constant
+`CHARGE_PER_SECOND`, so the field is unchanged. The prototype had the same line: both `designs/quasar-p4-prototype.html`
+and the copy of its P4 block in `designs/p5-prototype.html` charge only during the event now, and both fixtures were
+refreshed.
+
+**Check** (offline, the goldens). Four quasar-golden cases run a merger; their Ergomatter taken fell by 730, 625, 655
+and 635 L (146, 125, 131 and 127 settle seconds x 5 L), and nothing else moved. The P5 golden changed only its
+fixture hashes. `quasar-golden`, `p5-golden`, `fieldsim-golden` and `smbh-golden` all pass `--check --java`.
+
+### B-239 The Galaxy / Planets toggle asks twice while a field is lit [to-do pass, QA-A16]
+
+**Finding.** One click on the Galaxy panel's mode toggle put a lit T7 / T8 field out the next second. Its tooltip also
+still said a lit galaxy "comes back by the Magnetar Collapse", which D-54 changed.
+
+**Built.**
+- `EyeStarRuntime.modeSwitchPutsOut()`: a T7 / T8 star or planets field is lit, igniting or in a transition.
+- The toggle uses the Kerr / quasar Collapse pattern: while that is true, the first click arms it for 4 s and the mode
+  line turns red, "Click again: the lit field goes out"; the second click switches. With nothing lit one click still
+  switches. OpenComputers and the bench are unchanged (a script means it).
+- The tooltip: "Switching puts the lit field out (click twice to confirm). Back in galaxy mode Triangulum relights from
+  a new Magnetar Collapse charge; a Milky Way needs the Galactic Merger again."
+
+**Check** (offline: the GUI is client side). `gradlew build` passes; the sync value is server state read by the
+client.
+
+### B-240 The Eye's Field panel says when a Directive Hatch holds the dial or the feed [to-do pass, QA-A24]
+
+**Finding.** A control-set Directive Hatch sets the time dial (or the HSM feed) every second while its redstone is on,
+so GUI and OpenComputers changes were undone with nothing to say why. With two control hatches of the same set the
+last one walked wins.
+
+**Built.**
+- The Eye records the strength and the tick of each control push. The Field panel shows "Time dial held by a
+  Directive Hatch (redstone N)" and the same for the HSM feed while a push came in the last 2 s; the tooltip says GUI
+  and OpenComputers changes are undone and "one control hatch per set".
+- The Directive Hatch's tooltip and docs/automation.md §1.1 say "one control hatch per set: with two, the last wins".
+- Server state only, not saved.
+
+**Check** (offline). `gradlew build` passes.
+
+### B-241 GUI rows send fluids by name and the client names them [to-do pass, QA-A27]
+
+**Finding.** The Eye's checklist rows (planet inputs, ignition, base relight, batch charge, transition needs) and the
+Field panel's buffer rows sent fluid names already localised on the server.
+
+**Built.** `BTSText.fluid(fluid)`: a text segment (or an argument of a lang text) holding the fluid's registry name;
+the reading side looks the fluid up and calls its own `getLocalizedName`. A lang key alone would not do: GT's material
+fluids name themselves from their material. The marker is `\u000F`, free in both codecs (BTSRows uses `\u0007`). The
+English event lines of the runtime and the scanner stay as they are (the mod ships en_US only).
+
+**Check** (headless). `/btseye star ... gui` on a dark T1 Eye: "Hydrogen = 5,000 / 600M L" with the tooltip
+"Hydrogen: 5,000 / 600,000,000 L: ...", resolved through the new segment. The client path is the same `resolve`
+(offline).
+
+### B-242 The sensor's "dark star reads 0" is written down [to-do pass, QA-A28]
+
+**Finding.** A Stellar Field Sensor Hatch on a dark star (or a quasar with no hole) outputs 0 in every mode: the
+dark branch returns before Invert. Nothing said so.
+
+**Built.** Documented, behaviour unchanged: the tooltip says "A dark star (or no hole) reads 0 in every mode, Invert
+too; a Directive Hatch's Status bits show a dark star", and so does docs/automation.md §2.3.
+
+### B-243 A Kerr bolt-bus socket refuses an ME stocking bus by name [to-do pass, QA-A32]
+
+**Finding.** The bolt-bus element matched every input bus, so survival auto-place fitted ME stocking buses (all 8
+sockets in the `mestock` bench), and the walk then failed with "Expected ... Any of: hatch_type_boltbus / Extreme
+Density Space-Bending Casing".
+
+**Built.**
+- `.hatchItemFilterAnd(notStockingBus)` on the `b` socket: no build path fits one.
+- The adder notes a refused ME bus; the walk's errors then start with "Bolt bus: plain input buses only (an ME stocking
+  bus cannot be drained)".
+- The Kerr's hatch elements give GT a lang key that exists (`beyondthestars.hatch.kerr.*`), so the generic error names
+  "Bolt Bus (a plain input bus)" instead of `hatch_type_boltbus`.
+- docs/automation.md §2.3 says it.
+
+**Check** (headless). `mode mestock` (an ME stocking bus offered first): one plain Input Bus in `b`, FORMED.
+`mode mebolt` (one bus swapped for an ME stocking bus by hand): NOT FORMED, first error "Bolt bus: plain input buses
+only (an ME stocking bus cannot be drained)".
+
+### B-244 The Kerr holds at least what its rails and bolts can [to-do pass, S-07]
+
+**Finding.** A setpoint the rails cannot hold quietly evaporated the hole. Reproduced headless: a T1 KEE on Mk I rails
+with 62 SM of Neutronium bolts, setpoint 6 (Directive strength 2 gives 6 SM at T1): the hole was gone (CLOSED) within
+a minute.
+
+**Built.**
+- `holdFloor()`: the least whole SM where the bleed `3.2 x bleedFactor / M^2` a tick does not outrun the rails' bolts a
+  tick of the lightest bolt in the bolt buses (Neutronium if there are none): Neutronium 8 SM on Mk I (7.16), 6 on Mk
+  II, 4 on Mk III; SpaceTime 2 on any rails. The lightest bolt, because the governor may be firing those.
+- `effectiveSetpoint()` (what the governor, the Directive bits, the mass bar and OpenComputers' `setpointHeld` read) is
+  at least the floor, unless the setpoint is exactly 2: that still asks Auto for a collapse (QA-A03). The stored
+  setpoint is unchanged.
+- The Directive control line reads "mass setpoint 6 SM, held at 8 SM (the rails cannot hold less)"; the Hole panel has
+  a "Rails hold: 8 SM and up" row; the setpoint tooltip says so. docs/automation.md §1.2 and §2.2.
+- The Directive scale is left as it is: strength 2 (6 SM) is now simply held at the floor.
+
+**Check** (headless). The same KEE and setpoint 6: OPEN, mass 8.0 SM, setpoint shown 8 SM, stability 100 %. With a
+Collapser in the bus, setpoint 2 still collapsed the hole.
+
+### B-245 On a Kerr T1 the DENSITY recipes no longer hide GT's compressor maps [to-do pass, S-09]
+
+**Finding.** A DENSITY match hid the compressor's later maps whatever the tier, so on a T1 KEE (where the gate can
+never open) SL-K05's inputs stopped the module for good. Reproduced: SL-K05's inputs in a T1 compressor module, link
+LINKED, hole open: idle on "Kerr Densification needs Kerr T2 and a hole of at least 128 SM", with 131 M L of molten
+SpaceTime that GT's neutronium compressor takes.
+
+**Built.** `shadowsLaterMaps` hides the later maps only once the linked KEE has its Density Upgrade. The B-56 intent
+stays: a T2 under 128 SM keeps SL-K05's inputs.
+
+**Check** (headless). T1: the module ran GT's recipe at once (17 Eternal Singularities in progress). T2 at about 20 SM:
+still idle on the DENSITY reason, inputs kept.
+
+### B-246 After a restart a Kerr module says "KEE not loaded", and the KEE's stock "–" [to-do pass, S-14]
+
+**Finding.** A module's link starts as NO_KEE, and right after a load the KEE's cell can be in a loaded chunk while its
+GT tile (or its machine) is not there yet, so the module said "No Kerr Ergosphere Engine". The KEE's bolt stock is
+read from the bolt buses its formed walk lists, so its GUI showed 0 SM until that walk.
+
+**Built.**
+- A module's link starts as KEE_NOT_LOADED. A missing tile reads as not loaded for the first 10 s after the module
+  loads, or while the cell holds a GT machine block; after that it is NO_KEE as before.
+- The KEE's GUI shows "–" for the bolt stock until the first formed walk since load. Neither is saved.
+
+**Check** (offline). Not reproduced live: after a restart the bench's forced chunks were not back, so the module was
+not loaded at all. The paths were read from the code; `gradlew build` passes.
+
+### B-247 The GUI bench dump matches the GUI [to-do pass, QA-A34]
+
+`BTSControllerGui.benchDump` printed GT's "(last recipe check: ...)" line for every machine, though the Eye's star
+charts and the KEE hide it in the player's GUI. It now honours `shouldDisplayCheckRecipeResult()`. Seen headless: the
+KEE's `/btskerr gui` dump no longer has the empty "(last recipe check: )" line; a Kerr module's still has its own.
 
 ## Where the old question numbers went
 
