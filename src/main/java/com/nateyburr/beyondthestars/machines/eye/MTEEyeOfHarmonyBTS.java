@@ -516,15 +516,24 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     /**
-     * QA-A26: false for a Crafting Input Buffer. The item sockets (Items, SlotBus, Pellet) match every input bus, but
-     * their adders refuse a buffer (it holds patterns, not stock), so without this filter auto-place fitted one from
-     * the player's inventory and the walk then failed on it.
+     * QA-A26: false for a Crafting Input Buffer or a Crafting Input Proxy. The item sockets (Items, SlotBus, Pellet)
+     * match every input bus, but their adders refuse both (they hold patterns, not stock), so without this filter
+     * auto-place fitted one from the player's inventory and the walk then failed on it.
      */
     static boolean notCraftingBuffer(ItemStack stack) {
         if (stack == null || !(stack.getItem() instanceof gregtech.common.blocks.ItemMachines)) return true;
         final int id = stack.getItemDamage();
         return id < 0 || id >= gregtech.api.GregTechAPI.METATILEENTITIES.length
-            || !(gregtech.api.GregTechAPI.METATILEENTITIES[id] instanceof MTEHatchCraftingInputME);
+            || !isPatternBus(gregtech.api.GregTechAPI.METATILEENTITIES[id]);
+    }
+
+    /**
+     * B-237: a Crafting Input Buffer, or a Crafting Input Proxy (it mirrors a buffer's patterns and holds no stock of
+     * its own). The item sockets refuse both, in the walk and in every build path.
+     */
+    static boolean isPatternBus(IMetaTileEntity mte) {
+        return mte instanceof MTEHatchCraftingInputME
+            || mte instanceof gregtech.common.tileentities.machines.MTEHatchCraftingInputSlave;
     }
 
     private static IStructureElement<MTEEyeOfHarmonyBTS> casing(Casings casing) {
@@ -995,13 +1004,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     /**
      * D-49 R-1: an input bus (ME input bus included) on a plinth gas socket, for the ignition charges.
-     * Crafting input buffers are refused, as the reactor's sockets refuse them (B-31): they hold
+     * Crafting input buffers and proxies are refused, as the reactor's sockets refuse them (B-31): they hold
      * patterns, not stock.
      */
     public boolean addItemBus(IGregTechTileEntity te, int casingIndex) {
         if (te == null) return false;
         final IMetaTileEntity mte = te.getMetaTileEntity();
-        if (mte instanceof MTEHatchInputBus && !(mte instanceof MTEHatchCraftingInputME)) {
+        if (mte instanceof MTEHatchInputBus && !isPatternBus(mte)) {
             ((MTEHatchInputBus) mte).updateTexture(casingIndex);
             itemBuses.add((MTEHatchInputBus) mte);
             return true;
@@ -1093,7 +1102,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     /**
      * P5: an 'i' socket on the T9 top collar: a Pellet Injector Hatch, the injector's Burst Control Hatch (mode Pellet
-     * beam), or an input bus holding more pellets (ME stocking buses included; crafting input buffers refused).
+     * beam), or an input bus holding more pellets (ME stocking buses included; crafting input buffers and proxies
+     * refused).
      */
     public boolean addPelletSocket(IGregTechTileEntity te, int casingIndex) {
         if (te == null) return false;
@@ -1108,7 +1118,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             beamControls.add((MTEHatchBurstControl) mte);
             return true;
         }
-        if (mte instanceof MTEHatchInputBus && !(mte instanceof MTEHatchCraftingInputME)) {
+        if (mte instanceof MTEHatchInputBus && !isPatternBus(mte)) {
             ((MTEHatchInputBus) mte).updateTexture(casingIndex);
             pelletBuses.add((MTEHatchInputBus) mte);
             return true;
@@ -1145,11 +1155,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return true;
     }
 
-    /** P4: the slot bus ('p'): an input bus, ME input bus included; crafting input buffers refused. */
+    /** P4: the slot bus ('p'): an input bus, ME input bus included; crafting input buffers and proxies refused. */
     public boolean addSlotBus(IGregTechTileEntity te, int casingIndex) {
         if (te == null) return false;
         final IMetaTileEntity mte = te.getMetaTileEntity();
-        if (mte instanceof MTEHatchInputBus && !(mte instanceof MTEHatchCraftingInputME)) {
+        if (mte instanceof MTEHatchInputBus && !isPatternBus(mte)) {
             ((MTEHatchInputBus) mte).updateTexture(casingIndex);
             slotBuses.add((MTEHatchInputBus) mte);
             return true;
