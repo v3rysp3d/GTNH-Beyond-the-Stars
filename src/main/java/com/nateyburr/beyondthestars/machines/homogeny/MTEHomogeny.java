@@ -504,6 +504,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
         final int budget = BTSStructures.survivalBudget(elementBudget);
         for (int i = 0; i < n; i++) {
             final int[] o = BTSShapes.offset(PIECES[i]);
+            if (BTSStructures.autoPlacePaused(this, PIECES[i], o[0], o[1], o[2], env)) return 0; // B-250
             final int built = survivalBuildPiece(PIECES[i], stackSize, o[0], o[1], o[2], budget, env, false, true);
             if (built >= 0) return built;
         }

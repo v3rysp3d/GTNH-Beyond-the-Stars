@@ -440,6 +440,7 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine) return -1;
         final int[] o = BTSShapes.offset(slot().piece);
+        if (BTSStructures.autoPlacePaused(this, slot().piece, o[0], o[1], o[2], env)) return 0; // B-250
         return survivalBuildPiece(
             slot().piece,
             stackSize,

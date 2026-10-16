@@ -50,7 +50,8 @@ import gregtech.common.misc.GTStructureChannels;
  * NEI multiblock preview does, then says what stands in every socket and whether the machine formed.
  * <p>
  * {@code /btsautoplace <kerr|eye|homogeny|quasar|crown|junction> x y z [tier n]
- * [mode survival|bare|nei|optional|crafting|proxy|mestock|mebolt] [chunks all|core]} (console or op; tier is the Kerr /
+ * [mode survival|bare|nei|optional|crafting|proxy|mestock|mebolt] [chunks all|core|controller]} (console or op; tier is
+ * the Kerr /
  * Homogeny tier, the Eye tier 1-10, the quasar's coil tier or the crown's Mk):
  * <ul>
  * <li>{@code survival} (default): GT's hatch channel ON and an inventory that holds every block of the structure and
@@ -70,8 +71,9 @@ import gregtech.common.misc.GTStructureChannels;
  * walk must name it (QA-A32).</li>
  * </ul>
  * The controller faces north. {@code chunks all} (default) loads every chunk of the footprint first; {@code chunks
- * core} only the core piece's, like a player whose view does not cover a big Eye (B-236). Use a cleared superflat
- * area.
+ * core} only the core piece's, like a player whose view does not cover a big Eye (B-236); {@code chunks controller}
+ * only the 3 x 3 chunks around the controller, so any machine wider than that has part of its footprint unloaded
+ * (B-250). Use a cleared superflat area.
  */
 public class CommandBTSAutoplace extends CommandBase {
 
@@ -85,7 +87,7 @@ public class CommandBTSAutoplace extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsautoplace <" + MACHINES.replace(", ", "|")
-            + "> x y z [tier n] [mode survival|bare|nei|optional|crafting|proxy|mestock|mebolt] [chunks all|core]";
+            + "> x y z [tier n] [mode survival|bare|nei|optional|crafting|proxy|mestock|mebolt] [chunks all|core|controller]";
     }
 
     @Override
@@ -103,21 +105,20 @@ public class CommandBTSAutoplace extends CommandBase {
         final int z = parseInt(sender, args[3]);
         int tier = 1;
         String mode = "survival";
-        boolean allChunks = true;
+        String chunks = "all";
         for (int i = 4; i + 1 < args.length; i += 2) {
             if (args[i].equalsIgnoreCase("tier")) tier = parseIntBounded(sender, args[i + 1], 1, 10);
             else if (args[i].equalsIgnoreCase("mode")) mode = args[i + 1].toLowerCase();
-            else if (args[i].equalsIgnoreCase("chunks")) allChunks = !args[i + 1].equalsIgnoreCase("core");
+            else if (args[i].equalsIgnoreCase("chunks")) chunks = args[i + 1].toLowerCase();
         }
-        for (String line : run(world, machine, x, y, z, tier, mode, allChunks)) {
+        for (String line : run(world, machine, x, y, z, tier, mode, chunks)) {
             BTSChat.send(sender, line);
             BeyondTheStars.LOG.info("[autoplace] " + line);
         }
     }
 
     /** One audited auto-place; the lines say what was placed in each socket and whether it formed. */
-    static List<String> run(World world, String machine, int x, int y, int z, int tier, String mode,
-        boolean allChunks) {
+    static List<String> run(World world, String machine, int x, int y, int z, int tier, String mode, String chunks) {
         final List<String> out = new ArrayList<>();
         final ItemStack controller;
         final String[] pieces;
@@ -173,11 +174,15 @@ public class CommandBTSAutoplace extends CommandBase {
             return out;
         }
         final ExtendedFacing facing = ExtendedFacing.of(ForgeDirection.NORTH);
-        final String[] loadFor = allChunks && footprint != null ? footprint : pieces;
+        final boolean controllerOnly = chunks.equals("controller");
+        final String[] loadFor = chunks.equals("core") || footprint == null ? pieces : footprint;
         out.add(
-            "chunks loaded: " + SLConsoleTest.loadChunks(world, SLConsoleTest.bounds(facing, x, y, z, loadFor))
+            "chunks loaded: "
+                + SLConsoleTest.loadChunks(
+                    world,
+                    controllerOnly ? new int[] { x, y, z, x, y, z } : SLConsoleTest.bounds(facing, x, y, z, loadFor))
                 + " ("
-                + (loadFor == pieces ? "core" : "whole footprint")
+                + (controllerOnly ? "the 3 x 3 around the controller" : loadFor == pieces ? "core" : "whole footprint")
                 + "); mode "
                 + mode
                 + ", tier "
@@ -256,6 +261,8 @@ public class CommandBTSAutoplace extends CommandBase {
         out.add("auto-place: " + placed + " elements in " + rounds + " rounds, " + end);
         if (mte instanceof MTEEyeOfHarmonyBTS && !((MTEEyeOfHarmonyBTS) mte).lastAutoPlacePause()
             .isEmpty()) out.add("  paused: " + ((MTEEyeOfHarmonyBTS) mte).lastAutoPlacePause());
+        else if (!BTSStructures.lastAutoPlacePause(mte)
+            .isEmpty()) out.add("  paused: " + BTSStructures.lastAutoPlacePause(mte));
         if (mode.equals("mebolt") && mte instanceof MTEKerrEngine) out.add(swapBoltBusForMe(world, x, y, z, facing));
 
         // What stands in each socket.
@@ -263,10 +270,12 @@ public class CommandBTSAutoplace extends CommandBase {
             final Map<Character, int[][]> sockets = sockets(piece);
             for (Map.Entry<Character, int[][]> e : sockets.entrySet()) {
                 final Map<String, Integer> what = new LinkedHashMap<>();
+                String first = "";
                 for (int[] rel : e.getValue()) {
                     final int[] xyz = new int[3];
                     facing.getWorldOffset(rel, xyz);
                     final int px = x + xyz[0], py = y + xyz[1], pz = z + xyz[2];
+                    if (first.isEmpty()) first = ", first at " + px + " " + py + " " + pz;
                     final TileEntity t = world.getTileEntity(px, py, pz);
                     final String name;
                     if (t instanceof IGregTechTileEntity && ((IGregTechTileEntity) t).getMetaTileEntity() != null) {
@@ -290,7 +299,7 @@ public class CommandBTSAutoplace extends CommandBase {
                     }
                     what.merge(name, 1, Integer::sum);
                 }
-                out.add(piece + " socket '" + e.getKey() + "' (" + e.getValue().length + "): " + what);
+                out.add(piece + " socket '" + e.getKey() + "' (" + e.getValue().length + first + "): " + what);
             }
         }
 

@@ -366,6 +366,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         if (mMachine && mk >= want) return -1;
         final String piece = PIECES[want - 1];
         final int[] o = BTSShapes.offset(piece);
+        if (BTSStructures.autoPlacePaused(this, piece, o[0], o[1], o[2], env)) return 0; // B-250
         return survivalBuildPiece(
             piece,
             stackSize,

@@ -660,9 +660,11 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         final ItemStack trigger = latticeTrigger(stackSize);
         final int budget = BTSStructures.survivalBudget(elementBudget);
         final int[] o = BTSShapes.offset(PIECE);
+        if (BTSStructures.autoPlacePaused(this, PIECE, o[0], o[1], o[2], env)) return 0; // B-250
         final int built = survivalBuildPiece(PIECE, trigger, o[0], o[1], o[2], budget, env, false, true);
         if (built >= 0 || lattice == 0) return built;
         final int[] lo = BTSShapes.offset(PIECE_LATTICE);
+        if (BTSStructures.autoPlacePaused(this, PIECE_LATTICE, lo[0], lo[1], lo[2], env)) return 0;
         return survivalBuildPiece(PIECE_LATTICE, trigger, lo[0], lo[1], lo[2], budget, env, false, true);
     }
 

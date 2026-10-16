@@ -127,6 +127,7 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
     public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine) return -1;
         final int[] o = BTSShapes.offset(piece());
+        if (BTSStructures.autoPlacePaused(this, piece(), o[0], o[1], o[2], env)) return 0; // B-250
         return survivalBuildPiece(
             piece(),
             stackSize,

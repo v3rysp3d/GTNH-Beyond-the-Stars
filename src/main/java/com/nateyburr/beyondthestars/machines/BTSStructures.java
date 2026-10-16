@@ -4,13 +4,18 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
@@ -23,7 +28,12 @@ import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
 import com.gtnewhorizon.structurelib.structure.IStructureElementChain;
 import com.gtnewhorizon.structurelib.structure.IStructureWalker;
+import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
+import com.nateyburr.beyondthestars.machines.gui.BTSText;
 
+import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
+import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
+import gregtech.api.metatileentity.implementations.MTEEnhancedMultiBlockBase;
 import gregtech.api.util.HatchElementBuilder;
 
 /**
@@ -367,6 +377,62 @@ public final class BTSStructures {
             }
         });
         return hit[0];
+    }
+
+    /** B-250: each machine's last auto-place pause (encoded text, BTSText), for the bench; server side, not saved. */
+    private static final Map<IMetaTileEntity, String> LAST_PAUSE = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /**
+     * B-236 / B-250: whether a survival round must place nothing because {@code piece} (GT's offsets {@code a, b, c})
+     * has a cell in an unloaded chunk or outside the world. StructureLib's walk would stop at that cell and the piece
+     * would read as complete, so the build would go on (or say "finished") with part of it missing. When it pauses,
+     * the player is told where (in their own language); once the chunks are loaded, the next use carries on. Call it
+     * right before each {@code survivalBuildPiece} and return 0 when it is true. Never loads a chunk.
+     */
+    public static boolean autoPlacePaused(MTEEnhancedMultiBlockBase<?> mte, String piece, int a, int b, int c,
+        ISurvivalBuildEnvironment env) {
+        final IGregTechTileEntity base = mte.getBaseMetaTileEntity();
+        if (base == null || base.getWorld() == null) return false;
+        final int[] cell = firstUnloadedCell(
+            mte.getStructureDefinition(),
+            piece,
+            base.getWorld(),
+            mte.getExtendedFacing(),
+            base.getXCoord(),
+            base.getYCoord(),
+            base.getZCoord(),
+            a,
+            b,
+            c);
+        if (cell == null) {
+            LAST_PAUSE.remove(mte);
+            return false;
+        }
+        // "the The Homogeny" otherwise
+        final String name = mte.getLocalName()
+            .startsWith("The ")
+                ? mte.getLocalName()
+                    .substring(4)
+                : mte.getLocalName();
+        final String key;
+        final Object[] args;
+        if (cell[1] < 0 || cell[1] > 255) {
+            key = "beyondthestars.autoplace.outside";
+            args = new Object[] { name, cell[1] };
+        } else {
+            key = "beyondthestars.autoplace.unloaded";
+            args = new Object[] { name, cell[0], cell[2] };
+        }
+        final EntityPlayer actor = env == null ? null : env.getActor();
+        if (actor != null) actor.addChatComponentMessage(new ChatComponentTranslation(key, args));
+        LAST_PAUSE.put(mte, BTSText.lang(key, args));
+        return true;
+    }
+
+    /** Bench: the machine's last {@link #autoPlacePaused} pause, resolved; "" if its last check found none. */
+    public static String lastAutoPlacePause(IMetaTileEntity mte) {
+        final String s = LAST_PAUSE.get(mte);
+        return s == null ? "" : BTSText.resolve(s);
     }
 
     /**

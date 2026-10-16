@@ -3305,131 +3305,119 @@ public class MTEReactorCoreMk1 extends MTEExtendedPowerMultiBlockBase<MTEReactor
         final int t = buildTargetTier(stackSize);
         // The platform is the mandatory starter piece and is always a legal target: on a plant
         // whose floor already stands this returns -1 immediately and costs nothing.
-        final int floorPart = survivalBuildPiece(
+        final int floorPart = survivalPieceLoaded(
             floorPieceName(mName),
             stackSize,
             CENTER,
             0,
             SILO_FRONT,
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (floorPart >= 0) return floorPart;
         if (!siloStanding) {
-            final int siloPart = survivalBuildPiece(
+            final int siloPart = survivalPieceLoaded(
                 pieceName(mName, t),
                 stackSize,
                 siloHOff(t),
                 siloVOff(t),
                 siloDOff(t),
                 elementBudget,
-                env,
-                false,
-                true);
+                env);
             if (siloPart >= 0) return siloPart;
         }
-        final int ductPart = survivalBuildPiece(
+        final int ductPart = survivalPieceLoaded(
             ductPieceName(mName, t),
             stackSize,
             ductHOff(t),
             2,
             ductDOff(t),
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (ductPart >= 0) return ductPart;
-        final int spiralPart = survivalBuildPiece(
+        final int spiralPart = survivalPieceLoaded(
             spiralPieceName(mName),
             stackSize,
             -18,
             SPIRAL_HEIGHT - 1,
             spiralDOff(t),
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (spiralPart >= 0) return spiralPart;
-        final int galleryPart = survivalBuildPiece(
+        final int galleryPart = survivalPieceLoaded(
             galleryPieceName(mName),
             stackSize,
             -18,
             6,
             galleryDOff(t),
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (galleryPart >= 0) return galleryPart;
         // R2: the tower pieces include the two Solid Steel cells per tower that the retired
         // module controller used to stand on, so a survival projection closes that base ring.
-        final int frontPart = survivalBuildPiece(
+        final int frontPart = survivalPieceLoaded(
             towerPieceName(mName, "front"),
             stackSize,
             CENTER,
             TOWER_TOP,
             TOWER_FRONT_DOFF,
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (frontPart >= 0) return frontPart;
-        final int backPart = survivalBuildPiece(
+        final int backPart = survivalPieceLoaded(
             towerPieceName(mName, "back"),
             stackSize,
             CENTER,
             TOWER_TOP,
             TOWER_BACK_DOFF,
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (backPart >= 0) return backPart;
         // D-17 / D-22: the four plant modules are part of the same one projection.
-        final int ventPart = survivalBuildPiece(
+        final int ventPart = survivalPieceLoaded(
             ventPieceName(mName),
             stackSize,
             moduleHOff(VENT_A0),
             VENT_HEIGHT - 1,
             moduleDOff(VENT_C0),
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (ventPart >= 0) return ventPart;
-        final int yardPart = survivalBuildPiece(
+        final int yardPart = survivalPieceLoaded(
             yardPieceName(mName),
             stackSize,
             moduleHOff(YARD_A0),
             YARD_HEIGHT - 1,
             moduleDOff(YARD_C0),
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (yardPart >= 0) return yardPart;
-        final int derrickPart = survivalBuildPiece(
+        final int derrickPart = survivalPieceLoaded(
             derrickPieceName(mName),
             stackSize,
             moduleHOff(DERRICK_A0),
             DERRICK_HEIGHT - 1,
             moduleDOff(DERRICK_C0),
             elementBudget,
-            env,
-            false,
-            true);
+            env);
         if (derrickPart >= 0) return derrickPart;
-        return survivalBuildPiece(
+        return survivalPieceLoaded(
             annexPieceName(mName),
             stackSize,
             moduleHOff(ANNEX_A0),
             ANNEX_HEIGHT - 1,
             moduleDOff(ANNEX_C0),
             elementBudget,
-            env,
-            false,
-            true);
+            env);
+    }
+
+    /**
+     * B-250: one plant piece of a survival round, or 0 (the player told where) while part of it is in an unloaded
+     * chunk: StructureLib's walk would stop there and read the piece as complete.
+     */
+    private int survivalPieceLoaded(String piece, ItemStack stackSize, int a, int b, int c, int budget,
+        ISurvivalBuildEnvironment env) {
+        if (BTSStructures.autoPlacePaused(this, piece, a, b, c, env)) return 0;
+        return survivalBuildPiece(piece, stackSize, a, b, c, budget, env, false, true);
     }
 
     @Override

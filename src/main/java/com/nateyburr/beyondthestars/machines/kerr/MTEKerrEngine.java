@@ -631,6 +631,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         final String core = densityInstalled || (stackSize != null && stackSize.stackSize >= 2) ? PIECE_T2 : PIECE_T1;
         if (mMachine && core.equals(corePiece())) return -1;
         final int[] o = off(core);
+        if (BTSStructures.autoPlacePaused(this, core, o[0], o[1], o[2], env)) return 0; // B-250
         return survivalBuildPiece(
             core,
             stackSize,
