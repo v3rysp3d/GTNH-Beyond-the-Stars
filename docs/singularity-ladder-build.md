@@ -3177,7 +3177,10 @@ GALAXIES, UNIVERSE_AGE, DEEP_LINK_STREAK; `bts_eye` getBeam, setBeam, setGrade, 
 **Render contract.** `EyeStarLook.ATTRACTOR` (12) / `UNIVERSE` (13) and `EyeP5Look` (synced in the render tile's look
 compound), as agreed with the render unit.
 
-**Bench.** `/btseye t9|t10 <x> <y> <z> …` builds with the collar / crown ports, the injector (a Mk I barrel, 64
-Superdense pellets) and its Burst Control Hatch; `/btseye star <x> <y> <z> p5 status | pellets | refill | accept |
-beam | deeplink [reset] | flow | uni`; `core attractor|universal`, charts `attractor`, `universe`. The galaxy rig routes
-the Deep Link's test fire to the collars and T10's bursts to the crown. The dev-server run is B-177.
+**Bench.** `/btseye t9|t10 <x> <y> <z> …` builds with the collar / crown ports, the injector (a Mk I barrel, 960
+Superdense pellets) and its Burst Control Hatch, wired to a V sensor (analog, window 30) over GT wireless covers
+(B-225); add `fill stdrig` for an Eye that runs unattended through restarts on the saved standard rig (`EyeStdRig`: a
+bench quasar, the trim valves, the stock; a T9 lit at once, a T10 begins its own first universe). `/btseye star <x>
+<y> <z> p5 status | pellets | refill | accept | beam | deeplink [reset] | flow | uni | stdrig on [mass M]|off|status |
+unwire`; `core attractor|universal`, charts `attractor`, `universe`. The galaxy rig routes the Deep Link's test fire to
+the collars and T10's bursts to the crown. The dev-server runs are B-177 and B-225.

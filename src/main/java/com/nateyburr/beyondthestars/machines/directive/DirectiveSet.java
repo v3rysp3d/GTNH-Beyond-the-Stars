@@ -53,7 +53,7 @@ public enum DirectiveSet {
         "Anchor short: shedding", "Overdrive upkeep short"),
     /** P5 (p5-t9-t10.md §9.3; P5Directive): the T9 Great Attractor's infall V and the pellet beam. */
     EYE_FLOW(Host.EYE, false, "Eye: Flow (T9)", "V high: fire faster", "V low: fire slower",
-        "Galactic Flow coming, accepted", "Pellets low (under 120 s)"),
+        "Galactic Flow coming, accepted", "Beam starved: pellets low (under 120 s) or not firing"),
     /** P5: the T10 universe's expansion H and its events. */
     EYE_UNIVERSE(Host.EYE, false, "Eye: Universe (T10)", "H high: Dark Matter trim", "H low: SpaceTime trim",
         "Countdown running (Recombination, Cosmic Dawn)", "Next universe's charge short");

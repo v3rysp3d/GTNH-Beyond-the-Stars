@@ -85,7 +85,7 @@ public final class EyeStarBench {
         + "P4: burst <Bu/t> [high] [halo] [quasar <mean>] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
         + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear | "
         + "P5: p5 status|pellets <mag|erg|sup> [n] [mk <1-3>]|refill <grade|off>|accept <n|auto>|beam <c|auto> [k]|"
-        + "deeplink [reset]|flow <n> [low|high]|uni|count <counter> <n>";
+        + "deeplink [reset]|flow <n> [low|high]|uni|stdrig on [mass M]|off|status|count <counter> <n>";
 
     /** Runs {@code args} = {@code star x y z sub …}. Returns the lines to print. */
     public static List<String> run(ICommandSender sender, String[] args) {

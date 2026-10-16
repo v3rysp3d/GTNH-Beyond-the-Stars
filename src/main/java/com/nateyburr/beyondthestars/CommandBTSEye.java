@@ -38,7 +38,9 @@ import com.nateyburr.beyondthestars.machines.eye.star.EyeStarBench;
  * the footprint's chunks first and prints FORMED or NOT FORMED with the first wrong cells, the mirror
  * check and a re-projection check. {@code survival} builds through the hologram projector's survival
  * path instead of the creative one; {@code check} builds nothing and re-walks the Eye already standing
- * there (e.g. after a restart). D-49 test bench: {@code legacy} leaves the Field/Sensor/rim sockets and
+ * there (e.g. after a restart). B-225: {@code stdrig} (T9, T10, with {@code fill}) turns on the saved standard rig
+ * ({@code EyeStdRig}: a bench quasar, the trim valves, the stock) and lights a T9 at once. D-49 test bench:
+ * {@code legacy} leaves the Field/Sensor/rim sockets and
  * the plinth input bus without hatches (a pre-D-49 Eye must still form); {@code nobeam} clears the beam
  * band after the build (bands are cumulative: the Eye must drop to structural T1).
  * <p>
@@ -61,7 +63,7 @@ public class CommandBTSEye extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btseye [t1..t8] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t8] <x> <y> <z> [facing] "
-            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] [oldwindows] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t8]  |  /btseye gates  |  /btseye bec  |  "
+            + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] [oldwindows] [stdrig] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t8]  |  /btseye gates  |  /btseye bec  |  "
             + EyeStarBench.USAGE;
     }
 
@@ -252,6 +254,7 @@ public class CommandBTSEye extends CommandBase {
         boolean legacy = false;
         boolean nobeam = false;
         boolean oldWindows = false;
+        boolean stdRig = false;
         for (int i = 0; i < args.length; i++) {
             if (at.used[i]) continue;
             final String arg = args[i].toLowerCase(java.util.Locale.ROOT);
@@ -266,6 +269,7 @@ public class CommandBTSEye extends CommandBase {
             if (arg.equals("legacy")) legacy = true;
             if (arg.equals("nobeam")) nobeam = true;
             if (arg.equals("oldwindows")) oldWindows = true;
+            if (arg.equals("stdrig")) stdRig = true;
         }
         final ExtendedFacing alignment = ExtendedFacing.of(at.facing);
         final String[] pieces = java.util.Arrays.copyOf(MTEEyeOfHarmonyBTS.PIECES, tiers);
@@ -347,6 +351,18 @@ public class CommandBTSEye extends CommandBase {
         }
         for (String line : EyeKit.diagnose(world, at.x, at.y, at.z, at.facing, tiers, true)) {
             SLConsoleTest.tell(sender, line);
+        }
+        if (stdRig && result.formed && tiers >= 9) {
+            // B-225: the saved standard rig (bench quasar, trims, stock), and a T9 lit at once
+            final net.minecraft.tileentity.TileEntity te = world.getTileEntity(at.x, at.y, at.z);
+            if (te instanceof gregtech.api.interfaces.tileentity.IGregTechTileEntity
+                && ((gregtech.api.interfaces.tileentity.IGregTechTileEntity) te)
+                    .getMetaTileEntity() instanceof MTEEyeOfHarmonyBTS) {
+                for (String line : com.nateyburr.beyondthestars.machines.eye.star.EyeStdRig.kitStart(
+                    (MTEEyeOfHarmonyBTS) ((gregtech.api.interfaces.tileentity.IGregTechTileEntity) te)
+                        .getMetaTileEntity(),
+                    tiers)) SLConsoleTest.tell(sender, line);
+            }
         }
         if (oldWindows) {
             // window-band bench: an Eye built before the windows has its old blocks in those cells; it must form

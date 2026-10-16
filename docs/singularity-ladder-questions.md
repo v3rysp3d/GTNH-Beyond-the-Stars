@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -121,6 +121,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   item 11]
 - Move the KEE GUI strings to `en_US.lang` when the Kerr text settles. [B-54]
 - `FieldSim.main` still calls `System.exit`, so FML warns once when the bench loads it. Harmless. [B-37 item 10]
+- See in a game window: T9 and T10 at renderQuality=low (the fixed look's disc, crown ring, rays and beam), and the
+  Eye GUI's new beam and universe warning rows. [B-226, B-221, B-222, B-224]
 
 **For the P4 merge** (done, B-110).
 
@@ -274,7 +276,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-219
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-226
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -7950,6 +7952,135 @@ Now:
 ported line for line (75 % stability, 8 s). The neutron star's radius swing went from 9.9 % to 0 % and its frame
 brightness swing from 9.7 % to 2.3 %. The magnetar's radius swing went from 13.9 % to 0 %; its brightness now changes
 only with its flares.
+
+### B-220 Why the kit's T9 and T10 failed while filming [bench + gameplay, todo pass]
+
+**What was seen.** A kit-built T9 ran away within minutes with its Pellet Injector Hatch at 0 pellets/s; a kit T10
+"tore itself apart in a Big Rip" about 20-40 s into its universe. The P5 smoke test (B-178) had run T9 for 2 h and a
+whole T10 universe with 0 failures.
+
+**Reproduced** on a headless dev server (port 25831, world todo1): `/btseye t9 0 10 0 north gen 9 fill force` then
+`star … lit attractor`: beam 64 Superdense pellets on a Mk I barrel, rate 0.00/s, level 0; V +18.6 after 8 s; the
+Attractor LOST at 34 s (Breach, Λ +101). `/btseye t10 600 10 0 …` then `lit universe`: bursts 0 Bu/t on the crown, P
+−55.8 at 21 s; "TORE ITSELF APART (Big Rip): Breach, P −100.5" at 38 s, and the next universe charged at once.
+
+**Causes.** Both kinds the brief asked about:
+
+- **Kit gaps.** The smoke test ran its Eyes on the bench's `galaxy` rig (a virtual quasar, the standard conduit rig,
+  the debug field rig that also drives the beam from V, `p5 refill`). The kit builds none of that: no bursts at all
+  (so P, W and Λ have no actuator), no Space valve or Universe valves in the Field sockets, 64 pellets and no restock,
+  1e18 EU (T10 eats 4e16 a cycle), and its injector's Burst Control Hatch has nothing wired to it. And none of the
+  bench rigs survived a restart.
+- **Player traps.**
+  1. A Burst Control Hatch beside the injector with no wire reads 0, and the rate law at s = 0 with the auto centre
+     is `cap x clamp(0.125 + (0 − 0.5)) = 0`: pellets in stock, the beam never fires, V breaches in about 50 s. With no
+     hatch at all the centre 8 is used, so placing the hatch was worse than leaving it out. Nothing said why the rate
+     was 0 (B-221, B-222).
+  2. A T9 whose beam is not firing gave no warning: Flow bit 4 only watched the pellet stock (B-222).
+  3. A universe that breached on P (bursts short) was called a "Big Rip" because H happened to be above 0; the line
+     did not say the bursts were missing. The next universe was charged and lit at once with still no bursts, so an
+     unattended T10 spent 9,216 L of Dark Matter every 30-40 s (B-223, B-224).
+
+### B-221 An unwired Burst Control Hatch fires the beam at its centre [P5, no-trap]
+
+`MTEHatchBurstControl` now remembers whether any signal above 0 has ever reached it since it was placed
+(`btsBurstSeen`, tile NBT only: a wrenched hatch is a new wiring job; a hatch saved before the key counts as wired if
+its saved level is above 0). The Eye's pellet feed (`MTEEyeOfHarmonyBTS.pellets`) counts a hatch that never carried a
+signal as no hatch, so the beam uses the centre level 8 (ρ about 1 at V 0 on the auto centre), as with no hatch. A
+wired loop sends 8 at V 0 on its first lit second (analog: round(7.5); two-level: 8), so it is "seen" at once and its
+0 is honoured from then on (the two-level rule's beam cut). The scanner adds "Beam: … has never carried a signal …
+fires at its centre (open loop)" and the GUI a warning row; a T9 lost on V with an unwired beam says so (B-223).
+
+This is a safe default, not a fix for an unwired beam: open loop at the centre still fails now and then (spec §2.5,
+"beam unwired", about 40 failures in 4 h). Seen live: the unwired Eye (bench `p5 unwire`) fired 0.63 pellets/s at
+level "none (8)" and its re-run Infall soft-failed on "V fell … the beam is unwired".
+
+**Suggestion.** Keep.
+
+### B-222 Flow bit 4 is "beam starved": pellets low, or the beam not firing while V climbs [P5, telegraph]
+
+`EyeAttractor.fault`: the beam fires 0 pellets/s while V was above +5 last second, at T9 or inside The Infall. No
+working loop does that (analog V sensor: s ≥ 9 there; two-level: 15). Each second the runtime also works out why the
+beam is idle (`idleReason`): no injector, no barrel, no pellets (or none of the locked grade), or the Burst Control
+Hatch's level holding the rate law at 0 (with the centre and gain, and "set the centre to auto and the gain to 1"
+when those are off).
+
+- **Flow bit 4** = pellets low (as before) OR the fault (`beamStarved`); its label is now "Beam starved: pellets low
+  (under 120 s) or not firing". The questbook's Holding the Flow quest says so.
+- **Event line**, once when the fault rises: "BEAM NOT FIRING while V climbs (V +6.1): <why>. An idle beam takes V to a
+  Breach in about 50 s (Flow bit 4 is on)". Scanner line and a GUI warning row while it lasts.
+- Seen live (bench `p5 beam 0 0` on a lit T9): the alarm at V +6.1, the Breach 38 s later.
+
+**Suggestion.** Keep. Alternative: a fifth bit (the set has four).
+
+### B-223 A galaxy-tier failure names its cause; a universe is a Big Rip or Big Crunch only when H broke [telegraph]
+
+`EyeStarRuntime.failHint` adds the broken gauge's cause to every T7-T10 failure line (losses, soft-failed Infall /
+Inflation, collapsed universes): P fell with β under 1 ("the GRB Receptor Ports got X of the Y Bu/t this object needs,
+beta b; only bursts push P up"); P rose (the Space valve); V ran away with the beam idle (its `idleReason`), not
+keeping up, or unwired; V fell (the beam pushed too hard); Λ (the halo's J3); W (J2); H (the Dark Matter or SpaceTime
+valve). The universe's end says "TORE ITSELF APART (Big Rip)" or "RECOLLAPSED (Big Crunch)" only when H was the
+gauge that broke; otherwise "COLLAPSED (its pressure balance broke, not its expansion)". The render's end look still
+follows H's sign. Seen live: "the universe COLLAPSED (its pressure balance broke, not its expansion): Breach, P −100.6
+(P fell: the GRB Receptor Ports got 0.00 of the 96.00 Bu/t this object needs, beta 0.00; …)".
+
+No engine change: the hint is the runtime's, after `StellarField.step`.
+
+### B-224 A universe that has not begun waits for bursts on the crown [P5, no-trap]
+
+D-54's relight already waits for a linked stream before a new universe begins (B-217). A universe charged after a
+collapse or a last light did not: it ran at once with whatever the crown got. Now any universe at age 0 waits while
+no bursts are linked (`litSecond`, before the charge check): no field second, no drain; its charge (already paid)
+stays with it. The wait shows on the scanner ("waiting: the next universe waits for bursts on the universal crown's
+GRB Receptor Ports …") and as a GUI warning row. Seen live: bursts cut on a lit T10, the universe collapsed (25 %
+salvage), the next one waited at age 0 with its charge paid; with the bursts back it ran to its last light.
+
+**Suggestion.** Keep. Alternative: also wait while the crown's stream is under the demand (it cannot be read
+reliably while J1's share moves).
+
+### B-225 The kit wires the beam; `stdrig` keeps a kit T9 / T10 lit unattended, through restarts [bench]
+
+- **The kit** (`EyeKit.build`, T9 and T10): the Sensor socket after the three Directive Hatches takes a Stellar Field
+  Sensor Hatch on V (analog, window 30) instead of the Slots set (a T9 Eye's milestones are kept for good, so the
+  T8 test fire never runs again), with a GT Advanced Redstone Transmitter (Internal); the injector's Burst Control
+  Hatch gets an Advanced Redstone Receiver (Internal, single source) on the same frequency (`bts-beam-x-y-z`). That
+  is the questbook's "V sensor straight to the injector's Burst Control Hatch", with real covers. The injector gets
+  15 stacks of Superdense pellets (960) instead of 64.
+- **`stdrig`** (`/btseye t9|t10 <x y z> … fill stdrig`, or `/btseye star x y z p5 stdrig on [mass M] | off |
+  status`; `EyeStdRig`), saved in the Eye's tile NBT (`btsEyeBenchStdRig`): every field second a bench quasar (the
+  B-178 rig's virtual disc, 300 SM at T9, 600 SM at T10, throats Mk 2) through the standard conduit rig, binary on the
+  Eye's Field / Events codes; the Space valve on Field bit 1 and at T10 the 2-unit Dark Matter / SpaceTime valves on
+  Universe bits 1 / 2, poured into the Field sockets; the injector restocked under 256; the buffers topped up on Status
+  bit 1 and the owner's EU kept above 1e21. It turns the debug field rig off, so the Eye's own sockets and its wired
+  beam hold it. On the build it lights a T9 at once; a T10 begins its first universe itself (D-54) when the bursts
+  arrive. The disc is not saved: after a restart it spins up again at the saved mass.
+- **`p5 unwire`** (bench): the injector's Burst Control Hatch swapped for a fresh, unwired one (B-221's test).
+
+**Proof** (headless dev server, port 25831, three boots of one world, `/btswarp 100`):
+
+| Run | Result |
+|---|---|
+| Kit T9, `stdrig` | lit; beam on its real wire (levels 7-9, ρ about 1); 0 failures over about 9.9 game hours (35,602 Superdense seconds) across two restarts; 17 Galactic Flows held in full, 734 galaxies |
+| Kit T10, `stdrig` | its first universe began by itself; stopped at age 2,922 s, resumed after the restart at 2,940; universe 1 ran to its last light: +12,286 L Universium, Cosmic Dawn caught; universe 2 (after B-224's test) +12,287 L, Dawn caught |
+| Restart | both Eyes resumed lit (T9 galaxies 393 → 394, flow mid-warning; T10 age carried on); the beam's covers, the hatch's "seen" flag and the rig flag were all there |
+
+**Suggestion.** Keep. The kit's Slots hatch at T6-T8 is unchanged.
+
+### B-226 The fixed look (renderQuality=low, failed shaders) at T10 drew only the black core [render]
+
+`CosmosFx.drawFixed`'s pass 1 left back-face culling and the alpha test as Minecraft had them. Every `lineQuad` winds
+away from the camera, so the T10 rays, its jet and the T9 beam were always culled, and the T10 disc was culled from
+below (where a player stands). Only the black core and a faint billboard ring were left.
+
+Now pass 1 disables culling and the alpha test (the caller's `GlSave` restores both) and the T10 fixed look follows
+the shader look's inputs: the disc in the crown's tilted plane, sized by the universe's age, only while the membrane
+is shown (not in Inflation's first 300 s), the plasma's even orange before Recombination turning to the CMB's warm
+centre and cold rim by the reveal (with the Recombination flash); the crown's glow ring along its inner edge
+(`crownGlow`); the twelve rays faint between dawns, a glint in the 120 s warning, firing round the crown 0.45 s apart
+and then glowing with the starburst to 300 s (`coRayFlare`'s numbers). About 250 quads.
+
+**Check.** No shader changed. `compileJava`; a browser approximation of the same geometry and colours (before, plasma,
+CMB, Cosmic Dawn) rendered headless. Not seen in a game window.
 
 ## Where the old question numbers went
 

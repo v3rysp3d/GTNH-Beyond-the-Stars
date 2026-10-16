@@ -49,6 +49,9 @@ public final class EyeNbt {
     public static final String DARK_EVENT_KEY = "btsEyeDarkEvent";
     public static final String DARK_FAIL_KEY = "btsEyeDarkFail";
 
+    /** B-225: the bench's standard rig (tile NBT only; never on a wrenched item). */
+    public static final String STD_RIG_KEY = "btsEyeBenchStdRig";
+
     private EyeNbt() {}
 
     // ================================================================================== write
@@ -73,6 +76,7 @@ public final class EyeNbt {
 
     /** The live star (tile NBT only). */
     public static void writeStar(EyeStarRuntime rt, NBTTagCompound nbt) {
+        if (rt.benchStdRig > 0) nbt.setDouble(STD_RIG_KEY, rt.benchStdRig); // B-225: bench only
         final FieldState fs = rt.fs;
         if (fs == null) {
             // B-72: no star compound to carry them, so a chunk unload or restart would drop the lines again
@@ -267,6 +271,7 @@ public final class EyeNbt {
             return true;
         }
         rt.unlockedTier = Math.max(1, Math.min(EyeStarRuntime.MAX_UNLOCK, nbt.getInteger("btsEyeUnlocked")));
+        rt.benchStdRig = nbt.getDouble(STD_RIG_KEY);
         rt.milestones.read(nbt.hasKey("btsEyeMilestones") ? nbt.getCompoundTag("btsEyeMilestones") : null);
         rt.escrow = nbt.hasKey("btsEyeEscrow") ? ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("btsEyeEscrow"))
             : null;

@@ -1924,7 +1924,7 @@
       "desc": [
         "Run T9 on {9}Superdense pellets for 1 hour{r}. Higher-GeV pellets do more with fewer pellets: on the same Mk I barrel, Magnetar pellets will not light T9, Ergomatter pellets hold no flow, and Superdense pellets hold every flow at a fourteenth of the count.",
         "",
-        "Watch the Flow set's bit 4: pellets low, under 120 s of fire at the current rate. An empty injector takes V to a breach in about 50 s.",
+        "Watch the Flow set's bit 4, beam starved: pellets low (under 120 s of fire at the current rate), or the beam firing nothing while V climbs. An idle beam takes V to a breach in about 50 s. A Burst Control Hatch that has never had a signal fires the beam at its centre, open loop: wire it.",
         "",
         "{2}{l}DONE WHEN{r} T9 has run an hour on Superdense pellets (the Eye counts the minutes).",
         "",

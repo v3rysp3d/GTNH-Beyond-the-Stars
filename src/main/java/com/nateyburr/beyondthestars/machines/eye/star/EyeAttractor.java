@@ -61,6 +61,36 @@ public final class EyeAttractor {
     int injectors;
     /** The beam fired this second (T9, or the T8 Deep Link test fire). */
     boolean firing;
+    /** B-221: the injector's Burst Control Hatch stands but has never carried a signal (the beam fires at 8). */
+    boolean unwired;
+    /**
+     * B-222: the beam fires nothing while V is above +5 (the Attractor needs it): no injector, barrel or pellets, or
+     * the Burst Control Hatch holding the rate law at 0. No working V loop does that (analog: s ≥ 9 there; two-level:
+     * 15). Flow bit 4 and the GUI raise it; {@link #why} says what is missing.
+     */
+    boolean fault;
+    /** Why the beam fires nothing this second ("" while it fires). */
+    String why = "";
+
+    /** B-222: the beam fires nothing while V climbs (see {@link #fault}). */
+    public boolean beamFault() {
+        return fault;
+    }
+
+    /** B-221: the injector's Burst Control Hatch has never carried a signal (the beam fires at the centre 8). */
+    public boolean unwired() {
+        return unwired;
+    }
+
+    /** Why the beam fires nothing ("" while it fires). */
+    public String idleReason() {
+        return why;
+    }
+
+    /** B-222: Flow bit 4, the beam starved: pellets low, or the beam not firing while V climbs. */
+    public boolean beamStarved() {
+        return pelletsLow() || fault;
+    }
 
     /** The accept limit in force: the setting, or the hold rating. */
     public int acceptLimit() {

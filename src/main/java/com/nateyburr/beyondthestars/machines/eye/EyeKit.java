@@ -250,6 +250,7 @@ public final class EyeKit {
     public static Result build(World world, int x, int y, int z, ForgeDirection facing, int tiers, int genMeta,
         boolean fill, UUID owner, String ownerName, boolean survival, boolean legacy) {
         final Result result = new Result();
+        vSensorRel = null;
         final ItemStack controller = BTSMachines.eyeOfHarmony;
         if (controller == null) {
             result.failure = "the Eye controller is not registered";
@@ -310,6 +311,13 @@ public final class EyeKit {
             for (int i = 0; i < n.length; i++) {
                 if (i < DIRECTIVE_SETS.length) {
                     if (fitDirective(world, alignment, x, y, z, n[i], DIRECTIVE_SETS[i])) fitted++;
+                } else if (i == DIRECTIVE_SETS.length && tiers >= 9) {
+                    // B-225: from T9 the next Sensor socket holds the beam's V sensor (the Slots set's planets,
+                    // companions and test fire are behind a T9 Eye: its milestones are kept for good)
+                    if (fitStack(world, alignment, x, y, z, n[i], BTSMachines.stellarFieldSensor)) {
+                        fitted++;
+                        vSensorRel = n[i];
+                    }
                 } else if (i == DIRECTIVE_SETS.length && tiers >= 6) {
                     // P4: the Slots set (planets, companions, the link test fire) on the next Sensor socket
                     if (fitDirective(world, alignment, x, y, z, n[i], DirectiveSet.EYE_SLOTS)) fitted++;
@@ -382,10 +390,12 @@ public final class EyeKit {
                         ib.setInventorySlotContents(
                             0,
                             new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.injectorBarrelMk1, 1, 0));
-                    if (com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense != null)
-                        ib.setInventorySlotContents(
-                            1,
+                    // B-225: every other slot a stack of Superdense pellets (960, about 29 min of the standard rig)
+                    if (com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense != null) {
+                        for (int slot = 1; slot < MTEHatchPelletInjector.SLOTS; slot++) ib.setInventorySlotContents(
+                            slot,
                             new ItemStack(com.nateyburr.beyondthestars.items.SLP5Items.gatedPelletSuperdense, 64, 0));
+                    }
                 }
             }
             if (i.length > 1 && fitStack(world, alignment, x, y, z, i[1], BTSMachines.burstControlHatch)) {
@@ -396,6 +406,11 @@ public final class EyeKit {
                     && ((IGregTechTileEntity) t).getMetaTileEntity() instanceof MTEHatchBurstControl) {
                     ((MTEHatchBurstControl) ((IGregTechTileEntity) t).getMetaTileEntity())
                         .setMode(MTEHatchBurstControl.Mode.BEAM);
+                    // B-225: the beam's V loop as a player wires it (p5-t9-t10.md 9.3, "Sensor V straight to the
+                    // injector's Burst Control Hatch"), over a GT wireless channel
+                    if (vSensorRel != null) {
+                        result.lines.add(wireBeam(world, alignment, x, y, z, vSensorRel, (IGregTechTileEntity) t));
+                    }
                 }
             }
         }
@@ -448,6 +463,67 @@ public final class EyeKit {
                 + ".");
         result.lines.addAll(eye.statusLines());
         return result;
+    }
+
+    /** B-225: the Sensor socket that took the beam's V sensor in the build running now (server thread only). */
+    private static int[] vSensorRel;
+
+    /**
+     * B-225: the T9 beam's V loop, wired as the questbook's standard rig: the Stellar Field Sensor Hatch on V (analog,
+     * window 30) with a GT Advanced Redstone Transmitter (Internal), the injector's Burst Control Hatch with an
+     * Advanced
+     * Redstone Receiver (Internal, single source) on the same frequency. Real covers: they stay through a restart and a
+     * player can open and change them.
+     */
+    private static String wireBeam(World world, ExtendedFacing alignment, int x, int y, int z, int[] sensorRel,
+        IGregTechTileEntity bch) {
+        final int[] sp = SLConsoleTest.worldPos(alignment, x, y, z, sensorRel);
+        final TileEntity st = world.getTileEntity(sp[0], sp[1], sp[2]);
+        if (!(st instanceof IGregTechTileEntity)
+            || !(((IGregTechTileEntity) st).getMetaTileEntity() instanceof MTEHatchStellarFieldSensor)) {
+            return "Beam V loop: NOT WIRED (no Stellar Field Sensor Hatch in the socket)";
+        }
+        final IGregTechTileEntity sb = (IGregTechTileEntity) st;
+        final MTEHatchStellarFieldSensor sensor = (MTEHatchStellarFieldSensor) sb.getMetaTileEntity();
+        sensor.setChannelOrdinal(com.nateyburr.beyondthestars.machines.eye.field.FieldReadout.Channel.V.ordinal());
+        sensor.setAnalog(true);
+        sensor.setWindow(30);
+        sensor.setInvert(false);
+        final ForgeDirection ts = freeSide(sb), rs = freeSide(bch);
+        if (ts == null || rs == null) return "Beam V loop: NOT WIRED (no free side for the wireless covers)";
+        sb.attachCover(
+            gregtech.api.covers.CoverRegistry
+                .buildCover(ItemList.Cover_AdvancedRedstoneTransmitterInternal.get(1L), ts, sb));
+        bch.attachCover(
+            gregtech.api.covers.CoverRegistry
+                .buildCover(ItemList.Cover_AdvancedRedstoneReceiverInternal.get(1L), rs, bch));
+        final gregtech.common.covers.Cover tc = sb.getCoverAtSide(ts), rc = bch.getCoverAtSide(rs);
+        if (!(tc instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal)
+            || !(rc instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverInternal)) {
+            return "Beam V loop: NOT WIRED (the wireless covers would not attach)";
+        }
+        final String freq = "bts-beam-" + x + "-" + y + "-" + z;
+        ((gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal) tc).setFrequency(freq);
+        ((gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterInternal) tc).setInverted(false);
+        ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverInternal) rc).setFrequency(freq);
+        ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverInternal) rc)
+            .setMode(gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase.GateMode.SINGLE_SOURCE);
+        tc.setTickRateAddition(1 - tc.getDefaultTickRate());
+        rc.setTickRateAddition(1 - rc.getDefaultTickRate());
+        sb.issueCoverUpdate(ts);
+        bch.issueCoverUpdate(rs);
+        return "Beam V loop wired: Stellar Field Sensor Hatch (V, analog, window 30) -> Advanced Redstone Transmitter"
+            + " (Internal) -> "
+            + freq
+            + " -> Receiver (Internal, single source) on the injector's Burst Control Hatch";
+    }
+
+    /** The first side of a hatch with no cover and not its front, or null. */
+    private static ForgeDirection freeSide(IGregTechTileEntity b) {
+        for (ForgeDirection f : ForgeDirection.VALID_DIRECTIONS) {
+            if (f != b.getFrontFacing() && !b.hasCoverAtSide(f)) return f;
+        }
+        return null;
     }
 
     /** The projector's default survival round (StructureLib's 25 elements, which survivalBudget scales). */

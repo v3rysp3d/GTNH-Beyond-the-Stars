@@ -286,6 +286,10 @@ public final class EyeStarRuntime {
     final EyeAttractor attractor = new EyeAttractor();
     /** P4 bench: a scripted burst feed replacing the receptor reading (null in play; never saved). */
     EyeBursts benchBursts;
+    /**
+     * B-225: the bench's standard rig on this Eye, its bench quasar's mass (SM); 0 off. Tile NBT ({@link EyeStdRig}).
+     */
+    double benchStdRig;
     /** P4 bench: the bench quasar's {Φ, b} for the collapse assist (its source is not a machine); null in play. */
     double[] benchFlux;
 
@@ -998,6 +1002,16 @@ public final class EyeStarRuntime {
         } else {
             galaxy.bursts = EyeBursts.NONE;
         }
+        // ---- B-224: a universe that has not begun (age 0, its charge paid or owed) waits for bursts on the crown: lit
+        // without them its P falls at 3/s and it breaches in about 30 s, taking the next charge with it (the D-54
+        // relight's rule, for every universe)
+        if (T.universe && trans == null && (fs.uni == null || fs.uni.t == 0) && !galaxy.bursts.linkedAll) {
+            waitReason = "the next universe waits for bursts on the universal crown's GRB Receptor Ports (route a"
+                + " linked quasar's stream to the crown; lit without bursts it would collapse in about 30 s)";
+            host.publish(last);
+            host.markDirty();
+            return;
+        }
         // ---- P5 T10: a universe still owed its Dark Matter charge waits for it (no drain, no field second)
         if (T.universe && trans == null && !payUniverseCharge()) {
             waitReason = "the next universe waits for its charge: " + fmt(attractor.uniOwed)
@@ -1006,6 +1020,7 @@ public final class EyeStarRuntime {
             host.markDirty();
             return;
         }
+        if (T.universe && waitReason.startsWith("the next universe waits")) waitReason = "";
         // ---- the time dial (plan §6.4): pay Time from the Field sockets; a short payment slows the dial.
         // Transitions hold the dial at m = 1.
         final double mCap = trans != null ? 1 : Math.min(dialSet, StellarField.mMax(T, tt));
@@ -1121,6 +1136,8 @@ public final class EyeStarRuntime {
             if (ledger != null) ledger.record(this, out.zone);
             return;
         }
+        // B-223: a galaxy-tier failure names its cause (the gauge that broke and what it was short of)
+        if (out.fail != null) out.fail = out.fail + failHint(T, out);
         if (out.fail != null && out.recovered) {
             // ---- P5: a soft-failed Infall / Inflation (the star below is lit), or a universe that collapsed
             p5Recovered(out, p);
@@ -1432,6 +1449,89 @@ public final class EyeStarRuntime {
         in.acceptMax = a.acceptLimit();
         a.rate = in.pelletsOk ? AttractorField.rate(in.beamCap, in.beamCentre, in.beamGain, in.beamLevel) : 0;
         a.firing = false;
+        a.unwired = f.unwired && (rig == null || rig == FieldRig.Mode.OFF);
+        a.why = beamIdleReason(f, g, in.beamLevel);
+        // B-222: the beam needed (V above +5 last second, at T9 or inside The Infall) but firing nothing
+        final boolean needed = (T.attractor || trans instanceof Infall)
+            && fs.prevE[StellarField.V] > AttractorField.TWO_LEVEL_W;
+        final boolean wasFault = a.fault;
+        a.fault = needed && a.rate <= 1e-9;
+        if (a.fault && !wasFault) {
+            lastEvent = String.format(
+                Locale.ROOT,
+                "BEAM NOT FIRING while V climbs (V %s): %s. An idle beam takes V to a Breach in about 50 s"
+                    + " (Flow bit 4 is on)",
+                StellarField.fmtSigned(fs.prevE[StellarField.V]),
+                a.why);
+            logEvent(lastEvent);
+        }
+    }
+
+    /** Why the beam fires nothing at this level ("" when it fires): the first missing part, or the cut rate law. */
+    private String beamIdleReason(PelletFeed f, int g, double level) {
+        if (f.injectors < 1) return "no Pellet Injector Hatch on the top collar of the collimator stack";
+        if (f.barrelMk < 1) return "no Injector Barrel in the Pellet Injector Hatch";
+        if (g < 1 || f.stock[g] <= 0) {
+            return f.lockedGrade > 0
+                ? "no " + EyeAttractor.gradeName(f.lockedGrade)
+                    + " pellets in stock (the injector is locked to that grade; screwdriver to unlock)"
+                : "no Gated Pellets in the injector or a pellet stock bus";
+        }
+        if (attractor.rate > 1e-9) return "";
+        return String.format(
+            Locale.ROOT,
+            "the injector's Burst Control Hatch reads %.0f, so pellets/s = cap x clamp(c + k (s/15 - 0.5)) is 0"
+                + " (centre %.3f, gain %.2f): %s",
+            level,
+            in.beamCentre,
+            in.beamGain,
+            f.centreAuto && f.gain >= 0.5 ? "wire the V sensor (analog, window 30) or Flow bits 1 / 2 to it"
+                : "set the injector's centre to auto and its gain to 1, and wire the V sensor (analog, window 30)"
+                    + " or Flow bits 1 / 2 to it");
+    }
+
+    /**
+     * B-223: what broke, in words, for a T7-T10 failure: the gauge at the breach (or the worst one when Integrity ran
+     * out) and the input it was short of. "" when there is nothing clear to add (the gauge symbol is in the line).
+     */
+    private String failHint(TierParams T, StepResult out) {
+        if (out.err == null || T.n < 7 || out.worstGauge < 0 || out.worstGauge >= out.err.length) return "";
+        final int k = out.worstGauge;
+        final double e = out.err[k];
+        if (k == StellarField.P && e < 0) {
+            return galaxy.beta < 1 ? String.format(
+                Locale.ROOT,
+                " (P fell: the GRB Receptor Ports got %.2f of the %.2f Bu/t this object needs, beta %.2f; only bursts"
+                    + " push P up, so bring a linked quasar's stream big enough)",
+                galaxy.bursts.total(),
+                galaxy.demand,
+                galaxy.beta) : " (P fell: steer more of the stream to the Eye with J1, the P loop)";
+        }
+        if (k == StellarField.P)
+            return " (P rose: the Space valve, Spatially Enlarged Fluid on Field bit 1, pulls it down)";
+        if (k == StellarField.V && attractor.unwired) {
+            return " (V " + (e > 0 ? "ran away" : "fell")
+                + ": the beam is unwired and fires open loop at its centre; wire the V sensor, analog, window 30, or"
+                + " Flow bits 1 / 2, to the injector's Burst Control Hatch)";
+        }
+        if (k == StellarField.V && e > 0) {
+            return attractor.rate <= 1e-9 ? " (V ran away: the beam fired nothing; " + attractor.why + ")"
+                : String.format(
+                    Locale.ROOT,
+                    " (V ran away: the beam fired %.2f pellets/s and did not keep up; close the V loop: the V sensor,"
+                        + " analog, window 30, or Flow bits 1 / 2, to the injector's Burst Control Hatch)",
+                    attractor.rate);
+        }
+        if (k == StellarField.V) return " (V fell: the beam pushed too hard; Flow bit 2 or the V loop cuts it)";
+        if (k == StellarField.L && e > 0) {
+            return " (Λ ran away: the shard halo got too few bursts; J3 halo : rail on Events bits 1 / 2)";
+        }
+        if (k == StellarField.W) return " (W ran away: aim the rail with J2 high : low on Field bits 3 / 4)";
+        if (k == StellarField.H) {
+            return e > 0 ? " (H ran high: Attractor Dark Matter pulls it down, Universe bit 1)"
+                : " (H ran low: Molten SpaceTime pushes it up, Universe bit 2)";
+        }
+        return "";
     }
 
     /** P5: the pellets fired (whole pellets drawn, the rest carried) and the Infall's / Inflation's charges, × p. */
@@ -1496,11 +1596,14 @@ public final class EyeStarRuntime {
             }
             attractor.endT = fs.t;
             attractor.endKind = out.universeRip ? 2 : 3;
+            // B-223: Big Rip / Big Crunch only when the expansion H broke; a P breach is the burst balance
+            final boolean expansion = out.worstGauge == StellarField.H;
             lastEvent = String.format(
                 Locale.ROOT,
                 "the universe %s: %s; %,.0f L of Universium salvaged (25 %% x %.0f %% run). The Eye stays at T10;"
                     + " the next universe is charged",
-                out.universeRip ? "TORE ITSELF APART (Big Rip)" : "RECOLLAPSED (Big Crunch)",
+                !expansion ? "COLLAPSED (its pressure balance broke, not its expansion)"
+                    : out.universeRip ? "TORE ITSELF APART (Big Rip)" : "RECOLLAPSED (Big Crunch)",
                 out.fail,
                 salvage,
                 100 * out.universeFraction);
@@ -3594,7 +3697,7 @@ public final class EyeStarRuntime {
                         burning() && fs.tier.attractor,
                         fs.prevE[StellarField.V],
                         AttractorField.warnedAccepted(fs),
-                        attractor.pelletsLow(),
+                        attractor.beamStarved(),
                         w);
             case EYE_UNIVERSE:
                 return fs == null ? 0
@@ -4645,6 +4748,15 @@ public final class EyeStarRuntime {
                         + ")")
                 + ", q "
                 + f2(StepInputs.qFor(host.stabilisationTier())));
+        // B-224: a lit T10 between universes says what the next one waits for
+        if (T.universe && !waitReason.isEmpty()) out.add("  waiting: " + waitReason);
+        // B-221 / B-222: the beam's state when it is not doing its job
+        if (T.attractor && attractor.fault) out.add("  BEAM NOT FIRING while V climbs: " + attractor.why);
+        else if (T.attractor && attractor.unwired) {
+            out.add(
+                "  Beam: the injector's Burst Control Hatch has never carried a signal, so the beam fires at its"
+                    + " centre (level 8, open loop); wire the V sensor (analog, window 30) or Flow bits 1 / 2 to it");
+        }
         if (trans != null) transitionLines(out);
         else if (state == StarState.PENDING) {
             final List<String> miss = missing(T.n);

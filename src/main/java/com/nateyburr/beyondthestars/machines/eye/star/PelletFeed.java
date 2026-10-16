@@ -22,8 +22,13 @@ public final class PelletFeed {
     /** The rate law's centre: auto (ρ = 1 at V = 0) or {@link #centre}; its gain k. */
     public boolean centreAuto = true;
     public double centre = 0.5, gain = 1;
-    /** The level of the injector's Burst Control Hatch (0-15), −1 when none stands. */
+    /**
+     * The level of the injector's Burst Control Hatch (0-15), −1 when none stands or (B-221) none has ever carried a
+     * signal: an unwired hatch counts as no hatch, so the beam fires at the centre level 8.
+     */
     public int level = -1;
+    /** B-221: a Burst Control Hatch stands beside the injector but has never carried a signal (unwired). */
+    public boolean unwired;
 
     /** The grade to fire: the locked one, else the highest in stock (0 when none). */
     public int grade() {

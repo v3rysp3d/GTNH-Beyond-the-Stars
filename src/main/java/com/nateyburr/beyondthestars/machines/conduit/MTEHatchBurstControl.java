@@ -96,6 +96,12 @@ public class MTEHatchBurstControl extends MTEHatch {
     private int level;
     /** False until the first tick after placement or a load that found no saved level: that tick only primes. */
     private boolean primed;
+    /**
+     * B-221: true once any redstone above 0 has reached this hatch since it was placed (tile NBT only: a wrenched hatch
+     * is a new wiring job). The Eye's pellet beam reads a hatch that never carried a signal as no hatch at all (the
+     * centre level 8), so an unwired hatch cannot hold the injector at 0 pellets/s.
+     */
+    private boolean signalled;
 
     // ---- live
     private boolean edge;
@@ -138,7 +144,8 @@ public class MTEHatchBurstControl extends MTEHatch {
             "once its Transition bit [1] is on.",
             BTSTip.heading("Pellet beam") + " (Eye T9, beside the Pellet Injector):",
             "the level is s in the injector's rate law (V sensor or two Directive bits).",
-            "Level " + BTSTip.num("0") + " leaves the GUI's own value.");
+            "Level " + BTSTip.num("0") + " leaves the GUI's own value.",
+            "A hatch that never had a signal fires the beam at its centre (" + BTSTip.num("8") + ").");
     }
 
     // ------------------------------------------------------------------ live input
@@ -156,6 +163,7 @@ public class MTEHatchBurstControl extends MTEHatch {
             edges++;
         }
         primed = true;
+        if (s > 0) signalled = true;
         if (s != level) {
             level = s;
             aBaseMetaTileEntity.markDirty(); // the chunk must save the new "before" level
@@ -166,6 +174,11 @@ public class MTEHatchBurstControl extends MTEHatch {
     /** The redstone level s, 0-15, as of this tick. */
     public int level() {
         return level;
+    }
+
+    /** B-221: true once a signal above 0 has reached this hatch since it was placed (it is wired to something). */
+    public boolean signalled() {
+        return signalled || level > 0;
     }
 
     /**
@@ -181,6 +194,7 @@ public class MTEHatchBurstControl extends MTEHatch {
         }
         level = v;
         primed = true;
+        if (v > 0) signalled = true;
     }
 
     /** True once per rising edge since the last call (the host consumes it once a second). */
@@ -320,6 +334,7 @@ public class MTEHatchBurstControl extends MTEHatch {
         super.saveNBTData(aNBT);
         aNBT.setString("btsBurstMode", mode.name());
         aNBT.setByte("btsBurstLevel", (byte) level);
+        aNBT.setBoolean("btsBurstSeen", signalled);
     }
 
     /** QA-B16: a wrenched hatch keeps its mode (not its level: a placed hatch primes on its first tick). */
@@ -338,6 +353,8 @@ public class MTEHatchBurstControl extends MTEHatch {
             level = Math.max(0, Math.min(15, aNBT.getByte("btsBurstLevel")));
             primed = true;
         }
+        // B-221: a hatch saved before the flag counts as wired if it held a signal then
+        signalled = aNBT.hasKey("btsBurstSeen") ? aNBT.getBoolean("btsBurstSeen") : level > 0;
     }
 
     @Override

@@ -29,6 +29,8 @@ import com.nateyburr.beyondthestars.machines.eye.field.UniverseField;
  * <li>{@code deeplink [reset]}: the Deep Link's window and streak; {@code flow <n> [low|high]}: warn a group of n now
  * (180 s ahead), as the next Galactic Flow;</li>
  * <li>{@code uni}: the universe's age, events and charge;</li>
+ * <li>{@code unwire}: B-221, the injector's Burst Control Hatch swapped for a fresh, unwired one;</li>
+ * <li>{@code stdrig on [mass M] | off | status}: B-225, the standard rig saved with the Eye ({@link EyeStdRig});</li>
  * <li>{@code count <galaxies|flows|universes|dawns|sdsec|wide|flat> <n>}: sets a P5 counter (B-218, the quest bridge's
  * test: the next field second credits the owner's quests).</li>
  * </ul>
@@ -140,13 +142,68 @@ public final class EyeP5Bench {
                 out.add("counter " + a1 + " = " + n);
                 break;
             }
+            case "unwire": {
+                // B-221 bench: the injector's Burst Control Hatch swapped for a fresh one with no cover and no signal,
+                // as a player who placed it and never wired it
+                final com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl h = eye.beamControlHatches()
+                    .isEmpty() ? null
+                        : eye.beamControlHatches()
+                            .get(0);
+                final gregtech.api.interfaces.tileentity.IGregTechTileEntity b = h == null ? null
+                    : h.getBaseMetaTileEntity();
+                if (b == null || com.nateyburr.beyondthestars.machines.BTSMachines.burstControlHatch == null) {
+                    out.add("No Burst Control Hatch beside the injector.");
+                    return out;
+                }
+                final net.minecraft.world.World w = b.getWorld();
+                final int bx = b.getXCoord(), by = b.getYCoord(), bz = b.getZCoord();
+                final net.minecraftforge.common.util.ForgeDirection front = b.getFrontFacing();
+                w.setBlockToAir(bx, by, bz);
+                com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1.placeGtMachine(
+                    w,
+                    bx,
+                    by,
+                    bz,
+                    (short) com.nateyburr.beyondthestars.machines.BTSMachines.burstControlHatch.getItemDamage(),
+                    front);
+                final net.minecraft.tileentity.TileEntity te = w.getTileEntity(bx, by, bz);
+                if (te instanceof gregtech.api.interfaces.tileentity.IGregTechTileEntity
+                    && ((gregtech.api.interfaces.tileentity.IGregTechTileEntity) te)
+                        .getMetaTileEntity() instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl) {
+                    ((com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl) ((gregtech.api.interfaces.tileentity.IGregTechTileEntity) te)
+                        .getMetaTileEntity())
+                            .setMode(com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl.Mode.BEAM);
+                }
+                eye.checkStructure(true, eye.getBaseMetaTileEntity());
+                out.add(
+                    "unwire: a fresh Burst Control Hatch (Pellet beam, no cover, no signal) at " + bx
+                        + ", "
+                        + by
+                        + ", "
+                        + bz);
+                break;
+            }
+            case "stdrig": {
+                // B-225: stdrig on [mass M] | off | status
+                if ("off".equals(a1)) return EyeStdRig.set(eye, 0);
+                if ("on".equals(a1)) {
+                    double mass = EyeStdRig.defaultMass(rt.unlockedTier());
+                    for (int i = at + 2; i + 1 < args.length; i++) {
+                        if ("mass".equalsIgnoreCase(args[i])) mass = Double.parseDouble(args[i + 1]);
+                    }
+                    return EyeStdRig.set(eye, mass);
+                }
+                out.add(EyeStdRig.status(eye));
+                break;
+            }
             case "uni":
             case "status":
                 break;
             default:
                 out.add(
                     "p5 status | pellets <mag|erg|sup> [n] [mk <1-3>] | refill <grade|off> | accept <n|auto> |"
-                        + " beam <c|auto> [k] | deeplink [reset] | flow | uni | count <counter> <n>");
+                        + " beam <c|auto> [k] | deeplink [reset] | flow | uni | stdrig on [mass M]|off|status |"
+                        + " count <counter> <n>");
                 return out;
         }
         out.addAll(lines(rt, eye));
@@ -301,6 +358,7 @@ public final class EyeP5Bench {
                     u.n > 0 ? u.ySum / u.n : 0,
                     a.uniOwed));
         }
+        if (rt.benchStdRig > 0) out.add(EyeStdRig.status(eye));
         out.add(
             String.format(
                 Locale.ROOT,

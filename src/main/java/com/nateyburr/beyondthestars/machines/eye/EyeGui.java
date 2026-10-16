@@ -728,8 +728,25 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     String.valueOf(a.acceptLimit())),
                 BTSText.lang(
                     "beyondthestars.gui.eye.p5.beam.tip2",
-                    a.level() < 0 ? BTSText.key("beyondthestars.gui.eye.p5.beam.nolevel") : String.valueOf(a.level())),
+                    a.level() < 0 ? BTSText.key(
+                        a.unwired() ? "beyondthestars.gui.eye.p5.beam.unwiredlevel"
+                            : "beyondthestars.gui.eye.p5.beam.nolevel")
+                        : String.valueOf(a.level())),
                 BTSText.lang("beyondthestars.gui.eye.p5.beam.tip3"));
+            // B-222 / B-221: the beam idle while V climbs, or a Burst Control Hatch nobody wired
+            if (a.beamFault()) {
+                rows.note(
+                    BTSRows.ICON_WARN,
+                    BTSGuiKit.WARN,
+                    BTSText.lang("beyondthestars.gui.eye.p5.beam.fault", a.idleReason()),
+                    BTSText.lang("beyondthestars.gui.eye.p5.beam.fault.tip"));
+            } else if (a.unwired()) {
+                rows.note(
+                    BTSRows.ICON_WARN,
+                    BTSGuiKit.WARN,
+                    BTSText.lang("beyondthestars.gui.eye.p5.beam.unwired"),
+                    BTSText.lang("beyondthestars.gui.eye.p5.beam.unwired.tip"));
+            }
             final double secs = a.stockSeconds();
             rows.stat2(
                 BTSText.lang("beyondthestars.gui.eye.p5.pellets"),
@@ -763,6 +780,17 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                 BTSText.lang("beyondthestars.gui.eye.p5.flow.tip0"),
                 a.lastFlow()
                     .isEmpty() ? "" : BTSText.lang("beyondthestars.gui.eye.p5.flow.last", a.lastFlow()));
+        }
+        // B-224: a lit T10 between universes says what the next one waits for (bursts on the crown, its charge)
+        if (fs != null && fs.tier.universe
+            && rt.burning()
+            && !rt.waitReason()
+                .isEmpty()) {
+            rows.note(
+                BTSRows.ICON_WARN,
+                BTSGuiKit.WARN,
+                BTSText.lang("beyondthestars.gui.eye.p5.universe.waiting", rt.waitReason()),
+                BTSText.lang("beyondthestars.gui.eye.p5.universe.waiting.tip"));
         }
         if (fs != null && fs.tier.universe
             && fs.uni != null

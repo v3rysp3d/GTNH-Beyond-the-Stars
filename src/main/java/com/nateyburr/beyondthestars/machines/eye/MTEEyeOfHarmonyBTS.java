@@ -3046,11 +3046,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             }
             final String line = f.injectors == 0 ? "no Pellet Injector Hatch beside it"
                 : "pellet rate: pellets/s = cap x clamp(c + k (s/15 - 0.5))";
+            boolean unwired = false;
             for (MTEHatchBurstControl h : beamControls) {
                 if (!live(h)) continue;
                 h.poll("Eye of Harmony (Pellet Injector)", line, MTEHatchBurstControl.Mode.BEAM);
-                f.level = Math.max(f.level, h.level());
+                // B-221: a hatch that never carried a signal is not wired to anything: it counts as no hatch
+                if (h.signalled()) f.level = Math.max(f.level, h.level());
+                else unwired = true;
             }
+            f.unwired = unwired && f.level < 0;
             return f;
         }
 
