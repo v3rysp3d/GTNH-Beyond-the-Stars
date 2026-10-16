@@ -1009,6 +1009,10 @@ The full argument lists are in each command's usage line (type the command with 
 - The Homogeny T1 hologram shows Region Crystals at the throat tip.
 - Nuclear plant: a silo socket with the wrong hatch drops the silo without naming the cell; the Extraction Platform and
   Yellowcake Mill have no void protection.
+- A world that ran a development build from before 0.25.0 logs once at start that `btswhiteholematter` and
+  `btsentangledwhitehole` are missing and will be removed. These were the White Hole Matter placeholders that
+  Attractor Dark Matter replaced; no survival recipe made them. A tank, hatch, cell or ME drive that still holds one
+  comes up empty, with no other message, and there is no remap to Attractor Dark Matter. Empty them before updating.
 
 **Not yet seen in a real pack world:** a survival build from a real AE2 system, OpenComputers running Lua in a world,
 Steve's Factory Manager, a Magnetar Collapse wired by hand, `/btswarp` refused to a non-op on a dedicated server, and the
