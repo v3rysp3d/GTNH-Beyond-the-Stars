@@ -3,6 +3,9 @@ package com.nateyburr.beyondthestars.machines.kerr;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import net.minecraft.util.StatCollector;
 
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
@@ -71,6 +74,20 @@ public enum KerrHatchElement implements IHatchElement<MTEKerrEngine> {
     KerrHatchElement(IGTHatchAdder<MTEKerrEngine> adder, Class<? extends IMetaTileEntity>... mteClasses) {
         this.mteClasses = Collections.unmodifiableList(Arrays.asList(mteClasses));
         this.adder = adder;
+    }
+
+    /**
+     * The name GT's structure errors print ("Any of: ... / casing"): GT's default lang key {@code hatch_type_<name>}
+     * has no translation, so the error read "hatch_type_boltbus" (QA-A32).
+     */
+    @Override
+    public String getDescriptionLangKey() {
+        return "beyondthestars.hatch.kerr." + name().toLowerCase(Locale.ROOT);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return StatCollector.translateToLocal(getDescriptionLangKey());
     }
 
     @Override

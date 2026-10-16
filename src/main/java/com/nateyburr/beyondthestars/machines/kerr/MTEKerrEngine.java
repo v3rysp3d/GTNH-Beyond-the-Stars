@@ -359,6 +359,8 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             .addElement(
                 'b',
                 buildHatchAdder(MTEKerrEngine.class).atLeast(KerrHatchElement.BoltBus)
+                    // QA-A32: auto-place never fits an ME stocking bus here (the walk refuses one)
+                    .hatchItemFilterAnd(t -> MTEKerrEngine::notStockingBus)
                     .casingIndex(shellIndex)
                     .hint(3)
                     .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
@@ -449,9 +451,34 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         railTierMin = 0;
         railCount = 0;
         boltBuses.clear();
+        refusedStockingBus = false;
         utilityHatches.clear();
         directiveHatches.clear();
         receptors.clear();
+    }
+
+    /** QA-A32: the walk met an ME stocking bus in a bolt-bus socket (walk state). */
+    private boolean refusedStockingBus;
+    /**
+     * S-14: a formed walk has run since the tile loaded, so the bolt buses (and the stock read from them) are known.
+     * Before it the GUI shows "-" for the stock, not 0. Not saved.
+     */
+    private boolean boltBusesWalked;
+
+    /** S-14: true once a formed walk has listed the bolt buses since load (GUI: the stock row). */
+    public boolean boltStockKnown() {
+        return boltBusesWalked;
+    }
+
+    /**
+     * QA-A32: false for an ME stocking input bus (any {@link MTEHatchInputBusME}). The bolt-bus socket matches every
+     * input bus, but its adder refuses these, so without this filter auto-place fitted one and the walk then failed.
+     */
+    static boolean notStockingBus(ItemStack stack) {
+        if (stack == null || !(stack.getItem() instanceof gregtech.common.blocks.ItemMachines)) return true;
+        final int id = stack.getItemDamage();
+        return id < 0 || id >= gregtech.api.GregTechAPI.METATILEENTITIES.length
+            || !(gregtech.api.GregTechAPI.METATILEENTITIES[id] instanceof MTEHatchInputBusME);
     }
 
     /**
@@ -467,11 +494,16 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         resetWalk();
         final String core = corePiece();
         final int[] o = off(core);
-        if (!checkPiece(core, o[0], o[1], o[2], errors)) return;
+        if (!checkPiece(core, o[0], o[1], o[2], errors)) {
+            // QA-A32: say why the cell failed, ahead of the walk's generic "expected" error
+            if (refusedStockingBus) errors.add(0, StructureErrors.of("beyondthestars.structure.kerr.boltbus.me"));
+            return;
+        }
         checkExoticAndNormalEnergyHatches(errors);
         if (boltBusCount() == 0) {
             errors.add(StructureErrors.of("beyondthestars.structure.kerr.boltbus"));
         }
+        if (errors.isEmpty()) boltBusesWalked = true;
     }
 
     // ===================================================================== private hatch adders
@@ -484,7 +516,11 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         if (te == null) return false;
         final IMetaTileEntity mte = te.getMetaTileEntity();
         // An ME stocking bus shows shadow stacks the governor cannot decrement; plain buses only.
-        if (mte instanceof MTEHatchInputBus && !(mte instanceof MTEHatchInputBusME)) {
+        if (mte instanceof MTEHatchInputBusME) {
+            refusedStockingBus = true;
+            return false;
+        }
+        if (mte instanceof MTEHatchInputBus) {
             ((MTEHatchInputBus) mte).updateTexture(casingIndex);
             boltBuses.add((MTEHatchInputBus) mte);
             return true;
