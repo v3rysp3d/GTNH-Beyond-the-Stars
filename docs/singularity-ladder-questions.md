@@ -7,7 +7,7 @@ One list, restructured 2026-10-13 after the tidy, questbook and Homogeny / Reali
 2. **Settled**: everything I have answered, in my words where we have them, and what was built.
 3. **Open work and checks**: things that need doing or seeing in a client, but no decision.
 4. **Detailed entries**: the full write-up of every question (A-1..A-3, B-1..B-101, B-105..B-122, B-130..B-139 and the SMBH branch's
-   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-250, the calm-renders pass's B-251..B-252, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
+   B-150..B-178, P5 content's B-200..B-216, the relight / pulsar / quest-bridge pass's B-217..B-219, the kit T9 / T10 pass's B-220..B-226, the to-do passes' B-227..B-250, the calm-renders pass's B-251..B-252, the to-do 7 pass's B-253..B-255, the tidy pass's TQ-1..TQ-8, P4's P4-01..P4-94 in Part E, and renders v2's R-01.. in Part R).
 
 Nothing is renumbered. The code, commit messages and the build spec cite these numbers (`B-72`, `TODO(Q-20)` and so
 on); the old Q-1..Q-38 and the merged branches' numbers are mapped under "Where the old question numbers went".
@@ -130,6 +130,8 @@ except the T10 part: open question 17); B-10 (built, B-45); B-21..B-24 (built in
   up, a helium flash and a magnetar warning, a failing Kerr, a quasar shed and Critical, an Overdrive lattice, the
   T9 collars, a held Reality anchor, the Crown). Checked so far only in a browser comparison and with glslang.
   [B-251, B-252]
+- See in a game window: a south- or east-facing T10 before its first P5 snapshot (a fresh relight) and under a
+  render QA look: the crown and the background-radiation disc on the crown's blocks. Checked so far offline. [B-253]
 
 **For the P4 merge** (done, B-110).
 
@@ -283,7 +285,7 @@ The build compiles, loads and registers every recipe. These checks from my accep
 
 ---
 
-## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-252
+## Part B. Entries B-1..B-101, B-105..B-122, B-130..B-139, B-150..B-178, B-200..B-255
 
 ### B-1 Upgrade install: the milestone and install-run numbers [Q-10, Q-24, Q-38]
 
@@ -8693,6 +8695,87 @@ the spin lands on a whole turn). The shaders now read the phase: `star/surface.g
 `star/lines.glsl` `sin(s x 40 - u_LineFx.y + ...)`. The warnings' throbs have a fixed slow period (B-251).
 
 **Check.** As B-251.
+
+### B-253 A rotated T9 / T10 was drawn in the north frame before its first P5 snapshot [render, finding + fix]
+
+**Finding** (while checking a south-facing T10). `CosmosInput.fill` took the controller's facing only from the P5
+snapshot. Two paths left it at -1, which `CosmosFx.frameOf` draws as north: a render QA look (`CosmosInput.debug`,
+copied whole, carries no facing) and a T9 / T10 tile whose P5 snapshot had not arrived yet (`reset()` sets -1). A
+rotated Eye was then drawn 90 or 180 degrees out against its blocks, and the crown's -10 degree tilt leaned the wrong
+way: on a south-facing T10 the crown's spike bases sat up to 23.5 blocks off the drawn crown plane. `CosmosFx.frameOf`
+and `frame` handle every facing correctly; only the input was wrong.
+
+**Every reader checked.** The collimator stack and its collars, the Great Attractor's filaments and the Galactic
+Flow's side, the crown, the background-radiation disc, the Cosmic Dawn rays, the Big Crunch's spot (B-226) and the
+fixed-function look all place themselves through `CosmosFx.frame` from `CosmosInput.facing`. Nothing else reads it, so
+the one fallback covers them all.
+
+**Built.**
+- `TileEyeStar` keeps the owning controller's facing (ForgeDirection ordinal, -1 unknown) and syncs it with every
+  look (`fc` in the look's NBT, written only when known). The description packet and the tile save share
+  `writeLook` / `readLook`, so a player who starts watching the chunk gets it too. `setLook(look)` keeps the tile's
+  facing (the render QA's direct sends); `setLook(look, facing)` sets it.
+- `EyeCentreRender.tick` passes the controller's facing with every look, and sends the look again when the tile holds
+  another facing. A tile saved before this build has none: the Eye's first tick after a load sends it (`sent` is
+  cleared on read).
+- `CosmosInput.fill`: when the snapshot or the harness look has no facing, it takes the tile's.
+- Axes. Client / server: the server writes the byte, the client reads it; nothing client-only runs on the server
+  (`CosmosInput` is `@SideOnly(CLIENT)`, `TileEyeStar.getFacing` is plain). Tile vs item NBT: the render tile has no
+  item form, and the controller's NBT is unchanged. No hatch list or element chain is touched.
+
+**Check (offline only).** A Java check run against the compiled classes (the real `CosmosInput.fill`,
+`CosmosFx.frame`, `EyeCentreRender.centrePos` and StructureLib's `ExtendedFacing`): for each facing, the 12 crown
+spike bases from the structure manifest (`machines.eye.crown.spikes[].baseRel`), placed as the structure places them,
+read back in the render's crown frame. Before: north lines up; south is 23.5 blocks off the crown plane and 179
+degrees off round the band, west and east 17.9 blocks and 92 degrees. After, on both paths (harness look, no snapshot
+yet) and every facing: at most 0.4 blocks and 0.4 degrees (block-centre rounding). The `fc` byte survives the look's
+NBT round trip for 2..5, and a look without it reads back as -1. `gradlew build` passes. Not yet seen in a game
+window (section 3).
+
+### B-254 Overdrive upkeep: code, GUI, README and questbook agree on the two stellar mixtures [docs]
+
+**Question.** A Supermassive Lattice GUI screenshot showed Overdrive upkeep in MHDCSM and Universium; the README says
+Excited Stellar Plasma Mixture (ESPM) and Hyperdense Stellar Mixture (HSM). Which is true?
+
+**Finding.** ESPM and HSM, in every mode. `MTEQuasarEngine` pays the upkeep from `espmFluid()`
+(`SLFluids.excitedStellarPlasma`) and `hsmFluid()` (`SLFluids.hyperdenseStellarMixture`) at 100,000 x o² x 2^-n L/s
+each: the same on L3 and L4, Unbound or not (n only halves the amount; Unbound adds the Primordial Matter anchor).
+`latticeNodesUseP5Matter` changes only the L2 / L3 node recipes (SL-Q31, SL-Q32), never the upkeep, and no other
+config touches it. That is the design: p5-t9-t10.md §8.2 keeps Overdrive on D-51's ESPM / HSM (F-P5-6: Universium
+Overdrive would need about 58,000 T10 Eyes), accepted with D-53. The engine's field names (`mhdcsmAvailable`,
+`universiumLitres`) are rev 3's and are documented as carrying the two mixtures; the golden fixtures keep those keys.
+The switch came in dd14a66d and its GUI text in edfc8fd9 (2026-10-15), so a GUI that names MHDCSM and Universium is a
+development build from before 0.25.0. The GUI rows, the info page, the panel tooltips, the scanner line, the L3 / L4
+node tooltips, the OpenComputers keys (`espm`, `hsm`) and the README already said ESPM and HSM.
+
+**Fixed (text only, no balance change).**
+- Questbook "A Cage for a Galaxy": its tier list still described the D-51 node recipes ("L2 more of both", "L3 with
+  Black Dwarf Matter"). It now names the default (L2 on Attractor Dark Matter, L3 on Universium), Overdrive's two
+  fluids, and what `latticeNodesUseP5Matter=false` changes. Regenerated with gen-bom.ps1.
+- README's Overdrive bullet: the fluids are the same on L3 and L4 and under either node flag; the old MHDCSM /
+  Universium text was a pre-0.25.0 development build.
+- The build spec's `/btssmbh fill` line named Molten MHDCSM and Molten Universium; the bench fills ESPM and HSM.
+
+**Check.** `gradlew build`; gen-singularity `--check`.
+
+### B-255 The two retired White Hole Matter fluids on an older world [finding, documented]
+
+**Finding.** On a world that ran a development build from before P5, 0.25.0 logs at start `The fluid
+btswhiteholematter (specified as ...) is missing from this instance - it will be removed`, and the same for
+`btsentangledwhitehole`. That line is Forge dropping the two names from the default-fluid list in `level.dat`; it does
+no harm itself. A container that held one of them does lose it, silently: GT hatches and tanks, cells and fluid
+storage load a stack through `FluidStack.loadFluidStackFromNBT`, which returns nothing for an unregistered name, and
+the next save writes the container empty. No tagged release registered the two fluids (they arrived after 0.24.1 and
+were retired for Attractor Dark Matter before 0.25.0, B-200), and no survival recipe made them, so only a creative or
+NEI-cheated stock on a development world can be hit.
+
+**No remap.** Forge 1.7.10 has no fluid alias: FML's missing-mapping event covers blocks and items only, and the fluid
+registry is a one-to-one name map, so an old name cannot point at `btsdarkmatter`. A rename on load would need an
+early mixin into `FluidStack` (a coremod; we ship only late mixins), and registering the old names again would put two
+dead fluids and a converter recipe in NEI for a case no survival world has. Neither is worth it.
+
+**Documented.** README known issues and the 0.25.0 release notes: empty any White Hole Matter before updating a
+development world; the log line is expected once and then gone.
 
 ## Where the old question numbers went
 
