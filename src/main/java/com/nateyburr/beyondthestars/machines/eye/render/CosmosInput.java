@@ -36,7 +36,10 @@ public final class CosmosInput {
     public static volatile boolean debugNoLensing;
 
     // ------------------------------------------------------------------ both
-    /** The controller's horizontal facing (ForgeDirection ordinal 2..5), -1 unknown (drawn as north). */
+    /**
+     * The controller's horizontal facing (ForgeDirection ordinal 2..5), -1 unknown. {@link #fill} falls back to the
+     * render tile's own synced facing (B-253), so only a tile with no facing at all is drawn as north.
+     */
     public int facing = -1;
     /** The transition channel and its progress 0..1. */
     public int trans;
@@ -141,7 +144,8 @@ public final class CosmosInput {
      * This frame's input for {@code tile} at world tick {@code now} (with the partial tick): the harness's
      * {@link #debug} look, else the tile's synced P5 snapshot ({@link TileEyeStar#getP5()}, p5-eye's
      * {@link EyeP5Look}). The tile's transition channel always wins. With no snapshot (nothing synced yet) a lit
-     * T9 / T10 draws the quiet look (no beam, no flow, a mid-life universe).
+     * T9 / T10 draws the quiet look (no beam, no flow, a mid-life universe). The facing is the snapshot's, else
+     * the tile's own (B-253).
      */
     public CosmosInput fill(TileEyeStar tile, double now) {
         final CosmosInput forced = debug;
@@ -175,6 +179,10 @@ public final class CosmosInput {
                 endAge = tile.endAge(now);
             }
         }
+        // B-253: a harness look carries no facing, and before the first P5 snapshot there is none: take the render
+        // tile's own (synced with every look), never the north default, or a rotated T9 / T10 is drawn 90 or 180
+        // degrees out against its blocks and the crown's tilt goes the wrong way
+        if (facing < 2 || facing > 5) facing = tile.getFacing();
         trans = tile.getTransition();
         transP = tile.getTransitionProgress();
         return this;

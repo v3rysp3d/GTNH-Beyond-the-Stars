@@ -53,6 +53,12 @@ public class TileEyeStar extends TileEntity {
     private long xAt;
     /** P5: the T9 / T10 render-only snapshot (null for every other object). */
     private EyeP5Look p5;
+    /**
+     * B-253: the owning controller's horizontal facing (ForgeDirection ordinal 2..5), -1 unknown. Synced with every
+     * look, not only inside {@link #p5}, so a T9 / T10 is drawn in its controller's frame from the first frame: before
+     * a P5 snapshot arrives and under a render QA look that carries none.
+     */
+    private byte facing = -1;
     /** Dev-only render QA (P5): when not NaN, {@link #flowIn} / {@link #universeAge} return these. NaN in play. */
     public static volatile double debugFlowIn = Double.NaN, debugUniverseAge = Double.NaN;
     /** Client: the event the channel showed before the current one, and its hit (an afterglow outlives the event). */
@@ -120,7 +126,13 @@ public class TileEyeStar extends TileEntity {
      * chunk later gets the look with the chunk's tile data.
      */
     public void setLook(EyeStarLook look) {
+        setLook(look, facing);
+    }
+
+    /** Server: as {@link #setLook(EyeStarLook)}, with the owning controller's facing (ForgeDirection ordinal). */
+    public void setLook(EyeStarLook look, int facingOrdinal) {
         if (worldObj == null || worldObj.isRemote || look == null) return;
+        facing = (byte) (facingOrdinal >= 2 && facingOrdinal <= 5 ? facingOrdinal : -1);
         kind = look.kind;
         radius = look.radius;
         rgb = look.rgb;
@@ -207,6 +219,11 @@ public class TileEyeStar extends TileEntity {
     /** P5: the last synced T9 / T10 snapshot, or null. */
     public EyeP5Look getP5() {
         return p5;
+    }
+
+    /** B-253: the owning controller's facing (ForgeDirection ordinal 2..5) as last synced, -1 unknown. */
+    public int getFacing() {
+        return facing;
     }
 
     /** P5, client: seconds to the flow's arrival (negative after it), NaN with none. */
@@ -448,6 +465,8 @@ public class TileEyeStar extends TileEntity {
         if (xAt != 0) look.setLong("xAt", xAt);
         // P5: the T9 / T10 snapshot, only when set
         if (p5 != null) look.setTag("p5", p5.write());
+        // B-253: the controller's facing, for every look
+        if (facing >= 0) look.setByte("fc", facing);
         return look;
     }
 
@@ -474,6 +493,7 @@ public class TileEyeStar extends TileEntity {
         trans = look.getByte("tr");
         transP = look.getFloat("trP");
         p5 = look.hasKey("p5") ? EyeP5Look.read(look.getCompoundTag("p5")) : null;
+        facing = look.hasKey("fc") ? look.getByte("fc") : (byte) -1;
     }
 
     /** Only the look goes to clients (the owner is server business). */

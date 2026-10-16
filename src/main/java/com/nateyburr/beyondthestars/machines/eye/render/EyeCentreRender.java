@@ -155,9 +155,13 @@ public final class EyeCentreRender {
             tile = place(base, world, at);
             if (tile == null) return;
         }
-        if (sent == null || want.differs(sent)) {
+        // B-253: the facing goes with every look (a T9 / T10 is drawn in the controller's frame before its first P5
+        // snapshot), and a tile that holds another facing is sent the look again
+        final int dir = facing.getDirection()
+            .ordinal();
+        if (sent == null || want.differs(sent) || tile.getFacing() != dir) {
             sent = want;
-            tile.setLook(want);
+            tile.setLook(want, dir);
         }
     }
 
