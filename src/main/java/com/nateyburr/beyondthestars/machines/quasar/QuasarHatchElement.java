@@ -3,6 +3,9 @@ package com.nateyburr.beyondthestars.machines.quasar;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import net.minecraft.util.StatCollector;
 
 import com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl;
 import com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective;
@@ -70,6 +73,20 @@ public enum QuasarHatchElement implements IHatchElement<MTEQuasarEngine> {
     QuasarHatchElement(IGTHatchAdder<MTEQuasarEngine> adder, Class<? extends IMetaTileEntity>... mteClasses) {
         this.mteClasses = Collections.unmodifiableList(Arrays.asList(mteClasses));
         this.adder = adder;
+    }
+
+    /**
+     * B-249: the name GT's structure errors and the NEI hatch list print. GT's default key {@code hatch_type_<name>}
+     * has no translation, so a generic error read "hatch_type_trim".
+     */
+    @Override
+    public String getDescriptionLangKey() {
+        return "beyondthestars.hatch.quasar." + name().toLowerCase(Locale.ROOT);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return StatCollector.translateToLocal(getDescriptionLangKey());
     }
 
     @Override

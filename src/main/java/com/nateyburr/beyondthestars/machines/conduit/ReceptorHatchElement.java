@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.ToLongFunction;
 
+import net.minecraft.util.StatCollector;
+
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.util.IGTHatchAdder;
@@ -41,6 +43,17 @@ public final class ReceptorHatchElement<T> implements IHatchElement<T> {
     @Override
     public String name() {
         return "GRB Receptor Port";
+    }
+
+    /** B-249: GT's default key would be "hatch_type_grb receptor port", which no lang file has. */
+    @Override
+    public String getDescriptionLangKey() {
+        return "beyondthestars.hatch.receptor";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return StatCollector.translateToLocal(getDescriptionLangKey());
     }
 
     @Override

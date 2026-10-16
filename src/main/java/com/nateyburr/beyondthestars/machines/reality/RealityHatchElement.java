@@ -3,6 +3,8 @@ package com.nateyburr.beyondthestars.machines.reality;
 import java.util.Collections;
 import java.util.List;
 
+import net.minecraft.util.StatCollector;
+
 import gregtech.api.interfaces.IHatchElement;
 import gregtech.api.interfaces.metatileentity.IMetaTileEntity;
 import gregtech.api.metatileentity.implementations.MTEHatchInput;
@@ -42,6 +44,17 @@ public final class RealityHatchElement {
             return "BEC Hatch";
         }
 
+        /** B-249: GT's default key would be "hatch_type_bec hatch", which no lang file has. */
+        @Override
+        public String getDescriptionLangKey() {
+            return "beyondthestars.hatch.reality.bec";
+        }
+
+        @Override
+        public String getDisplayName() {
+            return StatCollector.translateToLocal(getDescriptionLangKey());
+        }
+
         @Override
         public long count(MTERealityBase<?> t) {
             return t.becHatchCount();
@@ -54,6 +67,12 @@ public final class RealityHatchElement {
     }
 
     private static final String[] ROMAN = { "I", "II", "III", "IV", "V", "VI" };
+
+    /** B-249: the anchors' lang keys, written out so the build's lang check can read them. */
+    private static final String[] ANCHOR_KEYS = { "beyondthestars.hatch.reality.anchor1",
+        "beyondthestars.hatch.reality.anchor2", "beyondthestars.hatch.reality.anchor3",
+        "beyondthestars.hatch.reality.anchor4", "beyondthestars.hatch.reality.anchor5",
+        "beyondthestars.hatch.reality.anchor6" };
 
     @SuppressWarnings("unchecked")
     private static final IHatchElement<MTERealityDiffraction>[] ANCHORS = new IHatchElement[6];
@@ -76,6 +95,16 @@ public final class RealityHatchElement {
                 @Override
                 public String name() {
                     return "Region Anchor " + ROMAN[region];
+                }
+
+                @Override
+                public String getDescriptionLangKey() {
+                    return ANCHOR_KEYS[region];
+                }
+
+                @Override
+                public String getDisplayName() {
+                    return StatCollector.translateToLocal(getDescriptionLangKey());
                 }
 
                 @Override

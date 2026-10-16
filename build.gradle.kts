@@ -96,3 +96,61 @@ val verifyReleaseJar = tasks.register("verifyReleaseJar") {
 }
 
 tasks.named("check") { dependsOn(verifyReleaseJar) }
+
+// ------------------------------------------------------------------------------------------------------------------
+// B-249: every hatch element of ours names a lang key that en_US.lang has. GT's default key is hatch_type_<name>,
+// which no lang file carries, so a socket without its own key printed "hatch_type_stellar" in the structure errors.
+// Read from the sources: an element must override getDescriptionLangKey, an enum's keys are its prefix plus each
+// constant in lower case, and a written-out "beyondthestars.hatch...." key must be in the file.
+// ------------------------------------------------------------------------------------------------------------------
+val checkHatchLangKeys = tasks.register("checkHatchLangKeys") {
+    description = "Fails if a hatch element has no lang key of its own, or its key has no entry in en_US.lang"
+    val srcDir = layout.projectDirectory.dir("src/main/java").asFile
+    val langFile = layout.projectDirectory.file("src/main/resources/assets/beyondthestars/lang/en_US.lang").asFile
+    inputs.dir(srcDir)
+    inputs.file(langFile)
+    doLast {
+        val have = langFile.readLines()
+            .map { it.trim() }
+            .filter { !it.startsWith("#") && it.contains('=') }
+            .map { it.substringBefore('=') }
+            .toSet()
+        val problems = mutableListOf<String>()
+        var elements = 0
+        val keys = mutableSetOf<String>()
+        srcDir.walkTopDown().filter { it.isFile && it.name.endsWith(".java") }.forEach { f ->
+            val text = f.readText()
+            val impls = Regex("""implements\s+IHatchElement\b""").findAll(text).count() +
+                Regex("""new\s+IHatchElement\s*<""").findAll(text).count()
+            if (impls == 0) return@forEach
+            elements += impls
+            val overrides = Regex("""public\s+String\s+getDescriptionLangKey\s*\(""").findAll(text).count()
+            if (overrides < impls) {
+                problems.add("${f.name}: $impls hatch element(s), $overrides getDescriptionLangKey override(s)")
+            }
+            val prefix = Regex(""""(beyondthestars\.hatch\.[a-z0-9_.]*)"\s*\+\s*name\(\)\.toLowerCase""")
+                .find(text)?.groupValues?.get(1)
+            if (prefix != null) {
+                val enumName = Regex("""enum\s+(\w+)""").find(text)?.groupValues?.get(1)
+                Regex("""(?m)^    ([A-Z]\w*)\s*\(""").findAll(text).map { it.groupValues[1] }
+                    .filter { it != enumName }
+                    .forEach { c ->
+                        val k = prefix + c.lowercase()
+                        keys.add(k)
+                        if (k !in have) problems.add("${f.name}: $c -> $k is not in en_US.lang")
+                    }
+            }
+            Regex(""""(beyondthestars\.hatch\.[a-z0-9_.]*[a-z0-9])"""").findAll(text).forEach { m ->
+                val k = m.groupValues[1]
+                keys.add(k)
+                if (k !in have) problems.add("${f.name}: $k is not in en_US.lang")
+            }
+        }
+        if (problems.isNotEmpty()) {
+            throw GradleException("checkHatchLangKeys:" + problems.distinct().joinToString("\n  ", "\n  "))
+        }
+        logger.lifecycle("checkHatchLangKeys: $elements hatch elements, ${keys.size} lang keys, all in en_US.lang")
+    }
+}
+
+tasks.named("check") { dependsOn(checkHatchLangKeys) }
