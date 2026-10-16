@@ -7,8 +7,8 @@ that power your base and hold the bigger machines stable. Every one of them is a
 multiblock with its own questbook chapter.
 
 - **Mod id:** `beyondthestars` · **Minecraft** 1.7.10 · **Pack:** GTNH 2.9.0-RC-2 only
-- **Version:** 0.25.0, our first public release: `beyondthestars-0.25.0.jar` from the tagged release on GitHub. Builds
-  between releases show a version such as `0.25.0-master.12+1a2b3c4d5e`.
+- **Version:** 0.25.1: `beyondthestars-0.25.1.jar` from the tagged release on GitHub (0.25.0 was our first public release). Builds
+  between releases show a version such as `0.25.1-master.12+1a2b3c4d5e`.
 - **Status:** first public release, still a playtest. Back up your world before you install it, and expect balance
   changes between releases.
 - **Installing:** read [INSTALL.md](INSTALL.md) first. With the default config an already built TecTech Eye of
@@ -1025,7 +1025,7 @@ unless the game is started with `-Dbts.rendertest=true`, `-Dbts.qbshots=true` or
 
 Open an issue on this repository: <https://github.com/v3rysp3d/GTNH-Beyond-the-Stars/issues>. Please include:
 
-- the jar's file name (the version string, for example `0.25.0` or `0.25.0-master.12+1a2b3c4d5e`);
+- the jar's file name (the version string, for example `0.25.1` or `0.25.1-master.12+1a2b3c4d5e`);
 - your GTNH version, Java version, and whether Angelica or a shaderpack is installed;
 - `logs/fml-client-latest.log` (or the server log), and any `[BTS]` / `[BTS render]` warnings in it;
 - for a machine problem, a screenshot of its GUI, and the output of `/btsquests` or `/btsrecipes status` if it is a
