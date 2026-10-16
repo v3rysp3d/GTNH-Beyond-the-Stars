@@ -4,6 +4,7 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofBlock;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static gregtech.api.enums.HatchElement.Maintenance;
 import static gregtech.api.util.GTStructureUtility.buildHatchAdder;
 
@@ -177,12 +178,15 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
                                 onElementPass(
                                     x -> ++x.mCasing,
                                     ofBlock(SLBlocks.slCasing4, BlockSLCasing4.HORIZON_THERMALISER))))
+                        // The GRB Receptor Port is OPTIONAL (only a remote crown fed by a conduit needs it): plain
+                        // shell unless the projector sets the bts_optional channel (BTSStructures.optionalHatch, B-229)
                         .addElement(
                             'r',
-                            buildHatchAdder(MTEBurstThermaliserCrown.class).atLeast(CrownHatchElement.Receptor)
-                                .casingIndex(shell)
-                                .hint(1)
-                                .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+                            optionalHatch(
+                                buildHatchAdder(MTEBurstThermaliserCrown.class).atLeast(CrownHatchElement.Receptor)
+                                    .casingIndex(shell)
+                                    .hint(1),
+                                casing(Casings.ExtremeDensitySpaceBendingCasing)))
                         .addElement(
                             'm',
                             ofChain(

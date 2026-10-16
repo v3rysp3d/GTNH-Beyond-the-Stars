@@ -6,6 +6,7 @@ import static com.gtnewhorizon.structurelib.structure.StructureUtility.ofChain;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.onElementPass;
 import static com.gtnewhorizon.structurelib.structure.StructureUtility.withChannel;
 import static com.nateyburr.beyondthestars.machines.BTSStructures.noOverwrite;
+import static com.nateyburr.beyondthestars.machines.BTSStructures.optionalHatch;
 import static gregtech.api.enums.HatchElement.Energy;
 import static gregtech.api.enums.HatchElement.ExoticEnergy;
 import static gregtech.api.enums.HatchElement.Maintenance;
@@ -144,8 +145,9 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * <li><b>Tile vs item NBT.</b> {@link #writeQuasarState} is the ONE serializer of the hole and disc, called from both
  * {@link #saveNBTData} and {@link #setItemNBT}; the render position and the gas buffer are tile-only.</li>
  * <li><b>Plant-wide hatch lists.</b> Every socket registers into a private list ({@link QuasarHatchElement}).</li>
- * <li><b>Element chains.</b> Every socket is {@code buildHatchAdder(...).buildAndChain(casing)}; the coil element
- * is the only tiered one and every coil must be the same tier.</li>
+ * <li><b>Element chains.</b> Every socket is {@code buildHatchAdder(...).buildAndChain(casing)}, the optional ones
+ * (Burst Control, Sensor, Directive) through {@code BTSStructures.optionalHatch}, which keeps the chain; the coil
+ * element is the only tiered one and every coil must be the same tier.</li>
  * </ol>
  */
 public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEngine>
@@ -340,24 +342,31 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
                     .casingIndex(shell)
                     .hint(2)
                     .buildAndChain(casing(Casings.BackgroundRadiationAbsorbentCasing)))
+            // The Burst Control, Sensor and Directive sockets are OPTIONAL (the quasar runs without them): plain shell
+            // in
+            // every build and preview unless the projector sets the bts_optional channel (BTSStructures.optionalHatch,
+            // B-229). The walk still accepts the hatch or the shell.
             .addElement(
                 'c',
-                buildHatchAdder(MTEQuasarEngine.class).atLeast(QuasarHatchElement.BurstControl)
-                    .casingIndex(shell)
-                    .hint(3)
-                    .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+                optionalHatch(
+                    buildHatchAdder(MTEQuasarEngine.class).atLeast(QuasarHatchElement.BurstControl)
+                        .casingIndex(shell)
+                        .hint(3),
+                    casing(Casings.ExtremeDensitySpaceBendingCasing)))
             .addElement(
                 'n',
-                buildHatchAdder(MTEQuasarEngine.class).atLeast(QuasarHatchElement.Sensor)
-                    .casingIndex(shell)
-                    .hint(4)
-                    .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+                optionalHatch(
+                    buildHatchAdder(MTEQuasarEngine.class).atLeast(QuasarHatchElement.Sensor)
+                        .casingIndex(shell)
+                        .hint(4),
+                    casing(Casings.ExtremeDensitySpaceBendingCasing)))
             .addElement(
                 'd',
-                buildHatchAdder(MTEQuasarEngine.class).atLeast(QuasarHatchElement.Directive)
-                    .casingIndex(shell)
-                    .hint(5)
-                    .buildAndChain(casing(Casings.ExtremeDensitySpaceBendingCasing)))
+                optionalHatch(
+                    buildHatchAdder(MTEQuasarEngine.class).atLeast(QuasarHatchElement.Directive)
+                        .casingIndex(shell)
+                        .hint(5),
+                    casing(Casings.ExtremeDensitySpaceBendingCasing)))
             .addElement(
                 'e',
                 buildHatchAdder(MTEQuasarEngine.class).atLeast(Energy, ExoticEnergy)

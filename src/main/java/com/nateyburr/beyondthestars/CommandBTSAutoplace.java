@@ -31,9 +31,12 @@ import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.MTEReactorCoreMk1;
 import com.nateyburr.beyondthestars.machines.SLConsoleTest;
+import com.nateyburr.beyondthestars.machines.conduit.MTEConduitJunction;
 import com.nateyburr.beyondthestars.machines.eye.MTEEyeOfHarmonyBTS;
 import com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny;
 import com.nateyburr.beyondthestars.machines.kerr.MTEKerrEngine;
+import com.nateyburr.beyondthestars.machines.quasar.MTEBurstThermaliserCrown;
+import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 
 import gregtech.api.GregTechAPI;
 import gregtech.api.enums.ItemList;
@@ -46,7 +49,8 @@ import gregtech.common.misc.GTStructureChannels;
  * Test bench for the optional hatch sockets: runs a machine's survival auto-place the way a player's projector or the
  * NEI multiblock preview does, then says what stands in every socket and whether the machine formed.
  * <p>
- * {@code /btsautoplace <kerr|eye|homogeny> x y z [tier n] [mode survival|bare|nei|optional]} (console or op):
+ * {@code /btsautoplace <kerr|eye|homogeny|quasar|crown|junction> x y z [tier n] [mode survival|bare|nei|optional]}
+ * (console or op; tier is the Kerr / Homogeny tier, the quasar's coil tier or the crown's Mk):
  * <ul>
  * <li>{@code survival} (default): GT's hatch channel ON and an inventory that holds every block of the structure and
  * only the hatches the machine REQUIRES (no Directive, Sensor, Burst Control, GRB Receptor Port or BHC Utility
@@ -61,6 +65,8 @@ import gregtech.common.misc.GTStructureChannels;
  */
 public class CommandBTSAutoplace extends CommandBase {
 
+    static final String MACHINES = "kerr, eye, homogeny, quasar, crown, junction";
+
     @Override
     public String getCommandName() {
         return "btsautoplace";
@@ -68,7 +74,7 @@ public class CommandBTSAutoplace extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsautoplace <kerr|eye|homogeny> x y z [tier n] [mode survival|bare|nei|optional]";
+        return "/btsautoplace <" + MACHINES.replace(", ", "|") + "> x y z [tier n] [mode survival|bare|nei|optional]";
     }
 
     @Override
@@ -124,8 +130,25 @@ public class CommandBTSAutoplace extends CommandBase {
                     : new String[] { MTEHomogeny.PIECE_T1 };
                 add(required, ItemList.Hatch_Input_UMV, ItemList.Hatch_Output_UMV, ItemList.Hatch_Energy_UMV);
                 break;
+            // B-229: the quasar (tier = coil tier; the lattice piece is left out), the crown (tier = Mk) and the
+            // junction
+            case "quasar":
+                controller = BTSMachines.quasarEngine;
+                pieces = new String[] { MTEQuasarEngine.PIECE };
+                add(required, ItemList.Hatch_Input_UXV, ItemList.Hatch_Energy_UXV);
+                break;
+            case "crown":
+                controller = BTSMachines.burstThermaliserCrown;
+                pieces = new String[] {
+                    MTEBurstThermaliserCrown.PIECES[Math.min(tier, MTEBurstThermaliserCrown.PIECES.length) - 1] };
+                break;
+            case "junction":
+                controller = BTSMachines.conduitJunction;
+                pieces = new String[] { MTEConduitJunction.PIECE };
+                add(required, ItemList.Hatch_Input_UMV);
+                break;
             default:
-                out.add("unknown machine '" + machine + "' (kerr, eye, homogeny)");
+                out.add("unknown machine '" + machine + "' (" + MACHINES + ")");
                 return out;
         }
         if (controller == null) {

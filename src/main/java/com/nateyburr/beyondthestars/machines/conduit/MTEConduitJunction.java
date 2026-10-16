@@ -13,6 +13,7 @@ import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing2;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
+import com.nateyburr.beyondthestars.machines.BTSStructures;
 import com.nateyburr.beyondthestars.machines.gui.BTSTip;
 import com.nateyburr.beyondthestars.machines.quasar.MTEQuasarEngine;
 import com.nateyburr.beyondthestars.machines.quasar.burst.BurstStream;
@@ -103,13 +104,17 @@ public class MTEConduitJunction extends MTEConduitElement<MTEConduitJunction> {
                         .addElement('C', block(SLBlocks.slCasing2, BlockSLCasing2.JET_COLLIMATOR, x -> ++x.mCasing))
                         .addElement('G', casing(Casings.QuantumGlass, x -> ++x.mCasing))
                         .addElement('P', block(SLBlocks.slCasing, BlockSLCasing.CASIMIR, x -> ++x.mCasing))
+                        // The Burst Control sockets are OPTIONAL (with none the split holds its GUI ratio): plain
+                        // casing unless the projector sets the bts_optional channel (BTSStructures.optionalHatch,
+                        // B-229)
                         .addElement(
                             'c',
-                            GTStructureUtility.buildHatchAdder(MTEConduitJunction.class)
-                                .atLeast(ConduitHatchElement.BurstControl)
-                                .casingIndex(Casings.ReinforcedSpatialStructureCasing.textureId)
-                                .hint(2)
-                                .buildAndChain(casing(Casings.ReinforcedTemporalStructureCasing, x -> ++x.mCasing)));
+                            BTSStructures.optionalHatch(
+                                GTStructureUtility.buildHatchAdder(MTEConduitJunction.class)
+                                    .atLeast(ConduitHatchElement.BurstControl)
+                                    .casingIndex(Casings.ReinforcedSpatialStructureCasing.textureId)
+                                    .hint(2),
+                                casing(Casings.ReinforcedTemporalStructureCasing, x -> ++x.mCasing)));
                     def = commonSockets(b, MTEConduitJunction.class).build();
                     STRUCTURE_DEFINITION = def;
                 }
