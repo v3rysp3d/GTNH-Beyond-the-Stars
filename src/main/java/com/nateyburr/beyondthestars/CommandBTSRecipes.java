@@ -85,6 +85,8 @@ public class CommandBTSRecipes extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
+        if (!Config.enableTestCommands)
+            return "/btsrecipes [status | sync [key=value ...] | dump [file name, written to config/beyondthestars/] | circuits]";
         return "/btsrecipes [status | sync [key=value ...] | dump [file name, written to config/beyondthestars/] | circuits | nac <build|run <piko|SL-Nxx>|status> x y z [facing]"
             + " | chain <build|plan <family>|make <family>|gt <umv|uxv|max>|status|stop> x y z]";
     }
@@ -134,6 +136,8 @@ public class CommandBTSRecipes extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (args.length == 1 && !Config.enableTestCommands)
+            return getListOfStringsMatchingLastWord(args, "status", "sync", "dump", "circuits");
         if (args.length == 1)
             return getListOfStringsMatchingLastWord(args, "status", "sync", "dump", "circuits", "nac", "chain");
         return null;
@@ -164,6 +168,10 @@ public class CommandBTSRecipes extends CommandBase {
             }
             return;
         }
+        // B-248: the two rig builders are benches; status, sync, dump and circuits only read
+        if (("nac".equals(sub) || "chain".equals(sub)) && BTSCommands
+            .testCommandsOff(sender, "/btsrecipes status, /btsrecipes sync, /btsrecipes dump, /btsrecipes circuits"))
+            return;
         if ("nac".equals(sub)) {
             // Circuits v2 C5 bench: a real Nanochip Assembly Complex + Assembly Matrix in the world (NacBench).
             final com.nateyburr.beyondthestars.machines.SLConsoleTest.Placement at = com.nateyburr.beyondthestars.machines.SLConsoleTest

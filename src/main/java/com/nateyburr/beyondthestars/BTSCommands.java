@@ -69,6 +69,22 @@ final class BTSCommands {
         throw new WrongUsageException(command.getCommandUsage(sender));
     }
 
+    /**
+     * B-248: a server with {@code enableTestCommands=false} registers no bench command, and the two that also carry an
+     * admin verb (/btskerr migrate, /btseye gates / bec) refuse everything else. True (and the sender told what is
+     * left) when the call must stop; {@code left} names the forms that still run.
+     */
+    static boolean testCommandsOff(ICommandSender sender, String left) {
+        if (Config.enableTestCommands) return false;
+        BTSChat.error(
+            sender,
+            "The test commands are off on this server (enableTestCommands=false in config/beyondthestars.cfg)."
+                + " Still available: "
+                + left
+                + ".");
+        return true;
+    }
+
     /** Tab completion for the bench toggles. */
     static List<String> toggleCompletions(String[] args) {
         if (args.length == 1) return CommandBase.getListOfStringsMatchingLastWord(args, "on", "off");

@@ -78,6 +78,17 @@ public class Config {
      */
     public static boolean renderKerrHole = true;
 
+    /** B-248: config category of the server's command switches. */
+    public static final String CATEGORY_COMMANDS = "commands";
+
+    /**
+     * B-248: register the bench, build and cheat commands (the instant builders, /btskit, /btswarp, the test benches).
+     * Off: they are not registered at all, so the server answers "Unknown command"; the admin and maintenance
+     * commands stay (/btsquests, /btsrecipes status / sync / dump / circuits, /btsmigrate, /btskerr migrate,
+     * /btseye gates / bec). Server side only: it changes no recipe, so it is not in {@link #recipeFlags()}.
+     */
+    public static boolean enableTestCommands = true;
+
     /** Config category of the questbook keys (docs/questbook-integration.md §4.5). */
     public static final String CATEGORY_QUESTBOOK = "questbook";
 
@@ -266,6 +277,21 @@ public class Config {
             "Draw the Kerr Ergosphere Engine's black hole at the centre of its cage, scaled by its mass (GT's Black"
                 + " Hole Compressor render). Cosmetic. On a server, false places no render block at all; on a client,"
                 + " false draws nothing. Each Kerr also has its own render switch in its GUI.");
+
+        configuration.setCategoryComment(
+            CATEGORY_COMMANDS,
+            "Which of our commands the server registers. Every one of them needs operator permission either way.");
+
+        enableTestCommands = configuration.getBoolean(
+            "enableTestCommands",
+            CATEGORY_COMMANDS,
+            true,
+            "Register the test and cheat commands: the instant builders (/btskerr, /btseye, /btsquasar, /btshr,"
+                + " /btsbuild), /btskit, /btswarp, /btsautoplace, /btsconduit, /btssmbh, /btstooltips and the"
+                + " nuclear plant benches (/btsclock, /btssupply, /btssafety, /btsmilestone, /btstree). Set false"
+                + " on a server whose operators should not have them: they are then unknown commands. The admin"
+                + " commands stay: /btsquests, /btsrecipes status / sync / dump / circuits, /btsmigrate,"
+                + " /btskerr migrate and /btseye gates / bec.");
 
         configuration.setCategoryComment(
             CATEGORY_QUESTBOOK,

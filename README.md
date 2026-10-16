@@ -827,7 +827,8 @@ The short version for playtesters and server owners is [INSTALL.md](INSTALL.md).
 3. Every client needs the same jar, and `config/beyondthestars.cfg` should match on both sides (the recipe switches are
    read by both).
 4. Check `logs/fml-server-latest.log` for the same lines. The questbook installs on server start.
-5. All of our commands, including the bench builders and the time warp, are operator-only.
+5. All of our commands, including the bench builders and the time warp, are operator-only. `enableTestCommands=false`
+   (section `commands`) takes the builders, benches and cheats off the server; the admin commands stay.
 
 ### Adding it to an existing world
 
@@ -888,6 +889,12 @@ start; your values are kept. A stale `interimBlackDwarfAtEyeT4` key from older b
 | `questbookAutoInstall` | `true` | Install or refresh the book on server start when needed. Off: only `/btsquests install` does it |
 | `questbookPackEdits` | `true` | Edit the pack's own quests. Off: the next install restores every edited pack quest, and our fallback Kerr and Eye quests stand beside the pack's |
 
+### `commands` (server only)
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enableTestCommands` | `true` | Register the builders, test benches and cheats (every command under **Cheats** in [Commands](#commands), plus `/btsautoplace` and `/btstooltips`). Off: they are unknown commands, even to operators; the admin commands stay (`/btsquests`, `/btsrecipes status` / `sync` / `dump` / `circuits`, `/btsmigrate`, `/btskerr migrate`, `/btseye gates` / `bec`) |
+
 ### `client_render` (client only)
 
 | Key | Default | Range | Meaning |
@@ -912,7 +919,7 @@ There are no player commands: everything is driven from the machines' GUIs. Ever
 permission** (in single player, cheats on). The builders want a big flat area (superflat or void) and refuse if more
 than 15 % of the footprint is solid; add `force` to override.
 
-**Cheats** (they change game state in ways survival can't):
+**Cheats** (they change game state in ways survival can't; `enableTestCommands=false` removes them all):
 
 | Command | What it does |
 |---|---|
@@ -925,7 +932,7 @@ than 15 % of the footprint is solid; add `force` to override.
 | `/btsclock`, `/btssupply`, `/btssafety [on\|off]` | Nuclear plant bench switches: a 1 Hz turbine clock, infinite supplies, and the over-injection guard |
 | `/btsmilestone ...`, `/btstree ...` | Nuclear plant: set milestone tiers, buy or refund upgrade-tree nodes, self-tests |
 
-**Admin and diagnostics** (they change nothing in play):
+**Admin and diagnostics** (they change nothing in play; always registered):
 
 | Command | What it does |
 |---|---|

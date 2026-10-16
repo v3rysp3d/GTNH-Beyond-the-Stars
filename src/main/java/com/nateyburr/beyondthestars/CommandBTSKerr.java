@@ -66,6 +66,7 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
+        if (!Config.enableTestCommands) return "/btskerr migrate [x y z]";
         return "/btskerr [t1|t2] [force]  |  /btskerr migrate [x y z]  |  /btskerr render x y z [open [m]|close|off|on|break]  |  /btskerr module x y z <c|x> [stock|status|tier|clear|gui [info]]  |  /btskerr damage|repair x y z  |  /btskerr gui x y z [info]  |  console: /btskerr [t1|t2] <x> <y> <z> [facing] [force] [survival] [oldwindows] | [check]  |  /btskerr autorig x y z [s] [bolts/s] [empty]  |  /btskerr ocloop x y z  |  /btskerr ctrl x y z on|off|out  |  /btskerr ocprobe x y z  |  /btskerr receptor x y z  |  /btskerr occall x y z method[x2] [args]";
     }
 
@@ -77,6 +78,8 @@ public class CommandBTSKerr extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (!Config.enableTestCommands)
+            return args.length == 1 ? getListOfStringsMatchingLastWord(args, "migrate") : null;
         if (args.length == 1) return getListOfStringsMatchingLastWord(args, "t1", "t2", "migrate", "render");
         if (args.length == 2) return getListOfStringsMatchingLastWord(args, "force");
         return null;
@@ -88,6 +91,9 @@ public class CommandBTSKerr extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        // B-248: with the test commands off only the migration runs
+        if (!(args.length > 0 && args[0].equalsIgnoreCase("migrate"))
+            && BTSCommands.testCommandsOff(sender, "/btskerr migrate [x y z]")) return;
         // Test bench: with no player online the server stops ticking tile entities 1,200 ticks after the
         // last command-free minute; every /btskerr call keeps a console test's machines ticking.
         if (sender.getEntityWorld() instanceof WorldServer) {

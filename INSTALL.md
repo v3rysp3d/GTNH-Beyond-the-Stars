@@ -40,7 +40,10 @@ This is a playtest build: expect balance changes between builds, and play on a c
    lists what the server sends.
 4. Check `logs/fml-server-latest.log` for the same lines as above. The questbook installs when the server starts.
 5. Every `/bts...` command needs operator permission. Several are testing tools (instant builds, free machines, a time
-   warp), so give operator rights only to people you trust with them.
+   warp). To take them off the server altogether, set `enableTestCommands=false` in the `commands` section of
+   `config/beyondthestars.cfg` and restart: they are then unknown commands, even to operators. The admin commands
+   stay: `/btsquests`, `/btsrecipes status`, `sync`, `dump` and `circuits`, `/btsmigrate`, `/btskerr migrate` and
+   `/btseye gates` / `bec`.
 
 ## What changes in an existing world
 

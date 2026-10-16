@@ -115,27 +115,35 @@ public class CommonProxy {
 
     public void serverStarting(FMLServerStartingEvent event) {
         BTSRecipeRemovals.lateBlackHoleCheck();
+        // B-248: the admin and maintenance commands are always there (the docs send server owners to them); /btskerr
+        // and /btseye keep only migrate and gates / bec when the test commands are off (BTSCommands.testCommandsOff).
+        event.registerServerCommand(new CommandBTSQuests());
+        event.registerServerCommand(new CommandBTSRecipes());
+        event.registerServerCommand(new CommandBTSMigrate());
+        event.registerServerCommand(new CommandBTSKerr());
+        event.registerServerCommand(new CommandBTSEye());
+        // the time warp cheat (op only; docs/automation.md 4.2): off at every server start and stop
+        TimeWarp.serverStarting();
+        if (!Config.enableTestCommands) {
+            BeyondTheStars.LOG.info(
+                "[BTS] enableTestCommands=false: the bench, build and cheat commands are not registered"
+                    + " (/btsquests, /btsrecipes, /btsmigrate, /btskerr migrate and /btseye gates / bec stay)");
+            return;
+        }
         event.registerServerCommand(new CommandBTSKit());
         event.registerServerCommand(new CommandBTSHR());
         event.registerServerCommand(new CommandBTSBuild());
-        event.registerServerCommand(new CommandBTSMigrate());
         event.registerServerCommand(new CommandBTSClock());
         event.registerServerCommand(new CommandBTSAutoplace());
         event.registerServerCommand(new CommandBTSTooltips());
         event.registerServerCommand(new CommandBTSSupply());
         event.registerServerCommand(new CommandBTSSafety());
-        event.registerServerCommand(new CommandBTSQuests());
         event.registerServerCommand(new CommandBTSMilestone());
         event.registerServerCommand(new CommandBTSTree());
-        event.registerServerCommand(new CommandBTSKerr());
-        event.registerServerCommand(new CommandBTSEye());
-        event.registerServerCommand(new CommandBTSRecipes());
         event.registerServerCommand(new CommandBTSQuasar());
         event.registerServerCommand(new CommandBTSConduit());
         // SMBH v1 (smbh-v1.md §10.4): the Supermassive Lattice's op-only bench
         event.registerServerCommand(new CommandBTSSmbh());
-        // the time warp cheat (op only; docs/automation.md 4.2): off at every server start and stop
-        TimeWarp.serverStarting();
         event.registerServerCommand(new CommandBTSWarp());
     }
 

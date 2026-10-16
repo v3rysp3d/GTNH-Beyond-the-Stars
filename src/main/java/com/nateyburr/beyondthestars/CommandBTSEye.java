@@ -62,6 +62,7 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
+        if (!Config.enableTestCommands) return "/btseye gates  |  /btseye bec";
         return "/btseye [t1..t8] [gen 1-9] [fill] [force]  |  console: /btseye [t1..t8] <x> <y> <z> [facing] "
             + "[gen 1-9] [fill] [force] [survival] [legacy] [nobeam] [oldwindows] [stdrig] | [check]  |  /btseye keep <x> <y> <z> <facing> [t1..t8]  |  /btseye gates  |  /btseye bec  |  "
             + EyeStarBench.USAGE;
@@ -75,6 +76,8 @@ public class CommandBTSEye extends CommandBase {
     @SuppressWarnings("rawtypes")
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
+        if (!Config.enableTestCommands)
+            return args.length == 1 ? getListOfStringsMatchingLastWord(args, "gates", "bec") : null;
         return getListOfStringsMatchingLastWord(
             args,
             "t1",
@@ -96,6 +99,9 @@ public class CommandBTSEye extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        // B-248: with the test commands off only the two read-only audits run (exactly as typed: "gates x" builds)
+        if (!(args.length == 1 && (args[0].equalsIgnoreCase("gates") || args[0].equalsIgnoreCase("bec")))
+            && BTSCommands.testCommandsOff(sender, "/btseye gates, /btseye bec")) return;
         if (args.length >= 1 && args[0].equalsIgnoreCase("star")) {
             // D-49 test bench: the live star of the Eye at x y z (EyeStarBench).
             for (String line : EyeStarBench.run(sender, args)) {
