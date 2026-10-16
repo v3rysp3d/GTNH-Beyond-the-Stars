@@ -316,8 +316,8 @@ fresh 64 SM hole never is; a settled quasar of about 136 SM or more is).
   75,000 L, White Dwarf Matter 18,420 L, Black Dwarf Matter 4,608 L, Magnetar Matter 1,800 L, Ergomatter 72,000 L,
   Superdense Ergomatter 36,000 L; and every planet once at parallel 2^(10 - k), each parallel at (1 - 0.05 R) x the
   batch's field factor (no H/He, no EU). The slot bus is a whitelist (planet items, T2-T8 star charts; never used up;
-  empty = everything), and two Galaxy panel toggles (OpenComputers `setUniverseYield`) switch the star matter and the
-  planets off. A collapsed universe yields none of it. The T9 to T10 core
+  empty = everything), and two Galaxy panel toggles (OpenComputers `setUniverseYield`, or redstone through a
+  Directive Hatch on its yield control set) switch the star matter and the planets off. A collapsed universe yields none of it. The T9 to T10 core
   is the **Universal Upgrade Core** from Reality Refab, and every compression slot needs the tenth tier, the
   **Universal Compression Field Generator**. The milestone is the **Supermassive Link** (96 Bu/t = 9.6 x 10^14 EU/t for
   30 min from a lattice quasar of at least 65,536 SM).
@@ -698,7 +698,8 @@ raw code. The machine updates it once a second and it falls to 0 if the updates 
 | Quasar: Horizon | hold-up short (leaking) | Accretion Buffer under 30 s | anchor short (shedding) | Overdrive upkeep short |
 
 **Control sets** turn the hatch into a redstone input: Eye time dial (1 to 1.00x, 15 to 3.00x), Eye T4 HSM feed (15 to
-1.5 L/s), and Kerr mass setpoint (1 to 2 SM, 15 to the tier's top). Strength 0 leaves the GUI's value alone.
+1.5 L/s), Kerr mass setpoint (1 to 2 SM, 15 to the tier's top), and (since 0.26.0) the Universe's yield toggles: the
+strength is a code, bit 1 star matter on, bit 2 planets on, 4 holds both off. Strength 0 leaves the GUI's value alone.
 
 ### Stellar Field Sensor Hatch (MTE 28116)
 

@@ -56,7 +56,12 @@ public enum DirectiveSet {
         "Galactic Flow coming, accepted", "Beam starved: pellets low (under 120 s) or not firing"),
     /** P5: the T10 universe's expansion H and its events. */
     EYE_UNIVERSE(Host.EYE, false, "Eye: Universe (T10)", "H high: Dark Matter trim", "H low: SpaceTime trim",
-        "Countdown running (Recombination, Cosmic Dawn)", "Next universe's charge short");
+        "Countdown running (Recombination, Cosmic Dawn)", "Next universe's charge short"),
+    /**
+     * D-55: the T10 universe's two yield toggles from redstone. The strength is a code (Degasser style): bit 1 (1) star
+     * matter on, bit 2 (2) planets on; any signal 1-15 holds both toggles, so strength 4 holds both off.
+     */
+    EYE_YIELD(Host.EYE, true, "Eye: control the universe's yield");
 
     /** The machines a Directive Hatch can sit in. */
     public enum Host {

@@ -8870,15 +8870,21 @@ Universium (mean Y 1.21) and "7 star matters, all 43 planets: 615,001 L of star 
   `btsEyeUniPlanetsOff`, written only when off), and OpenComputers `getUniverseYield()` / `setUniverseYield(stars,
   planets)`. The GUI's Yield row and the panel say what the next universe gives ("Yield: 2 star matters, 3 of 43
   planets (filtered by slot bus)").
-- **Automation.** AE2 and redstone work through the slot bus (an input bus: an interface or a conveyor). The toggles
-  themselves are settings with a GUI and an OpenComputers route but **no redstone route**: everything a redstone
-  signal could want is reachable through the filter except "no star matter at all" (a chart always keeps its own).
-  If a redstone off-switch is wanted, a control-set Directive Hatch mode is the natural place.
+- **Automation.** AE2 and redstone shape the filter through the slot bus (an input bus: an interface or a conveyor).
+  The toggles have a GUI route, an OpenComputers route and (follow-up, same release) a **redstone route**: a new
+  control set, **EYE_YIELD** ("Eye: control the universe's yield", appended to `DirectiveSet`), in the pattern of
+  EYE_DIAL / EYE_FEED. While a hatch on it reads a signal, the strength is a code, Degasser style: bit 1 (1) star
+  matter on, bit 2 (2) planets on; any signal 1-15 holds both, so 4 (or 8, 12) holds both off and 0 leaves the GUI's
+  toggles alone. It writes the toggles only when they change; GUI and OpenComputers changes are undone each second
+  while it holds them, and the Galaxy panel says "Yield held by a Directive Hatch (redstone N)" (the `eyeHeld` sync
+  gained a third field). The hatch tooltip, its set names (`gui.directive.set.eye_yield`, `short.eye_yield`), the
+  OpenComputers `setSet` list, automation.md and the README carry it. Bench: `p5 yield <0-15>` pushes a strength
+  through the controller's control path, `p5 yield hatch on|off` puts the first Directive Hatch on EYE_YIELD with a
+  redstone block beside it (a real 15) or takes it away.
 
 **Check** (the same T10, universe 2, slot bus Sirius A + Triangulum charts, the Deep Dark, Mars, Moon): "2 star
 matters, 3 of 43 planets (filtered by slot bus): 455,442 L of star matter (372,000 x 1.224), 1,037 of 1,088 planet
-parallels succeeded" (Moon 512 + Mars 512 + Deep Dark 64). The toggles were not driven on the server (no client, no
-OpenComputers in the dev pack); their code path is the same selection with the rows dropped.
+parallels succeeded" (Moon 512 + Mars 512 + Deep Dark 64). The redstone route's check is under B-262.
 
 ### B-260 Old worlds: Ergomatter and Magnetar Matter already in an Eye [migration]
 
@@ -8912,7 +8918,15 @@ Element chains: the conduit's Ergomatter fuel is the conduit's own and unchanged
 
 Headless `runServer` on port 25841, flat world, the console fed through `run/server/cmds.txt`, no client. Load:
 "Recipe registration complete: 409 registered, 0 skipped", 43 planet recipes converted, no Eye NEI page skipped, no
-stack trace from our code. The runs are in B-256 to B-260. **Not seen:** a client GUI (the toggles, the rows, the NEI
+stack trace from our code. The runs are in B-256 to B-260.
+
+**The yield control set** (a second boot of the same world, the kit T10 on its standard rig): `p5 yield 4` through
+the controller's control path held both toggles off ("held by a Directive Hatch at redstone 4"); then the first
+Directive Hatch on the Eye was put on EYE_YIELD with a real redstone block beside it, and on the next published second
+it read 15 and held both on ("redstone 15"); with the block gone, `p5 yield 2` held planets only, and the next
+universe yielded "star matter off, 3 of 43 planets (filtered by slot bus): 0 L of star matter, 1,045 of 1,088 planet
+parallels succeeded". A redstone level other than 15 from a real source (comparators, an analog emitter) was not
+built in the world; it takes the same path as the bench's push. **Not seen:** a client GUI (the toggles, the rows, the NEI
 pages drawn), the items arriving in a real ME network (the kit's ME output bus has no network; the path is planets
 mode's), OpenComputers calls.
 

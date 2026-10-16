@@ -125,7 +125,11 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         // QA-A24: a control-set Directive Hatch holding the dial / the feed ("dial\u0002feed" strengths, 0: none)
         syncManager.syncValue(
             "eyeHeld",
-            new StringSyncValue(() -> multiblock.directiveHold(true) + "\u0002" + multiblock.directiveHold(false)));
+            new StringSyncValue(
+                () -> multiblock.directiveHold(true) + "\u0002"
+                    + multiblock.directiveHold(false)
+                    + "\u0002"
+                    + multiblock.directiveYieldHold()));
         syncManager.syncValue("eyeSensors", new StringSyncValue(this::sensorLines));
         syncManager.syncValue("eyeTrims", new StringSyncValue(this::trimLines));
         // B-115: each buffer against its intake cap (B-108), for the Field panel
@@ -1838,6 +1842,7 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
         final BooleanSyncValue uniStars = main.findSyncHandler("eyeUniStars", BooleanSyncValue.class);
         final BooleanSyncValue uniPlanets = main.findSyncHandler("eyeUniPlanets", BooleanSyncValue.class);
         final BooleanSyncValue uni = main.findSyncHandler("eyeUni", BooleanSyncValue.class);
+        final StringSyncValue heldBy = main.findSyncHandler("eyeHeld", StringSyncValue.class);
         // QA-A16: two clicks within MODE_ARM_MS while a lit field would go out (the first arms it, client side only)
         final long[] armedAt = { 0L };
         final BooleanSupplier armed = () -> modeLive.getBoolValue()
@@ -1897,6 +1902,24 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                         .size(w - 20, 9)));
         list.child(yieldToggle(uniStars, uni, "beyondthestars.gui.eye.galaxy.unistars", w));
         list.child(yieldToggle(uniPlanets, uni, "beyondthestars.gui.eye.galaxy.uniplanets", w));
+        // D-55: a control-set Directive Hatch (EYE_YIELD) holds the toggles (GUI and OC clicks are undone each second)
+        list.child(IKey.dynamic(() -> {
+            final String[] f = part(heldBy.getStringValue(), 0, 2);
+            return f == null || "0".equals(f[2]) ? "" : tr("beyondthestars.gui.eye.galaxy.heldyield", f[2]);
+        })
+            .color(BTSGuiKit.PANEL_TEXT)
+            .asWidget()
+            .size(w, 9)
+            .textAlign(Alignment.CenterLeft)
+            .marginBottom(1)
+            .setEnabledIf(x -> {
+                final String[] f = part(heldBy.getStringValue(), 0, 2);
+                return uni.getBoolValue() && f != null && !"0".equals(f[2]);
+            })
+            .tooltip(
+                t -> t.addLine(tr("beyondthestars.gui.eye.field.held.tip1"))
+                    .addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.field.held.tip2")))
+            .tooltipShowUpTimer(TOOLTIP_DELAY));
         list.child(
             Flow.row()
                 .size(w, 16)

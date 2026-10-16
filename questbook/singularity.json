@@ -1554,7 +1554,7 @@
         "",
         "{5}{l}ALL IT HOLDS{r} Each finished universe also yields its stars and planets ({times} p {times} mean Y {times} r): Excited Stellar Plasma 300,000 L, Raw Hyperdense Stellar Plasma 75,000 L, White Dwarf Matter 18,420 L, Black Dwarf Matter 4,608 L, Magnetar Matter 1,800 L, Ergomatter 72,000 L, Superdense Ergomatter 36,000 L, and {9}every planet once{r} at parallel 2^(10 - k), each parallel at (1 - 0.05 R) {times} the batch's field factor (no H/He, no EU; items to the ME output bus). Raw Star Matter comes every Eye-minute: 500,000 L {times} p {times} Y {times} r. A collapsed universe yields none of it.",
         "- {9}The filter{r}: the slot bus is a whitelist, never used up. Planet items keep only those planets; star charts of T2 to T8 keep only their matters; empty, everything comes. An ME interface or export bus can set it.",
-        "- Two toggles on the Galaxy panel switch the star matter and the planets off (OpenComputers setUniverseYield(stars, planets)). The Yield row shows what the next universe gives.",
+        "- Two toggles on the Galaxy panel switch the star matter and the planets off (OpenComputers setUniverseYield(stars, planets); redstone: a Directive Hatch on its yield control set, bit 1 star matter, bit 2 planets, 4 both off). The Yield row shows what the next universe gives.",
         "",
         "{5}{l}STANDARD RIG{r} Universe bits 1 and 2 to two 2-unit valves (Dark Matter and SpaceTime), J1 on P, the Space valve, and a 600 SM quasar.",
         "",

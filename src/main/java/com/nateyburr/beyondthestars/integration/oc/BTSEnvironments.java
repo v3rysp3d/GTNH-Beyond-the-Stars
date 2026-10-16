@@ -835,7 +835,7 @@ public final class BTSEnvironments {
 
         @Callback(
             doc = "function(name:string):string -- the set: EYE_TRIMS, EYE_STATUS, EYE_TRANSITION, EYE_FIELD, "
-                + "EYE_EVENTS, EYE_GALAXY_TRANSITION, EYE_SLOTS, EYE_DIAL, EYE_FEED, KERR_HOLE, KERR_STATUS, "
+                + "EYE_EVENTS, EYE_GALAXY_TRANSITION, EYE_SLOTS, EYE_DIAL, EYE_FEED, EYE_YIELD, KERR_HOLE, KERR_STATUS, "
                 + "KERR_SETPOINT, QUASAR_DISC (the host's own only)")
         public Object[] setSet(Context c, Arguments a) {
             if (limited("setSet")) return RATE_LIMITED;

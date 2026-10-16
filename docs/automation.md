@@ -77,7 +77,9 @@ rig rule with the threshold set to w; on T1, T2 and T4 it asks for exactly the s
 15 → 1.5 L/s). Strength 0 leaves the GUI's value. While a hatch drives a value it sets it every second, so GUI and
 OpenComputers changes do not stick, and the Eye's Field panel says "Time dial held by a Directive Hatch (redstone N)"
 (or the HSM feed). **One control hatch per set:** with two of the same set, the last one walked wins each second
-(QA-A24).
+(QA-A24). **Eye: control the universe's yield** (D-55, T10) reads the strength as a code, Degasser style: bit 1 (1)
+star matter on, bit 2 (2) planets on; any signal holds both toggles, so 1 = star matter only, 2 = planets only, 3 or
+15 = both, and 4 (or 8, 12) = both off. The Galaxy panel then says "Yield held by a Directive Hatch (redstone N)".
 
 ### 1.2 Kerr Ergosphere Engine sets
 
@@ -123,7 +125,7 @@ fluid buses (AE2FC), Steve's Factory Manager item and fluid nodes, conveyor and 
 | **T4 HSM feed** | As the dial | Control-set hatch: 1-15 → 0-1.5 L/s | `eye.setFeed(v)` | As the dial |
 | **Outputs** | ME output bus / hatch (the only output path); since 0.26.0 this includes every tier's Raw Star Matter byproduct (N × 50,000 L an Eye-minute from T2) and the Universe's yield | — | — | — |
 | **Universe yield filter** (T10, D-55) | An ME interface (or an export bus) keeps the wanted planet items and T2-T8 star charts in the slot bus; it is a whitelist and is never used up (empty = everything) | A conveyor cover or export bus on a redstone condition swaps the items | transposer into the slot bus; `eye.getUniverseYield()` shows what yields | Item node into the slot bus |
-| **Universe yield toggles** (star matter, planets) | The toggles are settings (Galaxy panel, saved with the Eye); AE2 narrows the yield through the filter instead (one T2-T8 chart keeps only its matter, one planet item only its planet) | As AE2 (the slot bus contents) | `eye.setUniverseYield(stars, planets)` | As AE2 |
+| **Universe yield toggles** (star matter, planets) | A level emitter into a control-set Directive Hatch on **Eye: control the universe's yield**: its 15 holds both on; the filter narrows it further | Directive Hatch on the yield set: strength = code, bit 1 star matter on, bit 2 planets on, 4 holds both off, 0 leaves the GUI's toggles (any analog source: comparators, an analog emitter) | `eye.setUniverseYield(stars, planets)` (undone each second while a hatch holds it) | Analog redstone emitter into the control hatch |
 | **Alarm** | — | Status bit 4 → lamp, siren, backup | `getField().zone`, `integrity` | Redstone condition on bit 4 |
 
 ### 2.2 The Kerr
