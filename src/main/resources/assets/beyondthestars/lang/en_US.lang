@@ -1176,8 +1176,15 @@ beyondthestars.gui.eye.galaxy.galaxy=galaxy (1 / 2 companions)
 beyondthestars.gui.eye.galaxy.planets=planets (3 / 6 from the slot bus)
 beyondthestars.gui.eye.galaxy.mode.tip1=Galaxy or planets mode
 beyondthestars.gui.eye.galaxy.mode.tip2=Planets: 3 (T7) / 6 (T8) planet slots from the slot bus,
-beyondthestars.gui.eye.galaxy.mode.tip3=a calm one-gauge field at a quarter of the demand. Switching
-beyondthestars.gui.eye.galaxy.mode.tip4=puts a lit galaxy out: it comes back by the Magnetar Collapse.
+beyondthestars.gui.eye.galaxy.mode.tip3=a calm one-gauge field at a quarter of the demand.
+beyondthestars.gui.eye.galaxy.mode.tip4=Switching puts the lit field out (click twice to confirm).
+beyondthestars.gui.eye.galaxy.mode.tip5=Back in galaxy mode Triangulum relights from a new Magnetar
+beyondthestars.gui.eye.galaxy.mode.tip6=Collapse charge; a Milky Way needs the Galactic Merger again.
+beyondthestars.gui.eye.galaxy.confirm=Click again: the lit field goes out
+beyondthestars.gui.eye.field.helddial=§6Time dial held by a Directive Hatch (redstone %s)
+beyondthestars.gui.eye.field.heldfeed=§6HSM feed held by a Directive Hatch (redstone %s)
+beyondthestars.gui.eye.field.held.tip1=A control-set Directive Hatch sets this value every second
+beyondthestars.gui.eye.field.held.tip2=and undoes GUI and OpenComputers changes. One control hatch per set: with two, the last walked wins.
 beyondthestars.gui.eye.galaxy.f8=T8 feed f8
 beyondthestars.gui.eye.galaxy.f8.tip1=The Milky Way's Ergomatter feed, L/s per parallel (0-10)
 beyondthestars.gui.eye.galaxy.f8.tip2=Superdense Ergomatter = 1.0 x fed x Y x r.

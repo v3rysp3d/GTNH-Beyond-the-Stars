@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
@@ -76,6 +77,8 @@ import gregtech.api.modularui2.GTGuiTextures;
  */
 public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
 
+    /** QA-A16: the mode toggle's second click must come within this (the quasar's Collapse uses 4 s too). */
+    private static final long MODE_ARM_MS = 4000L;
     private static final int FIELD_PANEL_W = 176;
     private static final int FIELD_PANEL_H = 196;
     private static final int SENSOR_ROWS = 8, TRIM_ROWS = 6;
@@ -128,6 +131,8 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
             new BooleanSyncValue(
                 () -> rt().mode() == EyeGalaxy.Mode.PLANETS,
                 v -> rt().setMode(v ? EyeGalaxy.Mode.PLANETS : EyeGalaxy.Mode.GALAXY)).allowC2S());
+        // QA-A16: the mode toggle asks for a second click while switching would put a lit field out
+        syncManager.syncValue("eyeModeLive", new BooleanSyncValue(() -> rt().modeSwitchPutsOut()));
         syncManager.syncValue("eyeF8", new DoubleSyncValue(() -> rt().f8Setpoint(), v -> rt().setF8(v)).allowC2S());
         syncManager.syncValue("eyeReady", new BooleanSyncValue(() -> rt().galaxyReady()));
         syncManager.syncValue("eyeBeginMsg", new StringSyncValue(() -> beginMsg));
@@ -1744,7 +1749,12 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
      */
     private ModularPanel buildGalaxyPanel(PanelSyncManager main, ModularPanel parent) {
         final BooleanSyncValue planets = main.findSyncHandler("eyePlanets", BooleanSyncValue.class);
+        final BooleanSyncValue modeLive = main.findSyncHandler("eyeModeLive", BooleanSyncValue.class);
         final DoubleSyncValue f8 = main.findSyncHandler("eyeF8", DoubleSyncValue.class);
+        // QA-A16: two clicks within MODE_ARM_MS while a lit field would go out (the first arms it, client side only)
+        final long[] armedAt = { 0L };
+        final BooleanSupplier armed = () -> modeLive.getBoolValue()
+            && System.currentTimeMillis() - armedAt[0] < MODE_ARM_MS;
         final BooleanSyncValue ready = main.findSyncHandler("eyeReady", BooleanSyncValue.class);
         final StringSyncValue msg = main.findSyncHandler("eyeBeginMsg", StringSyncValue.class);
         final StringSyncValue text = main.findSyncHandler("eyeGalaxyText", StringSyncValue.class);
@@ -1771,23 +1781,30 @@ public class EyeGui extends BTSControllerGui<MTEEyeOfHarmonyBTS> {
                     new ButtonWidget<>().size(16, 16)
                         .overlay(GTGuiTextures.OVERLAY_BUTTON_CYCLIC)
                         .onMousePressed(btn -> {
+                            if (modeLive.getBoolValue() && !armed.getAsBoolean()) {
+                                armedAt[0] = System.currentTimeMillis();
+                                return true;
+                            }
+                            armedAt[0] = 0L;
                             planets.setBoolValue(!planets.getBoolValue());
                             return true;
                         })
                         .tooltip(t -> {
                             t.addLine(tr("beyondthestars.gui.eye.galaxy.mode.tip1"));
-                            for (int i = 2; i <= 4; i++) {
+                            for (int i = 2; i <= 6; i++) {
                                 t.addLine(EnumChatFormatting.GRAY + tr("beyondthestars.gui.eye.galaxy.mode.tip" + i));
                             }
                         })
                         .tooltipShowUpTimer(TOOLTIP_DELAY))
                 .child(
                     IKey.dynamic(
-                        () -> tr(
-                            "beyondthestars.gui.eye.galaxy.mode",
-                            tr(
-                                planets.getBoolValue() ? "beyondthestars.gui.eye.galaxy.planets"
-                                    : "beyondthestars.gui.eye.galaxy.galaxy")))
+                        () -> armed.getAsBoolean()
+                            ? EnumChatFormatting.RED + tr("beyondthestars.gui.eye.galaxy.confirm")
+                            : tr(
+                                "beyondthestars.gui.eye.galaxy.mode",
+                                tr(
+                                    planets.getBoolValue() ? "beyondthestars.gui.eye.galaxy.planets"
+                                        : "beyondthestars.gui.eye.galaxy.galaxy")))
                         .color(BTSGuiKit.PANEL_TEXT)
                         .asWidget()
                         .size(w - 20, 9)));

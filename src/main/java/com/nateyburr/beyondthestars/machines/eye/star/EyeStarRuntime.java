@@ -517,6 +517,14 @@ public final class EyeStarRuntime {
         return burning() && fs != null && fs.tier.n >= 7;
     }
 
+    /**
+     * QA-A16: true while switching galaxy / planets mode would put the live field out: a T7 / T8 star or planets field
+     * is lit, igniting or in a transition (T9 and T10 have no planets mode). The GUI asks for a second click then.
+     */
+    public boolean modeSwitchPutsOut() {
+        return live() && star != null && star.n() >= 7 && StarDef.planetsOf(star.n()) != null;
+    }
+
     /** P4: the field in planets mode (3 / 6 planet slots). */
     public boolean planetsMode() {
         return fs != null && fs.tier.planets() && burning();
