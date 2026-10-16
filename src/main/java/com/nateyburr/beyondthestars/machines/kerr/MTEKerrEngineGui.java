@@ -261,6 +261,11 @@ public class MTEKerrEngineGui extends BTSControllerGui<MTEKerrEngine> {
 
     /** Bolt stock and how long it lasts: §a 10 min or more, §6 1-10 min, §c under a minute or empty. */
     private void stockRow(BTSRows.Builder rows) {
+        // S-14: until the first formed walk since load the bolt buses are not listed yet, so the stock is not known
+        if (!multiblock.boltStockKnown()) {
+            rows.stat(BTSText.lang(K + "stock"), BTSText.lit("§7–"), BTSText.lang(K + "stock.tip"));
+            return;
+        }
         final double sm = multiblock.getBoltStockSm();
         final long sec = multiblock.getBoltStockSeconds();
         final String colour = sm <= 0 || sec >= 0 && sec < 60 ? "§c" : sec < 0 || sec >= 600 ? "§a" : "§6";

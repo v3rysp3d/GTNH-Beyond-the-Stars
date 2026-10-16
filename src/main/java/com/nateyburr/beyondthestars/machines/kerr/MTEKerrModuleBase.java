@@ -104,7 +104,14 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     private static final int LINK_INTERVAL = 20;
 
     // ------------------------------------------------------------------- link (server, never saved)
-    private Link link = Link.NO_KEE;
+    /** S-14: "not loaded" until the first look, so a module read before it never says "No KEE". */
+    private Link link = Link.KEE_NOT_LOADED;
+    /**
+     * S-14: ticks since this tile loaded, up to {@link #LOAD_GRACE}. Right after a load the KEE's cell can be in a
+     * loaded chunk while its GT tile is not there yet; for this long a missing tile reads as not loaded. Not saved.
+     */
+    private int ticksSinceLoad;
+    private static final int LOAD_GRACE = 200;
     private WeakReference<MTEKerrEngine> keeRef = new WeakReference<>(null);
     private int keeX;
     private int keeY;
@@ -152,6 +159,11 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
             return setLink(Link.KEE_NOT_LOADED, null);
         }
         final IGregTechTileEntity te = KerrSlot.gtTileAt(world, p);
+        if ((te == null || te.getMetaTileEntity() == null) && (ticksSinceLoad < LOAD_GRACE
+            || world.getBlock(p[0], p[1], p[2]) == gregtech.api.GregTechAPI.sBlockMachines)) {
+            // S-14: a GT machine block whose tile (or its machine) is not made yet, or the first 10 s after a load
+            return setLink(Link.KEE_NOT_LOADED, null);
+        }
         if (te == null || !(te.getMetaTileEntity() instanceof MTEKerrEngine)) return setLink(Link.NO_KEE, null);
         final MTEKerrEngine kee = (MTEKerrEngine) te.getMetaTileEntity();
         // The KEE's own view of this slot must land back on this module, facing the slot's way.
@@ -223,6 +235,7 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
 
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
+        if (aBaseMetaTileEntity.isServerSide() && ticksSinceLoad < LOAD_GRACE) ticksSinceLoad++;
         if (aBaseMetaTileEntity.isServerSide() && aTick % LINK_INTERVAL == 0) {
             refreshLink();
             // A recipe gate opening (the compressor's DENSITY, P4's 256 SM and quasar link) is a change GT is not told
