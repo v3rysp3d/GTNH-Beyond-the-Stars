@@ -27,6 +27,8 @@ public class CommonProxy {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
         // B-227: the mod's network channel; the server sends its recipe settings to each player at login.
         BTSConfigSync.register();
+        // The Small Coal Boiler's Blast Furnace ore name, empty when GT loads before Et Futurum (BTSPackFixes).
+        BTSPackFixes.preInit();
 
         BTSItems.register();
         SLItems.register();

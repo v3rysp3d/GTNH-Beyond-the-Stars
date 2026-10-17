@@ -20,9 +20,9 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
     name = "GTNH: Beyond the Stars",
     acceptedMinecraftVersions = "[1.7.10]",
     // GregTech 5.09.54.205 is GTNH 2.9.0-RC-2's: an older pack gets FML's clean "requires gregtech" screen instead of a
-    // crash inside a GregTech class.
+    // crash inside a GregTech class. after:etfuturum: BTSPackFixes reads Et Futurum's Blast Furnace in our preInit.
     dependencies = "required-after:gregtech@[5.09.54.205,);required-after:structurelib;after:dreamcraft;after:tectech;"
-        + "after:OpenComputers")
+        + "after:OpenComputers;after:etfuturum")
 public class BeyondTheStars {
 
     public static final String MODID = "beyondthestars";
