@@ -852,9 +852,6 @@ public final class ShowcaseAutoRig {
             final int[] up = { p[0], p[1] + 1, p[2] };
             final IMetaTileEntity above = mteAt(world, up[0], up[1], up[2]);
             if (mteAt(world, p[0] + o.offsetX, p[1], p[2] + o.offsetZ) != null || hasCover(world, up)) continue;
-            if (above instanceof MTEHatchDirective && ((MTEHatchDirective) above).getSet() != DirectiveSet.EYE_TRIMS) {
-                continue;
-            }
             if (above != null && !(above instanceof MTEHatchDirective)
                 && !(above instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor)) continue;
             MTEReactorCoreMk1
