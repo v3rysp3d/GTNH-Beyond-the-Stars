@@ -234,7 +234,17 @@ public final class ShowcaseAutoRig {
                 }
             }
         }
-        return "Kerr: NO endless bolt bus with a free slot for a Seed";
+        // every slot holds a bolt: the last slot of a bus with more than one slot of bolts takes the Seed
+        for (MTEHatchInputBus bus : kee.boltBuses()) {
+            if (!(bus instanceof MTEHatchInputBusDebug) || !bus.isValid()) continue;
+            final MTEHatchInputBusDebug d = (MTEHatchInputBusDebug) bus;
+            final int n = d.phantomHolder.getSlots();
+            if (n >= 2 && d.phantomHolder.getStackInSlot(0) != null) {
+                d.phantomHolder.setStackInSlot(n - 1, seed.copy());
+                return "Kerr: a Black Hole Seed in an endless bolt bus's last slot (Auto reopens a closed hole)";
+            }
+        }
+        return "Kerr: NO endless bolt bus to hold a Seed";
     }
 
     // ================================================================================== Diffraction
