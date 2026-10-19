@@ -91,6 +91,11 @@ public final class ShowcaseAutoRig {
             out.add("showcase mode was on: switched off (this exhibit runs on its world)");
         }
         BTSShowcase.setKeep(world, x, y, z, true);
+        // a controller whose chunk was just loaded has not walked its structure: its hatch lists are empty until it
+        // does
+        m.checkStructure(true, m.getBaseMetaTileEntity());
+        if (!m.mMachine)
+            out.add("NOT FORMED yet (a footprint chunk may still be loading): run autorig again in a moment");
         final int[] n = convertSupplies(world, m);
         out.add(host.showcaseName() + ": " + n[0] + " hatch(es) and " + n[1] + " bus(es) now GT debug supplies");
         if (mte instanceof MTEEyeOfHarmonyBTS) out.addAll(eye(world, (MTEEyeOfHarmonyBTS) mte));
@@ -291,7 +296,12 @@ public final class ShowcaseAutoRig {
             : rt.star()
                 .n();
         out.add(upkeepHatches(world, eye, tier));
-        final List<Valve> valves = valves(tier, Math.max(1, rt.lastParallel()));
+        List<Valve> valves = valves(tier, Math.max(1, rt.lastParallel()));
+        if (tier >= 7 && fedFieldHatches(world, eye) > 0) {
+            // the standard galaxy rig is wired already (GT wireless pairs from the Directive Hatches to its valves)
+            out.add("Field sockets already fed by a valve: the galaxy rig stands, no new valves");
+            valves = new ArrayList<>();
+        }
         final ExtendedFacing al = eye.getExtendedFacing();
         final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
         final int[][] f = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f');
@@ -477,6 +487,24 @@ public final class ShowcaseAutoRig {
             v.bit.label.replace(" only (15 / 0)", ""),
             v.litresPerTick + " L/t");
         return null;
+    }
+
+    /** Field hatches with a neighbour whose Fluid Regulator cover faces them (a valve already pours into them). */
+    private static int fedFieldHatches(World world, MTEEyeOfHarmonyBTS eye) {
+        int n = 0;
+        for (MTEHatchInput h : eye.fieldHatches()) {
+            final IGregTechTileEntity b = h.getBaseMetaTileEntity();
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+                final TileEntity te = world
+                    .getTileEntity(b.getXCoord() + d.offsetX, b.getYCoord() + d.offsetY, b.getZCoord() + d.offsetZ);
+                if (te instanceof IGregTechTileEntity
+                    && ((IGregTechTileEntity) te).getCoverAtSide(d.getOpposite()) instanceof CoverFluidRegulator) {
+                    n++;
+                    break;
+                }
+            }
+        }
+        return n;
     }
 
     /** The smallest GT Fluid Regulator whose rate reaches {@code lpt} L/t. */
