@@ -40,7 +40,7 @@ public class CommandBTSShowcase extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsshowcase status  |  /btsshowcase on|off <x> <y> <z>  |  /btsshowcase all on|off [radius]"
-            + "  |  /btsshowcase fluid <x> <y> <z> <fluid> [hatches]";
+            + "  |  /btsshowcase fluid <x> <y> <z> <fluid> [hatches]  |  /btsshowcase info <x> <y> <z>";
     }
 
     @Override
@@ -50,7 +50,8 @@ public class CommandBTSShowcase extends CommandBase {
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "on", "off", "all");
+        if (args.length == 1)
+            return getListOfStringsMatchingLastWord(args, "status", "on", "off", "all", "info", "fluid");
         if (args.length == 2 && "all".equalsIgnoreCase(args[0]))
             return getListOfStringsMatchingLastWord(args, "on", "off");
         return null;
@@ -88,6 +89,20 @@ public class CommandBTSShowcase extends CommandBase {
                 }
                 host.setShowcase("on".equals(verb));
                 tell(sender, host.showcaseName() + " at " + x + " " + y + " " + z + ": showcase " + verb + ".");
+                return;
+            }
+            case "info": {
+                // /btsshowcase info x y z: the controller's scanner lines (any GT machine), for checking an exhibit
+                if (args.length != 4) throw new WrongUsageException(getCommandUsage(sender));
+                final int x = parseInt(sender, args[1]), y = parseInt(sender, args[2]), z = parseInt(sender, args[3]);
+                final TileEntity te = world.getTileEntity(x, y, z);
+                if (!(te instanceof IGregTechTileEntity)) {
+                    tell(sender, "No GT machine at " + x + " " + y + " " + z + ".");
+                    return;
+                }
+                final String[] lines = ((IGregTechTileEntity) te).getMetaTileEntity()
+                    .getInfoData();
+                if (lines != null) for (String l : lines) tell(sender, l);
                 return;
             }
             case "fluid": {
