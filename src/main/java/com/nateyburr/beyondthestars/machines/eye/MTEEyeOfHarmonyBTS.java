@@ -1313,6 +1313,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     /** D-49: the Field-socket trim hatches, for the star runtime. Server state, read-only. */
+    /** The gas-socket hatches (h, s, t, g) and the stellar hatches, as formed (the showcase builder converts them). */
+    public List<MTEHatchInput> gasHatches() {
+        return gasHatches;
+    }
+
+    public List<MTEHatchInput> stellarHatches() {
+        return stellarHatches;
+    }
+
     public List<MTEHatchInput> fieldHatches() {
         return Collections.unmodifiableList(fieldHatches);
     }

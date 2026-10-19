@@ -40,7 +40,9 @@ public class CommandBTSShowcase extends CommandBase {
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "/btsshowcase status  |  /btsshowcase on|off <x> <y> <z>  |  /btsshowcase all on|off [radius]"
-            + "  |  /btsshowcase fluid <x> <y> <z> <fluid> [hatches]  |  /btsshowcase info <x> <y> <z>";
+            + "  |  /btsshowcase fluid <x> <y> <z> <fluid> [hatches]  |  /btsshowcase info <x> <y> <z>"
+            + "  |  /btsshowcase keep on|off <x> <y> <z>  |  /btsshowcase all keep on|off [radius]"
+            + "  |  /btsshowcase autorig <x> <y> <z>";
     }
 
     @Override
@@ -50,8 +52,16 @@ public class CommandBTSShowcase extends CommandBase {
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if (args.length == 1)
-            return getListOfStringsMatchingLastWord(args, "status", "on", "off", "all", "info", "fluid");
+        if (args.length == 1) return getListOfStringsMatchingLastWord(
+            args,
+            "status",
+            "on",
+            "off",
+            "all",
+            "info",
+            "fluid",
+            "keep",
+            "autorig");
         if (args.length == 2 && "all".equalsIgnoreCase(args[0]))
             return getListOfStringsMatchingLastWord(args, "on", "off");
         return null;
@@ -127,17 +137,56 @@ public class CommandBTSShowcase extends CommandBase {
                 tell(sender, n + " empty input hatch(es) filled with " + fluid.getName() + ".");
                 return;
             }
-            case "all": {
-                if (args.length < 2 || args.length > 3) throw new WrongUsageException(getCommandUsage(sender));
+            case "autorig": {
+                // /btsshowcase autorig x y z: the automation showcase's in-world supplies and valves for that machine
+                if (args.length != 4) throw new WrongUsageException(getCommandUsage(sender));
+                final int x = parseInt(sender, args[1]), y = parseInt(sender, args[2]), z = parseInt(sender, args[3]);
+                for (String l : com.nateyburr.beyondthestars.showcase.ShowcaseAutoRig.build(world, x, y, z)) {
+                    tell(sender, l);
+                }
+                return;
+            }
+            case "keep": {
+                // /btsshowcase keep on|off x y z: chunk loading only (the automation world), no feeding or steering
+                if (args.length != 5) throw new WrongUsageException(getCommandUsage(sender));
                 final boolean on = BTSCommands.parseToggle(sender, this, new String[] { args[1] }, false);
-                final int radius = args.length == 3 ? parseIntWithMin(sender, args[2], 1) : 1024;
+                final int x = parseInt(sender, args[2]), y = parseInt(sender, args[3]), z = parseInt(sender, args[4]);
+                final ShowcaseHost host = hostAt(world, x, y, z);
+                if (host == null) {
+                    tell(sender, "No controller that supports showcase mode at " + x + " " + y + " " + z + ".");
+                    return;
+                }
+                BTSShowcase.setKeep(world, x, y, z, on);
+                tell(
+                    sender,
+                    host.showcaseName() + " at "
+                        + x
+                        + " "
+                        + y
+                        + " "
+                        + z
+                        + ": keep loaded "
+                        + (on ? "on" : "off")
+                        + ".");
+                return;
+            }
+            case "all": {
+                if (args.length < 2 || args.length > 4) throw new WrongUsageException(getCommandUsage(sender));
+                final boolean keep = "keep".equalsIgnoreCase(args[1]);
+                final int a = keep ? 2 : 1;
+                if (args.length <= a) throw new WrongUsageException(getCommandUsage(sender));
+                final boolean on = BTSCommands.parseToggle(sender, this, new String[] { args[a] }, false);
+                final int radius = args.length == a + 2 ? parseIntWithMin(sender, args[a + 1], 1) : 1024;
                 int n = 0;
                 for (Found f : find(world, sender, radius)) {
-                    f.host.setShowcase(on);
+                    if (keep) BTSShowcase.setKeep(world, f.x, f.y, f.z, on);
+                    else f.host.setShowcase(on);
                     tell(sender, "  " + f.host.showcaseName() + " at " + f.x + " " + f.y + " " + f.z);
                     n++;
                 }
-                tell(sender, "Showcase " + (on ? "on" : "off") + " for " + n + " controller(s).");
+                tell(
+                    sender,
+                    (keep ? "Keep loaded " : "Showcase ") + (on ? "on" : "off") + " for " + n + " controller(s).");
                 return;
             }
             default:

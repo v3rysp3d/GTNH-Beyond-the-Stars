@@ -649,6 +649,15 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         return liveCount(directiveHatches);
     }
 
+    /** The feed-gas and trim hatches, as formed (the showcase builder converts the gas ones only). */
+    public List<MTEHatchInput> gasHatches() {
+        return gasHatches;
+    }
+
+    public List<MTEHatchInput> trimHatches() {
+        return trimHatches;
+    }
+
     public List<MTEHatchDirective> directiveHatches() {
         return Collections.unmodifiableList(directiveHatches);
     }

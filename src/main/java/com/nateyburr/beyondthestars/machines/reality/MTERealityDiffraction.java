@@ -605,6 +605,11 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         return out;
     }
 
+    /** The six anchor sockets' hatches, as formed (the showcase builder converts them). */
+    public List<MTEHatchInput> anchorHatches(int region) {
+        return anchorHatches[region];
+    }
+
     private int anchoredSockets() {
         int n = 0;
         for (int k = 0; k < 6; k++) if (anchorHatchCount(k) > 0) n++;

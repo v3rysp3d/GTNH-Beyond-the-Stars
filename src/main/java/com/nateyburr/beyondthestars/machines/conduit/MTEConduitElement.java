@@ -162,6 +162,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     // ------------------------------------------------- WALK
     protected int mCasing;
     protected final ArrayList<MTEHatchInput> fuelHatches = new ArrayList<>();
+
     protected final ArrayList<MTEHatchBurstControl> burstHatches = new ArrayList<>();
 
     // ------------------------------------------------- RUN (server)

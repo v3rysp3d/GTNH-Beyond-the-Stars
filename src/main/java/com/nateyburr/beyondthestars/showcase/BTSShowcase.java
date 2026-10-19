@@ -154,12 +154,15 @@ public final class BTSShowcase {
         final World world = base.getWorld();
         final int dim = world.provider.dimensionId;
         final String k = key(dim, base.getXCoord(), base.getYCoord(), base.getZCoord());
-        if (!host.isShowcase()) {
+        final boolean showcase = host.isShowcase();
+        if (!showcase && !KeepData.of(world)
+            .has(k)) {
             final Held h = HELD.remove(k);
             if (h != null) release(h);
             return;
         }
         hold(world, k, base, host.showcaseBox());
+        if (!showcase) return; // keep-loaded only: the machine runs on what its world gives it
         machine.fixAllIssues();
         if (host.showcaseTopsUpHatches()) topUp(machine);
         // Full outputs never stall a showcase machine (GT's default protects them).
@@ -321,10 +324,71 @@ public final class BTSShowcase {
             final net.minecraft.tileentity.TileEntity te = world.getTileEntity(h.x, h.y, h.z);
             final Object mte = te instanceof IGregTechTileEntity ? ((IGregTechTileEntity) te).getMetaTileEntity()
                 : null;
-            if (mte instanceof ShowcaseHost && ((ShowcaseHost) mte).isShowcase()) continue;
+            if (mte instanceof ShowcaseHost && (((ShowcaseHost) mte).isShowcase() || isKept(world, h.x, h.y, h.z))) {
+                continue;
+            }
             release(h);
             it.remove();
         }
+    }
+
+    // ------------------------------------------------------------------------------------------ keep loaded
+
+    /**
+     * KEEP LOADED (the automation showcase world): a machine on this list holds its footprint's chunk tickets like a
+     * showcase machine, and nothing else: no feeding, no steering, no maintenance, no restarts. The list is world data
+     * (keyed "dim:x,y,z"), so no machine class stores it; {@code /btsshowcase keep on|off x y z} edits it.
+     */
+    public static final class KeepData extends net.minecraft.world.WorldSavedData {
+
+        static final String NAME = "btsShowcaseKeep";
+        final java.util.Set<String> keys = new java.util.HashSet<>();
+
+        public KeepData(String name) {
+            super(name);
+        }
+
+        static KeepData of(World world) {
+            final net.minecraft.world.storage.MapStorage store = world.mapStorage;
+            KeepData d = (KeepData) store.loadData(KeepData.class, NAME);
+            if (d == null) {
+                d = new KeepData(NAME);
+                store.setData(NAME, d);
+            }
+            return d;
+        }
+
+        boolean has(String k) {
+            return keys.contains(k);
+        }
+
+        @Override
+        public void readFromNBT(NBTTagCompound nbt) {
+            keys.clear();
+            final net.minecraft.nbt.NBTTagList l = nbt.getTagList("keys", 8);
+            for (int i = 0; i < l.tagCount(); i++) keys.add(l.getStringTagAt(i));
+        }
+
+        @Override
+        public void writeToNBT(NBTTagCompound nbt) {
+            final net.minecraft.nbt.NBTTagList l = new net.minecraft.nbt.NBTTagList();
+            for (String k : keys) l.appendTag(new net.minecraft.nbt.NBTTagString(k));
+            nbt.setTag("keys", l);
+        }
+    }
+
+    /** Puts the machine at x y z on (or off) the keep-loaded list. Returns true if it changed. */
+    public static boolean setKeep(World world, int x, int y, int z, boolean on) {
+        final KeepData d = KeepData.of(world);
+        final String k = key(world.provider.dimensionId, x, y, z);
+        final boolean changed = on ? d.keys.add(k) : d.keys.remove(k);
+        if (changed) d.markDirty();
+        return changed;
+    }
+
+    public static boolean isKept(World world, int x, int y, int z) {
+        return KeepData.of(world)
+            .has(key(world.provider.dimensionId, x, y, z));
     }
 
     private static int sweepTicks;
