@@ -893,6 +893,11 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
      * cells; 0 with none. Q-8: 0 while its quasar is frozen or unloaded (the speed bonus and Entanglement Medium pause;
      * the mean is held for when it returns).
      */
+    /** The GRB Receptor Ports in the stirring ring, as formed. */
+    public List<MTEHatchGRBReceptor> receptorPorts() {
+        return receptors;
+    }
+
     public double quasarSigma() {
         if (showcase && burstDemand() > 0) return 1.0;
         return receptorCount() == 0 || burstDemand() <= 0 ? 0 : burstHost.sigmaInForce();

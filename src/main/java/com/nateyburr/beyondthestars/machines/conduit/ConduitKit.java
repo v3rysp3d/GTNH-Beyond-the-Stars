@@ -378,6 +378,73 @@ public final class ConduitKit {
      * Places, builds (creative) and fits an element: a throat Mk {@code throat}, every fuel socket a MAX input hatch
      * full of Molten SpaceTime.
      */
+    /**
+     * A host's own burst supply (the automation showcase, designs/docs/showcase-worlds.md): a quasar raised at (qx, qy,
+     * qz) facing north (coils T3, helium, opened at {@code mass} SM), Mouth A docked on its bottom port, and Mouth B
+     * paired with it, {@code dist} blocks upstream of {@code target} so its stream runs along {@code dir} into that
+     * cell
+     * (a GRB Receptor Port). Returns what it did; {@code placed} gets every controller it raised.
+     */
+    public static List<String> hostRig(World world, int qx, int qy, int qz, double mass, int[] target, double[] dir,
+        int dist, List<int[]> placed) {
+        final List<String> out = new ArrayList<>();
+        final int[] qbox = QuasarKit.bounds(ForgeDirection.NORTH, qx, qy, qz);
+        SLConsoleTest.loadChunks(world, qbox);
+        final QuasarKit.Result qr = QuasarKit.build(world, qx, qy, qz, ForgeDirection.NORTH, 3, false, false);
+        if (qr.failure != null) {
+            out.add("Quasar: BUILD FAILED - " + qr.failure);
+            return out;
+        }
+        final MTEQuasarEngine q = QuasarKit.quasarAt(world, qx, qy, qz);
+        if (q == null || !q.isFormed()) {
+            out.add("Quasar: NOT FORMED");
+            return out;
+        }
+        q.debugSeed(mass, 0.45);
+        q.debugFillBuffer();
+        placed.add(new int[] { qx, qy, qz });
+        out.add("Quasar FORMED at " + qx + " " + qy + " " + qz + ", opened at " + mass + " SM");
+        final ExtendedFacing qf = q.getExtendedFacing();
+        final IGregTechTileEntity qb = q.getBaseMetaTileEntity();
+        final ConduitThroats.Throat[] mt = ConduitThroats.of(MTEWormholeMouth.PIECE);
+        final int[] bottom = q.portCell(qb, JetPort.BOTTOM);
+        final int[] ax = QuasarGeometry.axisAbc(JetPort.BOTTOM);
+        final double[] jetDown = ConduitThroats.worldDir(qf, new double[] { ax[0], ax[1], ax[2] });
+        final ExtendedFacing fa = MTEConduitElement.facingFor(mt, 0, jetDown, -1, null);
+        final int[] dockRel = mt[0].centreRel.clone();
+        dockRel[2] = 0;
+        final int[] mouthA = minus(bottom, offset(fa, dockRel));
+        final MTEWormholeMouth a = placeElement(
+            world,
+            BTSMachines.wormholeMouth,
+            MTEWormholeMouth.class,
+            mouthA,
+            fa,
+            1,
+            out,
+            "Mouth A (bottom port)");
+        final ExtendedFacing fb = MTEConduitElement.facingFor(mt, 0, dir, -1, null);
+        final int[] bThroat = { target[0] - (int) Math.round(dir[0] * dist),
+            target[1] - (int) Math.round(dir[1] * dist), target[2] - (int) Math.round(dir[2] * dist) };
+        final int[] mouthB = minus(bThroat, offset(fb, mt[0].centreRel));
+        final MTEWormholeMouth b = placeElement(
+            world,
+            BTSMachines.wormholeMouth,
+            MTEWormholeMouth.class,
+            mouthB,
+            fb,
+            1,
+            out,
+            "Mouth B (to the host)");
+        if (a != null && b != null) {
+            MTEWormholeMouth.pair(a, b);
+            placed.add(mouthA);
+            placed.add(mouthB);
+            out.add("Mouths paired: " + pos(mouthA) + " <-> " + pos(mouthB));
+        }
+        return out;
+    }
+
     static <T extends MTEConduitElement<T>> T placeElement(World world, ItemStack stack, Class<T> type, int[] p,
         ExtendedFacing f, int throat, List<String> out, String name) {
         if (stack == null || f == null) {

@@ -99,6 +99,10 @@ public final class ShowcaseAutoRig {
         final int[] n = convertSupplies(world, m);
         out.add(host.showcaseName() + ": " + n[0] + " hatch(es) and " + n[1] + " bus(es) now GT debug supplies");
         if (mte instanceof MTEEyeOfHarmonyBTS) out.addAll(eye(world, (MTEEyeOfHarmonyBTS) mte));
+        if (mte instanceof com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny) {
+            out.addAll(homogeny(world, (com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny) mte));
+        }
+        if (mte instanceof MTERealityDiffraction) out.add(anchors(world, (MTERealityDiffraction) mte));
         out.add("keep loaded: on");
         return out;
     }
@@ -207,6 +211,93 @@ public final class ShowcaseAutoRig {
             d.phantomHolder.setStackInSlot(i, s);
         }
         return true;
+    }
+
+    // ================================================================================== Diffraction
+
+    /** An anchor socket with no debug hatch gets one of its region's anchor fluid (an empty plain hatch there). */
+    private static String anchors(World world, MTERealityDiffraction d) {
+        int n = 0;
+        for (int k = 0; k < 6; k++) {
+            boolean fed = false;
+            MTEHatchInput empty = null;
+            for (MTEHatchInput h : d.anchorHatches(k)) {
+                if (h instanceof MTEHatchInputDebug) fed = true;
+                else if (h != null && h.isValid() && h.getFluid() == null && empty == null) empty = h;
+            }
+            final Fluid f = MTERealityDiffraction.anchorFluid(k);
+            if (fed || empty == null || f == null) continue;
+            final List<FluidStack> one = new ArrayList<>();
+            one.add(new FluidStack(f, 1000));
+            if (toDebugHatch(world, empty.getBaseMetaTileEntity(), one)) n++;
+        }
+        return "anchors: " + n + " empty socket(s) given their region's anchor";
+    }
+
+    // ==================================================================================== Homogeny
+
+    /** Where the Homogeny's own quasar stands, relative to its controller (west of it, on the old T1 / T2 site). */
+    private static final int HQ_DX = -227, HQ_Y = 80, HQ_DZ = 24;
+
+    /**
+     * The Homogeny T3 on its signature recipe, SL-H21 (Entanglement Medium), which needs σ ≥ 1 from a real quasar:
+     * GRB Receptor Ports in its stirring ring, every feed hatch a debug hatch of SL-H21's three fluids, and its own
+     * quasar
+     * west of it whose bottom jet reaches the westmost port through a pair of Wormhole Mouths.
+     */
+    private static List<String> homogeny(World world, com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny hom) {
+        final List<String> out = new ArrayList<>();
+        final IGregTechTileEntity base = hom.getBaseMetaTileEntity();
+        out.add(
+            "receptor ports fitted: " + com.nateyburr.beyondthestars.machines.reality.HRKit
+                .fitReceptors(world, hom, com.nateyburr.beyondthestars.machines.reality.HRKit.Machine.HOMOGENY));
+        hom.checkStructure(true, base);
+        // the feeds: SL-H21's Dark Matter, Superdense Ergomatter and Degenerate Stellar Mixture in every one
+        final List<FluidStack> trio = new ArrayList<>();
+        trio.add(new FluidStack(com.nateyburr.beyondthestars.fluids.SLRealityFluids.darkMatter, 1000));
+        trio.add(new FluidStack(com.nateyburr.beyondthestars.fluids.SLRealityFluids.superdenseErgomatter, 1000));
+        trio.add(new FluidStack(com.nateyburr.beyondthestars.fluids.SLRealityFluids.degenerateStellarMixture, 1000));
+        int feeds = 0;
+        for (MTEHatchInput h : new ArrayList<>(hom.mInputHatches)) {
+            if (h != null && h.isValid() && toDebugHatch(world, h.getBaseMetaTileEntity(), trio)) feeds++;
+        }
+        out.add(feeds + " feed hatch(es) now debug hatches of SL-H21's three fluids");
+        hom.checkStructure(true, base);
+        // the westmost port is the quasar stream's target
+        com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor west = null;
+        for (com.nateyburr.beyondthestars.machines.conduit.MTEHatchGRBReceptor r : hom.receptorPorts()) {
+            if (r == null || !r.isValid()) continue;
+            if (west == null || r.getBaseMetaTileEntity()
+                .getXCoord()
+                < west.getBaseMetaTileEntity()
+                    .getXCoord())
+                west = r;
+        }
+        if (west == null) {
+            out.add("NO receptor port formed: no quasar raised");
+            return out;
+        }
+        final IGregTechTileEntity w = west.getBaseMetaTileEntity();
+        final int[] target = { w.getXCoord(), w.getYCoord(), w.getZCoord() };
+        final int qx = base.getXCoord() + HQ_DX, qz = base.getZCoord() + HQ_DZ;
+        if (mteAt(world, qx, HQ_Y, qz) instanceof MTEQuasarEngine) {
+            out.add("its quasar stands already at " + qx + " " + HQ_Y + " " + qz);
+            return out;
+        }
+        final List<int[]> placed = new ArrayList<>();
+        out.addAll(
+            com.nateyburr.beyondthestars.machines.conduit.ConduitKit
+                .hostRig(world, qx, HQ_Y, qz, 300, target, new double[] { 1, 0, 0 }, 40, placed));
+        for (int[] p : placed) {
+            BTSShowcase.setKeep(world, p[0], p[1], p[2], true);
+            final IMetaTileEntity pm = mteAt(world, p[0], p[1], p[2]);
+            if (pm instanceof MTEMultiBlockBase) {
+                ((MTEMultiBlockBase) pm).checkStructure(true, ((MTEMultiBlockBase) pm).getBaseMetaTileEntity());
+                final int[] c = convertSupplies(world, (MTEMultiBlockBase) pm);
+                out.add("  " + pos(p) + ": " + c[0] + " supply hatch(es) now debug, keep loaded on");
+            }
+        }
+        return out;
     }
 
     // ======================================================================================= Eye
