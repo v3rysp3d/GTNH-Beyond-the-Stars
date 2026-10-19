@@ -39,7 +39,8 @@ public class CommandBTSShowcase extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/btsshowcase status  |  /btsshowcase on|off <x> <y> <z>  |  /btsshowcase all on|off [radius]";
+        return "/btsshowcase status  |  /btsshowcase on|off <x> <y> <z>  |  /btsshowcase all on|off [radius]"
+            + "  |  /btsshowcase fluid <x> <y> <z> <fluid> [hatches]";
     }
 
     @Override
@@ -87,6 +88,28 @@ public class CommandBTSShowcase extends CommandBase {
                 }
                 host.setShowcase("on".equals(verb));
                 tell(sender, host.showcaseName() + " at " + x + " " + y + " " + z + ": showcase " + verb + ".");
+                return;
+            }
+            case "fluid": {
+                // /btsshowcase fluid x y z <fluid> [n]: n (default 1) empty input hatches of that controller filled
+                if (args.length < 5 || args.length > 6) throw new WrongUsageException(getCommandUsage(sender));
+                final int x = parseInt(sender, args[1]), y = parseInt(sender, args[2]), z = parseInt(sender, args[3]);
+                final net.minecraftforge.fluids.Fluid fluid = net.minecraftforge.fluids.FluidRegistry.getFluid(args[4]);
+                final int want = args.length == 6 ? parseIntWithMin(sender, args[5], 1) : 1;
+                final TileEntity te = world.getTileEntity(x, y, z);
+                final Object mte = te instanceof IGregTechTileEntity ? ((IGregTechTileEntity) te).getMetaTileEntity()
+                    : null;
+                if (fluid == null || !(mte instanceof gregtech.api.metatileentity.implementations.MTEMultiBlockBase)) {
+                    tell(sender, fluid == null ? "No fluid named " + args[4] + "." : "No multiblock controller there.");
+                    return;
+                }
+                int n = 0;
+                for (gregtech.api.metatileentity.implementations.MTEHatchInput h : ((gregtech.api.metatileentity.implementations.MTEMultiBlockBase) mte).mInputHatches) {
+                    if (n >= want) break;
+                    if (h == null || !h.isValid() || h.getFluid() != null) continue;
+                    if (h.fill(new net.minecraftforge.fluids.FluidStack(fluid, Integer.MAX_VALUE), true) > 0) n++;
+                }
+                tell(sender, n + " empty input hatch(es) filled with " + fluid.getName() + ".");
                 return;
             }
             case "all": {

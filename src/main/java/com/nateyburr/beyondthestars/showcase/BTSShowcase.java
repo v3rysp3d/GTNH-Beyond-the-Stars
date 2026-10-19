@@ -144,6 +144,7 @@ public final class BTSShowcase {
         }
         hold(world, k, base, host.showcaseBox());
         machine.fixAllIssues();
+        if (host.showcaseTopsUpHatches()) topUp(machine);
         // Full outputs never stall a showcase machine (GT's default protects them).
         if (machine.supportsVoidProtection() && machine.getVoidingMode() != gregtech.api.enums.VoidingMode.VOID_ALL) {
             machine.setVoidingMode(gregtech.api.enums.VoidingMode.VOID_ALL);
@@ -151,6 +152,45 @@ public final class BTSShowcase {
         if (!base.isAllowedToWork() && machine.mMachine && restartable(base.getLastShutDownReason())) {
             base.enableWorking();
         }
+    }
+
+    /**
+     * Keeps every plain input hatch full of the fluid it holds and every input-bus stack at a full stack, so a machine
+     * fed once (by hand or a bench fill) runs forever. Empty hatches and slots stay empty ({@code /btsshowcase fluid}
+     * seeds a hatch). Debug and ME hatches feed themselves and are left alone.
+     */
+    private static void topUp(MTEMultiBlockBase m) {
+        for (gregtech.api.metatileentity.implementations.MTEHatchInput h : m.mInputHatches) {
+            if (h == null || !h.isValid() || selfFed(h)) continue;
+            if (h instanceof gregtech.api.metatileentity.implementations.MTEHatchMultiInput) {
+                for (net.minecraftforge.fluids.FluidStack f : ((gregtech.api.metatileentity.implementations.MTEHatchMultiInput) h)
+                    .getStoredFluid()) {
+                    if (f != null && f.getFluid() != null) {
+                        h.fill(new net.minecraftforge.fluids.FluidStack(f.getFluid(), Integer.MAX_VALUE), true);
+                    }
+                }
+                continue;
+            }
+            final net.minecraftforge.fluids.FluidStack f = h.getFluid();
+            if (f != null && f.getFluid() != null && f.amount < h.getCapacity()) {
+                h.fill(new net.minecraftforge.fluids.FluidStack(f.getFluid(), h.getCapacity() - f.amount), true);
+            }
+        }
+        for (gregtech.api.metatileentity.implementations.MTEHatchInputBus b : m.mInputBusses) {
+            if (b == null || !b.isValid() || selfFed(b)) continue;
+            final IGregTechTileEntity t = b.getBaseMetaTileEntity();
+            for (int i = 0; i < t.getSizeInventory(); i++) {
+                final net.minecraft.item.ItemStack s = t.getStackInSlot(i);
+                if (s != null && s.stackSize < s.getMaxStackSize()) s.stackSize = s.getMaxStackSize();
+            }
+        }
+    }
+
+    /** GT's debug hatches and the ME stocking hatches / buses refill themselves. */
+    private static boolean selfFed(Object hatch) {
+        final String n = hatch.getClass()
+            .getSimpleName();
+        return n.endsWith("Debug") || n.contains("InputME") || n.contains("BusME");
     }
 
     private static boolean restartable(ShutDownReason reason) {

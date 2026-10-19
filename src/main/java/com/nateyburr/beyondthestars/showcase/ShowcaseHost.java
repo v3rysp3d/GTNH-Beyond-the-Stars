@@ -24,4 +24,13 @@ public interface ShowcaseHost {
 
     /** The machine's name for /btsshowcase status. */
     String showcaseName();
+
+    /**
+     * True (the default) when {@link BTSShowcase#second} may keep the input hatches and buses topped up with what is
+     * already in them. False for a machine with trim sockets among its input hatches (the Eye, the quasar), where a
+     * full hatch would over-trim: those feed themselves.
+     */
+    default boolean showcaseTopsUpHatches() {
+        return true;
+    }
 }

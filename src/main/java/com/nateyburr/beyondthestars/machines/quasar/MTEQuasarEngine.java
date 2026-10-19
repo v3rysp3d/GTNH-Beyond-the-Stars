@@ -180,6 +180,11 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     }
 
     @Override
+    public boolean showcaseTopsUpHatches() {
+        return false; // trim sockets among the input hatches: the machine feeds itself in showcase mode
+    }
+
+    @Override
     public String showcaseName() {
         return "Quasar Engine";
     }
