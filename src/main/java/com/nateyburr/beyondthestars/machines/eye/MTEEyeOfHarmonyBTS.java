@@ -1665,7 +1665,10 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
         resumeIfRepaired(aBaseMetaTileEntity);
-        if (aTick % DRAIN_INTERVAL == 0) com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
+        if (aTick % DRAIN_INTERVAL == 0) {
+            runtime.aliveSecond();
+            com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
+        }
         if (aTick % DRAIN_INTERVAL == 0 && !footprintGate(aBaseMetaTileEntity, aTick)) {
             // frozen: the hatches only hear that the Eye reports, and no valve is asked for: a frozen field does not
             // step, so a trim bit held through the freeze filled its Field hatch with a backlog the Eye then drank

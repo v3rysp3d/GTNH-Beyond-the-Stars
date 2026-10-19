@@ -289,6 +289,16 @@ public final class EyeStarRuntime {
      * B-225: the bench's standard rig on this Eye, its bench quasar's mass (SM); 0 off. Tile NBT ({@link EyeStdRig}).
      */
     double benchStdRig;
+    /** Seconds the controller has ticked since it loaded (frozen or not); {@link #aliveSecond}. Not saved. */
+    long aliveSeconds;
+    /** {@link #aliveSeconds} at the last second the field drank its trims. */
+    private long lastTrimSecond = Long.MIN_VALUE / 4;
+
+    /** The controller's once-a-second tick, frozen or not (the trim backlog rule counts on it). */
+    public void aliveSecond() {
+        aliveSeconds++;
+    }
+
     /** SHOWCASE MODE ({@link EyeShowcase}): saved with the Eye's tile ({@link EyeNbt#writeStar}). */
     boolean showcase;
 
@@ -1077,6 +1087,16 @@ public final class EyeStarRuntime {
             // the prototype's rig is per parallel (p = 1 there); a socket's cap is cap × p, and the field divides by p
             if (p > 1) in.u.replaceAll((trim, units) -> units * p);
         } else {
+            // A field that did not step last second (a load, a freeze, a wait) did not drink its trims: what its valves
+            // poured meanwhile is a backlog, and drunk at the cap it would over-trim the field for as many seconds
+            // (a T4 lost to Super Coolant, Θ −104, on a restart). The first stepping second drops it.
+            if (aliveSeconds - lastTrimSecond > 1) {
+                for (TrimDef trim : table.trims()) {
+                    final Fluid fluid = trimFluid(trim.kind);
+                    if (fluid != null) host.drainField(fluid, Long.MAX_VALUE / 4);
+                }
+            }
+            lastTrimSecond = aliveSeconds;
             for (TrimDef trim : table.trims()) {
                 final Fluid fluid = trimFluid(trim.kind);
                 if (fluid == null) continue;
