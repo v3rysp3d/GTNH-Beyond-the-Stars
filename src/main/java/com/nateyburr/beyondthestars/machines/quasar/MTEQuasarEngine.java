@@ -156,7 +156,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     // ============================================================================== showcase mode
     /**
      * SHOWCASE MODE (showcase/BTSShowcase): no coil power, the Accretion Buffer and the Overdrive / Unbound upkeep
-     * kept full, the lattice saturated, and a hole that is lost reseeded at the mass it last had. Tile NBT only.
+     * kept full, the lattice saturated, the mass held where it was when showcase mode first saw the hole open (a lost
+     * hole is reseeded at it). Tile NBT only.
      */
     private boolean showcase;
     /** The mass the showcase hole last had (reseeds it after a collapse), SM. */
@@ -170,6 +171,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     @Override
     public void setShowcase(boolean on) {
         showcase = on;
+        if (!on) showcaseMass = 0;
         if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
     }
 
@@ -200,7 +202,9 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
         if (q.hole == QuasarState.Hole.NONE && mMachine) {
             debugSeed(showcaseMass > 0 ? showcaseMass : QuasarParams.SEED_MASS, 0);
         } else if (q.hole == QuasarState.Hole.OPEN) {
-            showcaseMass = q.M;
+            // held at the mass it had when showcase mode first saw it running, so it never outgrows its exhibit
+            if (showcaseMass <= 0) showcaseMass = q.M;
+            else if (q.M > showcaseMass) q.M = showcaseMass;
         }
     }
 
