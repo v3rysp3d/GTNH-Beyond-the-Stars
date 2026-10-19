@@ -169,7 +169,7 @@ public final class EyeStdRig {
     }
 
     /** Tops the first injector up to a full load of Superdense pellets once it is under {@link #PELLETS_FLOOR}. */
-    private static void stockPellets(MTEEyeOfHarmonyBTS eye) {
+    static void stockPellets(MTEEyeOfHarmonyBTS eye) {
         if (SLP5Items.gatedPelletSuperdense == null) return;
         for (MTEHatchPelletInjector inj : eye.injectorHatches()) {
             final IGregTechTileEntity b = inj == null ? null : inj.getBaseMetaTileEntity();

@@ -211,6 +211,7 @@ public final class EyeGalaxyBench {
     public static void liveSecond(MTEEyeOfHarmonyBTS eye) {
         final java.util.function.Consumer<MTEEyeOfHarmonyBTS> hook = liveHook;
         if (hook != null) hook.accept(eye);
+        EyeShowcase.second(eye); // showcase mode (a no-op when off)
         EyeStdRig.second(eye); // B-225: the saved standard rig (a no-op when off)
         EyeP5Bench.refill(eye);
         if (!live || rig == null || rigFor != key(eye)) return;

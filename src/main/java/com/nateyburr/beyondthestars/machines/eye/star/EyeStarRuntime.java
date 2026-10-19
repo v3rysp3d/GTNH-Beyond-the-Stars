@@ -289,6 +289,18 @@ public final class EyeStarRuntime {
      * B-225: the bench's standard rig on this Eye, its bench quasar's mass (SM); 0 off. Tile NBT ({@link EyeStdRig}).
      */
     double benchStdRig;
+    /** SHOWCASE MODE ({@link EyeShowcase}): saved with the Eye's tile ({@link EyeNbt#writeStar}). */
+    boolean showcase;
+
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    public void setShowcase(boolean on) {
+        showcase = on;
+        host.markDirty();
+    }
+
     /** P4 bench: the bench quasar's {Φ, b} for the collapse assist (its source is not a machine); null in play. */
     double[] benchFlux;
 
@@ -2422,12 +2434,14 @@ public final class EyeStarRuntime {
     }
 
     private boolean debit(BigInteger eu) {
+        if (showcase) return true; // showcase mode: the cycle's EU is waived
         final UUID owner = host.owner();
         if (owner == null) return false;
         return WirelessNetworkManager.addEUToGlobalEnergyMap(owner, eu.negate());
     }
 
     private BigInteger networkEU() {
+        if (showcase) return BigInteger.TEN.pow(30);
         final UUID owner = host.owner();
         return owner == null ? BigInteger.ZERO : WirelessNetworkManager.getUserEU(owner);
     }

@@ -50,7 +50,8 @@ public class CommandBTSShowcase extends CommandBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1) return getListOfStringsMatchingLastWord(args, "status", "on", "off", "all");
-        if (args.length == 2 && "all".equalsIgnoreCase(args[0])) return getListOfStringsMatchingLastWord(args, "on", "off");
+        if (args.length == 2 && "all".equalsIgnoreCase(args[0]))
+            return getListOfStringsMatchingLastWord(args, "on", "off");
         return null;
     }
 
@@ -62,7 +63,10 @@ public class CommandBTSShowcase extends CommandBase {
         switch (verb) {
             case "status": {
                 final List<String> held = BTSShowcase.heldLines();
-                tell(sender, held.isEmpty() ? "No showcase machine holds chunks." : held.size() + " showcase machine(s) hold chunks:");
+                tell(
+                    sender,
+                    held.isEmpty() ? "No showcase machine holds chunks."
+                        : held.size() + " showcase machine(s) hold chunks:");
                 for (String l : held) tell(sender, "  " + l);
                 int on = 0, off = 0;
                 for (Found f : find(world, sender, 1024)) {

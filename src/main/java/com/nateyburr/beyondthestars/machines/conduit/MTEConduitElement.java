@@ -92,9 +92,12 @@ import io.netty.buffer.ByteBuf;
  * </ol>
  */
 public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends MTEExtendedPowerMultiBlockBase<T>
-    implements ISurvivalConstructable, IConduitElement, IMTERenderer, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+    implements ISurvivalConstructable, IConduitElement, IMTERenderer,
+    com.nateyburr.beyondthestars.showcase.ShowcaseHost {
 
-    /** SHOWCASE MODE (showcase/BTSShowcase): the throat's upkeep is waived, so the element stays open. Tile NBT only. */
+    /**
+     * SHOWCASE MODE (showcase/BTSShowcase): the throat's upkeep is waived, so the element stays open. Tile NBT only.
+     */
     private boolean showcase;
 
     @Override

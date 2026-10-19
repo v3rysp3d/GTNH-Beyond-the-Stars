@@ -185,7 +185,37 @@ import tectech.thing.casing.TTCasingsContainer;
  * All walk state is zeroed in {@link #resetWalk()}, the first statement of {@link #checkMachine}.
  */
 public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfHarmonyBTS>
-    implements ISurvivalConstructable, DirectiveHost {
+    implements ISurvivalConstructable, DirectiveHost, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    // ============================================================================== showcase mode
+    // SHOWCASE MODE (showcase/BTSShowcase, star/EyeShowcase): the flag lives in the runtime (tile NBT).
+
+    @Override
+    public boolean isShowcase() {
+        return runtime.isShowcase();
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        runtime.setShowcase(on);
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        if (b == null) return null;
+        return com.nateyburr.beyondthestars.machines.SLConsoleTest.bounds(
+            getExtendedFacing(),
+            b.getXCoord(),
+            b.getYCoord(),
+            b.getZCoord(),
+            Arrays.copyOf(PIECES, footprintPieces()));
+    }
+
+    @Override
+    public String showcaseName() {
+        return "Eye of Harmony";
+    }
 
     // ------------------------------------------------------------------------------- pieces
     public static final String PIECE_CORE = "eye_core";
@@ -1621,6 +1651,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (!aBaseMetaTileEntity.isServerSide()) return;
         resumeIfRepaired(aBaseMetaTileEntity);
+        if (aTick % DRAIN_INTERVAL == 0) com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
         if (aTick % DRAIN_INTERVAL == 0 && !footprintGate(aBaseMetaTileEntity, aTick)) {
             // frozen: the hatches only hear that the Eye reports (their codes stay as they were)
             publishDirectives();
@@ -3550,6 +3581,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
+        if (runtime.isShowcase()) info.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         info.addAll(statusLines());
         return info.toArray(new String[0]);
     }
