@@ -423,6 +423,7 @@ public final class ShowcaseAutoRig {
             if (!placed) out.add("NO free Field socket left for the " + v.label + " valve");
         }
         if (tier == 6) out.addAll(mergerAgent(world, eye));
+        if (tier >= 7 && tier <= 9) out.add(beginWire(world, eye));
         eye.checkStructure(true, base);
         out.add(
             "Eye T" + tier
@@ -683,6 +684,79 @@ public final class ShowcaseAutoRig {
         out.add(
             "merger Agent valve: 5-unit valve on Status 3 AND NOT Transition 2, 1-unit valve on both at " + pos(tankB));
         return out;
+    }
+
+    // ----------------------------------------------------------------------- T7-T9: the Begin edge
+
+    /**
+     * Begin (docs/automation.md 7.4): a lost galaxy relights at Triangulum (D-54) and climbs back through the Galactic
+     * Merger (and at T9 The Infall), each started by a Begin edge. A Galaxy Transition hatch on Bit 1 ("ready: begin")
+     * in a free socket transmits it over GT advanced wireless redstone to a receiver on the Eye's Burst Control Hatch
+     * in
+     * Begin mode.
+     */
+    private static String beginWire(World world, MTEEyeOfHarmonyBTS eye) {
+        final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+        final String freq = "bts-begin-" + base.getXCoord() + "-" + base.getYCoord() + "-" + base.getZCoord();
+        com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl begin = null;
+        for (com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl bc : eye.burstControlHatches()) {
+            if (bc != null && bc.isValid()
+                && bc.getMode() == com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl.Mode.BEGIN) {
+                begin = bc;
+                break;
+            }
+        }
+        if (begin == null) return "Begin: no Burst Control Hatch in Begin mode";
+        final IGregTechTileEntity bb = begin.getBaseMetaTileEntity();
+        final int[] bcPos = { bb.getXCoord(), bb.getYCoord(), bb.getZCoord() };
+        for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+            if (bb.getCoverAtSide(d) instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) {
+                return "Begin: wired already (receiver on " + pos(bcPos) + ")";
+            }
+        }
+        // a free socket: a Field hatch with nothing in front and no wired hatch above
+        final int[][] f = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f');
+        for (int[] rel : f) {
+            final int[] p = SLConsoleTest
+                .worldPos(eye.getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+            final IMetaTileEntity field = mteAt(world, p[0], p[1], p[2]);
+            if (!(field instanceof MTEHatchInput)) continue;
+            final ForgeDirection o = ((MTEHatchInput) field).getBaseMetaTileEntity()
+                .getFrontFacing();
+            if (o == ForgeDirection.UP || o == ForgeDirection.DOWN || o == ForgeDirection.UNKNOWN) continue;
+            final int[] up = { p[0], p[1] + 1, p[2] };
+            final IMetaTileEntity above = mteAt(world, up[0], up[1], up[2]);
+            if (mteAt(world, p[0] + o.offsetX, p[1], p[2] + o.offsetZ) != null || hasCover(world, up)) continue;
+            if (above != null && !(above instanceof MTEHatchDirective)
+                && !(above instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor)) continue;
+            if (above instanceof MTEHatchDirective && ((MTEHatchDirective) above).getSet() != DirectiveSet.EYE_TRIMS) {
+                continue; // keep the hatches the rig reads
+            }
+            MTEReactorCoreMk1
+                .placeGtMachine(world, up[0], up[1], up[2], (short) BTSMachines.directiveHatch.getItemDamage(), o);
+            final IMetaTileEntity t = mteAt(world, up[0], up[1], up[2]);
+            if (!(t instanceof MTEHatchDirective)) continue;
+            ((MTEHatchDirective) t).setSet(DirectiveSet.EYE_GALAXY_TRANSITION);
+            ((MTEHatchDirective) t).setOutput(DirectiveSet.Output.BIT1);
+            ((MTEHatchDirective) t).setWindow(10);
+            transmit(world, up, o.getRotation(ForgeDirection.UP), freq, false);
+            ForgeDirection rxSide = ForgeDirection.UP;
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+                if (d != bb.getFrontFacing() && bb.getCoverAtSide(d) == null) {
+                    rxSide = d;
+                    break;
+                }
+            }
+            final Cover rx = cover(world, bcPos, rxSide, ItemList.Cover_AdvancedRedstoneReceiverInternal.get(1L));
+            if (rx instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) {
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx).setFrequency(freq);
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx)
+                    .setMode(gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase.GateMode.SINGLE_SOURCE);
+            }
+            issue(world, bcPos, rxSide);
+            return "Begin: Galaxy Transition Bit 1 at " + pos(up) + " -> the Begin hatch at " + pos(bcPos);
+        }
+        return "Begin: NO free socket for the Galaxy Transition hatch";
     }
 
     /** A Debug Fluid Tank valve: a Conditional Fluid Regulator into the hatch behind it, run by a wireless receiver. */
