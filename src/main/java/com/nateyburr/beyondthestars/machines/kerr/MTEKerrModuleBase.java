@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
@@ -66,7 +67,46 @@ import gregtech.common.tileentities.machines.RecipeCheckReason;
  * mid-recipe changes nothing. Modules cost the hole nothing (B-50).
  */
 public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends MTEExtendedPowerMultiBlockBase<T>
-    implements ISurvivalConstructable {
+    implements ISurvivalConstructable, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    /** SHOWCASE MODE (showcase/BTSShowcase): maintenance, void mode, restarts and chunk loading. Tile NBT only. */
+    private boolean showcase;
+
+    @Override
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        showcase = on;
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        if (b == null) return null;
+        final int x = b.getXCoord(), z = b.getZCoord();
+        return new int[] { x - 32, 0, z - 32, x + 32, 255, z + 32 };
+    }
+
+    @Override
+    public String showcaseName() {
+        return getLocalName();
+    }
+
+    @Override
+    public void saveNBTData(NBTTagCompound aNBT) {
+        super.saveNBTData(aNBT);
+        aNBT.setBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY, showcase);
+    }
+
+    @Override
+    public void loadNBTData(NBTTagCompound aNBT) {
+        super.loadNBTData(aNBT);
+        showcase = aNBT.getBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY);
+    }
 
     /** Why a module is (not) running. Server-side; the GUI gets the ordinal. */
     public enum Link {
@@ -236,6 +276,9 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     @Override
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (aBaseMetaTileEntity.isServerSide() && ticksSinceLoad < LOAD_GRACE) ticksSinceLoad++;
+        if (aBaseMetaTileEntity.isServerSide() && aTick % 20 == 0) {
+            com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
+        }
         if (aBaseMetaTileEntity.isServerSide() && aTick % LINK_INTERVAL == 0) {
             refreshLink();
             // A recipe gate opening (the compressor's DENSITY, P4's 256 SM and quasar link) is a change GT is not told
@@ -530,6 +573,7 @@ public abstract class MTEKerrModuleBase<T extends MTEKerrModuleBase<T>> extends 
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
+        if (showcase) info.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         info.add(linkLine(link, keePosText(), linkedMass()));
         info.add(bonusLine(link, bonusParallel(), bonusSpeed()));
         final String gate = gateLine();

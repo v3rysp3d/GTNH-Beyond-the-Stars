@@ -58,6 +58,12 @@ public class CommonProxy {
         com.nateyburr.beyondthestars.machines.BTSStructures.registerChannels();
         // P5: GT glass tiers for the UXV and MAX glasses (slGlass), so multis that check their glass accept them.
         com.nateyburr.beyondthestars.blocks.SLBlocks.slGlass.registerGlassTiers();
+        // Showcase mode: the mod's one chunk-loading callback (showcase tickets come back after a restart, bench
+        // tickets are released) and the sweep that drops the tickets of machines that are gone.
+        com.nateyburr.beyondthestars.showcase.BTSShowcase.registerCallback();
+        FMLCommonHandler.instance()
+            .bus()
+            .register(new com.nateyburr.beyondthestars.showcase.BTSShowcase.Ticker());
 
         // AUTOMATION PASS: OpenComputers components, only with OpenComputers present (soft dependency).
         if (Loader.isModLoaded("OpenComputers")) {
@@ -113,6 +119,7 @@ public class CommonProxy {
 
     public void serverStopping(cpw.mods.fml.common.event.FMLServerStoppingEvent event) {
         TimeWarp.serverStopping();
+        com.nateyburr.beyondthestars.showcase.BTSShowcase.serverStopping();
     }
 
     public void serverStarting(FMLServerStartingEvent event) {
@@ -147,6 +154,7 @@ public class CommonProxy {
         // SMBH v1 (smbh-v1.md §10.4): the Supermassive Lattice's op-only bench
         event.registerServerCommand(new CommandBTSSmbh());
         event.registerServerCommand(new CommandBTSWarp());
+        event.registerServerCommand(new CommandBTSShowcase());
     }
 
     /**

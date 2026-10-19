@@ -1410,7 +1410,6 @@ public final class RenderTest {
     /** Server tick at which RETIRING goes (-1: not scheduled). */
     private static int retireAt = -1;
     private static int serverTicks;
-    private static boolean callbackSet;
     /** Ticks between the first teleport onto a new site and the release of the old site's tickets. */
     private static final int RETIRE_DELAY = 100;
 
@@ -1426,12 +1425,8 @@ public final class RenderTest {
             .get(BeyondTheStars.MODID);
         if (mc == null) return;
         final Object mod = mc.getMod();
-        if (!callbackSet) {
-            ForgeChunkManager.setForcedChunkLoadingCallback(
-                mod,
-                (tickets, w) -> { for (ForgeChunkManager.Ticket t : tickets) ForgeChunkManager.releaseTicket(t); });
-            callbackSet = true;
-        }
+        // The mod's one loading callback (BTSShowcase.registerCallback, CommonProxy.init) releases these after a
+        // restart: they carry no showcase tag.
         ForgeChunkManager.Ticket ticket = null;
         for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
             for (int cz = box[2] >> 4; cz <= box[5] >> 4; cz++) {

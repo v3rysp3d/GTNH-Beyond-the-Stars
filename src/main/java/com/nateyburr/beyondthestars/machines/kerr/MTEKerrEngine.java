@@ -129,7 +129,38 @@ import gregtech.common.tileentities.machines.multi.compressor.MTEBlackHoleUtilit
  * </ol>
  */
 public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
-    implements ISurvivalConstructable, KerrHole, DirectiveHost {
+    implements ISurvivalConstructable, KerrHole, DirectiveHost, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    // ------------------------------------------------------------------------------- showcase mode
+    /**
+     * SHOWCASE MODE (showcase/BTSShowcase): the hole is held at its setpoint with no bolts or containment power, a
+     * closed hole reopens without a Seed, and σ reads 1 (the quasar link's recipes run). Tile NBT only.
+     */
+    private boolean showcase;
+
+    @Override
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        showcase = on;
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        if (b == null) return null;
+        final int x = b.getXCoord(), z = b.getZCoord();
+        return new int[] { x - RECHECK_RADIUS, 0, z - RECHECK_RADIUS, x + RECHECK_RADIUS, 255, z + RECHECK_RADIUS };
+    }
+
+    @Override
+    public String showcaseName() {
+        return "Kerr Ergosphere Engine";
+    }
 
     // ------------------------------------------------------------------------------- pieces
     public static final String PIECE_T1 = "kerr_t1";
@@ -722,6 +753,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
      */
     @Override
     public double burstSigma() {
+        if (showcase) return 1.0;
         return receptorCount() == 0 ? 0 : burstHost.sigmaInForce();
     }
 
@@ -811,13 +843,18 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
             // A held legacy recipe waits for its module to form (an old arc had no energy hatch).
             KerrMigration.handOffLegacyRecipe(this, false);
         }
+        if (showcase && mMachine && !holeOpen && aTick % 20 == 0) {
+            holeOpen = true;
+            mass = Math.max(OPEN_MASS, effectiveSetpoint());
+        }
         if (mMachine) {
-            if (autoSeeds && aTick % 20 == 0) useSeedOrCollapser();
+            if (autoSeeds && aTick % 20 == 0 && !showcase) useSeedOrCollapser();
             pulseUtilityHatches(aTick);
             tickHole();
         }
         tickRender(aBaseMetaTileEntity, aTick);
         if (aTick % 20 == 0) {
+            com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
             if (mMachine) burstSecond();
             refreshReadouts();
             publishDirectives();
@@ -890,6 +927,20 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
         lastBleed = BLEED_K / (mass * mass) * bleedFactor();
         mass -= lastBleed;
         windowBled += lastBleed;
+        if (showcase) {
+            // Showcase: the governor holds the setpoint with neither bolts nor containment power.
+            powerOk = true;
+            mass = Math.max(mass, effectiveSetpoint());
+            windowFed += lastBleed;
+            lastBoltsFired = 0;
+            if (++windowTicks >= 20) {
+                stability = 1.0;
+                boltsPerTick = 0;
+                windowFed = windowBled = 0;
+                windowBolts = windowTicks = 0;
+            }
+            return;
+        }
         powerOk = drainEnergyInput(CONTAINMENT_EUT);
         final double deficit = effectiveSetpoint() - mass;
         final double before = mass;
@@ -1669,6 +1720,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         writeKerrState(aNBT);
+        aNBT.setBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY, showcase);
         // Tile only (not setItemNBT): where this KEE's render block stands, so a reload finds it again.
         if (renderPos != null) aNBT.setIntArray("btsKerrRenderPos", renderPos);
     }
@@ -1683,6 +1735,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
         densityInstalled = aNBT.getBoolean("btsKerrDensity");
+        showcase = aNBT.getBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY);
         holeOpen = aNBT.getBoolean("btsKerrHoleOpen");
         mass = holeOpen ? Math.max(MASS_FLOOR, aNBT.getDouble("btsKerrMass")) : 0;
         // the tier's storable cap, not the live one: the link is not known yet at load (a linked 768 SM stays)
@@ -1725,6 +1778,7 @@ public class MTEKerrEngine extends MTEExtendedPowerMultiBlockBase<MTEKerrEngine>
     public List<String> statusLines() {
         if (getBaseMetaTileEntity() != null && getBaseMetaTileEntity().isServerSide()) refreshReadouts();
         final List<String> out = new ArrayList<>();
+        if (showcase) out.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         out.add(
             "Kerr " + (densityInstalled ? "T2 (Density Upgrade installed)" : "T1") + (mMachine ? "" : ", NOT FORMED"));
         if (holeOpen) {

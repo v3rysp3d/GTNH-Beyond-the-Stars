@@ -513,7 +513,6 @@ public final class KerrTestBench {
 
     /** Test-bench chunk tickets (never saved for reuse: after a restart Forge drops them unclaimed). */
     private static final List<ForgeChunkManager.Ticket> TICKETS = new ArrayList<>();
-    private static boolean callbackSet;
 
     /**
      * Force-loads every chunk of {@code box} (a whole Kerr) with test-bench tickets, so a console test
@@ -526,12 +525,8 @@ public final class KerrTestBench {
             .get(BeyondTheStars.MODID);
         if (mc == null) return 0;
         final Object mod = mc.getMod();
-        if (!callbackSet) {
-            ForgeChunkManager.setForcedChunkLoadingCallback(
-                mod,
-                (tickets, w) -> { for (ForgeChunkManager.Ticket t : tickets) ForgeChunkManager.releaseTicket(t); });
-            callbackSet = true;
-        }
+        // The mod's one loading callback (BTSShowcase.registerCallback, CommonProxy.init) releases these after a
+        // restart: they carry no showcase tag.
         ForgeChunkManager.Ticket ticket = null;
         int n = 0;
         for (int cx = box[0] >> 4; cx <= box[3] >> 4; cx++) {
