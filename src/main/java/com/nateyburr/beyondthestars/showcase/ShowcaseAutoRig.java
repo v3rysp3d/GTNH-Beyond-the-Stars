@@ -887,6 +887,45 @@ public final class ShowcaseAutoRig {
             issue(world, bcPos, rxSide);
             return "dark: sensor at " + pos(up) + " -> " + dark + " -> J1's hatch at " + pos(bcPos);
         }
+        // no free Field / sensor pair: a Directive socket of the core ('d') that holds only its casing takes the sensor
+        for (int[] rel : BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'd')) {
+            final int[] p = SLConsoleTest
+                .worldPos(eye.getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+            if (world.getTileEntity(p[0], p[1], p[2]) != null) continue;
+            final ForgeDirection o = eye.getExtendedFacing()
+                .getDirection();
+            MTEReactorCoreMk1
+                .placeGtMachine(world, p[0], p[1], p[2], (short) BTSMachines.stellarFieldSensor.getItemDamage(), o);
+            final IMetaTileEntity sm = mteAt(world, p[0], p[1], p[2]);
+            if (!(sm instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor)) continue;
+            final com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor sn = (com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor) sm;
+            sn.setChannelOrdinal(5);
+            sn.setThreshold(-1000);
+            sn.setWindow(120);
+            sn.setAnalog(false);
+            sn.setInvert(false);
+            sn.setLessThan(false);
+            transmit(world, p, o.getRotation(ForgeDirection.UP), dark, true);
+            ForgeDirection rxSide = null;
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+                if (d != bc.getFrontFacing() && emptySide(bc, d)) {
+                    rxSide = d;
+                    break;
+                }
+            }
+            if (rxSide == null) return "dark: J1's Burst Control Hatch has no free side";
+            final int[] bcPos = { bc.getXCoord(), bc.getYCoord(), bc.getZCoord() };
+            final Cover rx = cover(world, bcPos, rxSide, ItemList.Cover_AdvancedRedstoneReceiverInternal.get(1L));
+            if (rx instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) {
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx).setFrequency(dark);
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx)
+                    .setMode(gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase.GateMode.OR);
+            }
+            issue(world, bcPos, rxSide);
+            eye.checkStructure(true, base);
+            return "dark: sensor in a Directive socket at " + pos(
+                p) + " -> " + dark + " -> J1's hatch at " + pos(bcPos);
+        }
         return "dark: NO free socket for the dark sensor";
     }
 
