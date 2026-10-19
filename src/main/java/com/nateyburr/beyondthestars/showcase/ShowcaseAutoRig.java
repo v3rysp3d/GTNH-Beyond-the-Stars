@@ -356,6 +356,15 @@ public final class ShowcaseAutoRig {
             out.add("the bench's free field rig: off (the Field sockets count now)");
         }
         EyeStdRig.set(eye, 0);
+        // a Field hatch holding a backlog (a valve that poured while the Eye could not drink) is emptied once
+        int drained = 0;
+        for (MTEHatchInput h : eye.fieldHatches()) {
+            if (h != null && h.isValid() && h.getFluid() != null) {
+                h.setFillableStack(null);
+                drained++;
+            }
+        }
+        if (drained > 0) out.add(drained + " Field hatch(es) emptied of a backlog");
         final UUID owner = eye.getBaseMetaTileEntity()
             .getOwnerUuid();
         if (owner != null) {

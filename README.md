@@ -946,6 +946,7 @@ than 15 % of the footprint is solid; add `force` to override.
 | `/btskerr`, `/btseye star`, `/btsquasar`, `/btsconduit`, `/btssmbh`, `/btshr bench` subcommands | Test benches: read state, set mass or feed, purge, trim, open / close, inject streams, force milestones, build the standard automation rigs (`autorig`), keep a far build's chunks loaded (`keep`) |
 | `/btsconduit crowns x y z <1-4> [stack]` | Docks a crown of that Mk on each of a quasar's jet ports |
 | `/btsrecipes chain ...`, `/btsrecipes nac ...`, `/btshr becnet ...` | Builds a rig of stock machines (the circuit chain, a Nanochip Assembly Complex, a BEC network) and runs recipes through it |
+| `/btsshowcase on\|off x y z`, `/btsshowcase all on\|off [radius]` | **Showcase mode** on a controller: the mod keeps it fed, powered, stable, switched on and chunk-loaded, also after a restart (saved in the machine, so it keeps working with the test commands off). For showcase worlds and screenshots. `keep on\|off x y z` only keeps the footprint loaded; `autorig x y z` builds the automation showcase's in-world supplies and valves; `status`, `info x y z`, `fluid x y z <fluid>` check an exhibit |
 | `/btsclock`, `/btssupply`, `/btssafety [on\|off]` | Nuclear plant bench switches: a 1 Hz turbine clock, infinite supplies, and the over-injection guard |
 | `/btsmilestone ...`, `/btstree ...` | Nuclear plant: set milestone tiers, buy or refund upgrade-tree nodes, self-tests |
 

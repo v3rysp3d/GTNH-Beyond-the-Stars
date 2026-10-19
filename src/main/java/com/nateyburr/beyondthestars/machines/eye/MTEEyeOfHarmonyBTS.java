@@ -1667,8 +1667,15 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         resumeIfRepaired(aBaseMetaTileEntity);
         if (aTick % DRAIN_INTERVAL == 0) com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
         if (aTick % DRAIN_INTERVAL == 0 && !footprintGate(aBaseMetaTileEntity, aTick)) {
-            // frozen: the hatches only hear that the Eye reports (their codes stay as they were)
-            publishDirectives();
+            // frozen: the hatches only hear that the Eye reports, and no valve is asked for: a frozen field does not
+            // step, so a trim bit held through the freeze filled its Field hatch with a backlog the Eye then drank
+            // at the trim's cap, second after second, until the field breached (a T6 lost to Super Coolant, Θ −120)
+            publishingFrozen = true;
+            try {
+                publishDirectives();
+            } finally {
+                publishingFrozen = false;
+            }
             aBaseMetaTileEntity.markDirty();
         } else if (aTick % DRAIN_INTERVAL == 0) {
             refreshSlotItems();
@@ -2048,6 +2055,9 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     /** Once a second (server): every live Directive Hatch gets this Eye's codes. */
+    /** True while the frozen Eye publishes ({@link #directiveCode}: no valve is asked for). */
+    private boolean publishingFrozen;
+
     private void publishDirectives() {
         if (mMachine) {
             formedDirectiveHatches.clear();
@@ -2117,7 +2127,13 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
 
     @Override
     public int directiveCode(DirectiveSet set, int window) {
-        return runtime.directiveCode(set, window);
+        final int code = runtime.directiveCode(set, window);
+        if (!publishingFrozen) return code;
+        // frozen: the valve sets ask for nothing (the alarm, Status bit 4, still goes out)
+        if (set == DirectiveSet.EYE_TRIMS || set == DirectiveSet.EYE_FIELD || set == DirectiveSet.EYE_UNIVERSE)
+            return 0;
+        if (set == DirectiveSet.EYE_STATUS) return code & 8;
+        return code;
     }
 
     @Override
