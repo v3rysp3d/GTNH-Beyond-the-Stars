@@ -424,6 +424,7 @@ public final class ShowcaseAutoRig {
         }
         if (tier == 6) out.addAll(mergerAgent(world, eye));
         if (tier >= 7 && tier <= 9) out.add(beginWire(world, eye));
+        if (tier >= 7) out.add(darkWire(world, eye));
         eye.checkStructure(true, base);
         out.add(
             "Eye T" + tier
@@ -792,6 +793,101 @@ public final class ShowcaseAutoRig {
                 + pos(bcPos);
         }
         return "Begin: NO free socket and no unwired Galaxy Transition hatch";
+    }
+
+    // ------------------------------------------------------------------ T7-T10: J1 opens on a dark Eye
+
+    /**
+     * A dark galaxy Eye waits for bursts to relight, but its P sensor (J1's analog steering) reads 0 then, and J1 at 0
+     * sends everything to its other side: the Eye never gets the bursts it waits for. As the reference rig does on T7,
+     * T8 and T10: a second sensor (channel 5, above -1000, so 15 while the star is live) transmits inverted on the J1
+     * frequency's "-dark" twin, and J1's Burst Control Hatch takes it on an OR receiver: 15 while the Eye is dark.
+     */
+    private static String darkWire(World world, MTEEyeOfHarmonyBTS eye) {
+        String j1 = null;
+        for (com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor sn : eye.sensorHatches()) {
+            if (sn == null || !sn.isValid()) continue;
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+                final Cover c = sn.getBaseMetaTileEntity()
+                    .getCoverAtSide(d);
+                if (c instanceof gregtech.common.covers.redstone.CoverAdvancedWirelessRedstoneBase) {
+                    final String f = ((gregtech.common.covers.redstone.CoverAdvancedWirelessRedstoneBase) c)
+                        .getFrequency();
+                    if (f != null && f.endsWith("-j1")) j1 = f;
+                    if (f != null && f.endsWith("-dark")) return "dark: wired already (" + f + ")";
+                }
+            }
+        }
+        if (j1 == null) return "dark: no sensor transmits a J1 frequency";
+        final String dark = j1.substring(0, j1.length() - 3) + "-dark";
+        // the J1 Burst Control Hatch: the one whose receiver listens on the J1 frequency
+        IGregTechTileEntity bc = null;
+        for (Object o : new ArrayList<Object>(world.loadedTileEntityList)) {
+            if (!(o instanceof IGregTechTileEntity)) continue;
+            final IGregTechTileEntity t = (IGregTechTileEntity) o;
+            if (!(t
+                .getMetaTileEntity() instanceof com.nateyburr.beyondthestars.machines.conduit.MTEHatchBurstControl)) {
+                continue;
+            }
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+                final Cover c = t.getCoverAtSide(d);
+                if (c instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase && j1
+                    .equals(((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) c).getFrequency())) {
+                    bc = t;
+                }
+            }
+        }
+        if (bc == null) return "dark: no Burst Control Hatch listens on " + j1 + " (its chunk may be unloaded)";
+        // a free socket for the sensor (as beginWire finds one)
+        final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+        final int[][] f = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f');
+        for (int[] rel : f) {
+            final int[] p = SLConsoleTest
+                .worldPos(eye.getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+            final IMetaTileEntity field = mteAt(world, p[0], p[1], p[2]);
+            if (!(field instanceof MTEHatchInput)) continue;
+            final ForgeDirection o = ((MTEHatchInput) field).getBaseMetaTileEntity()
+                .getFrontFacing();
+            if (o == ForgeDirection.UP || o == ForgeDirection.DOWN || o == ForgeDirection.UNKNOWN) continue;
+            final int[] up = { p[0], p[1] + 1, p[2] };
+            final IMetaTileEntity above = mteAt(world, up[0], up[1], up[2]);
+            if (mteAt(world, p[0] + o.offsetX, p[1], p[2] + o.offsetZ) != null || hasCover(world, up)) continue;
+            if (above instanceof MTEHatchDirective && ((MTEHatchDirective) above).getSet() != DirectiveSet.EYE_TRIMS) {
+                continue;
+            }
+            if (above != null && !(above instanceof MTEHatchDirective)
+                && !(above instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor)) continue;
+            MTEReactorCoreMk1
+                .placeGtMachine(world, up[0], up[1], up[2], (short) BTSMachines.stellarFieldSensor.getItemDamage(), o);
+            final IMetaTileEntity sm = mteAt(world, up[0], up[1], up[2]);
+            if (!(sm instanceof com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor)) continue;
+            final com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor sn = (com.nateyburr.beyondthestars.machines.eye.MTEHatchStellarFieldSensor) sm;
+            sn.setChannelOrdinal(5);
+            sn.setThreshold(-1000);
+            sn.setWindow(120);
+            sn.setAnalog(false);
+            sn.setInvert(false);
+            sn.setLessThan(false);
+            transmit(world, up, o.getRotation(ForgeDirection.UP), dark, true);
+            ForgeDirection rxSide = null;
+            for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+                if (d != bc.getFrontFacing() && emptySide(bc, d)) {
+                    rxSide = d;
+                    break;
+                }
+            }
+            if (rxSide == null) return "dark: J1's Burst Control Hatch has no free side";
+            final int[] bcPos = { bc.getXCoord(), bc.getYCoord(), bc.getZCoord() };
+            final Cover rx = cover(world, bcPos, rxSide, ItemList.Cover_AdvancedRedstoneReceiverInternal.get(1L));
+            if (rx instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) {
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx).setFrequency(dark);
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx)
+                    .setMode(gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase.GateMode.OR);
+            }
+            issue(world, bcPos, rxSide);
+            return "dark: sensor at " + pos(up) + " -> " + dark + " -> J1's hatch at " + pos(bcPos);
+        }
+        return "dark: NO free socket for the dark sensor";
     }
 
     /** A Debug Fluid Tank valve: a Conditional Fluid Regulator into the hatch behind it, run by a wireless receiver. */
