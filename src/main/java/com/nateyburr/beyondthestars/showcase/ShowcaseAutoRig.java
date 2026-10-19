@@ -290,6 +290,7 @@ public final class ShowcaseAutoRig {
         final int tier = rt.star() == null ? rt.unlockedTier()
             : rt.star()
                 .n();
+        out.add(upkeepHatches(world, eye, tier));
         final List<Valve> valves = valves(tier, Math.max(1, rt.lastParallel()));
         final ExtendedFacing al = eye.getExtendedFacing();
         final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
@@ -323,6 +324,71 @@ public final class ShowcaseAutoRig {
                 + ", Directive Hatches "
                 + eye.directiveHatchCount());
         return out;
+    }
+
+    /**
+     * The fluids an Eye of tier {@code n} draws to run, and to relight after a loss (D-54: T4 from a charge and HSM, T5
+     * / T6 from dwarf matter and the Agent, T7-T9 from the Magnetar Collapse charge, T9's Infall, T10's universe).
+     */
+    private static List<Fluid> upkeepFluids(int n) {
+        final Set<Fluid> f = new LinkedHashSet<>();
+        final com.nateyburr.beyondthestars.machines.eye.star.StarDef def = com.nateyburr.beyondthestars.machines.eye.star.StarDef
+            .ofTier(n);
+        if (def != null) {
+            for (com.nateyburr.beyondthestars.machines.eye.EyeRecipe.FluidAmount a : def.upkeep) f.add(a.fluid);
+            if (def.feed != null) f.add(def.feed);
+            f.addAll(def.exactUpkeep.keySet());
+        }
+        if (n == 4) f.add(com.nateyburr.beyondthestars.fluids.SLFluids.hyperdenseStellarMixture);
+        if (n >= 5) f.add(EyeStarRuntime.wdmFluid());
+        if (n >= 6) {
+            f.add(EyeStarRuntime.bdmFluid());
+            f.add(com.nateyburr.beyondthestars.fluids.SLFluids.antipolarizationAgent);
+        }
+        if (n >= 9) f.add(com.nateyburr.beyondthestars.fluids.SLQuasarFluids.superdenseErgomatter);
+        if (n >= 10) f.add(com.nateyburr.beyondthestars.machines.eye.star.EyeAttractor.darkMatter());
+        f.remove(null);
+        return new ArrayList<>(f);
+    }
+
+    /** Empty gas / stellar sockets become debug hatches of the upkeep fluids no debug hatch gives yet. */
+    private static String upkeepHatches(World world, MTEEyeOfHarmonyBTS eye, int tier) {
+        final List<Fluid> want = upkeepFluids(tier);
+        final List<MTEHatchInput> sockets = new ArrayList<>(eye.gasHatches());
+        sockets.addAll(eye.stellarHatches());
+        for (MTEHatchInput h : sockets) {
+            if (h instanceof MTEHatchInputDebug && h.getFluid() != null) want.remove(
+                h.getFluid()
+                    .getFluid());
+        }
+        int n = 0;
+        final List<String> missing = new ArrayList<>();
+        for (Fluid f : new ArrayList<>(want)) {
+            MTEHatchInput free = null;
+            for (MTEHatchInput h : sockets) {
+                if (h != null && h.isValid()
+                    && !(h instanceof MTEHatchInputDebug)
+                    && !isMe(h)
+                    && h.getFluid() == null) {
+                    free = h;
+                    break;
+                }
+            }
+            if (free == null) {
+                missing.add(f.getName());
+                continue;
+            }
+            sockets.remove(free);
+            final List<FluidStack> one = new ArrayList<>();
+            one.add(new FluidStack(f, 1000));
+            if (toDebugHatch(world, free.getBaseMetaTileEntity(), one)) n++;
+        }
+        eye.checkStructure(true, eye.getBaseMetaTileEntity());
+        return "upkeep: " + n
+            + " socket(s) made debug hatches of "
+            + want.size()
+            + " fluid(s) wanted"
+            + (missing.isEmpty() ? "" : "; NO free socket for " + String.join(", ", missing));
     }
 
     /**
