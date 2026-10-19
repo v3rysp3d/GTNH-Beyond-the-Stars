@@ -422,6 +422,7 @@ public final class ShowcaseAutoRig {
             }
             if (!placed) out.add("NO free Field socket left for the " + v.label + " valve");
         }
+        if (tier == 6) out.addAll(mergerAgent(world, eye));
         eye.checkStructure(true, base);
         out.add(
             "Eye T" + tier
@@ -587,6 +588,145 @@ public final class ShowcaseAutoRig {
             v.bit.label.replace(" only (15 / 0)", ""),
             v.litresPerTick + " L/t");
         return null;
+    }
+
+    // ------------------------------------------------------------------------- T6: the merger's Agent valve
+
+    /**
+     * The magnetar's Agent valve (docs/automation.md 1.1, Status bit 3): outside a transition the 5-unit valve, during
+     * the Magnetar Merger (Transition bit 2) a 1-unit one, so the imprint keeps Pi inside +60..+70 (5 units take 20 off
+     * Pi at once). Over GT advanced wireless redstone: the Status hatch and a new Transition hatch each transmit on two
+     * frequencies, and each valve's receiver ANDs its pair (the 5-unit one with the Transition bit inverted).
+     */
+    private static List<String> mergerAgent(World world, MTEEyeOfHarmonyBTS eye) {
+        final List<String> out = new ArrayList<>();
+        final IGregTechTileEntity base = eye.getBaseMetaTileEntity();
+        final String fA = "bts-agent5-" + base.getXCoord() + "-" + base.getYCoord() + "-" + base.getZCoord();
+        final String fB = "bts-agent1-" + base.getXCoord() + "-" + base.getYCoord() + "-" + base.getZCoord();
+        final int[][] f = BTSShapes.socketRels(MTEEyeOfHarmonyBTS.PIECE_CORE, 'f');
+        int[] status = null, free = null;
+        ForgeDirection statusO = null, freeO = null;
+        for (int[] rel : f) {
+            final int[] p = SLConsoleTest
+                .worldPos(eye.getExtendedFacing(), base.getXCoord(), base.getYCoord(), base.getZCoord(), rel);
+            final IMetaTileEntity field = mteAt(world, p[0], p[1], p[2]);
+            if (!(field instanceof MTEHatchInput)) continue;
+            final ForgeDirection o = ((MTEHatchInput) field).getBaseMetaTileEntity()
+                .getFrontFacing();
+            if (o == ForgeDirection.UP || o == ForgeDirection.DOWN || o == ForgeDirection.UNKNOWN) continue;
+            final IMetaTileEntity above = mteAt(world, p[0], p[1] + 1, p[2]);
+            final IMetaTileEntity front = mteAt(world, p[0] + o.offsetX, p[1], p[2] + o.offsetZ);
+            if (above instanceof MTEHatchDirective && ((MTEHatchDirective) above).getSet() == DirectiveSet.EYE_STATUS
+                && ((MTEHatchDirective) above).getOutput() == DirectiveSet.Output.BIT3
+                && front instanceof MTEBasicTank) {
+                status = p;
+                statusO = o;
+            } else if (free == null && front == null
+                && world.isAirBlock(p[0] + o.offsetX, p[1], p[2] + o.offsetZ)
+                && !(above instanceof MTEHatchDirective && hasCover(world, new int[] { p[0], p[1] + 1, p[2] }))) {
+                    free = p;
+                    freeO = o;
+                }
+        }
+        if (status == null || free == null) {
+            out.add("merger Agent valve: " + (status == null ? "no Status bit 3 station" : "no free Field socket"));
+            return out;
+        }
+        final TrimDef agent = TierParams.of(6)
+            .trims()
+            .get(4);
+        final Fluid fluid = EyeStarRuntime.trimFluid(agent.kind);
+        // the 5-unit valve: its tank rebuilt with a receiver (AND of fA) instead of the dust and the Machine Controller
+        final int[] tankA = { status[0] + statusO.offsetX, status[1], status[2] + statusO.offsetZ };
+        world.setBlockToAir(tankA[0], tankA[1] + 1, tankA[2]);
+        valveTank(world, tankA, statusO, fluid, (int) Math.ceil(agent.cap * agent.kind.unitLitres / 20.0), fA, true);
+        final int[] statusHatch = { status[0], status[1] + 1, status[2] };
+        transmit(world, statusHatch, statusO.getRotation(ForgeDirection.UP), fA, false);
+        transmit(
+            world,
+            statusHatch,
+            statusO.getRotation(ForgeDirection.UP)
+                .getOpposite(),
+            fB,
+            false);
+        // the Transition hatch (bit 2) above the free socket, transmitting fA inverted and fB
+        final int[] up = { free[0], free[1] + 1, free[2] };
+        MTEReactorCoreMk1
+            .placeGtMachine(world, up[0], up[1], up[2], (short) BTSMachines.directiveHatch.getItemDamage(), freeO);
+        final IMetaTileEntity t = mteAt(world, up[0], up[1], up[2]);
+        if (!(t instanceof MTEHatchDirective)) {
+            out.add("merger Agent valve: could not place the Transition hatch");
+            return out;
+        }
+        ((MTEHatchDirective) t).setSet(DirectiveSet.EYE_TRANSITION);
+        ((MTEHatchDirective) t).setOutput(DirectiveSet.Output.BIT2);
+        ((MTEHatchDirective) t).setWindow(10);
+        transmit(world, up, freeO.getRotation(ForgeDirection.UP), fA, true);
+        transmit(
+            world,
+            up,
+            freeO.getRotation(ForgeDirection.UP)
+                .getOpposite(),
+            fB,
+            false);
+        // the 1-unit valve in front of the free socket (1 unit/s = 100 L/s of Agent)
+        final int[] tankB = { free[0] + freeO.offsetX, free[1], free[2] + freeO.offsetZ };
+        valveTank(world, tankB, freeO, fluid, (int) Math.ceil(agent.kind.unitLitres / 20.0), fB, true);
+        sign(
+            world,
+            new int[] { tankB[0] + freeO.offsetX, tankB[1], tankB[2] + freeO.offsetZ },
+            freeO,
+            "Agent 1 unit/s",
+            "Status bit 3 AND",
+            "Transition bit 2",
+            "(the merger)");
+        out.add(
+            "merger Agent valve: 5-unit valve on Status 3 AND NOT Transition 2, 1-unit valve on both at " + pos(tankB));
+        return out;
+    }
+
+    /** A Debug Fluid Tank valve: a Conditional Fluid Regulator into the hatch behind it, run by a wireless receiver. */
+    private static void valveTank(World world, int[] tank, ForgeDirection o, Fluid fluid, int lpt, String frequency,
+        boolean and) {
+        MTEReactorCoreMk1.placeGtMachine(
+            world,
+            tank[0],
+            tank[1],
+            tank[2],
+            (short) ItemList.Debug_Fluid_Tank.get(1L)
+                .getItemDamage(),
+            o.getRotation(ForgeDirection.UP));
+        final IMetaTileEntity t = mteAt(world, tank[0], tank[1], tank[2]);
+        if (!(t instanceof MTEBasicTank) || fluid == null) return;
+        ((MTEBasicTank) t).setFillableStack(new FluidStack(fluid, 1000));
+        final Cover reg = cover(world, tank, o.getOpposite(), regulatorFor(lpt).get(1L));
+        if (reg instanceof CoverFluidRegulator) {
+            final CoverFluidRegulator r = (CoverFluidRegulator) reg;
+            r.setTickRateForUi(1);
+            r.setSpeed(lpt);
+            r.setCondition(CoverFluidRegulator.Conditional.Conditional);
+        }
+        final Cover rx = cover(world, tank, ForgeDirection.UP, ItemList.Cover_AdvancedRedstoneReceiverInternal.get(1L));
+        if (rx instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) {
+            final gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase r = (gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx;
+            r.setFrequency(frequency);
+            r.setMode(
+                and ? gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase.GateMode.AND
+                    : gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase.GateMode.SINGLE_SOURCE);
+        }
+        issue(world, tank, o.getOpposite());
+        issue(world, tank, ForgeDirection.UP);
+    }
+
+    /** A GT advanced wireless transmitter (internal) on a hatch's side. */
+    private static void transmit(World world, int[] hatch, ForgeDirection side, String frequency, boolean invert) {
+        final Cover tx = cover(world, hatch, side, ItemList.Cover_AdvancedRedstoneTransmitterInternal.get(1L));
+        if (tx instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterBase) {
+            final gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterBase t = (gregtech.common.covers.redstone.CoverAdvancedRedstoneTransmitterBase) tx;
+            t.setFrequency(frequency);
+            t.setInverted(invert);
+        }
+        issue(world, hatch, side);
     }
 
     /** Field hatches with a neighbour whose Fluid Regulator cover faces them (a valve already pours into them). */
