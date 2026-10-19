@@ -742,7 +742,7 @@ public final class ShowcaseAutoRig {
             transmit(world, up, o.getRotation(ForgeDirection.UP), freq, false);
             ForgeDirection rxSide = ForgeDirection.UP;
             for (ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
-                if (d != bb.getFrontFacing() && bb.getCoverAtSide(d) == null) {
+                if (d != bb.getFrontFacing() && emptySide(bb, d)) {
                     rxSide = d;
                     break;
                 }
@@ -766,7 +766,7 @@ public final class ShowcaseAutoRig {
             d.setOutput(DirectiveSet.Output.BIT1);
             ForgeDirection txSide = null;
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
-                if (side != db.getFrontFacing() && db.getCoverAtSide(side) == null) {
+                if (side != db.getFrontFacing() && emptySide(db, side)) {
                     txSide = side;
                     break;
                 }
@@ -775,7 +775,7 @@ public final class ShowcaseAutoRig {
             transmit(world, dp, txSide, freq, false);
             ForgeDirection rxSide = ForgeDirection.UP;
             for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
-                if (side != bb.getFrontFacing() && bb.getCoverAtSide(side) == null) {
+                if (side != bb.getFrontFacing() && emptySide(bb, side)) {
                     rxSide = side;
                     break;
                 }
@@ -874,6 +874,12 @@ public final class ShowcaseAutoRig {
     static IMetaTileEntity mteAt(World world, int x, int y, int z) {
         final TileEntity te = world.getTileEntity(x, y, z);
         return te instanceof IGregTechTileEntity ? ((IGregTechTileEntity) te).getMetaTileEntity() : null;
+    }
+
+    /** A side with no cover (GT returns a "no cover" object, not null, for an empty side). */
+    private static boolean emptySide(IGregTechTileEntity base, ForgeDirection side) {
+        final Cover c = base.getCoverAtSide(side);
+        return c == null || c.getCoverID() == 0;
     }
 
     private static boolean hasCover(World world, int[] p) {
