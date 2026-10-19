@@ -756,7 +756,42 @@ public final class ShowcaseAutoRig {
             issue(world, bcPos, rxSide);
             return "Begin: Galaxy Transition Bit 1 at " + pos(up) + " -> the Begin hatch at " + pos(bcPos);
         }
-        return "Begin: NO free socket for the Galaxy Transition hatch";
+        // no free socket: an unwired Galaxy Transition hatch the Eye has already (Code mode, read by nothing) takes Bit
+        // 1
+        for (MTEHatchDirective d : eye.directiveHatches()) {
+            if (d == null || !d.isValid() || d.getSet() != DirectiveSet.EYE_GALAXY_TRANSITION) continue;
+            final IGregTechTileEntity db = d.getBaseMetaTileEntity();
+            final int[] dp = { db.getXCoord(), db.getYCoord(), db.getZCoord() };
+            if (hasCover(world, dp)) continue;
+            d.setOutput(DirectiveSet.Output.BIT1);
+            ForgeDirection txSide = null;
+            for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
+                if (side != db.getFrontFacing() && db.getCoverAtSide(side) == null) {
+                    txSide = side;
+                    break;
+                }
+            }
+            if (txSide == null) continue;
+            transmit(world, dp, txSide, freq, false);
+            ForgeDirection rxSide = ForgeDirection.UP;
+            for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
+                if (side != bb.getFrontFacing() && bb.getCoverAtSide(side) == null) {
+                    rxSide = side;
+                    break;
+                }
+            }
+            final Cover rx = cover(world, bcPos, rxSide, ItemList.Cover_AdvancedRedstoneReceiverInternal.get(1L));
+            if (rx instanceof gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) {
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx).setFrequency(freq);
+                ((gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase) rx)
+                    .setMode(gregtech.common.covers.redstone.CoverAdvancedRedstoneReceiverBase.GateMode.SINGLE_SOURCE);
+            }
+            issue(world, bcPos, rxSide);
+            return "Begin: the Galaxy Transition hatch at " + pos(dp)
+                + " set to Bit 1 -> the Begin hatch at "
+                + pos(bcPos);
+        }
+        return "Begin: NO free socket and no unwired Galaxy Transition hatch";
     }
 
     /** A Debug Fluid Tank valve: a Conditional Fluid Regulator into the hatch behind it, run by a wireless receiver. */
