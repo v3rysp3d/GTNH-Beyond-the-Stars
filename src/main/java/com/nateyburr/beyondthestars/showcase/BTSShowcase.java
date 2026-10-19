@@ -122,6 +122,9 @@ public final class BTSShowcase {
             h.settled = true;
             h.tickets.add(t);
             final int[] chunks = d.getIntArray("chunks");
+            // saved under a bigger per-ticket limit than this config allows: Forge would drop the oldest chunks, so the
+            // machine claims its box again on its next second
+            if (chunks.length / 2 > t.getMaxChunkListDepth()) h.settled = false;
             for (int i = 0; i + 1 < chunks.length; i += 2) {
                 ForgeChunkManager.forceChunk(t, new ChunkCoordIntPair(chunks[i], chunks[i + 1]));
                 final String ck = chunkKey(dim, chunks[i], chunks[i + 1]);
