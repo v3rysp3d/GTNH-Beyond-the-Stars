@@ -74,7 +74,7 @@ public final class EyeShowcase {
                 d = new Disc(tier);
                 DISCS.put(k, d);
             }
-            EyeGalaxyBench.second(eye, rt, d.rig);
+            EyeGalaxyBench.second(eye, rt, d.rig, rt.universeWaiting());
         } else {
             DISCS.remove(k);
         }

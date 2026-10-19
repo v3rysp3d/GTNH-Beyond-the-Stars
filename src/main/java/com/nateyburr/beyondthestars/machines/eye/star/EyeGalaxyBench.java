@@ -298,6 +298,14 @@ public final class EyeGalaxyBench {
      * purge and begin wires, the quasar's disc second, the conduit and the junctions, then the Eye's scripted bursts.
      */
     static void second(MTEEyeOfHarmonyBTS eye, EyeStarRuntime rt, Rig r) {
+        second(eye, rt, r, false);
+    }
+
+    /**
+     * {@code forceEye}: J1 sends everything to the Eye this second whatever its Field bits say (showcase mode: a T10
+     * universe waiting to begin asks for no bursts, so the bits alone would never start it).
+     */
+    static void second(MTEEyeOfHarmonyBTS eye, EyeStarRuntime rt, Rig r, boolean forceEye) {
         final int w = 5;
         final int trans = rt.directiveCode(DirectiveSet.EYE_GALAXY_TRANSITION, w);
         final int field = rt.directiveCode(DirectiveSet.EYE_FIELD, w);
@@ -340,7 +348,7 @@ public final class EyeGalaxyBench {
             eye,
             res.reforming ? 0 : r.q.G / 2,
             r.q.hole == QuasarState.Hole.OPEN && r.q.b > 0,
-            trans,
+            forceEye ? trans | 4 : trans,
             field,
             events,
             r.testFire,

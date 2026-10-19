@@ -296,6 +296,11 @@ public final class EyeStarRuntime {
         return showcase;
     }
 
+    /** A universe that has not begun yet (it waits for bursts on the crown before its first second). */
+    boolean universeWaiting() {
+        return fs != null && fs.tier.universe && trans == null && (fs.uni == null || fs.uni.t == 0);
+    }
+
     public void setShowcase(boolean on) {
         showcase = on;
         host.markDirty();
