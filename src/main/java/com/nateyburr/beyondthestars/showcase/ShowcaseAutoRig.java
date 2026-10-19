@@ -103,6 +103,7 @@ public final class ShowcaseAutoRig {
             out.addAll(homogeny(world, (com.nateyburr.beyondthestars.machines.homogeny.MTEHomogeny) mte));
         }
         if (mte instanceof MTERealityDiffraction) out.add(anchors(world, (MTERealityDiffraction) mte));
+        if (mte instanceof MTEKerrEngine) out.add(kerrSeed((MTEKerrEngine) mte));
         out.add("keep loaded: on");
         return out;
     }
@@ -211,6 +212,29 @@ public final class ShowcaseAutoRig {
             d.phantomHolder.setStackInSlot(i, s);
         }
         return true;
+    }
+
+    // ======================================================================================= Kerr
+
+    /** A Black Hole Seed in an endless bolt bus, so Auto reopens a hole that ever closes. */
+    private static String kerrSeed(MTEKerrEngine kee) {
+        final ItemStack seed = ItemList.Black_Hole_Opener.get(1L);
+        if (seed == null) return "Kerr: no Black Hole Seed in this pack";
+        for (MTEHatchInputBus bus : kee.boltBuses()) {
+            if (!(bus instanceof MTEHatchInputBusDebug) || !bus.isValid()) continue;
+            final MTEHatchInputBusDebug d = (MTEHatchInputBusDebug) bus;
+            for (int i = 0; i < d.phantomHolder.getSlots(); i++) {
+                final ItemStack s = d.phantomHolder.getStackInSlot(i);
+                if (s != null && s.isItemEqual(seed)) return "Kerr: a Seed stands in an endless bolt bus already";
+            }
+            for (int i = 0; i < d.phantomHolder.getSlots(); i++) {
+                if (d.phantomHolder.getStackInSlot(i) == null) {
+                    d.phantomHolder.setStackInSlot(i, seed.copy());
+                    return "Kerr: a Black Hole Seed in an endless bolt bus (Auto reopens a closed hole)";
+                }
+            }
+        }
+        return "Kerr: NO endless bolt bus with a free slot for a Seed";
     }
 
     // ================================================================================== Diffraction
