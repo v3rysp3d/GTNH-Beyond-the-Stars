@@ -72,7 +72,7 @@ public final class EyeStarBench {
     private EyeStarBench() {}
 
     public static final String USAGE = "/btseye star <x> <y> <z> status | target <name> | lit [name] | seed <n> | "
-        + "rig <off|bang|fine|none> | sim <s> [compare] | set dial|feed|shock <v> | unlock <1-6> | "
+        + "rig <off|bang|fine|none> | sim <s> [compare] | ledger | set dial|feed|shock <v> | unlock <1-6> | "
         + "milestones <n> done|reset | transition [abort] | lose | event | crossing | "
         + "fill | sensor <x> <y> <z> <channel> <gt|lt> <threshold> [analog] | sensors <channel> <gt|lt> <thr> "
         + "[analog] | probe | wrench | charge [n] | buffer <fluid> <L> | core <name> | escrow | "
@@ -83,7 +83,7 @@ public final class EyeStarBench {
         + "directive | autorig <s> [cut <k>] | liverig on|off|status | ocloop | compression <1-9> [all] | check | "
         + "gui [info|galaxy] | "
         + "P4: burst <Bu/t> [high] [halo] [quasar <mean>] | burst off | galaxy <s> [analog] [mass M] [fresh] | begin | "
-        + "mode galaxy|planets | set mcshock|f8 <v> | slots <planet keys and chart names...> | slots clear | buses clear | "
+        + "mode galaxy|planets | set mcshock <v> | slots <planet keys and chart names...> | slots clear | buses clear | "
         + "P5: p5 status|pellets <mag|erg|sup> [n] [mk <1-3>]|refill <grade|off>|accept <n|auto>|beam <c|auto> [k]|"
         + "deeplink [reset]|flow <n> [low|high]|uni|stdrig on [mass M]|off|status|count <counter> <n>";
 
@@ -144,14 +144,16 @@ public final class EyeStarBench {
             case "sim":
                 sim(eye, rt, Long.parseLong(a5), args.length > 6 && "compare".equalsIgnoreCase(args[6]), out);
                 break;
+            case "ledger":
+                ledger(rt, out);
+                break;
             case "set":
                 if ("dial".equals(a5)) rt.setDial(Double.parseDouble(args[6]));
                 else if ("feed".equals(a5)) rt.setFeed(Double.parseDouble(args[6]));
                 else if ("shock".equals(a5)) rt.setBounceShock(Double.parseDouble(args[6]));
                 else if ("mcshock".equals(a5)) rt.setCollapseShock(Double.parseDouble(args[6]));
-                else if ("f8".equals(a5)) rt.setF8(Double.parseDouble(args[6]));
                 else {
-                    out.add("set dial|feed|shock|mcshock|f8 <v>");
+                    out.add("set dial|feed|shock|mcshock <v>");
                     return out;
                 }
                 out.add(
@@ -607,10 +609,17 @@ public final class EyeStarBench {
         for (long i = 0; i < secs; i++) eye.fieldSecond();
         final long us = (System.nanoTime() - start) / 1000L;
         out.add("sim " + secs + " s in " + us / 1000 + " ms (" + (secs > 0 ? us / secs : 0) + " us per field second)");
+        if (!ledger(rt, out)) return;
+        if (!compare || rt.fs == null) return;
+        compare(rt, out);
+    }
+
+    /** The bench ledger's line (and D-55's: Raw Star Matter, the universes' yield); false when there is none. */
+    private static boolean ledger(EyeStarRuntime rt, List<String> out) {
         final EyeStarRuntime.Ledger l = rt.ledger;
         if (l == null) {
             out.add("No bench ledger (it starts at 'lit' or 'seed').");
-            return;
+            return false;
         }
         out.add(
             "ledger: " + l.steps
@@ -638,7 +647,18 @@ public final class EyeStarBench {
                 + String.format(Locale.ROOT, "%.3f", l.hsm)
                 + " L, hash "
                 + Long.toHexString(l.hash & 0xFFFFFFFFL));
-        if (!compare || rt.fs == null) return;
+        out.add(
+            String.format(
+                Locale.ROOT,
+                "ledger D-55: Raw Star Matter %,.0f L; universe star matter %,.0f L; universe planet parallels won %,d",
+                l.rspm,
+                l.uniStarMatter,
+                l.uniPlanetRuns));
+        return true;
+    }
+
+    private static void compare(EyeStarRuntime rt, List<String> out) {
+        final EyeStarRuntime.Ledger l = rt.ledger;
         final FieldSim.Cfg c = new FieldSim.Cfg();
         c.seed = l.seed;
         if (l.collapseBeginT >= 0) {

@@ -24,7 +24,8 @@ import java.util.List;
  * <p>
  * <b>P4 (quasar-p4.md §4).</b> T7 Triangulum and T8 Milky Way are burst-driven: Θ, Ω, Π and the shield retire; P is
  * driven by β (bursts against the demand D_T), W by the precession sense and the rail's high/low banks, Λ (T8) by the
- * Ergomatter feed and the halo. {@link #PLANETS7} / {@link #PLANETS8} are planets mode's lighter one-gauge field
+ * fixed drift 0.4 × 5 (D-55: no Ergomatter feed) and the halo. {@link #PLANETS7} / {@link #PLANETS8} are planets mode's
+ * lighter one-gauge field
  * (3 / 6 slots). {@link #of(int)} returns the galaxy table for 7 and 8; {@link #of(int, boolean)} picks the mode.
  */
 public enum TierParams {
@@ -67,11 +68,11 @@ public enum TierParams {
     T7(7, "Triangulum", new int[] { P, W }, 1, sig(1, 1.5, 0), gains6(-0.01, 0.02, 0), GalaxyField.MINOR_MERGER,
         F.GALAXY, GalaxyField.T7_ERGOMATTER, 0, new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
     /**
-     * P4 T8 Milky Way (galaxy mode): P, W and Λ (tidal shear, driven by the Ergomatter feed f₈, held by halo bursts);
-     * minor mergers and the satellite crossing. Product: Superdense Ergomatter 1.0 × Ergomatter fed × mean Y × r.
+     * P4 T8 Milky Way (galaxy mode): P, W and Λ (tidal shear, a fixed drift of 2.0 per s, held by halo bursts); minor
+     * mergers and the satellite crossing. Product: Superdense Ergomatter 300 × p × mean Y × r (D-55: no feed).
      */
     T8(8, "Milky Way", new int[] { P, W, L }, 1, sig(1, 1.5, 1.5), gains6(-0.01, 0.02, 0.02), GalaxyField.MINOR_MERGER,
-        F.GALAXY | F.ERGO, 0, 0, new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
+        F.GALAXY | F.SHEAR, 0, 0, new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
     /** P4 planets mode at T7: 3 slots; one gauge P, d = 1·(β − 1), σ 0.5, no events, D = 0.25·D₇. */
     PLANETS7(7, "3 planets", new int[] { P }, 0.5, sig(0.5, 0, 0), gains6(-0.01, 0, 0), null, F.PLANETS, 0, 3,
         new TrimDef[] { trim(TrimDef.Kind.SPACE, 10, -2, 0, 0, 0, null) }),
@@ -111,8 +112,8 @@ public enum TierParams {
         static final int GALAXY = 32;
         /** P4: planets mode's one-gauge burst field; slot runs instead of a cycle product. */
         static final int PLANETS = 64;
-        /** P4 T8: the Ergomatter feed (Λ drift, the product) and the satellite crossing. */
-        static final int ERGO = 128;
+        /** P4 T8: Λ (the fixed shear drift), the fixed-feed product and the satellite crossing. */
+        static final int SHEAR = 128;
         /** P5 T9: the Great Attractor's beam, flow and V. */
         static final int ATTRACTOR = 256;
         /** P5 T10: the universe batch and H. */
@@ -145,8 +146,11 @@ public enum TierParams {
     public final boolean shield;
     /** P4 T7/T8 galaxy mode: burst-driven P/W(/Λ), the β sum, the product from bursts. */
     public final boolean galaxy;
-    /** P4 T8: the Ergomatter feed f₈ (Λ's drift and the product) and the satellite crossing. */
-    public final boolean ergoFeed;
+    /**
+     * P4 T8 the Milky Way: Λ (tidal shear, drift 0.4 × {@link GalaxyField#F8}), the product from that fixed equivalent
+     * feed and the satellite crossing (D-55: the Ergomatter feed is gone; nothing is drawn).
+     */
+    public final boolean shear;
     /** P4 planets mode: the number of planet slots (0 elsewhere). */
     public final int slots;
     /** P5 T9: the Great Attractor (the beam, Galactic Flow, V; the Dark Matter product). */
@@ -155,7 +159,7 @@ public enum TierParams {
     public final boolean universe;
     /**
      * Product per 60 s cycle at p = 1, before × mean Y × r (T4: 0, the product is 3.6864 × HSM fed; T5: per batch; T7:
-     * also × min(β̄, 1.5); T8: 0, the product is 1.0 × Ergomatter fed; planets: none).
+     * also × min(β̄, 1.5); T8: 0, the product is 1.0 × the fixed equivalent feed; planets: none).
      */
     public final double productBase;
     /** Trims in table order (the drain order in play). */
@@ -181,7 +185,7 @@ public enum TierParams {
         this.batch = (flags & F.BATCH) != 0;
         this.shield = (flags & F.SHIELD) != 0;
         this.galaxy = (flags & F.GALAXY) != 0;
-        this.ergoFeed = (flags & F.ERGO) != 0;
+        this.shear = (flags & F.SHEAR) != 0;
         this.attractor = (flags & F.ATTRACTOR) != 0;
         this.universe = (flags & F.UNIVERSE) != 0;
         this.slots = slots;
@@ -318,7 +322,7 @@ public enum TierParams {
 
     /**
      * P4 drift d (quasar-p4.md §4.2, the prototype's {@code galaxyTier(..).d} / {@code planetsTier(..).d}):
-     * planets P = 1·(β − 1); galaxy P = 3·(β − 1), W = 1.5·s, and on T8 Λ = 0.4·f₈·{@code rampL} (the Galactic
+     * planets P = 1·(β − 1); galaxy P = 3·(β − 1), W = 1.5·s, and on T8 Λ = 0.4 × 5·{@code rampL} (the Galactic
      * Merger ramps Λ in; 1 otherwise).
      */
     public double[] burstDrift(FieldState s, StepInputs in, double rampL) {
@@ -329,7 +333,7 @@ public enum TierParams {
         }
         d[P] = GalaxyField.P_PER_BETA * (in.beta - 1);
         d[W] = GalaxyField.W_DRIFT * s.prec;
-        if (ergoFeed) d[L] = GalaxyField.L_PER_F8 * in.f8 * rampL;
+        if (shear) d[L] = GalaxyField.L_PER_F8 * GalaxyField.F8 * rampL;
         return d;
     }
 
@@ -340,7 +344,7 @@ public enum TierParams {
     public double burstTerm(int k, StepInputs in) {
         if (!galaxy || attractor) return 0;
         if (k == W) return GalaxyField.W_PER_GAMMA * (in.gLo - in.gHi);
-        if (k == L && ergoFeed) return GalaxyField.L_PER_HALO * in.gHalo;
+        if (k == L && shear) return GalaxyField.L_PER_HALO * in.gHalo;
         return 0;
     }
 
@@ -394,7 +398,7 @@ public enum TierParams {
                         d = 1 + 4;
                     } else {
                         best = Math.abs(GalaxyField.L_PER_HALO) * bMax;
-                        d = GalaxyField.L_PER_F8 * GalaxyField.F8_MAX;
+                        d = GalaxyField.L_PER_F8 * GalaxyField.F8;
                     }
                     final double need = mMax * (d + t.sigma(k, 0) + Math.abs(t.gain[k]) * 40);
                     if (!(best > need)) bad.add(

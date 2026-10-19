@@ -11,6 +11,11 @@ Numbers come from the engine (`machines/quasar/engine`, `eye/field`). If a numbe
 > gated the Eternity edits on `replaceTecTechEyeOfHarmony`. Differences are listed in `docs/questbook-integration.md`
 > §2.3 ("The P4 quests") and in B-111.
 
+> **Superseded in part by D-55 (0.26.0, B-256..B-262).** Triangulum's 7.5 L Magnetar Matter upkeep, the Milky Way's
+> Ergomatter feed f8 (now a fixed Λ drift of 2.0 per s and 300 L Superdense Ergomatter a cycle) and the Galactic
+> Merger's 9,000 L Ergomatter charge below are gone; `setFeed8` answers false. The quests in `questbook/singularity.json`
+> say so; the text below is the record of what P4 asked for.
+
 ## Engine maths unit
 
 ### Quest: "Feeding the hole" (the Quasar Engine's disc)

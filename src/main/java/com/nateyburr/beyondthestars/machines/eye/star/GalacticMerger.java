@@ -14,10 +14,10 @@ import com.nateyburr.beyondthestars.machines.eye.field.TierParams;
 /**
  * P4 Galactic Merger, T7 → T8 (quasar-p4.md §5.3). The field part is the engine unit's {@link GalacticMergerOverlay}
  * (the prototype's {@code beginGM} / {@code transTick} 'gm', bit for bit); this class carries it through the runtime
- * and NBT. 1,800 s: the burst demand ramps 1.5 → 6 Bu/t and the Ergomatter charge feeds 5 L/s (× p); three warned
+ * and NBT. 1,800 s: the burst demand ramps 1.5 → 6 Bu/t, held by bursts alone (D-55: no charge); three warned
  * pericentre passes at 600 / 1,200 / 1,800 s (W ±12 and P +5 per s for 5 s); at the first pass the tier becomes T8
  * (Λ ramps in). Then Stable for 120 s in a row within 300 s lights the Milky Way, unlocks T8 and consumes the
- * Supermassive Seed Core. A failure loses Triangulum and the charge; the core stays in escrow.
+ * Supermassive Seed Core. A failure loses Triangulum only; the core stays in escrow.
  */
 public final class GalacticMerger extends EyeTransition {
 
@@ -103,7 +103,7 @@ public final class GalacticMerger extends EyeTransition {
             final int sign = nextPassSign();
             return String.format(
                 Locale.ROOT,
-                "Galactic Merger, %d / %d s: demand %s (1.5 -> 6 Bu/t), Ergomatter 5 L/s x p; %s",
+                "Galactic Merger, %d / %d s: demand %s (1.5 -> 6 Bu/t), held by bursts alone; %s",
                 gm.st,
                 GalacticMergerOverlay.DURATION,
                 com.nateyburr.beyondthestars.machines.gui.BTSFormat.buEuShort(gm.demand()),

@@ -212,11 +212,17 @@ Rich Temporal Fluid) every second; transitions always run at 1x.
 | T4 | **Neutron Star** (Arcturus remnant) | 144 L Molten SpaceTime + an HSM feed you set, 0-1.5 L/s (default 0.694) | 3.6864 L White Dwarf Matter per L of HSM (about 153 L at the default) |
 | T5 | **Sirius B** (cooling white dwarf) | EU only; each 2-hour cooling batch is charged 18,432 L White Dwarf Matter | 4,608 L Black Dwarf Matter per batch |
 | T6 | **SGR 1806-20** (magnetar) | 3,000 L Antipolarization Agent + a White / Black Dwarf Matter reserve topped up every 60 cycles | 15 L Magnetar Matter, plus 12 Purified Tengam dust back per 1,000 L of Agent |
-| T7 | **Triangulum (M33)** | 7.5 L Magnetar Matter + bursts (1.5 Bu/t = 1.5 x 10^13 EU/t) | 600 L Ergomatter x Y x r x min(β, 1.5) |
-| T8 | **The Milky Way** | An Ergomatter feed, 0-10 L/s (default 5) + bursts (6 Bu/t = 6 x 10^13 EU/t) | Superdense Ergomatter, 1 L per L of Ergomatter fed, x Y x r |
+| T7 | **Triangulum (M33)** | Bursts only (1.5 Bu/t = 1.5 x 10^13 EU/t) | 600 L Ergomatter x Y x r x min(β, 1.5) |
+| T8 | **The Milky Way** | Bursts only (6 Bu/t = 6 x 10^13 EU/t) | 300 L Superdense Ergomatter x Y x r |
 
 Every product is multiplied by **Y**, the cycle's mean field yield (below), and **r**, the share of upkeep that
-arrived. **β** is the share of the burst demand that arrived.
+arrived. **β** is the share of the burst demand that arrived. Since 0.26.0 the galaxy tiers take no fluid: GRB
+stability alone holds them.
+
+**Raw Star Matter at every tier.** Each lit tier from T2 to T10 also makes Raw Star Matter every Eye-minute:
+**N x 50,000 L** x p x Y x r at tier N (T2 100,000 L, T5 250,000 L, T10 500,000 L). T5 and T10 earn it every minute,
+not only at the end of a batch. Planets mode earns a quarter; companions and transitions earn none. T1 is unchanged
+(its product already is Raw Star Matter). Sirius A's own Raw Star Matter upkeep (25,000 L) is covered four times over at Y 1.
 
 **Lighting a star (T1-T3).** Put a Stellar Ignition Charge in a plinth input bus. The Eye must hold 10 cycles of
 upkeep plus a seed cloud of H and He, and the 10 cycles of EU are taken from the network at ignition. The protostar
@@ -250,7 +256,7 @@ Integrity at 0 also fails the star. The gauges, and what moves them:
 | T5 Sirius B | P, Θ against a setpoint that falls from +90 to -90 over the 2-hour batch | A plateau near 0 is warned 15 s ahead | Dimensionally Shifted Superfluid, Raw Star Matter, Helium |
 | T6 Magnetar | P, Θ, Ω, Π (polarity) + a shield | **Giant flare** every 60-120 s, warned 15 s ahead with its sign: 4 s of Π ±25/s. The Agent charges a shield that absorbs up to 25 Π a second | T4's four + Antipolarization Agent |
 | T7 Triangulum | P, W (rail warp) | Bursts push P; where you aim them on the rail (high or low bank) steers W. **Minor merger** every 900-1,800 s, warned 15 s | Space |
-| T8 Milky Way | P, W, Λ (tidal shear) | As T7; the Ergomatter feed raises Λ, bursts into the halo lower it. **Satellite crossing** every 1,800-3,600 s with a 120 s countdown: hold Stable for all 300 s and you get a bonus cycle | Space |
+| T8 Milky Way | P, W, Λ (tidal shear) | As T7; Λ drifts up 2.0 a second, bursts into the halo lower it. **Satellite crossing** every 1,800-3,600 s with a 120 s countdown: hold Stable for all 300 s and you get a bonus cycle | Space |
 
 #### Transitions
 
@@ -295,6 +301,8 @@ fresh 64 SM hole never is; a settled quasar of about 136 SM or more is).
   field that needs only a quarter of the burst demand.
 - **Companions (T7 / T8):** in galaxy mode, put 1 (T7) or 2 (T8) earlier star charts in the slot bus. Each runs beside
   the galaxy, pays its own upkeep and adds a quarter of the burst demand.
+- **The Galactic Merger** (T7 to T8) takes no fluid since 0.26.0: bursts alone hold it while the demand ramps from 1.5
+  to 6 Bu/t. A failure loses Triangulum only.
 
 #### Eye T9 and T10
 
@@ -303,7 +311,13 @@ fresh 64 SM hole never is; a settled quasar of about 136 SM or more is).
   down the filaments; hold one and every galaxy in it is captured. Output: **Attractor Dark Matter**, 144 L a cycle plus
   144 L a captured galaxy (about 12,300 L/h on the standard rig). The T8 to T9 core is the **Attractor Seed Core**.
 - **T10, the Universe:** one universe per 7,200 s batch, kept on its Friedmann curve (gauge H) with Dark Matter and
-  SpaceTime trims. Output: **Universium**, 9,216 L a universe (about 6,200 L/h), the only source. The T9 to T10 core
+  SpaceTime trims. Output: **Universium**, 9,216 L a universe (about 6,200 L/h), the only source. Each finished
+  universe also yields what it holds, x p x mean Y x r: Excited Stellar Plasma 300,000 L, Raw Hyperdense Stellar Plasma
+  75,000 L, White Dwarf Matter 18,420 L, Black Dwarf Matter 4,608 L, Magnetar Matter 1,800 L, Ergomatter 72,000 L,
+  Superdense Ergomatter 36,000 L; and every planet once at parallel 2^(10 - k), each parallel at (1 - 0.05 R) x the
+  batch's field factor (no H/He, no EU). The slot bus is a whitelist (planet items, T2-T8 star charts; never used up;
+  empty = everything), and two Galaxy panel toggles (OpenComputers `setUniverseYield`, or redstone through a
+  Directive Hatch on its yield control set) switch the star matter and the planets off. A collapsed universe yields none of it. The T9 to T10 core
   is the **Universal Upgrade Core** from Reality Refab, and every compression slot needs the tenth tier, the
   **Universal Compression Field Generator**. The milestone is the **Supermassive Link** (96 Bu/t = 9.6 x 10^14 EU/t for
   30 min from a lattice quasar of at least 65,536 SM).
@@ -600,7 +614,7 @@ says.
 
 | Material | Made by | Used for |
 |---|---|---|
-| Raw Star Matter (GT's material) | Eye T1 | Eye T2 upkeep, Homogeny T1, Sidereal wafers, condensates |
+| Raw Star Matter (GT's material) | Eye T1; every Eye tier from T2 as a byproduct (N x 50,000 L a minute) | Eye T2 upkeep, Homogeny T1, Sidereal wafers, condensates |
 | Excited Stellar Plasma Mixture (ESPM) | Eye T2, Homogeny T1 | Eye T3 upkeep, Stellar SMDs, Degenerate Stellar Mixture |
 | Raw Hyperdense Stellar Plasma | Eye T3 | Refined into HSM on Kerr T2 |
 | Hyperdense Stellar Mixture (HSM) | Kerr T2 (Densification) | Eye T4 feed, Quasar Seed, Omega wafers |
@@ -608,9 +622,9 @@ says.
 | Black Dwarf Matter (GT's material) | Eye T5 | Magnetar, Omega wafers, Homogeny T2, Godforge magmatter upgrade |
 | Positronic Tengam Slurry | Large Chemical Reactor: 16 Attuned Tengam dust + 100 L Antimatter + 144 L SpaceTime (UXV) | Antipolarization Agent |
 | Antipolarization Agent | Vacuum Freezer: 1,000 L slurry + 2,000 L Super Coolant (UXV) | Eye T6 upkeep and shield, the Magnetar Merger |
-| Magnetar Matter | Eye T6 | Eye T7 upkeep, Quasar Seed, Quasar Engine, lattice nodes |
-| Ergomatter | Eye T7 | Conduit throats, Eye T8 feed, Eternity, Region Crystals |
-| Superdense Ergomatter | Eye T8 (1 : 1 from its feed), or Kerr T2 (8 : 1) | Lattice nodes L1-L4, Throat Mk IV, Homogeny T3, Reality |
+| Magnetar Matter | Eye T6 | Quasar Seed, Quasar Engine, Intergalactic Upgrade Core, lattice nodes, pellets |
+| Ergomatter | Eye T7 | Conduit throats, Eternity, Region Crystals, pellets |
+| Superdense Ergomatter | Eye T8 (300 L a cycle from bursts), or Kerr T2 (8 : 1) | Lattice nodes L1-L4, Throat Mk IV, Homogeny T3, Reality, the Infall |
 | Degenerate Stellar Mixture | Homogeny T2 | Homogeny T3, Reality machines |
 | Entanglement Medium | Homogeny T3 | Reality Diffraction |
 | Entangled Region I-VI | Reality Diffraction | Reality Refab |
@@ -684,7 +698,8 @@ raw code. The machine updates it once a second and it falls to 0 if the updates 
 | Quasar: Horizon | hold-up short (leaking) | Accretion Buffer under 30 s | anchor short (shedding) | Overdrive upkeep short |
 
 **Control sets** turn the hatch into a redstone input: Eye time dial (1 to 1.00x, 15 to 3.00x), Eye T4 HSM feed (15 to
-1.5 L/s), and Kerr mass setpoint (1 to 2 SM, 15 to the tier's top). Strength 0 leaves the GUI's value alone.
+1.5 L/s), Kerr mass setpoint (1 to 2 SM, 15 to the tier's top), and (since 0.26.0) the Universe's yield toggles: the
+strength is a code, bit 1 star matter on, bit 2 planets on, 4 holds both off. Strength 0 leaves the GUI's value alone.
 
 ### Stellar Field Sensor Hatch (MTE 28116)
 
@@ -716,7 +731,7 @@ own checks and is limited to one call per method per second (`nil, "rate limited
 
 | Component | Methods |
 |---|---|
-| `bts_eye` | `getState`, `getField`, `getBuffers`, `getIntakeCaps`, `getTransition`, `getDirective(set[, w])`, `getEvent`, `getUnlock`, `getSlots`, `setDial(v)`, `setFeed(v)`, `setFeed8(v)`, `setMode(mode)`, `trim(kind, units)`, `beginTransition()` |
+| `bts_eye` | `getState`, `getField`, `getBuffers`, `getIntakeCaps`, `getTransition`, `getDirective(set[, w])`, `getEvent`, `getUnlock`, `getSlots`, `setDial(v)`, `setFeed(v)`, `setMode(mode)`, `trim(kind, units)`, `beginTransition()`, `getUniverseYield`, `setUniverseYield(stars, planets)`; `setFeed8(v)` answers `false` since 0.26.0 (the Milky Way has no feed) |
 | `bts_kerr` | `getState`, `getDirective(set[, w])`, `setSetpoint(sm)`, `open()`, `collapse()`, `setAuto(on)` |
 | `bts_kerr_module` | `getState` |
 | `bts_quasar` | `getDisc`, `getBurst`, `getFeed`, `getLinks`, `getMilestones`, `getDirective([w])`, `setFeed(f)`, `setGas(name)`, `setField(b)`, `trim(kind, units)`, `purge()`; lattice: `getBand`, `getIntake`, `getHoldUp`, `getBuffer`, `getOverdrive`, `getAnchor`, `getHorizon`, `setMassSetpoint(M)`, `setOverdrive(o)`, `setUnbound(on)`, `shed()` |

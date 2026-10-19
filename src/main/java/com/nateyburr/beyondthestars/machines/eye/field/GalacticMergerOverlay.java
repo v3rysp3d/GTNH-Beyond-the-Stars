@@ -8,9 +8,8 @@ import static com.nateyburr.beyondthestars.machines.eye.field.StellarField.W;
  * P4: the Galactic Merger (T7 → T8) as a field overlay (quasar-p4.md §5.3; the prototype's {@code beginGM},
  * {@code transDrift} / {@code transTick} kind 'gm').
  * <ul>
- * <li>1,800 s: the demand ramps 1.5 → 6 Bu/t ({@link #demand}); the Ergomatter charge feeds 5 L/s
- * ({@link StepResult#ergoCharged}), 9,000 L in all (none in the settle); the galaxy's own minor mergers and crossings
- * are held back.</li>
+ * <li>1,800 s: the demand ramps 1.5 → 6 Bu/t ({@link #demand}); bursts alone hold it (D-55, 2026-10-17: no
+ * Ergomatter charge); the galaxy's own minor mergers and crossings are held back.</li>
  * <li>Three pericentre passes at 600, 1,200 and 1,800 s, each warned 60 s ahead with its sign (drawn at the begin):
  * W ±12 and P +5 per s for 5 s, × q.</li>
  * <li>At the first pass (t = 600) the tier becomes T8: Λ appears at 0, its drift (0.4 × 5 L/s) and gain (0.02) ramping
@@ -25,8 +24,6 @@ public final class GalacticMergerOverlay implements Overlay {
     public static final int DURATION = 1800, SETTLE_WINDOW = 300, SETTLE_STREAK = 120, PASS_WARN = 60, PASS_DUR = 5;
     public static final int[] PASSES = { 600, 1200, 1800 };
     public static final double PASS_W = 12, PASS_P = 5;
-    /** The Ergomatter charge fed during the merger, L/s (also the Λ drift's feed). */
-    public static final double CHARGE_PER_SECOND = 5;
     public static final double DEMAND_FROM = 1.5, DEMAND_RISE = 4.5;
     /** Far future: the galaxy's minor merger is held back during the merger. */
     public static final double HELD = 1e15;
@@ -92,23 +89,21 @@ public final class GalacticMergerOverlay implements Overlay {
 
     @Override
     public double[] drift(TierParams t, FieldState s, StepInputs in) {
-        if (!t.ergoFeed) return Overlay.super.drift(t, s, in);
+        if (!t.shear) return Overlay.super.drift(t, s, in);
         final double[] d = new double[StellarField.GAUGES];
         d[P] = GalaxyField.P_PER_BETA * (in.beta - 1);
         d[W] = GalaxyField.W_DRIFT * s.prec;
-        d[L] = GalaxyField.L_PER_F8 * CHARGE_PER_SECOND * ramp();
+        d[L] = GalaxyField.L_PER_F8 * GalaxyField.F8 * ramp();
         return d;
     }
 
     @Override
     public double gain(TierParams t, int k) {
-        return t.ergoFeed && k == L ? t.gain(L) * ramp() : t.gain(k);
+        return t.shear && k == L ? t.gain(L) * ramp() : t.gain(k);
     }
 
     @Override
     public void tick(FieldState s, int zone, StepInputs in, StepResult out) {
-        // QA-A15: the charge feeds through the 1,800 s event only (9,000 L), not through the settle after it
-        if (st < DURATION) out.ergoCharged = CHARGE_PER_SECOND;
         st++;
         if (st == PASSES[0] && s.tier.n == 7) {
             s.tier = TierParams.T8;

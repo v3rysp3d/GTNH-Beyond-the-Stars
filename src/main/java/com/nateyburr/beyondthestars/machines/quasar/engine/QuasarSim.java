@@ -65,10 +65,9 @@ public final class QuasarSim {
     public static final class Cfg {
 
         public long seed = 1;
-        public double m = 1, r = 1, feed = 0.694, f8 = GalaxyField.F8_DEFAULT,
-            shock = MagnetarCollapseOverlay.PROTOTYPE_SHOCK;
+        public double m = 1, r = 1, feed = 0.694, shock = MagnetarCollapseOverlay.PROTOTYPE_SHOCK;
         public int tt = 1, ts = 1;
-        public boolean unlocked7 = true, unlocked8, coreMC = true, bufMC = true, coreGM = true, bufGM = true;
+        public boolean unlocked7 = true, unlocked8, coreMC = true, bufMC = true, coreGM = true;
         /** Planets mode at T7/T8 (else galaxy mode). */
         public boolean planets;
         /** Companion tiers (galaxy mode; T7 takes the first, T8 the first two). */
@@ -249,7 +248,6 @@ public final class QuasarSim {
                 FieldSim.add(L.up, "White Dwarf Matter", 60 * c.r);
                 FieldSim.add(L.up, "Black Dwarf Matter", 15 * c.r);
             } else if (T.galaxy) {
-                if (n == 7) FieldSim.add(L.up, "Magnetar Matter", GalaxyField.T7_MAGNETAR_UPKEEP * c.r);
                 for (int k : comps(T)) {
                     final GalaxyField.Companion cp = GalaxyField.Companion.of(k);
                     final double par = GalaxyField.companionParallel(n, k);
@@ -309,7 +307,6 @@ public final class QuasarSim {
             in.gLo = w.gLo;
             in.gHalo = w.gHalo;
             in.gEye = w.gEye;
-            in.f8 = c.f8;
             in.companions = comps(T).length;
             beamInputs(in);
             final LinkedHashMap<String, Double> raw;
@@ -346,7 +343,6 @@ public final class QuasarSim {
             // the transition's charges (taken before its own failure, as the prototype's transTick)
             if (out.wdmCharged > 0) FieldSim.add(L.up, "White Dwarf Matter", out.wdmCharged);
             if (out.bdmCharged > 0) FieldSim.add(L.up, "Black Dwarf Matter", out.bdmCharged);
-            if (out.ergoCharged > 0) FieldSim.add(L.up, "Ergomatter", out.ergoCharged);
             if (out.infallCharge > 0) FieldSim.add(L.up, "Superdense Ergomatter", out.infallCharge);
             if (out.inflationCharge > 0) FieldSim.add(L.up, "Dark Matter", out.inflationCharge);
             if (out.uniChargedInTick) FieldSim.add(L.up, "Dark Matter", UniverseField.CHARGE * c.r);
@@ -384,7 +380,6 @@ public final class QuasarSim {
                 trans = null;
             }
             final TierParams Tn = s.tier;
-            if (out.ergoFed) FieldSim.add(L.up, "Ergomatter", out.ergoToDraw);
             if (out.crossingCaught) FieldSim.add(L.prod, "Superdense Ergomatter", out.crossingBonus);
             if (Tn.planets() && slots != null) for (PlanetSlots.Run run : slots.tick(Tn.n, out.zone, m)) {
                 FieldSim.add(runs, run.key(), run.succeeded);
@@ -596,7 +591,7 @@ public final class QuasarSim {
                     eye.trans != null,
                     six ? link.done : link8.done,
                     six ? c.coreMC : c.coreGM,
-                    six ? c.bufMC : c.bufGM));
+                    six ? c.bufMC : true)); // D-55: the Galactic Merger has no charge to buffer
             // P5: the Flow and Universe sets
             dirFlow = P5Directive.flow(
                 s.tier.n == 9 && eye.state == Eye.LIT,
@@ -637,7 +632,7 @@ public final class QuasarSim {
                 eye.zone,
                 n == 6 ? link.done : link8.done,
                 n == 6 ? c.coreMC : c.coreGM,
-                n == 6 ? c.bufMC : c.bufGM);
+                n == 6 ? c.bufMC : true); // D-55: no Galactic Merger charge
             return GalaxyDirective.transition(running, ready, eye.overfeed(), eye.transSt(), q.Phi, q.b);
         }
 
@@ -991,14 +986,12 @@ public final class QuasarSim {
         c.ts = (int) FieldSim.num(o, "ts", c.ts);
         c.r = FieldSim.num(o, "r", c.r);
         c.feed = FieldSim.num(o, "feed", c.feed);
-        c.f8 = FieldSim.num(o, "f8", c.f8);
         c.shock = FieldSim.num(o, "shock", c.shock);
         c.unlocked7 = bool(o, "unlocked7", c.unlocked7);
         c.unlocked8 = bool(o, "unlocked8", c.unlocked8);
         c.coreMC = bool(o, "coreMC", c.coreMC);
         c.bufMC = bool(o, "bufMC", c.bufMC);
         c.coreGM = bool(o, "coreGM", c.coreGM);
-        c.bufGM = bool(o, "bufGM", c.bufGM);
         c.planets = "planets".equals(o.get("mode"));
         final Object comp = o.get("comp");
         if (comp instanceof List) {
@@ -1095,7 +1088,6 @@ public final class QuasarSim {
         c.tt = (int) FieldSim.num(o, "tt", c.tt);
         c.ts = (int) FieldSim.num(o, "ts", c.ts);
         c.r = FieldSim.num(o, "r", c.r);
-        c.f8 = FieldSim.num(o, "f8", c.f8);
         c.shock = FieldSim.num(o, "shock", c.shock);
         c.planets = "planets".equals(o.get("mode"));
         c.comp = ints(o.get("comp"), c.comp);

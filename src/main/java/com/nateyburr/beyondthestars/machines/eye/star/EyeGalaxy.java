@@ -8,16 +8,15 @@ import java.util.Map;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
-import com.nateyburr.beyondthestars.machines.eye.field.GalaxyField;
 import com.nateyburr.beyondthestars.machines.quasar.engine.BurstLink;
 
 /**
  * P4: the Eye's galaxy-tier state (quasar-p4.md §3.1, §4, §5), kept beside the D-49 star by {@link EyeStarRuntime}:
- * the mode (galaxy or planets), the T8 Ergomatter feed setpoint, the two link milestones' live windows and streaks,
+ * the mode (galaxy or planets), the two link milestones' live windows and streaks,
  * the litre carries of the fractional draws, the companions and the planet slots. The runtime owns the flow; this class
  * owns the data and its NBT.
  * <p>
- * <b>Trap 2.</b> {@link #writePersistent} (the mode and the feed setpoint) goes with the item, like the dial;
+ * <b>Trap 2.</b> {@link #writePersistent} (the mode) goes with the item, like the dial;
  * everything else is the live star's and goes into the tile only ({@link #writeLive}): a wrench restarts the links'
  * streaks (their {@code done} flags and best streaks are milestones, in {@link EyeMilestones}).
  */
@@ -44,12 +43,8 @@ public final class EyeGalaxy {
         }
     }
 
-    /** The T8 feed setpoint's GUI step, L/s. */
-    public static final double F8_STEP = 0.5;
-
     // ---------------------------------------------------------------- persistent (item NBT)
     Mode mode = Mode.GALAXY;
-    double f8Set = GalaxyField.F8_DEFAULT;
 
     // ---------------------------------------------------------------- live (tile NBT)
     /** The Stability Link (T6 → T7): the rail's total, the high bank as the part. */
@@ -116,10 +111,6 @@ public final class EyeGalaxy {
         return mode;
     }
 
-    public double f8Setpoint() {
-        return f8Set;
-    }
-
     public BurstLink stabilityLink() {
         return link6;
     }
@@ -184,11 +175,6 @@ public final class EyeGalaxy {
 
     // ============================================================================ settings
 
-    void setF8Quiet(double v) {
-        f8Set = Double.isNaN(v) ? GalaxyField.F8_DEFAULT
-            : Math.max(GalaxyField.F8_MIN, Math.min(GalaxyField.F8_MAX, Math.round(v * 100) / 100.0));
-    }
-
     // ============================================================================ carries
 
     /**
@@ -212,7 +198,6 @@ public final class EyeGalaxy {
     /** A new controller's defaults (before an NBT read). */
     void reset() {
         mode = Mode.GALAXY;
-        f8Set = GalaxyField.F8_DEFAULT;
         resetLive();
     }
 
@@ -250,13 +235,12 @@ public final class EyeGalaxy {
 
     void writePersistent(NBTTagCompound nbt) {
         nbt.setString("btsEyeMode", mode.key);
-        nbt.setDouble("btsEyeF8", f8Set);
     }
 
     void readPersistent(NBTTagCompound nbt) {
         final Mode m = Mode.parse(nbt.getString("btsEyeMode"));
         mode = m == null ? Mode.GALAXY : m;
-        if (nbt.hasKey("btsEyeF8")) setF8Quiet(nbt.getDouble("btsEyeF8"));
+        // D-55: "btsEyeF8" (the retired T8 Ergomatter feed setpoint) is ignored on older saves and no longer written
     }
 
     /** The live part (tile only; written beside the star). */

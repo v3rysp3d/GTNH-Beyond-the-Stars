@@ -54,6 +54,8 @@ import com.nateyburr.beyondthestars.BeyondTheStars;
 import com.nateyburr.beyondthestars.Config;
 import com.nateyburr.beyondthestars.blocks.BlockSLCasing;
 import com.nateyburr.beyondthestars.blocks.SLBlocks;
+import com.nateyburr.beyondthestars.fluids.SLFluids;
+import com.nateyburr.beyondthestars.fluids.SLQuasarFluids;
 import com.nateyburr.beyondthestars.items.SLItems;
 import com.nateyburr.beyondthestars.machines.BTSShapes;
 import com.nateyburr.beyondthestars.machines.BTSStructures;
@@ -2030,6 +2032,11 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return all;
     }
 
+    /** Bench (D-55): every Directive Hatch the Eye publishes to (Sensor, 'n' and 'd' sockets). Server state. */
+    public List<MTEHatchDirective> benchDirectives() {
+        return publishedDirectives();
+    }
+
     /** The Directive Hatches standing in the core's 'n' and 'd' sockets now (loaded chunks only). Server state. */
     private List<MTEHatchDirective> socketDirectives() {
         final List<MTEHatchDirective> out = new ArrayList<>();
@@ -2087,6 +2094,17 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         } else if (set == DirectiveSet.EYE_FEED) {
             feedHeldIn = strength;
             feedHeldAt = now;
+        } else if (set == DirectiveSet.EYE_YIELD) {
+            yieldHeldIn = strength;
+            yieldHeldAt = now;
+            // D-55: bit 1 star matter on, bit 2 planets on (strength 4: both off); written only when it changes
+            final boolean stars = (strength & 1) != 0, planets = (strength & 2) != 0;
+            if (stars != runtime.attractor()
+                .universeStars() || planets
+                    != runtime.attractor()
+                        .universePlanets())
+                runtime.setUniverseYield(stars, planets);
+            return;
         }
         if (set == DirectiveSet.EYE_DIAL) {
             final double v = DirectiveSet.controlValue(strength, 1, EyeStarRuntime.DIAL_MAX, EyeStarRuntime.DIAL_STEP);
@@ -2098,8 +2116,8 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
     }
 
     /** QA-A24: the redstone a control-set Directive Hatch last drove the dial / feed with, and when (ticks). */
-    private int dialHeldIn, feedHeldIn;
-    private long dialHeldAt = Long.MIN_VALUE / 2, feedHeldAt = Long.MIN_VALUE / 2;
+    private int dialHeldIn, feedHeldIn, yieldHeldIn;
+    private long dialHeldAt = Long.MIN_VALUE / 2, feedHeldAt = Long.MIN_VALUE / 2, yieldHeldAt = Long.MIN_VALUE / 2;
     /** A hold is shown for this long after the last push (the hatches push once a second). */
     private static final long HELD_TICKS = 40;
 
@@ -2115,8 +2133,24 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
         return base.getTimer() - at <= HELD_TICKS ? (dial ? dialHeldIn : feedHeldIn) : 0;
     }
 
+    /**
+     * D-55: the redstone strength a control-set Directive Hatch holds the universe's yield toggles at now, 0 if none.
+     */
+    public int directiveYieldHold() {
+        final IGregTechTileEntity base = getBaseMetaTileEntity();
+        if (base == null) return 0;
+        return base.getTimer() - yieldHeldAt <= HELD_TICKS ? yieldHeldIn : 0;
+    }
+
     @Override
     public String directiveControlLine(DirectiveSet set) {
+        if (set == DirectiveSet.EYE_YIELD) {
+            return "universe yield: star matter " + (runtime.attractor()
+                .universeStars() ? "on" : "off")
+                + ", planets "
+                + (runtime.attractor()
+                    .universePlanets() ? "on" : "off");
+        }
         if (set == DirectiveSet.EYE_DIAL) {
             return String.format(Locale.ROOT, "time dial %.2f", runtime.dialSetpoint());
         }
@@ -2422,6 +2456,22 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
             buffers.put(fluid.getName(), left);
         } else {
             buffers.remove(fluid.getName());
+        }
+    }
+
+    /**
+     * D-55 (0.26.0): the Eye no longer takes Ergomatter (the Milky Way's feed, the Galactic Merger's charge) or Molten
+     * Magnetar Matter (Triangulum's upkeep). What an older save holds of them moves, once, to the owed outputs that
+     * are paid to the output hatches as soon as the Eye stands formed ({@link EyeStarRuntime#oweRetired}), so nothing
+     * is lost silently. Only a fluid no recipe of the Eye takes any more is moved.
+     */
+    private void retireBuffers() {
+        for (Fluid fluid : new Fluid[] { SLQuasarFluids.ergomatter, SLFluids.magnetarMatter }) {
+            if (fluid == null || EyeRecipeRegistry.isInputFluid(fluid)) continue;
+            final long held = buffer(fluid);
+            if (held <= 0) continue;
+            buffers.remove(fluid.getName());
+            runtime.oweRetired(fluid, held);
         }
     }
 
@@ -2780,6 +2830,7 @@ public class MTEEyeOfHarmonyBTS extends MTEExtendedPowerMultiBlockBase<MTEEyeOfH
                 }
             }
         }
+        retireBuffers();
         autoOff = aNBT.getString("btsEyeAutoOff");
         footprintBands = aNBT.getInteger("btsEyeFootprint");
         lastRun = aNBT.getString("btsEyeLastRun");

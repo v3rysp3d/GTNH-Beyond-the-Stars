@@ -64,8 +64,8 @@ public final class EyeNbt {
         if (rt.escrow != null) nbt.setTag("btsEyeEscrow", rt.escrow.writeToNBT(new NBTTagCompound()));
         nbt.setDouble("btsEyeDial", rt.dialSet);
         nbt.setDouble("btsEyeFeed", rt.feedSet);
-        rt.galaxy.writePersistent(nbt); // P4: the mode and the T8 feed setpoint (new keys; absent = defaults)
-        rt.attractor.writePersistent(nbt); // P5: the flow accept limit (absent = the hold rating)
+        rt.galaxy.writePersistent(nbt); // P4: the mode (absent = galaxy)
+        rt.attractor.writePersistent(nbt); // P5: the flow accept limit, D-55: the universe's yield toggles
         if (rt.legacyPending) nbt.setBoolean("btsEyeLegacyPending", true);
         if (!rt.legacyPay.isEmpty()) {
             final NBTTagCompound pay = new NBTTagCompound();

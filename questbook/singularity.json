@@ -774,7 +774,7 @@
         "- The other trims are the neutron star's: Spatially Enlarged Fluid, molten SpaceTime, Super Coolant and molten Purified Tengam.",
         "Lose the magnetar and a re-merge needs the charge again, but not the core. Nothing below T6 re-runs.",
         "",
-        "[note]Magnetar Matter is Eye T7's upkeep (7.5 L a cycle) and, later, a base of the T9 pellets. The road on is the {9}Quasar Engine{r}: T7 needs a linked quasar (the {c}Stability Link{r}).[/note]",
+        "[note]Magnetar Matter goes into the Intergalactic Upgrade Core and, later, the T9 pellets. The road on is the {9}Quasar Engine{r}: T7 needs a linked quasar (the {c}Stability Link{r}).[/note]",
         "",
         "{2}{l}DONE WHEN{r} you have held the core and the chart before the core goes into escrow (that task latches), and then 1,000 L of Magnetar Matter."
       ]
@@ -894,7 +894,8 @@
       "desc": [
         "Triangulum: the first galaxy, and the first tier the quasar holds together. The new verb is {9}aim{r}.",
         "",
-        "{5}{l}RUN{r} Each cycle: {9}7.5 L Magnetar Matter{r} plus bursts on the rail, for {9}600 L Ergomatter {times} Y {times} r {times} min({u+03b2}, 1.5){r}: Y is the cycle's mean field yield, r the share of the upkeep that arrived, and {u+03b2} the bursts delivered {div} the 1.5 Bu/t (1.5e13 EU/t, 15 trillion) demand.",
+        "{5}{l}RUN{r} Each cycle: bursts on the rail and no fluid at all (GRB stability alone holds a galaxy), for {9}600 L Ergomatter {times} Y {times} r {times} min({u+03b2}, 1.5){r}: Y is the cycle's mean field yield, r is 1 while the cycle's EU is paid (there is no upkeep), and {u+03b2} the bursts delivered {div} the 1.5 Bu/t (1.5e13 EU/t, 15 trillion) demand.",
+        "- Like every tier from T2, it also makes {9}Raw Star Matter{r}: 350,000 L an Eye-minute {times} p {times} Y {times} r (N {times} 50,000 L at tier N; a quarter in planets mode).",
         "",
         "{5}{l}THE GAUGES{r}",
         "- {9}P{r}, pressure: bursts heat it at 3 {times} ({u+03b2} - 1) a second; Space trims cool it (-2 a unit, up to 10 a second). Aim for about {9}1.5 {times} the demand{r} on average and send the surplus to a crown. The standard rig's J1 sends the Eye everything while P is low and nothing while it is high; its out 1 limit (7.5 Bu/t, 7.5e13 EU/t, per parallel) stops a big quasar flooding the Eye.",
@@ -906,7 +907,7 @@
         "- Events: [1] {u+039b} > +w more to the halo, [2] {u+039b} < -w less to the halo, [4] a countdown is running, [8] its sign is minus.",
         "- Slots: [1] a slot is idle, [2] a companion's upkeep is short, [4] a planet run lost parallels, [8] link test fire wanted.",
         "",
-        "The Galaxy panel (the GUI's galaxy button) sets the mode, the T8 feed and Begin. The terminal shows the bursts, {u+03b2} against the demand, W and the event countdown.",
+        "The Galaxy panel (the GUI's galaxy button) sets the mode and Begins. The terminal shows the bursts, {u+03b2} against the demand, W and the event countdown.",
         "",
         "{2}{l}DONE WHEN{r} you have 1,000 L of Ergomatter."
       ]
@@ -919,7 +920,6 @@
       "desc": [
         "Eye T7's harvest. Its uses:",
         "- the Conduit's throat fuel after T7 (0.25 / 1 / 4 L/s per element);",
-        "- Eye T8's feed (0-10 L/s);",
         "- the Mk III throat;",
         "- with Beyond the Stars' Eye, the input of the {9}Eternity{r} loop: the Temporal Harmonizer Catalyst takes 9,216 L of Ergomatter and the Plasma Forge's Timepiece 4,608 L, instead of Universium.",
         "",
@@ -936,9 +936,9 @@
       "desc": [
         "The Milky Way. You aim a third stream into the shard halo and catch the satellite crossings.",
         "",
-        "{5}{l}RUN{r} An Ergomatter feed {9}f8 of 0-10 L/s{r} (the Galaxy panel, default 5) makes {9}Superdense Ergomatter = 1.0 {times} the feed {times} Y {times} r{r} (Y the mean field yield, r the share of the upkeep paid).",
-        "- {9}{u+039b}{r}, the tidal shear: the feed drives it at 0.4 {times} f8, and halo bursts hold it at -10 {times} the halo share. Wire J3 to Events [1] / [2].",
-        "- {9}Satellite crossings{r} (every 30-60 min, an exact 2 min countdown) push P for 5 min. Stay Stable throughout to {9}catch{r} one, for a bonus cycle of Superdense Ergomatter. Run the Space rig, and lower f8 during the countdown at high feed.",
+        "{5}{l}RUN{r} No fluid goes in: GRB stability alone holds it. Each cycle makes {9}300 L Superdense Ergomatter {times} p {times} Y {times} r{r} (Y the mean field yield, r 1 while the cycle's EU is paid), and {9}Raw Star Matter{r} 400,000 L {times} p {times} Y {times} r.",
+        "- {9}{u+039b}{r}, the tidal shear: it drifts 2.0 a second, and halo bursts hold it at -10 {times} the halo share. Wire J3 to Events [1] / [2].",
+        "- {9}Satellite crossings{r} (every 30-60 min, an exact 2 min countdown) push P for 5 min. Stay Stable throughout to {9}catch{r} one, for a bonus of 300 L {times} r {times} p Superdense Ergomatter. Run the Space rig through the countdown.",
         "",
         "T8 is {9}required{r}: no Eye tier can be skipped.",
         "",
@@ -952,7 +952,7 @@
       "tasks": [ { "type": "fluid", "fluids": ["16000x fluid:btssuperdenseergomatter"] } ],
       "desc": [
         "Ergomatter, compacted. Two routes, one fluid:",
-        "- {9}Eye T8{r}: 1 : 1 from its feed, about nine times better;",
+        "- {9}Eye T8{r}: 300 L a cycle from bursts alone, no Ergomatter in;",
         "- {9}the Kerr{r}, before T8: the Compressor Module refines 4,000 L Ergomatter + 1,440 L Molten SpaceTime {to} 500 L in 10 min at UXV (see {c}Superdense Ergomatter, the Slow Way{r}).",
         "",
         "It builds the Supermassive Lattice's Containment Nodes (L1 to L4), the Mk IV throat and the Mk IV crown's casing. Coming later, it also feeds the T9 pellets, the Homogeny's Entanglement Medium and Reality Diffraction's Positive Mass anchor (Tier 14 - MAX).",
@@ -1173,7 +1173,7 @@
         "The T6 {to} T7 transition. With the {9}Intergalactic Upgrade Core{r} in escrow (right-click the controller) and {9}Star Chart: Triangulum{r} in the slot, the Eye is PENDING and the magnetar keeps burning.",
         "",
         "{5}{l}BEGIN{r}",
-        "- Buffer the charge first: {9}18,432 L White Dwarf Matter{r} and {9}4,608 L Black Dwarf Matter{r} ({times} p), plus Triangulum's first cycle (7.5 L Magnetar Matter: keep at least 8 L).",
+        "- Buffer the charge first: {9}18,432 L White Dwarf Matter{r} and {9}4,608 L Black Dwarf Matter{r} ({times} p). Triangulum itself takes no fluid.",
         "- When Galaxy Transition [1] (ready) is on, {9}Begin{r}: the GUI's Galaxy panel, a rising edge on a Burst Control Hatch in Begin mode in a plinth d socket, or OpenComputers beginTransition().",
         "",
         "{5}{l}PHASES{r}",
@@ -1235,14 +1235,14 @@
       "prereqs": [48164],
       "tasks": [ { "type": "retrieval", "items": ["1x beyondthestars:supermassiveSeedCore", "1x beyondthestars:starChartMilkyWay"] } ],
       "desc": [
-        "The T7 {to} T8 transition. Put the {9}Supermassive Seed Core{r} in escrow and {9}Star Chart: Milky Way{r} in the slot while Triangulum burns, in galaxy mode with no companion charts in the slot bus. Buffer {9}9,000 L Ergomatter{r} ({times} p) plus the Milky Way's first feed cycle, then {9}Begin{r}.",
+        "The T7 {to} T8 transition. Put the {9}Supermassive Seed Core{r} in escrow and {9}Star Chart: Milky Way{r} in the slot while Triangulum burns, in galaxy mode with no companion charts in the slot bus. No fluid is buffered: bursts alone hold the merger. {9}Begin{r} once ready.",
         "",
         "{5}{l}THE MERGER{r} 30 min:",
-        "- the demand ramps from 1.5 to 6 Bu/t (1.5e13 to 6e13 EU/t), and the Ergomatter charge feeds at 5 L/s;",
+        "- the demand ramps from 1.5 to 6 Bu/t (1.5e13 to 6e13 EU/t): bring the bursts, there is no fluid charge;",
         "- three warned pericentre passes at 10, 20 and 30 min give W {pm}12 and P +5 a second for 5 s;",
         "- then Stable for 2 min in a row within 5 min.",
         "",
-        "A failure loses Triangulum and keeps the core. Leave the chart in: the Eye relights {9}Triangulum{r} at T7 from a new Magnetar Collapse charge (White and Black Dwarf Matter, with bursts on the ports), and the merger can begin again. No magnetar re-run.",
+        "A failure loses Triangulum only and keeps the core. Leave the chart in: the Eye relights {9}Triangulum{r} at T7 from a new Magnetar Collapse charge (White and Black Dwarf Matter, with bursts on the ports), and the merger can begin again. No magnetar re-run.",
         "",
         "[note]The core is made from 128,000 L Entangled Ergomatter, 2,304 L Magnetar Matter and Black Dwarf nanites. Its name is the hole it seeds, not the fluid.[/note]",
         "",
@@ -1259,7 +1259,7 @@
         "",
         "It needs the Kerr Ergosphere Engine (KEE) at T2, holding at least {9}256 SM{r}, with a quasar link at {u+03c3} {ge} 1 (a GRB Receptor Port in a utility socket). A run that loses the link pauses; nothing is voided.",
         "",
-        "Eye T8 makes the same fluid 1 : 1 from its feed: this route is for before T8.",
+        "Eye T8 makes the same fluid from bursts alone: this route is for before T8.",
         "",
         "{2}{l}DONE WHEN{r} you have 500 L of Superdense Ergomatter."
       ]
@@ -1373,7 +1373,7 @@
       "desc": [
         "With OpenComputers, an Adapter against a Beyond the Stars machine (the Eye, the Kerr, the quasar, a conduit element, a crown, a receptor port, the Homogeny, Reality Diffraction, a Directive or Sensor hatch) gives a component. Setters take one call a second (the field's step); a refused call returns nil and the reason.",
         "- bts_quasar: getDisc, getBurst, getFeed, setFeed, setGas, setField, trim, purge, getLinks, getMilestones, getDirective; with a lattice also getBand, getIntake, getHoldUp, getBuffer, getOverdrive, getAnchor, getHorizon, setMassSetpoint, setOverdrive, setUnbound, shed;",
-        "- bts_eye: getState, getField, getBuffers, getEvent, getUnlock, getDirective, beginTransition, setDial, setFeed, setFeed8, setMode, trim, getSlots;",
+        "- bts_eye: getState, getField, getBuffers, getEvent, getUnlock, getDirective, beginTransition, setDial, setFeed, setMode, trim, getSlots, getUniverseYield, setUniverseYield (setFeed8 answers false since 0.26.0: the Milky Way has no feed);",
         "- bts_mouth and bts_mirror: getLink, getThroat, getUpkeep, setFuel, isOpen;",
         "- bts_junction: getFlow, setRatio, setGain, setOut3, setLimit, setMode;",
         "- bts_crown (getPower, getStream, getMk), bts_receptor (getDelivery), bts_homogeny, bts_reality, bts_kerr (getState().link), bts_directive and bts_sensor.",
@@ -1551,6 +1551,10 @@
         "{5}{l}EVENTS{r} {9}Recombination{r} at 1,800 s (warned 60 s): the universe turns transparent, H climbs for 300 s. {9}Cosmic Dawn{r} once a universe at 3,240 to 4,680 s (warned 120 s): the first stars ignite across the crown. Held Stable throughout: +12.5 % Universium.",
         "",
         "{5}{l}OUTPUT{r} {9}Universium 9,216 L a universe{r} {times} mean Y {times} r, + 1,152 L for a caught Cosmic Dawn: about 6,200 L an hour. The charge is 9,216 L Attractor Dark Matter a universe. This is the {9}only{r} Universium source. A Big Rip or Crunch ends that universe early and salvages 25 % {times} the fraction run; the Eye never loses T10. If the universe goes out (the structure broken, the Eye switched off), the dark Eye begins a {9}new universe{r} at T10 from a new 9,216 L charge.",
+        "",
+        "{5}{l}ALL IT HOLDS{r} Each finished universe also yields its stars and planets ({times} p {times} mean Y {times} r): Excited Stellar Plasma 300,000 L, Raw Hyperdense Stellar Plasma 75,000 L, White Dwarf Matter 18,420 L, Black Dwarf Matter 4,608 L, Magnetar Matter 1,800 L, Ergomatter 72,000 L, Superdense Ergomatter 36,000 L, and {9}every planet once{r} at parallel 2^(10 - k), each parallel at (1 - 0.05 R) {times} the batch's field factor (no H/He, no EU; items to the ME output bus). Raw Star Matter comes every Eye-minute: 500,000 L {times} p {times} Y {times} r. A collapsed universe yields none of it.",
+        "- {9}The filter{r}: the slot bus is a whitelist, never used up. Planet items keep only those planets; star charts of T2 to T8 keep only their matters; empty, everything comes. An ME interface or export bus can set it.",
+        "- Two toggles on the Galaxy panel switch the star matter and the planets off (OpenComputers setUniverseYield(stars, planets); redstone: a Directive Hatch on its yield control set, bit 1 star matter, bit 2 planets, 4 both off). The Yield row shows what the next universe gives.",
         "",
         "{5}{l}STANDARD RIG{r} Universe bits 1 and 2 to two 2-unit valves (Dark Matter and SpaceTime), J1 on P, the Space valve, and a 600 SM quasar.",
         "",

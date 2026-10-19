@@ -109,6 +109,7 @@ public final class UniverseField {
             final double mY = u.ySum / u.n;
             out.universeDone = true;
             out.universeMeanY = mY;
+            out.universeRMin = u.rMin;
             out.universeBase = OUT * mY * u.rMin;
             out.universeBonus = u.dawnOk ? OUT * DAWN_BONUS * u.rMin : 0;
             out.universeDawnOk = u.dawnOk;

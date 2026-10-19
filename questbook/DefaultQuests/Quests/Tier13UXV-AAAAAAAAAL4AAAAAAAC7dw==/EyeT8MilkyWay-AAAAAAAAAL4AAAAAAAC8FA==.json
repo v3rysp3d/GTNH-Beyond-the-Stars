@@ -21,7 +21,7 @@
         "id:8": "minecraft:stick"
       },
       "countAsQuest:1": 1,
-      "desc:8": "The Milky Way. You aim a third stream into the shard halo and catch the satellite crossings.\n\n§5§lRUN§r An Ergomatter feed §9f8 of 0-10 L/s§r (the Galaxy panel, default 5) makes §9Superdense Ergomatter = 1.0 × the feed × Y × r§r (Y the mean field yield, r the share of the upkeep paid).\n- §9Λ§r, the tidal shear: the feed drives it at 0.4 × f8, and halo bursts hold it at -10 × the halo share. Wire J3 to Events [1] / [2].\n- §9Satellite crossings§r (every 30-60 min, an exact 2 min countdown) push P for 5 min. Stay Stable throughout to §9catch§r one, for a bonus cycle of Superdense Ergomatter. Run the Space rig, and lower f8 during the countdown at high feed.\n\nT8 is §9required§r: no Eye tier can be skipped.\n\n§2§lDONE §lWHEN§r you have 1,000 L of Superdense Ergomatter.",
+      "desc:8": "The Milky Way. You aim a third stream into the shard halo and catch the satellite crossings.\n\n§5§lRUN§r No fluid goes in: GRB stability alone holds it. Each cycle makes§9 300 L Superdense Ergomatter × p × Y × r§r (Y the mean field yield, r 1 while the cycle's EU is paid), and §9Raw Star Matter§r 400,000 L × p × Y × r.\n- §9Λ§r, the tidal shear: it drifts 2.0 a second, and halo bursts hold it at -10 × the halo share. Wire J3 to Events [1] / [2].\n- §9Satellite crossings§r (every 30-60 min, an exact 2 min countdown) push P for 5 min. Stay Stable throughout to §9catch§r one, for a bonus of 300 L × r × p Superdense Ergomatter. Run the Space rig through the countdown.\n\nT8 is §9required§r: no Eye tier can be skipped.\n\n§2§lDONE §lWHEN§r you have 1,000 L of Superdense Ergomatter.",
       "globalShare:1": 0,
       "icon:10": {
         "Count:3": 1,

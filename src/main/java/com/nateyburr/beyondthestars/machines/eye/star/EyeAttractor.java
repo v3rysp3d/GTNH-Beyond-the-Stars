@@ -17,7 +17,8 @@ import gregtech.api.enums.Materials;
  * limit, the universe charge owed, and the last events the GUI, the scanner and the render read. The field part (the
  * beam, the flow, the universe) is in {@code FieldState} and saved by {@link EyeNbt}.
  * <p>
- * Trap 2: the accept limit is persistent (item and tile NBT, a setting); the rest is the live star's (tile NBT).
+ * Trap 2: the accept limit and the universe's two yield toggles (D-55) are persistent (item and tile NBT, settings);
+ * the rest is the live star's (tile NBT).
  */
 public final class EyeAttractor {
 
@@ -27,6 +28,8 @@ public final class EyeAttractor {
     // ---------------------------------------------------------------- persistent (item NBT)
     /** The flow accept limit (0-12), or -1 for "the hold rating" (the default, Q-P5-6). */
     int acceptSet = -1;
+    /** D-55: a universe batch yields its star matter / its planets ({@link UniverseYield}); both on by default. */
+    boolean uniStars = true, uniPlanets = true;
 
     // ---------------------------------------------------------------- live (tile NBT)
     /** The Deep Link (T8 → T9): the Eye's total with the collar part, and the beam's ρ, rolled each T8 second. */
@@ -46,6 +49,14 @@ public final class EyeAttractor {
     /** The last declined group: when it streamed past (field clock), its size and side (render). */
     long passT = -1;
     int passSize, passSign;
+    /**
+     * D-55: the universe batch's field factor for its planets, summed per field second (Resonant / Stable 1, Strained
+     * 0.5, Critical 0) and the seconds counted; restarted with each universe.
+     */
+    double uniZf;
+    int uniZn;
+    /** D-55: the last universe's yield, for the GUI ("" none yet). */
+    String lastYield = "";
 
     // ---------------------------------------------------------------- transient (this second)
     /** The beam's grade fired (0 none), the injector's barrel Mk, ρ_max, the hold rating, pellets per second. */
@@ -235,10 +246,30 @@ public final class EyeAttractor {
 
     void writePersistent(NBTTagCompound nbt) {
         if (acceptSet >= 0) nbt.setInteger("btsEyeAccept", acceptSet);
+        // D-55: written only when off (absent = on), so older saves and new controllers yield everything
+        if (!uniStars) nbt.setBoolean("btsEyeUniStarsOff", true);
+        if (!uniPlanets) nbt.setBoolean("btsEyeUniPlanetsOff", true);
     }
 
     void readPersistent(NBTTagCompound nbt) {
         acceptSet = nbt.hasKey("btsEyeAccept") ? nbt.getInteger("btsEyeAccept") : -1;
+        uniStars = !nbt.getBoolean("btsEyeUniStarsOff");
+        uniPlanets = !nbt.getBoolean("btsEyeUniPlanetsOff");
+    }
+
+    /** D-55: the universe yields its star matter (the GUI toggle, OpenComputers). */
+    public boolean universeStars() {
+        return uniStars;
+    }
+
+    /** D-55: the universe yields its planets (the GUI toggle, OpenComputers). */
+    public boolean universePlanets() {
+        return uniPlanets;
+    }
+
+    /** D-55: the last universe's yield line ("" none yet). */
+    public String lastYield() {
+        return lastYield;
     }
 
     NBTTagCompound writeLive() {
@@ -253,6 +284,11 @@ public final class EyeAttractor {
         t.setLong("passT", passT);
         t.setInteger("passSize", passSize);
         t.setInteger("passSign", passSign);
+        if (uniZn > 0) {
+            t.setDouble("uniZf", uniZf);
+            t.setInteger("uniZn", uniZn);
+        }
+        if (!lastYield.isEmpty()) t.setString("lastYield", lastYield);
         final NBTTagCompound d = new NBTTagCompound();
         d.setInteger("streak", deep.link.streak);
         d.setInteger("best", deep.link.best);
@@ -277,6 +313,9 @@ public final class EyeAttractor {
         passT = t.hasKey("passT") ? t.getLong("passT") : -1;
         passSize = t.getInteger("passSize");
         passSign = t.getInteger("passSign");
+        uniZf = t.getDouble("uniZf"); // D-55 (absent on older saves: 0, the batch's factor counts from now)
+        uniZn = t.getInteger("uniZn");
+        lastYield = t.getString("lastYield");
         final NBTTagCompound d = t.getCompoundTag("deep");
         final double[] w = new double[3 * 60];
         for (int i = 0; i < w.length; i++) w[i] = d.getDouble("w" + i);
@@ -296,6 +335,9 @@ public final class EyeAttractor {
         lastFlow = "";
         passT = -1;
         passSize = passSign = 0;
+        uniZf = 0;
+        uniZn = 0;
+        lastYield = "";
         deep.restore(new double[3 * 60], 0);
         deep.link.streak = deep.link.best = 0;
         deep.link.done = false;

@@ -57,8 +57,9 @@ public final class StarDef {
     /** Wireless EU per cycle, per parallel. */
     public final long euPerCycle;
     /**
-     * P4: upkeep per cycle and parallel in fractional litres (T7's Molten Magnetar Matter 7.5 L), paid with a carry so
-     * the long-run mean is exact. Empty for T1-T6.
+     * P4: upkeep per cycle and parallel in fractional litres, paid with a carry so the long-run mean is exact. Empty
+     * for every star since D-55 (T7's Molten Magnetar Matter 7.5 L was the only one); kept for a future fractional
+     * upkeep.
      */
     public final Map<Fluid, Double> exactUpkeep;
 

@@ -20,7 +20,8 @@ import java.util.Map;
  * <b>P4 (T7/T8, planets mode; quasar-p4.md §4).</b> Two more gauges, W (rail warp) and Λ (tidal shear), and the
  * prototype's additive hooks in its order: a transition's forced event terms ({@link Overlay#addEvents}) after its
  * drift, then the T8 satellite crossing; per-gauge σ; the burst terms ({@link TierParams#burstTerm}) after the event
- * term; the minor merger's precession flip; per second after the transition, the β sum, the T8 Ergomatter feed and
+ * term; the minor merger's precession flip; per second after the transition, the β sum, the T8 fixed equivalent feed
+ * and
  * the crossing's end; at the cycle end the galaxy product (0 while a transition runs). RNG draws added by P4: one
  * {@code uni} for the crossing when a T8 lights (after the event's), one when a crossing ends. Pow / cbrt use
  * {@link StrictMath} (fdlibm, as V8).
@@ -110,7 +111,7 @@ public final class StellarField {
             ? new FieldState.EventState(
                 s.t + uni(s.rng, t.event.everyMin, t.event.everyMax) / Math.min(dialSetpoint, mMax(t, tt)))
             : null;
-        if (t.ergoFeed) s.tde = new FieldState.Crossing(
+        if (t.shear) s.tde = new FieldState.Crossing(
             s.t + uni(s.rng, GalaxyField.CROSSING_EVERY_MIN, GalaxyField.CROSSING_EVERY_MAX));
         if (t.n >= 7) s.prec = 1;
     }
@@ -229,7 +230,7 @@ public final class StellarField {
         // P4: a transition's forced event terms (pericentre passes) and its warning, then the satellite crossing
         final int w2 = ov.addEvents(s, in, E, q, out);
         if (w2 != 0) warn = w2;
-        if (T.ergoFeed) crossingTick(s, E, q, ov.running(), out);
+        if (T.shear) crossingTick(s, E, q, ov.running(), out);
 
         // ---- the gauge update (P5: the T9 beam and flow, and the T10 universe clock, run inside the drift)
         final double[] d = ov.drift(T, s, in, out);
@@ -324,15 +325,10 @@ public final class StellarField {
             s.cyc.hsm += h;
             out.hsmToDraw = h;
         }
-        if (Tn.galaxy) { // the prototype's perSec: β sum; T8: the Ergomatter feed, then the crossing's end
+        if (Tn.galaxy) { // the prototype's perSec: β sum; T8: the fixed equivalent feed (D-55), the crossing's end
             s.cyc.bSum += in.beta;
-            if (Tn.ergoFeed) {
-                if (!trans) {
-                    final double f = in.f8 * m * p;
-                    s.cyc.f8 += f;
-                    out.ergoFed = true;
-                    out.ergoToDraw = f;
-                }
+            if (Tn.shear) {
+                if (!trans) s.cyc.f8 += GalaxyField.F8 * m * p;
                 crossingPost(s, z, in, out);
             }
             if (Tn.attractor) { // P5 T9: the flow's end, then its warning on the event channel
@@ -362,7 +358,7 @@ public final class StellarField {
                 } else if (Tn.galaxy) {
                     out.companionCycle = !trans;
                     out.cycleProduct = trans ? 0
-                        : Tn.ergoFeed ? GalaxyField.T8_RATIO * cy.f8 * mY * cy.rMin
+                        : Tn.shear ? GalaxyField.T8_RATIO * cy.f8 * mY * cy.rMin
                             : Tn.productBase * p
                                 * mY
                                 * cy.rMin
@@ -449,7 +445,7 @@ public final class StellarField {
             if (td.ok) {
                 td.caught++;
                 out.crossingCaught = true;
-                out.crossingBonus = GalaxyField.crossingBonus(in.f8, in.r, in.p);
+                out.crossingBonus = GalaxyField.crossingBonus(in.r, in.p);
             } else out.crossingMissed = true;
             td.next = (double) (s.t + 1) + uni(s.rng, GalaxyField.CROSSING_EVERY_MIN, GalaxyField.CROSSING_EVERY_MAX);
         }

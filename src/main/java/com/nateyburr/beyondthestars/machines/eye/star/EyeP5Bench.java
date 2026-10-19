@@ -42,6 +42,40 @@ public final class EyeP5Bench {
     /** Eyes kept stocked by {@code refill}: their position key to the grade. Not saved. */
     private static final Map<Integer, Integer> REFILL = new HashMap<>();
 
+    /** D-55 bench: the first Directive Hatch on EYE_YIELD with a redstone block on a free side (on), or none (off). */
+    private static String yieldHatch(MTEEyeOfHarmonyBTS eye, boolean on) {
+        final List<com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective> hatches = eye.benchDirectives();
+        if (hatches.isEmpty()) return "No Directive Hatch on this Eye.";
+        final com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective h = hatches.get(0);
+        final gregtech.api.interfaces.tileentity.IGregTechTileEntity b = h.getBaseMetaTileEntity();
+        final net.minecraft.world.World w = b.getWorld();
+        h.setSet(com.nateyburr.beyondthestars.machines.directive.DirectiveSet.EYE_YIELD);
+        for (net.minecraftforge.common.util.ForgeDirection d : net.minecraftforge.common.util.ForgeDirection.VALID_DIRECTIONS) {
+            final int x = b.getXCoord() + d.offsetX, y = b.getYCoord() + d.offsetY, z = b.getZCoord() + d.offsetZ;
+            final net.minecraft.block.Block at = w.getBlock(x, y, z);
+            if (on && w.isAirBlock(x, y, z)) {
+                w.setBlock(x, y, z, net.minecraft.init.Blocks.redstone_block);
+                return "Directive Hatch at (" + b.getXCoord()
+                    + ", "
+                    + b.getYCoord()
+                    + ", "
+                    + b.getZCoord()
+                    + ") on EYE_YIELD, a redstone block at ("
+                    + x
+                    + ", "
+                    + y
+                    + ", "
+                    + z
+                    + ")";
+            }
+            if (!on && at == net.minecraft.init.Blocks.redstone_block) {
+                w.setBlockToAir(x, y, z);
+                return "Directive Hatch on EYE_YIELD, its redstone block removed";
+            }
+        }
+        return on ? "No free side beside the Directive Hatch" : "No redstone block beside the Directive Hatch";
+    }
+
     public static List<String> run(MTEEyeOfHarmonyBTS eye, String[] args, int at) {
         final List<String> out = new ArrayList<>();
         final EyeStarRuntime rt = eye.starRuntime();
@@ -196,13 +230,34 @@ public final class EyeP5Bench {
                 out.add(EyeStdRig.status(eye));
                 break;
             }
+            case "yield": {
+                // D-55: yield <strength 0-15> pushes a control strength through the controller's EYE_YIELD path;
+                // yield hatch on|off puts the first Directive Hatch on EYE_YIELD and a redstone block beside it
+                // (a real signal, 15: both on) or takes the block away
+                if ("hatch".equals(a1)) {
+                    out.add(yieldHatch(eye, args.length > at + 2 && "on".equalsIgnoreCase(args[at + 2])));
+                } else if (!a1.isEmpty()) {
+                    eye.directiveControl(
+                        com.nateyburr.beyondthestars.machines.directive.DirectiveSet.EYE_YIELD,
+                        Integer.parseInt(a1));
+                }
+                out.add(
+                    "universe yield: star matter " + (rt.attractor.uniStars ? "on" : "off")
+                        + ", planets "
+                        + (rt.attractor.uniPlanets ? "on" : "off")
+                        + "; held by a Directive Hatch at redstone "
+                        + eye.directiveYieldHold()
+                        + "; next universe: "
+                        + UniverseYield.summary(rt.universeSelection()));
+                return out;
+            }
             case "uni":
             case "status":
                 break;
             default:
                 out.add(
                     "p5 status | pellets <mag|erg|sup> [n] [mk <1-3>] | refill <grade|off> | accept <n|auto> |"
-                        + " beam <c|auto> [k] | deeplink [reset] | flow | uni | stdrig on [mass M]|off|status |"
+                        + " beam <c|auto> [k] | deeplink [reset] | flow | uni | stdrig on [mass M]|off|status | yield <0-15>|hatch on|off |"
                         + " count <counter> <n>");
                 return out;
         }

@@ -1,9 +1,9 @@
 {
  "about": "P5 golden results (Eye T9 the Great Attractor, the Deep Link, The Infall, Eye T10 the Universe, Inflation) from the prototype engine (the B-169 fixes are in the prototype). QuasarSim golden-p5 must match every number exactly. Regenerate; do not edit.",
  "engineSha1": "c28c22097debf085fd21226aed3f656c7706d04b",
- "p4Sha1": "dd436d95d11c01575d0df2d495e6d4d6dae3e4c0",
- "p5Sha1": "f158517cd247cb5fcd12ebac34d017bc1c111bb3",
- "sourceSha1": "bb7461b47fbba4b7cbd113d445fdfc0ff8401ae7",
+ "p4Sha1": "5b5943f839b5742c0969668ebdae21bc8f6e0c69",
+ "p5Sha1": "8b55f1a42822e0f906eeb74c70adbbe68f8fed92",
+ "sourceSha1": "de458e9e9fc798e81863f4e7717a79f58ee5053c",
  "cases": [
   {
    "name": "T9 standard 300SM s1",
@@ -1669,8 +1669,6 @@
      "White Dwarf Matter": 57840,
      "Black Dwarf Matter": 14460,
      "Antipolarization Agent": 2892000,
-     "Magnetar Matter": 3615,
-     "Ergomatter": 72300,
      "Superdense Pellet": 8051.233333333353
     },
     "prod": {
@@ -1797,8 +1795,6 @@
      "White Dwarf Matter": 31920,
      "Black Dwarf Matter": 7980,
      "Antipolarization Agent": 1596000,
-     "Magnetar Matter": 1995,
-     "Ergomatter": 39900,
      "Superdense Pellet": 3619.8333333333408
     },
     "prod": {
@@ -2472,7 +2468,6 @@
     "cycles": 120,
     "eu": 299342040662016000,
     "up": {
-     "Ergomatter": 36000,
      "Superdense Pellet": 1182.4333333333498
     },
     "prod": {
@@ -2582,7 +2577,6 @@
     "cycles": 120,
     "eu": 299342040662016000,
     "up": {
-     "Ergomatter": 36000,
      "Superdense Pellet": 1182.4333333333498
     },
     "prod": {
@@ -2692,7 +2686,6 @@
     "cycles": 120,
     "eu": 299342040662016000,
     "up": {
-     "Ergomatter": 36000,
      "Superdense Pellet": 1182.4333333333498
     },
     "prod": {
@@ -2802,7 +2795,6 @@
     "cycles": 120,
     "eu": 299342040662016000,
     "up": {
-     "Ergomatter": 36000,
      "Superdense Pellet": 1182.4333333333498
     },
     "prod": {
@@ -2912,7 +2904,6 @@
     "cycles": 54,
     "eu": 163277476724736000,
     "up": {
-     "Ergomatter": 17945,
      "Superdense Pellet": 2280.000000000117
     },
     "prod": {
@@ -3017,7 +3008,6 @@
     "cycles": 65,
     "eu": 640740401086464000,
     "up": {
-     "Ergomatter": 600,
      "Superdense Pellet": 2148.2000000000066,
      "Superdense Ergomatter": 16190
     },
@@ -3134,7 +3124,6 @@
     "cycles": 65,
     "eu": 640740401086464000,
     "up": {
-     "Ergomatter": 600,
      "Superdense Pellet": 2161.6666666666774,
      "Superdense Ergomatter": 16190
     },
@@ -3251,7 +3240,6 @@
     "cycles": 65,
     "eu": 640740401086464000,
     "up": {
-     "Ergomatter": 600,
      "Superdense Pellet": 2095.700000000006,
      "Superdense Ergomatter": 16190
     },
@@ -3372,7 +3360,6 @@
     "cycles": 66,
     "eu": 197912092999680000,
     "up": {
-     "Ergomatter": 18610,
      "Superdense Pellet": 139,
      "Superdense Ergomatter": 2770
     },
@@ -3483,7 +3470,6 @@
     "cycles": 65,
     "eu": 321607151124480000,
     "up": {
-     "Ergomatter": 13445,
      "Ergomatter Pellet": 2886.93333333334,
      "Superdense Ergomatter": 13100
     },
@@ -3593,7 +3579,6 @@
     "cycles": 66,
     "eu": 338924459261952000,
     "up": {
-     "Ergomatter": 12960,
      "Superdense Pellet": 793.9666666666636,
      "Superdense Ergomatter": 14070
     },
@@ -3703,7 +3688,6 @@
     "cycles": 99,
     "eu": 695166226661376000,
     "up": {
-     "Ergomatter": 12000,
      "Superdense Pellet": 3220.033333333365,
      "Superdense Ergomatter": 16190
     },

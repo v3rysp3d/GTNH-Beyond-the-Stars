@@ -108,6 +108,21 @@ the coremod's BHC entries on every bump.
 
 ---
 
+## D-55 (0.26.0, 2026-10-17): Raw Star Matter at every tier, galaxies on GRB stability alone, the Universe's yield
+
+This supersedes the P4 numbers further down where they differ (questions B-256..B-262):
+- Every lit Eye tier N from T2 makes Raw Star Matter, N x 50,000 L an Eye-minute x p x mean Y x r
+  (`RawStarMatterYield`; planets mode a quarter; T1 unchanged; none in a transition).
+- No Ergomatter or Molten Magnetar Matter goes into the Eye: Triangulum's 7.5 L upkeep (`exactUpkeep` is empty now),
+  the Milky Way's feed f8 (Λ drifts 0.4 x `GalaxyField.F8` = 2.0 per s; product `T8_SUPERDENSE` 300 L a cycle; crossing
+  bonus 300 x r x p), the Galactic Merger's charge (`GM_ERGO` is gone) and the T9 galaxy companions' upkeep.
+  `TierParams` F.ERGO / `ergoFeed` is F.SHEAR / `shear`; `StepInputs.f8`, `StepResult.ergoFed / ergoToDraw /
+  ergoCharged` are gone; `btsEyeF8` is no longer written (ignored on read).
+- Each finished universe yields the T2-T8 star matters and every planet (`UniverseYield`), filtered by the slot bus,
+  with two persistent toggles (`btsEyeUniStarsOff`, `btsEyeUniPlanetsOff`) and OpenComputers
+  `getUniverseYield` / `setUniverseYield`.
+- Old saves: Ergomatter and Magnetar Matter in the buffers move to the owed outputs (`EyeStarRuntime.oweRetired`).
+
 ## What's in the build (2026-10-12, addon 457bbf8)
 
 ### Automation pass (ruling 18, 2026-10-13)
