@@ -129,7 +129,37 @@ import io.netty.buffer.ByteBuf;
  * list). (4) Sockets are {@code buildHatchAdder(...).buildAndChain(casing)}, the hatch first.
  */
 public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
-    implements ISurvivalConstructable, IMTERenderer {
+    implements ISurvivalConstructable, IMTERenderer, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    /**
+     * SHOWCASE MODE (showcase/BTSShowcase): σ reads 1 (Entanglement Medium runs with no quasar), plus chunks,
+     * maintenance, void mode and restarts. Inputs and power come from the hatches as usual. Tile NBT only.
+     */
+    private boolean showcase;
+
+    @Override
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        showcase = on;
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        if (b == null) return null;
+        final int x = b.getXCoord(), z = b.getZCoord();
+        return new int[] { x - 112, 0, z - 112, x + 112, 255, z + 112 };
+    }
+
+    @Override
+    public String showcaseName() {
+        return "The Homogeny";
+    }
 
     public static final String PIECE_T1 = "homog_t1";
     public static final String PIECE_T2 = "homog_t2";
@@ -733,6 +763,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (aBaseMetaTileEntity.isServerSide() && aTick % 20 == 0) {
+            com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
             if (mMachine) burstSecond(aBaseMetaTileEntity);
             if (aTick % 40 == 0) sendRenderDataToClient(this);
             // Install progress, milestones, the pending mix totals and the burst counters change without an
@@ -863,6 +894,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
      * the mean is held for when it returns).
      */
     public double quasarSigma() {
+        if (showcase && burstDemand() > 0) return 1.0;
         return receptorCount() == 0 || burstDemand() <= 0 ? 0 : burstHost.sigmaInForce();
     }
 
@@ -1056,6 +1088,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
         aNBT.setLong("btsHomPendEspm", pendingEspm);
         aNBT.setLong("btsHomPendDeg", pendingDegenerate);
         aNBT.setString("btsHomNote", lastNote);
+        aNBT.setBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY, showcase);
         burstHost.save(aNBT, "btsHomLink");
     }
 
@@ -1068,6 +1101,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
+        showcase = aNBT.getBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY);
         installedTier = aNBT.hasKey("btsHomTier") ? Math.max(1, Math.min(MAX_TIER, aNBT.getInteger("btsHomTier"))) : 1;
         mixedEspm = aNBT.getLong("btsHomEspm");
         mixedDegenerate = aNBT.getLong("btsHomDegenerate");
@@ -1200,6 +1234,7 @@ public class MTEHomogeny extends MTEExtendedPowerMultiBlockBase<MTEHomogeny>
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
+        if (showcase) info.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         info.addAll(statusLines());
         return info.toArray(new String[0]);
     }

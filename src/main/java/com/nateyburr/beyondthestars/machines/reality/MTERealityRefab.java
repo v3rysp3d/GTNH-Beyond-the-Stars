@@ -333,6 +333,7 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
             @Override
             protected CheckRecipeResult validateRecipe(@Nonnull GTRecipe recipe) {
                 final MTEBECAssembler a = runningAssembler();
+                if (showcase) return super.validateRecipe(recipe);
                 if (a == null) return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.noassembler");
                 final NaniteTier need = highest(recipe.getMetadata(GTRecipeConstants.NANITE_TIERS));
                 final NaniteTier have = a.getCurrentNaniteTier();
@@ -361,6 +362,12 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
     @Nonnull
     public CheckRecipeResult checkProcessing() {
         started = null;
+        if (showcase) {
+            // Showcase: no BEC network or Assembler needed (advance() stands in for both).
+            final CheckRecipeResult result = super.checkProcessing();
+            if (result.wasSuccessful() && started != null) setUpCraft(started);
+            return result;
+        }
         if (network == null || becHatches.isEmpty()) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.nonetwork");
         }
@@ -430,6 +437,17 @@ public class MTERealityRefab extends MTERealityBase<MTERealityRefab> {
         stalled = true;
         if (steps == null || reqFluids == null) {
             wait = "the craft lost its recipe data; break and replace the input to restart";
+            return;
+        }
+        if (showcase) {
+            // Showcase: a stand-in Assembler with the nanites every step needs, and the regions credited in lockstep.
+            final int next = Math.min(mMaxProgresstime, mProgresstime + 1);
+            final double fraction = next / (double) mMaxProgresstime;
+            for (int i = 0; i < reqFluids.length; i++) consumed[i] = Math.max(consumed[i], target(i, fraction));
+            if (next / SAVE_EVERY_TICKS != mProgresstime / SAVE_EVERY_TICKS) getBaseMetaTileEntity().markDirty();
+            mProgresstime = next;
+            stalled = false;
+            wait = "";
             return;
         }
         final MTEBECAssembler a = runningAssembler();

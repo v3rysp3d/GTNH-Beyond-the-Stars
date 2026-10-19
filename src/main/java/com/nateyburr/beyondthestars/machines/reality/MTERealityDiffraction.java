@@ -399,7 +399,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
         if (burstDriven() && quasarSigma() < MIN_SIGMA) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.stability");
         }
-        if (network == null || !hasStorage()) {
+        if (!showcase && (network == null || !hasStorage())) {
             return SimpleCheckRecipeResult.ofFailure("beyondthestars.reality.nonetwork");
         }
         if (getMaxInputEu() < r.mEUt) return CheckRecipeResultRegistry.insufficientPower(r.mEUt);
@@ -456,6 +456,11 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
      * inject those litres twice.
      */
     private void flushPending() {
+        if (showcase && (network == null || !hasStorage())) {
+            // Showcase with no BEC network: the regions are made and voided, so the next run is never held up.
+            java.util.Arrays.fill(pending, 0);
+            return;
+        }
         final Fluid[] regions = SLRealityFluids.regions();
         boolean moved = false;
         for (int k = 0; k < 6; k++) {
@@ -470,6 +475,7 @@ public class MTERealityDiffraction extends MTERealityBase<MTERealityDiffraction>
 
     @Override
     protected void onSecond() {
+        if (showcase) debugFillAnchors();
         if (pendingTotal() > 0) flushPending();
         final IGregTechTileEntity base = getBaseMetaTileEntity();
         if (mMachine && !receptors.isEmpty() && base != null && base.getWorld() != null) {

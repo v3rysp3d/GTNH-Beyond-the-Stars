@@ -151,7 +151,53 @@ import gregtech.common.tileentities.machines.MTEHatchInputME;
  * </ol>
  */
 public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEngine>
-    implements ISurvivalConstructable, DirectiveHost {
+    implements ISurvivalConstructable, DirectiveHost, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    // ============================================================================== showcase mode
+    /**
+     * SHOWCASE MODE (showcase/BTSShowcase): no coil power, the Accretion Buffer and the Overdrive / Unbound upkeep
+     * kept full, the lattice saturated, and a hole that is lost reseeded at the mass it last had. Tile NBT only.
+     */
+    private boolean showcase;
+    /** The mass the showcase hole last had (reseeds it after a collapse), SM. */
+    private double showcaseMass;
+
+    @Override
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        showcase = on;
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        return b == null ? null : structureBox(b).clone();
+    }
+
+    @Override
+    public String showcaseName() {
+        return "Quasar Engine";
+    }
+
+    /** The showcase's second, before the disc steps: buffer, upkeep credit, saturation and a reseed. */
+    private void showcaseSecond() {
+        secondPowerOk = true;
+        debugFillBuffer();
+        for (Fluid f : new Fluid[] { espmFluid(), hsmFluid(), primordialFluid() }) {
+            if (f != null) buffer.put(f.getName(), 1_000_000_000_000_000L);
+        }
+        if (coilTier >= QuasarParams.LATTICE_COIL) saturated = true;
+        if (q.hole == QuasarState.Hole.NONE && mMachine) {
+            debugSeed(showcaseMass > 0 ? showcaseMass : QuasarParams.SEED_MASS, 0);
+        } else if (q.hole == QuasarState.Hole.OPEN) {
+            showcaseMass = q.M;
+        }
+    }
 
     public static final String PIECE = "quasar";
     /** The hologram channel for the Disc Field Coil tier (1-4). */
@@ -712,13 +758,15 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
             // coil power, every tick while the hole is open (GT's power switch does not stop the hole: Collapse does);
             // a re-forming disc is dark and its re-form needs only the feed, so it draws none (QA-B18)
             final long eut = q.hole == QuasarState.Hole.OPEN ? (long) Math.ceil(QuasarParams.coilEUt(effectiveB())) : 0;
-            if (eut > 0 && !drainEnergyInput(eut)) secondPowerOk = false;
+            if (eut > 0 && !showcase && !drainEnergyInput(eut)) secondPowerOk = false;
             // the Accretion Buffer between seconds (§4.2): per-tick draws while the hatches give
             // (plain hatches only: an ME stocking hatch is pulled once a second, QA-B50)
             if (refillMore && aTick % 20 != 0)
                 refillMore = refillBuffer(false) > 0 && buffer(gasFluid(gas)) < bufferCap();
         }
         if (aTick % 20 == 0) {
+            com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
+            if (!frozen && showcase) showcaseSecond();
             if (!frozen) {
                 second(aBaseMetaTileEntity);
                 // the disc state changes every second but GT marks a chunk modified only on inventory changes: without
@@ -2009,6 +2057,7 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     /** The scanner and the console bench. Server state. */
     public List<String> statusLines() {
         final List<String> out = new ArrayList<>();
+        if (showcase) out.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         out.add(
             "Quasar Engine" + (mMachine ? "" : ", NOT FORMED")
                 + (chunksLoaded || !mMachine ? "" : ", FROZEN (a structure chunk is unloaded)")
@@ -2469,6 +2518,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     public void saveNBTData(NBTTagCompound aNBT) {
         super.saveNBTData(aNBT);
         writeQuasarState(aNBT);
+        aNBT.setBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY, showcase);
+        aNBT.setDouble("btsShowcaseMass", showcaseMass);
         // tile only: the gas buffer and where this quasar's render block stands
         final NBTTagCompound buf = new NBTTagCompound();
         for (Map.Entry<String, Long> e : buffer.entrySet()) buf.setLong(e.getKey(), e.getValue());
@@ -2486,6 +2537,8 @@ public class MTEQuasarEngine extends MTEExtendedPowerMultiBlockBase<MTEQuasarEng
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
         readQuasarState(aNBT);
+        showcase = aNBT.getBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY);
+        showcaseMass = aNBT.getDouble("btsShowcaseMass");
         buffer.clear();
         final NBTTagCompound buf = aNBT.getCompoundTag("btsQuasarBuffer");
         for (Object k : buf.func_150296_c()) {

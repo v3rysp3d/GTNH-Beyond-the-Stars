@@ -92,7 +92,34 @@ import io.netty.buffer.ByteBuf;
  * </ol>
  */
 public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends MTEExtendedPowerMultiBlockBase<T>
-    implements ISurvivalConstructable, IConduitElement, IMTERenderer {
+    implements ISurvivalConstructable, IConduitElement, IMTERenderer, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    /** SHOWCASE MODE (showcase/BTSShowcase): the throat's upkeep is waived, so the element stays open. Tile NBT only. */
+    private boolean showcase;
+
+    @Override
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        showcase = on;
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        if (b == null) return null;
+        final int x = b.getXCoord(), z = b.getZCoord();
+        return new int[] { x - 48, 0, z - 48, x + 48, 255, z + 48 };
+    }
+
+    @Override
+    public String showcaseName() {
+        return getLocalName();
+    }
 
     /** The upkeep fuel choice (GUI, OpenComputers). NBT keeps the name. */
     public enum FuelMode {
@@ -504,6 +531,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     private void tickServer(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         if (aTick > 0 && aTick % RECHECK == 0) checkStructure(true, aBaseMetaTileEntity);
         if (aTick % 20 != 0) return;
+        com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
         final World world = aBaseMetaTileEntity.getWorld();
         final long now = world.getTotalWorldTime();
         if (!mMachine) {
@@ -655,6 +683,13 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             reopen = 0;
             owed = 0;
             fuelLine = "no throat, no upkeep";
+            return;
+        }
+        if (showcase) {
+            open = true;
+            reopen = 0;
+            owed = 0;
+            fuelLine = "showcase mode: upkeep waived";
             return;
         }
         final Fluid ergo = ergomatterFluid();
@@ -810,6 +845,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
     /** The scanner and the bench. Server state. */
     public List<String> statusLines() {
         final List<String> out = new ArrayList<>();
+        if (showcase) out.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         final long now = now();
         final int mk = throatMk();
         out.add(
@@ -876,6 +912,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
         t.setString("fuel", fuelMode.name());
         t.setBoolean("open", open);
         t.setInteger("reopen", reopen);
+        t.setBoolean("showcase", showcase);
         t.setDouble("owed", owed);
         t.setString("owedFuel", owedFuel);
         t.setLong("litresST", litresSpaceTime);
@@ -894,6 +931,7 @@ public abstract class MTEConduitElement<T extends MTEConduitElement<T>> extends 
             fuelMode = FuelMode.AUTO;
         }
         open = t.getBoolean("open");
+        showcase = t.getBoolean("showcase");
         reopen = t.getInteger("reopen");
         owed = t.getDouble("owed");
         if (!Double.isFinite(owed)) owed = 0; // a save from before the setters refused NaN heals (P4-91)

@@ -91,7 +91,34 @@ import io.netty.buffer.ByteBuf;
  * </ul>
  */
 public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTEBurstThermaliserCrown>
-    implements ISurvivalConstructable, IBurstDock, IMTERenderer {
+    implements ISurvivalConstructable, IBurstDock, IMTERenderer, com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    /** SHOWCASE MODE (showcase/BTSShowcase): chunks, maintenance and restarts; a crown needs no feed. Tile NBT only. */
+    private boolean showcase;
+
+    @Override
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        showcase = on;
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        if (b == null) return null;
+        final int x = b.getXCoord(), z = b.getZCoord();
+        return new int[] { x - 48, 0, z - 48, x + 48, 255, z + 48 };
+    }
+
+    @Override
+    public String showcaseName() {
+        return "Burst Thermaliser Crown";
+    }
 
     /** Mk I-III (P4) and Mk IV, the Event Horizon Crown (SMBH v1, smbh-v1.md §3.4): the biggest that stands wins. */
     public static final String[] PIECES = { "crown_mk1", "crown_mk2", "crown_mk3", "crown_mk4" };
@@ -405,6 +432,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         }
         if (aTick > 0 && aTick % RECHECK == 0) checkStructure(true, aBaseMetaTileEntity);
         if (aTick % 20 != 0) return;
+        com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
         final World world = aBaseMetaTileEntity.getWorld();
         final long now = world.getTotalWorldTime();
         if (!mMachine) {
@@ -732,6 +760,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
+        if (showcase) info.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         info.addAll(statusLines());
         return info.toArray(new String[0]);
     }
@@ -743,6 +772,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
         super.saveNBTData(aNBT);
         aNBT.setInteger("btsCrownLastMk", lastMk);
         aNBT.setString("btsCrownLifetime", lifetimeEU.toString());
+        aNBT.setBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY, showcase);
     }
 
     /** QA-B16: a wrenched crown keeps its lifetime EU and the Mk it last formed. */
@@ -756,6 +786,7 @@ public class MTEBurstThermaliserCrown extends MTEExtendedPowerMultiBlockBase<MTE
     @Override
     public void loadNBTData(NBTTagCompound aNBT) {
         super.loadNBTData(aNBT);
+        showcase = aNBT.getBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY);
         lastMk = Math.max(1, Math.min(MK_MAX, aNBT.hasKey("btsCrownLastMk") ? aNBT.getInteger("btsCrownLastMk") : 1));
         try {
             lifetimeEU = aNBT.hasKey("btsCrownLifetime") ? new BigInteger(aNBT.getString("btsCrownLifetime"))

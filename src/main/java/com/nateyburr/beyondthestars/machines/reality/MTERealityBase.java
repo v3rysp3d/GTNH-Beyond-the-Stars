@@ -80,7 +80,51 @@ import tectech.thing.metaTileEntity.hatch.bec.MTEHatchBEC;
  * apply as they do to every BEC machine.
  */
 public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExtendedPowerMultiBlockBase<T>
-    implements ISurvivalConstructable, BECFactoryElement, NotableBECFactoryElement, IMTERenderer {
+    implements ISurvivalConstructable, BECFactoryElement, NotableBECFactoryElement, IMTERenderer,
+    com.nateyburr.beyondthestars.showcase.ShowcaseHost {
+
+    /**
+     * SHOWCASE MODE (showcase/BTSShowcase): chunks, maintenance, void mode and restarts; each machine also stands in
+     * for what its BEC network would give it (Diffraction voids its regions with no network, Refab credits its
+     * condensates and nanites). Tile NBT only.
+     */
+    protected boolean showcase;
+
+    @Override
+    public boolean isShowcase() {
+        return showcase;
+    }
+
+    @Override
+    public void setShowcase(boolean on) {
+        showcase = on;
+        if (getBaseMetaTileEntity() != null) getBaseMetaTileEntity().markDirty();
+    }
+
+    @Override
+    public int[] showcaseBox() {
+        final IGregTechTileEntity b = getBaseMetaTileEntity();
+        if (b == null) return null;
+        final int x = b.getXCoord(), z = b.getZCoord();
+        return new int[] { x - 120, 0, z - 120, x + 120, 255, z + 120 };
+    }
+
+    @Override
+    public String showcaseName() {
+        return getLocalName();
+    }
+
+    @Override
+    public void saveNBTData(net.minecraft.nbt.NBTTagCompound aNBT) {
+        super.saveNBTData(aNBT);
+        aNBT.setBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY, showcase);
+    }
+
+    @Override
+    public void loadNBTData(net.minecraft.nbt.NBTTagCompound aNBT) {
+        super.loadNBTData(aNBT);
+        showcase = aNBT.getBoolean(com.nateyburr.beyondthestars.showcase.BTSShowcase.NBT_KEY);
+    }
 
     /** How often the BEC edge to our hatches is re-asserted. */
     public static final int REASSERT_TICKS = 20;
@@ -242,6 +286,7 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
     public void onPostTick(IGregTechTileEntity aBaseMetaTileEntity, long aTick) {
         super.onPostTick(aBaseMetaTileEntity, aTick);
         if (aBaseMetaTileEntity.isServerSide() && aTick % REASSERT_TICKS == 0) {
+            com.nateyburr.beyondthestars.showcase.BTSShowcase.second(this, this);
             BECFactoryGrid.INSTANCE.updateElement(this);
             onSecond();
             if (aTick % 40 == 0) sendRenderDataToClient(this);
@@ -482,6 +527,7 @@ public abstract class MTERealityBase<T extends MTERealityBase<T>> extends MTEExt
     @Override
     public String[] getInfoData() {
         final List<String> info = new ArrayList<>(Arrays.asList(super.getInfoData()));
+        if (showcase) info.add(com.nateyburr.beyondthestars.showcase.BTSShowcase.STATUS_LINE);
         info.addAll(statusLines());
         return info.toArray(new String[0]);
     }
