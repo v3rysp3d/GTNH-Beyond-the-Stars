@@ -53,8 +53,13 @@ val releaseInputJar = tasks.register<Zip>("releaseInputJar") {
     isReproducibleFileOrder = true
 }
 
+// -PbtsRecJar: a reobfuscated jar that keeps the dev-only tooling, to run the video recorder in a full-pack client
+// (docs/recording.md, "Filming a save in the full pack"). Never released: verifyReleaseJar is off for it.
+val recJar = project.hasProperty("btsRecJar")
+
 tasks.named<com.gtnewhorizons.retrofuturagradle.mcp.ReobfuscatedJar>("reobfJar") {
-    inputJar.set(releaseInputJar.flatMap { it.archiveFile })
+    if (recJar) inputJar.set(tasks.named<Jar>("jar").flatMap { it.archiveFile })
+    else inputJar.set(releaseInputJar.flatMap { it.archiveFile })
 }
 
 val verifyReleaseJar = tasks.register("verifyReleaseJar") {
@@ -95,7 +100,7 @@ val verifyReleaseJar = tasks.register("verifyReleaseJar") {
     }
 }
 
-tasks.named("check") { dependsOn(verifyReleaseJar) }
+tasks.named("check") { if (!recJar) dependsOn(verifyReleaseJar) }
 
 // ------------------------------------------------------------------------------------------------------------------
 // B-249: every hatch element of ours names a lang key that en_US.lang has. GT's default key is hatch_type_<name>,

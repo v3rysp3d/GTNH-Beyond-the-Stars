@@ -420,6 +420,8 @@ public final class RecClient {
         s.renderDistanceChunks = renderDistance;
         s.limitFramerate = 260;
         s.enableVsync = false;
+        // a client nobody sits at has no focus: without this it opens the pause menu every tick
+        s.pauseOnLostFocus = false;
         try {
             Display.setVSyncEnabled(false);
         } catch (Exception ignored) {}
@@ -633,6 +635,18 @@ public final class RecClient {
     }
 
     private void waitMenu() {
+        final String save = System.getProperty("bts.rec.world", "");
+        // the full pack's main menu is CustomMainMenu's own screen, not a GuiMainMenu
+        if (!save.isEmpty() && mc.currentScreen != null
+            && (mc.currentScreen instanceof GuiMainMenu || mc.currentScreen.getClass()
+                .getName()
+                .toLowerCase(Locale.ROOT)
+                .contains("custommainmenu"))) {
+            say("opening the save saves/" + save);
+            go(Phase.WAIT_WORLD);
+            mc.launchIntegratedServer(save, save, null);
+            return;
+        }
         if (mc.currentScreen instanceof GuiMainMenu) {
             final String world = "bts-rec-" + new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).format(new Date());
             final WorldSettings settings = new WorldSettings(

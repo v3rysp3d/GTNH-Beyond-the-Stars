@@ -454,6 +454,14 @@ final class RecServer {
         final StringBuilder b = new StringBuilder();
         final MTEEyeOfHarmonyBTS eye = AutoRig.mteAt(world, p, MTEEyeOfHarmonyBTS.class);
         if (eye != null) {
+            // <name>.c: the star, as kit eye names it (a showcase world's Eyes were not raised by the script)
+            AutoRig.POINTS.put(
+                n + ".c",
+                AutoRigEyeAE.ctr(
+                    com.nateyburr.beyondthestars.machines.eye.render.EyeCentreRender
+                        .centrePos(eye.getExtendedFacing(), p[0], p[1], p[2])));
+            b.append(n)
+                .append(".c ");
             for (com.nateyburr.beyondthestars.machines.directive.MTEHatchDirective h : eye.directiveHatches()) {
                 final IGregTechTileEntity t = h.getBaseMetaTileEntity();
                 if (t == null) continue;
@@ -491,6 +499,11 @@ final class RecServer {
         }
         final MTEKerrEngine kee = AutoRig.mteAt(world, p, MTEKerrEngine.class);
         if (kee != null) {
+            AutoRig.POINTS.put(
+                n + ".c",
+                AutoRigEyeAE.ctr(KerrSlot.worldPos(kee.getExtendedFacing(), p[0], p[1], p[2], KerrSlot.centreRel())));
+            b.append(n)
+                .append(".c ");
             for (KerrSlot slot : new KerrSlot[] { KerrSlot.EXTRACTOR, KerrSlot.COMPRESSOR }) {
                 final int[] m = slot.modulePos(kee.getExtendedFacing(), p[0], p[1], p[2]);
                 final String k = n + (slot == KerrSlot.EXTRACTOR ? ".modx" : ".modc");
@@ -501,6 +514,17 @@ final class RecServer {
                     .append(' ');
             }
             return b.toString();
+        }
+        final MTEQuasarEngine q = AutoRig.mteAt(world, p, MTEQuasarEngine.class);
+        if (q != null) {
+            final int[] c = com.nateyburr.beyondthestars.machines.quasar.QuasarGeometry.world(
+                q.getExtendedFacing(),
+                p[0],
+                p[1],
+                p[2],
+                com.nateyburr.beyondthestars.machines.quasar.QuasarGeometry.centreRel());
+            AutoRig.POINTS.put(n + ".c", AutoRigEyeAE.ctr(c));
+            return n + ".c " + RenderTest.pos(c) + " (the quasar's hole)";
         }
         // renders showcase: a Homogeny / Reality machine's render centre (the manifest's centre.rel) as <name>.c
         final MTEEnhancedMultiBlockBase<?> hr = AutoRig.mteAt(world, p, MTEEnhancedMultiBlockBase.class);

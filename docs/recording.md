@@ -66,6 +66,7 @@ Output (default `run/recordings/`, git-ignored with the rest of `run/`):
 | `bts.rec.distance` | `16` | Render distance in chunks. |
 | `bts.rec.fov` | `70` | Field of view. |
 | `bts.rec.exit` | `true` | Close the client when done. |
+| `bts.rec.world` | (none) | The folder name of an existing save in the client's `saves/` to open instead of creating a fresh superflat world. See "Filming a save in the full pack". |
 | `bts.rec.guiscale` | height / 270 (4 at 1080p, 3 at 720p) | GUI scale for `gui` and `nei` screens, so a machine GUI reads at video size. A command's own `scale <n>` wins. The quest book uses height / 360 (3 at 1080p), see Limits. |
 | `bts.rec.quests` | `true` | Before it creates its world, copy the worktree's `questbook/DefaultQuests` (and `questbook/resources`) into the client's `config/betterquesting/`. Run `command /btsquests install` in the setup as well: BetterQuesting reads its defaults at start-up, so on the very first run after the copy only the install puts the chapter into the world. |
 | `bts.rec.questsdir` | (the worktree) | A folder holding `questbook/DefaultQuests` (and `questbook/resources`) to copy instead of the worktree's, e.g. master's book exported with `git archive master questbook \| tar -x -C <dir>`, to film chapters this branch does not have. BetterQuesting reads its defaults at start-up, so copy the same files into `run/client/config/betterquesting/` before the first run (or run twice). |
@@ -278,9 +279,31 @@ the anchor cut (a safe shed under the warp), the EU/t labels, and a closing card
 scale 3, so its Supermassive Lattice side panel fits beside it; `scroll 90 70 20` brings the Lattice rows up and
 `click 123 133` opens the panel. The gas supply is `feed`. One run takes about 15 minutes of real time.
 
+## Filming a save in the full pack
+
+`tools/recording/showcase-world.shots` films the automation showcase world (designs/docs/showcase-worlds.md) as a
+player downloads it: nothing is built or fed by the script, it only names the save's own controllers (`name`,
+`points`) and moves the camera. It runs in a full-pack client, not the dev client:
+
+1. Build a reobfuscated jar that keeps the recorder: `./gradlew reobfJar -PbtsRecJar`. The switch skips the dev-only
+   filter and `verifyReleaseJar`, so this jar is never released.
+2. Copy a GTNH instance (Prism: the whole instance folder), put that jar in its `mods/` in place of the release jar,
+   and the save in its `saves/` under a folder name without spaces.
+3. Give the instance the JVM arguments `-Dbts.rec=true -Dbts.rec.script=<file> -Dbts.rec.ffmpeg=<ffmpeg.exe>
+   -Dbts.rec.out=<folder> -Dbts.rec.world=<save folder> -Dbts.rec.quests=false -Dfml.queryResult=confirm`. Edit
+   Prism's `instance.cfg` only while Prism is closed: a running Prism writes its own copy back over the file.
+4. Launch it (`prismlauncher --launch <instance>`). The recorder opens the save from CustomMainMenu's screen.
+
+`points` names a centre for every Eye, KEE and Quasar Engine (`<name>.c`: the star, the hole), and for the Homogeny and
+the Reality machines as before, so orbits work on machines the script did not raise. A `goto` beside a controller
+on the ground needs the camera 2 blocks above the controller's level (`ctrl+0,2,-3.5`): the camera is pushed back
+while its feet are in a block, out of the 8-block range a `gui` needs. The showcase world's clouds sit at y 128;
+keep camera heights out of 120-135. Eye T9 and T10 face south, the other Eyes north.
+
 ## Limits
 
-- Dev client only, in an integrated world it creates. It does not attach to an existing save or a dedicated server.
+- An integrated world: one it creates, or an existing save with `bts.rec.world` (above). It does not attach to a
+  dedicated server.
 - `gui` opens GT machine GUIs only (anything whose tile is a GT `CommonMetaTileEntity`); the Eye's ModularUI screen
   was checked on video.
 - The quest book: the recorder copies the worktree's `questbook/DefaultQuests` into the dev run (`bts.rec.quests`) and

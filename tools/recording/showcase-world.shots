@@ -1,0 +1,137 @@
+# Beyond the Stars showcase world (automation): a tour of the save as downloaded, filmed in the full pack.
+# Nothing is built or fed by this script: every machine is the save's own.
+
+name kerr 194,39,31
+name eye1 321,8,25
+name eye2 454,8,25
+name eye3 587,8,25
+name eye4 720,8,53
+name eye5 869,8,53
+name eye6 1047,8,59
+name eye7 1248,8,72
+name eye8 1468,8,96
+name eye9 2000,8,-90
+name eye10 2300,8,-90
+name q7 1248,80,222
+name q8 1468,80,275
+name q9 2000,80,-420
+name q10 2300,80,-420
+name qhom 1820,80,80
+name qcon 2502,80,25
+name qlat 3471,100,42
+name hom 2047,41,56
+name dif 2199,12,160
+name ref 2319,10,160
+points kerr
+points eye1
+points eye2
+points eye3
+points eye4
+points eye5
+points eye6
+points eye7
+points eye8
+points eye9
+points eye10
+points q7
+points q8
+points q9
+points q10
+points qhom
+points qcon
+points qlat
+points hom
+points dif
+points ref
+time noon
+
+scene title
+  card 5 Beyond the Stars | The showcase world: automation | Every top-tier machine of the Singularity Ladder and the Eye of Harmony at all ten tiers, | running on their own: no player, no hand on anything
+
+scene avenue
+  caption The avenue runs east from the spawn. Every exhibit stands beside it, and its chunks stay loaded, so it keeps running while you are elsewhere.
+  dolly -30,60,-60 420,95,-60 look 600,20,120 seconds 9 ease inout
+
+scene kerr
+  caption The Kerr Ergosphere Engine, tier 2, with its Extractor and Compressor Modules. The hole sits at its 512 solar-mass setpoint on an endless bus of bolts.
+  orbit kerr.c radius 95 height 30 from -50 to 30 seconds 9
+
+scene eye1
+  caption The Eye of Harmony, tier 1: Sol. A star held in a magnetic field, kept stable only by the valves around its band.
+  readout eye1 match ^(Star|Field|Pressure|Stability|Integrity)
+  orbit eye1.c radius 100 height 32 from -40 to 20 seconds 8
+
+scene valves
+  caption Each valve is a GT debug tank (the endless supply) with a Fluid Regulator cover, switched by a Machine Controller cover from the Directive Hatch above it: the star asks, the valve opens.
+  goto 548.5,52.5,35.5 look 560.5,47.5,44.5
+  label eye3.dir.eye_trims | Directive Hatch (Trims)
+  hold 7
+  caption On the magnetar (tier 6) the Status hatch's event bit opens the Antipolarization Agent valve when a flare is due.
+  label clear
+  goto 995.5,53.5,110.5 look 1011.5,48.5,106.5
+  label eye6.dir.eye_status | Directive Hatch (Status)
+  hold 6
+
+scene eyes2to6
+  caption Tier 2, Sirius A, adds the beam band...
+  orbit eye2.c radius 85 height 28 from -35 to 15 seconds 5
+  caption ...tier 3, Arcturus, the jet crescent...
+  orbit eye3.c radius 90 height 30 from -35 to 15 seconds 5
+  caption ...tier 4, the neutron star, the spiral arms...
+  orbit eye4.c radius 100 height 34 from -35 to 15 seconds 5
+  caption ...tier 5, Sirius B, cooling white dwarfs in batches...
+  orbit eye5.c radius 105 height 36 from -35 to 15 seconds 5
+  caption ...and tier 6, the magnetar. Its flares are answered by an Agent valve on the Status hatch's event bit.
+  orbit eye6.c radius 125 height 42 from -35 to 20 seconds 6
+
+scene eye7
+  caption Tier 7, Triangulum: a galaxy, fed by a real Quasar Engine. The quasar's jet runs down a wormhole Conduit into the Eye.
+  orbit eye7.c radius 175 height 50 from -45 to 10 seconds 8
+  caption The quasar behind it: a hole of its own, a burning disc and two jets. A Wormhole Mouth under it takes the jet away.
+  orbit q7.c radius 90 height 20 from -20 to 40 seconds 7
+
+scene eye8
+  caption Tier 8, the Milky Way: four arms and a bar, satellites crossing the disc. If it is lost, it climbs back by itself through the Galactic Merger.
+  dolly eye8.c+0,1,-150 eye8.c+0,1,-110 look eye8.c seconds 6 ease inout
+  orbit eye8.c radius 190 height 50 from 0 to 45 seconds 7
+
+scene eye9-10
+  caption Tiers 9 and 10 on the far side of the avenue, each on its own quasar. Stellar Field Sensor Hatches steer the Conduit Junctions over GT advanced wireless redstone.
+  orbit eye9.c radius 165 height 50 from 155 to 205 seconds 8
+  caption Tier 10, the top of the Eye.
+  orbit eye10.c radius 170 height 50 from 155 to 205 seconds 8
+
+scene homogeny
+  caption The Homogeny, tier 3, on a quasar of its own beside it: GRB Receptor Ports take the stream that powers it.
+  orbit hom.c radius 110 height 40 from -40 to 20 seconds 8
+
+scene reality
+  caption Reality Diffraction and Reality Refab, the ladder's last line, side by side.
+  orbit dif.c radius 110 height 40 from -40 to 0 seconds 6
+  orbit ref.c radius 110 height 40 from 0 to 40 seconds 6
+
+scene conduit
+  caption A Quasar Engine and the Einstein-Rosen Conduit: the stream comes out of a paired mouth, a Mirror turns it into a Junction, and Burst Thermaliser Crowns turn it into EU.
+  orbit qcon.c radius 110 height 10 from -50 to 10 seconds 7
+  dolly qcon.c+20,-20,-90 qcon.c+260,-20,-90 look qcon.c+300,-40,40 seconds 7 ease inout
+
+scene lattice
+  caption The Supermassive Lattice, level 4, round a quasar with Mk IV crowns: the biggest hole in the world, growing towards 4.19 million solar masses.
+  orbit qlat.c radius 175 height -5 from -40 to 40 seconds 10
+
+scene gui-eye
+  caption The Eye's own screen (tier 1, Sol): the star's zone, the pressure P against its band, stability, integrity, the lock and the production cycle.
+  goto eye1+0,2,-3.5 look eye1
+  gui eye1
+  hold 5
+  close
+
+scene gui-quasar
+  caption A quasar's screen: the hole's mass and spin, the disc's energy and flux.
+  goto qlat+0,0.2,-3.5 look qlat
+  gui qlat
+  hold 5
+  close
+
+scene end
+  card 5 Beyond the Stars 0.26.0 | Download this world from the 0.26.0 release on GitHub | Break what you like: a fresh copy is one download away
